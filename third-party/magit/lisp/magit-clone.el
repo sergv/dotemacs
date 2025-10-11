@@ -43,9 +43,9 @@ If t, then set without asking.  If nil, then don't set.  If
 `ask', then ask."
   :package-version '(magit . "2.4.0")
   :group 'magit-commands
-  :type '(choice (const :tag "set" t)
-                 (const :tag "ask" ask)
-                 (const :tag "don't set" nil)))
+  :type '(choice (const :tag "Set" t)
+                 (const :tag "Ask" ask)
+                 (const :tag "Don't set" nil)))
 
 (defcustom magit-clone-default-directory nil
   "Default directory to use when `magit-clone' reads destination.
@@ -54,9 +54,9 @@ If a directory, then use that.  If a function, then call that
 with the remote url as only argument and use the returned value."
   :package-version '(magit . "2.90.0")
   :group 'magit-commands
-  :type '(choice (const     :tag "value of default-directory")
-                 (directory :tag "constant directory")
-                 (function  :tag "function's value")))
+  :type '(choice (const     :tag "Value of default-directory")
+                 (directory :tag "Constant directory")
+                 (function  :tag "Function's value")))
 
 (defcustom magit-clone-always-transient nil
   "Whether `magit-clone' always acts as a transient prefix command.
@@ -308,19 +308,19 @@ Then show the status buffer for the new repository."
         (concat "file://"
                 (magit-convert-filename-for-git
                  (read-directory-name "Clone repository: file://"))))
-    (?b "or [b]undle"
+    (?b "[b]undle"
         (magit-convert-filename-for-git
          (read-file-name "Clone from bundle: ")))))
 
 (defun magit-clone--url-to-name (url)
   (and (string-match "\\([^/:]+?\\)\\(/?\\.git\\)?$" url)
-       (match-string 1 url)))
+       (match-str 1 url)))
 
 (defun magit-clone--name-to-url (name)
   (or (seq-some
        (pcase-lambda (`(,re ,host ,user))
          (and (string-match re name)
-              (let ((repo (match-string 1 name)))
+              (let ((repo (match-str 1 name)))
                 (magit-clone--format-url host user repo))))
        magit-clone-name-alist)
       (user-error "Not an url and no matching entry in `%s'"
@@ -336,16 +336,27 @@ Then show the status buffer for the new repository."
       (format-spec
        url-format
        `((?h . ,host)
-         (?n . ,(if (string-search "/" repo)
-                    repo
-                  (if (string-search "." user)
-                      (if-let ((user (magit-get user)))
-                          (concat user "/" repo)
-                        (user-error "Set %S or specify owner explicitly" user))
-                    (concat user "/" repo))))))
+         (?n . ,(cond
+                 ((string-search "/" repo) repo)
+                 ((string-search "." user)
+                  (if-let ((user (magit-get user)))
+                      (concat user "/" repo)
+                    (user-error "Set %S or specify owner explicitly" user)))
+                 ((concat user "/" repo))))))
     (user-error
      "Bogus `magit-clone-url-format' (bad type or missing default)")))
 
 ;;; _
 (provide 'magit-clone)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-clone.el ends here
