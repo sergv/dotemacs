@@ -30,6 +30,7 @@
 
 (require 'treesit)
 (require 'project)
+(require 'c-ts-common) ; For comment indent and filling
 (eval-when-compile
   (require 'subr-x))
 
@@ -537,16 +538,7 @@ Current rules are:
     (setq-local treesit-defun-name-function #'kotlin-ts-mode--defun-name)
 
     ;; Comments
-    ;; Stolen from c-ts-mode
-    (setq-local comment-start "/* ")
-    (setq-local comment-end " */")
-    (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                           (seq "/" (+ "*")))
-                                       (* (syntax whitespace))))
-    (setq-local comment-end-skip
-                (rx (* (syntax whitespace))
-                    (group (or (syntax comment-end)
-                               (seq (+ "*") "/")))))
+    (c-ts-common-comment-setup)
 
     ;; Electric
     (setq-local electric-indent-chars
