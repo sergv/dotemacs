@@ -57,17 +57,17 @@ Setting up graphviz-dot-mode
 ----------------------------------
 
 Now you can finally add Graphviz support to your Emacs by adding the
-following lines to your start-up file.
+following lines to your startup file.
 
 ``` emacs-lisp
 (use-package graphviz-dot-mode
   :ensure t
   :config
-  (setq graphviz-dot-indent-width 4))
-
-(use-package company-graphviz-dot
-  )
+  (setq graphviz-dot-indent-width 4)
+  :hook
+  (graphviz-dot-mode . flycheck-mode))
 ```
+
 Evaluate above code or restart Emacs.
 
 Using `graphviz-dot-mode`
@@ -92,14 +92,15 @@ and any subgraph within it.
 
 ### Completion
 
-Completion makes use of
-[company-mode](http://company-mode.github.io/):
+Is available and makes use of the facilities provided by Emacs. Your
+preferred completion framework should plug into this.
 
-* `company-complete`
+For instance, if you use company, it can be configured by adding the
+following line to your startup file.
 
-  This command will complete the attribute or value keyword at
-point. If more than one completion is possible, a list with
-suggestions is displayed.
+``` emacs-lisp
+(add-hook 'graphviz-dot-mode-hook 'company-mode)
+```
 
 ### Commenting
 
@@ -124,6 +125,14 @@ comment to the line and indent it.
 comment if within one. This indents the body of the continued comment
 under the previous comment line.
 
+### Choosing layout
+
+* `M-x graphviz-dot-set-layout`
+
+  This command lets you choose the layout program for your graphs.
+The default is `dot`. The list of layout programs is in
+`C-h v graphviz-dot-layout-programs` and can be customized.
+
 ### Compiling
 
 * `C-c C-c` (`compile`)
@@ -135,7 +144,7 @@ extension determined by the variable `graphviz-dot-preview-extension`.
 * `` C-x ` `` (`next-error`)
 
   This command will jump to the location in the source file of the
-next error from the most recent compile. Use `C-c c` to compile first.
+next error from the most recent compile. Use `C-c C-c` to compile first.
 
 ### Viewing
 
@@ -149,7 +158,7 @@ displaying the graphic file output by `dot`.
   See `image-file-name-extensions` to customize the graphic files that
   can be displayed.
 
-* `C-c v` (`graphviz-dot-view`)
+* `C-c C-v` (`graphviz-dot-view`)
 
   This command invokes an external viewer specified by the variable
 `graphviz-dot-view-command`. If `graphviz-dot-view-edit-command` is
@@ -169,7 +178,7 @@ You may customize variables by typing
 
 `M-x graphviz-dot-customize RET`
 
-or by setting them to different values in your start-up file.
+or by setting them to different values in your startup file.
 
 * `graphviz-dot-dot-program` string, default: “dot”
 
@@ -211,7 +220,7 @@ dot-file viewer command name when you use `C-c C-v`
 the viewer command variable `graphviz-dot-view-command` every time you
 use `C-c C-v` or `nil` to avoid the prompt.
 
-* `graphviz-dot-indent-width` integer, default: `default-tab-width`
+* `graphviz-dot-indent-width` integer, default: `standard-indent`
 
   This variable determines the indentation used in `graphviz-dot-mode`
 buffers.

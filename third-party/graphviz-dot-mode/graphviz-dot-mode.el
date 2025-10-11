@@ -1,4 +1,4 @@
-;;; graphviz-dot-mode.el --- Mode for the dot-language used by graphviz (att).
+;;; graphviz-dot-mode.el --- Mode for the dot-language used by graphviz (att).   -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002 - 2020, 2022 Pieter Pareit <pieter.pareit@gmail.com>
 
@@ -42,113 +42,23 @@
 ;; automatic, indentation uses the same commands as other modes, tab,
 ;; M-j and C-M-q.  Insertion of comments uses the same commands as
 ;; other modes, M-; .  You can compile a file using M-x compile or C-c
-;; c, after that M-x next-error will also work.  There is support for
-;; viewing an generated image with C-c p.
+;; C- c, after that M-x next-error will also work.  There is support
+;; for viewing an generated image with C-c C-p.
 ;;
 ;;; Todo:
 ;;
-;;; History:
-;; Version 0.4.2 Pieter Pareit
-;; 25/01/2020: * Fix issues
-;;             * Improve font-locking
-;;             * Improve completion by implementing company mode
-;;             * Rewrote basic documentation
-;; Version 0.4.1 Pieter Pareit
-;; 28/09/2019: * Maintenance, checking documentation, fixing flycheck errors.
-;;             * Solve next-error for gaphviz
-;;             * Tag new version
-;; Version 0.3.11 Olli Piepponen
-;; 29/01/2016: * use define-derived-mode for the mode-definition
-;;             * add support for a auto-loading live preview work flow
-;; Version 0.3.10 Kevin Ryde
-;; 25/05/2015: * shell-quote-argument for safety
-;;             * use read-shell-command whenever available, don't set novaproc
-;; Version 0.3.9 Titus Barik <titus AT barik.net>
-;; 28/08/2012: * compile-command uses -ofile instead of >
-;; Version 0.3.8 new home
-;; 27/06/2012: * put graphviz-dot-mode into git, updated links
-;; Version 0.3.7 Tim Allen
-;; 09/03/2011: * fix spaces in file names when compiling
-;; Version 0.3.6 maintenance
-;; 19/02/2011: * .gv is the new extension  (Pander)
-;;             * comments can start with # (Pander)
-;;             * highlight of new keywords (Pander)
-;; Version 0.3.5 bug (or at least feature I dislike) fix
-;; 11/11/2010:  Eric Anderson http://www.ece.cmu.edu/~andersoe/
-;;             * Preserve indentation across blank (whitespace-only) lines
-;; Version 0.3.4 bug fixes
-;; 24/02/2005: * fixed a bug in graphviz-dot-preview
-;; Version 0.3.3 bug fixes
-;; 13/02/2005: Reuben Thomas <rrt AT sc3d.org>
-;;             * add graphviz-dot-indent-width
-;; Version 0.3.2 bug fixes
-;; 25/03/2004: Rubens Ramos <rubensr AT users.sourceforge.net>
-;;             * semi-colons and brackets are added when electric
-;;               behaviour is disabled.
-;;             * electric characters do not behave electrically inside
-;;               comments or strings.
-;;             * default for electric-braces is disabled now (makes more
-;;               sense I guess).
-;;             * using read-from-minibuffer instead of read-shell-command
-;;               for emacs.
-;;             * Fixed test for easymenu, so that it works on older
-;;               versions of XEmacs.
-;;             * Fixed indentation error when trying to indent last brace
-;;               of an empty graph.
-;;             * region-active-p does not exist in emacs (21.2 at least),
-;;               so removed from code
-;;             * Added uncomment menu option
-;; Version 0.3.1 bug fixes
-;; 03/03/2004: * backward-word needs argument for older emacs
-;; Version 0.3 added features and fixed bugs
-;; 10/01/2004: fixed a bug in graphviz-dot-indent-graph
-;; 08/01/2004: Rubens Ramos <rubensr AT users.sourceforge.net>
-;;             * added customization support
-;;             * Now it works on XEmacs and Emacs
-;;             * Added support to use an external Viewer
-;;             * Now things do not break when dot mode is entered
-;;               when there is no buffer name, but the side effect is
-;;               that in this case, the compilation command is not
-;;               correct.
-;;             * Preview works on XEmacs and emacs.
-;;             * Electric indentation on newline
-;;             * Minor changes to indentation
-;;             * Added keyword completion (but could be A LOT better)
-;;             * There are still a couple of ugly hacks. Look for 'RR'.
-;; Version 0.2 added features
-;; 11/11/2002: added preview support.
-;; 10/11/2002: indent a graph or subgraph at once with C-M-q.
-;; 08/11/2002: relaxed rules for indentation, the may now be extra chars
-;;             after beginning of graph (comment's for example).
-;; Version 0.1.2 bug fixes and naming issues
-;; 06/11/2002: renamed dot-font-lock-defaults to dot-font-lock-keywords.
-;;             added some documentation to dot-colors.
-;;             provided a much better way to handle my max-specpdl-size
-;;             problem.
-;;             added an extra autoload cookie (hope this helps, as I don't
-;;             yet use autoload myself)
-;; Version 0.1.1 bug fixes
-;; 06/11/2002: added an missing attribute, for font-locking to work.
-;;             fixed the regex generating, so that it only recognizes
-;;             whole words
-;; 05/11/2002: there can now be extra whitespace chars after an '{'.
-;; 04/11/2002: Why I use max-specpdl-size is now documented, and old value
-;;             gets restored.
-;; Version 0.1 initial release
-;; 02/11/2002: implemented parser for *compilation* of a .dot file.
-;; 01/11/2002: implemented compilation of an .dot file.
-;; 31/10/2002: added syntax-table to the mode.
-;; 30/10/2002: implemented indentation code.
-;; 29/10/2002: implemented all of font-lock.
-;; 28/10/2002: derived graphviz-dot-mode from fundamental-mode, started
-;;             implementing font-lock.
-
 ;;; Code:
 
 (require 'current-column-fixed)
 
+(require 'cl-lib)
 (require 'compile)
 (require 'subr-x)
+(require 'thingatpt)
+
+;; add optionally flycheck support, will not error if not installed
+(eval-when-compile
+  (require 'flycheck nil t))
 
 (require 'common-whitespace)
 
@@ -156,7 +66,7 @@
   "Version of `graphviz-dot-mode.el'.")
 
 (defgroup graphviz nil
-  "Major mode for editing Graphviz Dot files"
+  "Major mode for editing Graphviz Dot files."
   :group 'tools)
 
 (defun graphviz-dot-customize ()
@@ -176,7 +86,7 @@
 (defcustom graphviz-dot-layout-programs
   '("dot" "neato" "fdp" "sfdp" "twopi" "twopi" "circo")
   "*List of layout programs for the user to choose from."
-  :type 'list
+  :type '(repeat (string :tag "Program"))
   :group 'graphviz)
 
 (defcustom graphviz-dot-view-command "dotty %s"
@@ -195,7 +105,7 @@ You can use `%s' in this string, and it will be substituted by the buffer name."
   :type 'boolean
   :group 'graphviz)
 
-(defcustom graphviz-dot-indent-width tab-width
+(defcustom graphviz-dot-indent-width standard-indent
   "*Indentation width in Graphviz Dot mode buffers."
   :type 'integer
   :group 'graphviz)
@@ -210,11 +120,6 @@ file.dot -o file.png'."
 (defcustom graphviz-dot-auto-preview-on-save nil
   "*Determines if saving the buffer should automatically trigger preview."
   :type 'boolean
-  :group 'graphviz)
-
-(defcustom graphviz-dot-revert-delay 300
-  "*Amount of time to sleep before attempting to display the rendered image."
-  :type 'number
   :group 'graphviz)
 
 (defcustom graphviz-dot-attr-keywords
@@ -245,9 +150,8 @@ not immediately visible."
 
 (defvar graphviz-attributes-type-arrow
   '("arrowhead" "arrowtail")
-  "The attributes that are of type `arrow'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+  "The attributes that are of type `arrowType'.
+See URL `https://graphviz.org/docs/attr-types/arrowType/'.")
 
 (defvar graphviz-values-type-arrow
   '("box" "lbox" "rbox" "obox" "olbox" "orbox"
@@ -260,15 +164,13 @@ more information about possible attributes.")
     "tee" "ltee" "rtee"
     "vee" "lvee" "rvee"
     "curve" "lcurve" "rcurve" "ocurve" "olcurve" "orcurve")
-  "The possible values that an attribute of type `arrow' can have.
-See https://graphviz.gitlab.io/_pages/doc/info/arrows.html for
-more information about the arrow shape.")
+  "The possible values that an attribute of type `arrowType' can have.
+See URL `https://graphviz.org/doc/info/arrows.html.'")
 
 (defvar graphviz-attributes-type-shape
   '("shape")
   "The attributes that are of type `shape'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+See URL `https://graphviz.org/docs/attr-types/shape/'.")
 
 (defvar graphviz-values-type-shape
   '("box" "polygon" "ellipse" "oval" "circle" "point" "egg" "triangle" "plaintext"
@@ -279,81 +181,85 @@ more information about possible attributes.")
     "box3d" "component" "promoter" "cds" "terminator" "utr" "primersite"
     "restrictionsite" "fivepoverhang" "threepoverhang" "noverhang" "assembly"
     "signature" "insulator" "ribosite" "rnastab" "proteasesite" "proteinstab"
-    "rpromoter" "rarrow" "larrow" "lpromoter")
+    "rpromoter" "rarrow" "larrow" "lpromoter"
+    "record")
   "The possible values that an attribute of type `shape' can have.
-See https://graphviz.gitlab.io/_pages/doc/info/shape.html for
-more information about the node shapes.")
+See URL `https://graphviz.org/doc/info/shapes.html'.")
 
 (defvar graphviz-attributes-type-style
   '("style")
   "The attributes that are of type `style'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+See URL `https://graphviz.org/docs/attrs/style/'.")
 
 (defvar graphviz-values-type-style
-  '("dashed" "dotted" "solid" "invis" "bold" "tapered" "filled" "striped"
-    "wedged" "diagonals" "rounded" "filled" "striped" "rounded" "radial")
+  '("dashed" "dotted" "solid" "invis" "bold"
+    "tapered"
+    "filled" "striped" "wedged" "diagonals" "rounded"
+    "filled" "striped" "rounded"
+    "radial")
   "The possible values that an attribute of type `style' can have.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html#k:style for
-more information about possible styles.")
+See URL `https://graphviz.org/docs/attr-types/style/'.")
 
 (defvar graphviz-attributes-type-dir
   '("dir")
-  "The attributes that are of type `bool'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+  "The attributes that are of type `dirType'.
+See URL `https://graphviz.org/docs/attrs/dir/'.")
 
 (defvar graphviz-values-type-dir
   '("forward" "back" "both" "none")
-  "The possible values that an attribute of type `dir' can have.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html#k:dirType for
-more information about the direction that edges can have.")
+  "The possible values that an attribute of type `dirType' can have.
+See URL `https://graphviz.org/docs/attr-types/dirType/'.")
 
 (defvar graphviz-attributes-type-outputmode
   '("outputorder")
   "The attributes that are of type `outputMode'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+See URL `https://graphviz.org/docs/attrs/outputorder/'.")
 
 (defvar graphviz-values-type-outputmode
   '("breadthfirst" "nodesfirst" "edgesfirst")
   "The possible values that an attribute of type `outputMode' can have.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html#k:outputMode for
-more information.")
+See URL `https://graphviz.org/docs/attr-types/outputMode/'.")
 
 (defvar graphviz-attributes-type-packmode
   '("packmode")
   "The attributes that are of type `packMode'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+See URL `https://graphviz.org/docs/attrs/packmode/'.")
 
 (defvar graphviz-values-type-packmode
   '("node" "clust" "array")
   "The possible values that an attribute of type `packMode' can have.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html#k:packMode for
-more information.")
+See URL `https://graphviz.org/docs/attr-types/packMode/'.")
 
 (defvar graphviz-attributes-type-pagedir
   '("pagedir")
   "The attributes that are of type `pagedir'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+See URL `https://graphviz.org/docs/attrs/pagedir/'.")
 
 (defvar graphviz-values-type-pagedir
   '("BL" "BR" "TL" "TR" "RB" "RT" "LB" "LT")
   "The possible values that an attribute of type `pagedir' can have.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html#k:pagedir for
-more information.")
+See URL `https://graphviz.org/docs/attr-types/pagedir/'.")
+
+(defvar graphviz-attributes-splines
+  '("splines")
+  "The attributes that are `splines'.
+See URL `https://graphviz.org/docs/attrs/splines/'.")
+
+(defvar graphviz-attributes-splines-values
+  '("true" "false" "none" "line" "spline" "polyline" "ortho" "curved")
+  "The possible values that an attribute `splines' can have.
+See URL `https://graphviz.org/docs/attrs/splines/'.")
 
 (defvar graphviz-attributes-type-bool
-  '("center" "compound" "concentrate" "constraint" "decorate"
-    "diredgeconstraints" "fixedsize" "forcelabels" "headclip" "imagescale"
-    "labelfloat" "landscape" "mosek" "newrank" "nojustify" "normalize"
-    "notranslate" "overlap" "overlap_shrink" "pack" "pin" "quadtree" "regular"
-    "remincross" "root" "splines" "tailclip" "truecolor")
+  '("beautify" "center" "cluster" "compound" "concentrate" "constraint"
+    "decorate" "diredgeconstraints" "fixedsize" "forcelabels" "headclip"
+    "imagescale" "labelfloat" "landscape" "newrank" "nojustify" "normalize"
+    "notranslate" "oneblock" "overlap" "overlap_shrink" "pack" "pin" "quadtree"
+    "regular" "remincross" "root" "splines" "tailclip" "truecolor")
   "The attributes that are of type `bool'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+Some atributes like `splines' are more specific then bool.  So during switching
+one type, checking for `bool' must come last.
+See URL `https://graphviz.org/docs/attr-types/bool/'.")
 
 (defvar graphviz-values-type-bool
   '("true" "false" "yes" "no" "1" "0")
@@ -362,15 +268,13 @@ more information about possible attributes.")
 (defvar graphviz-attributes-type-portpos
   '("headport" "tailport")
   "The attributes that are of type `portPos'.
-See https://graphviz.gitlab.io/_pages/doc/info/attrs.html for
-more information about possible attributes.")
+See URL `https://graphviz.org/docs/attr-types/portPos/'.")
 
 (defvar graphviz-values-type-portpos
   '("n" "ne" "e" "se" "s" "sw" "w" "nw" "c" "_")
   "The possible values that an attribute of type `portPos' can have.
-The can also be used on the edge as a compass point.  See
-https://graphviz.gitlab.io/_pages/doc/info/attrs.html#k:portPos
-for more information.")
+They can also be used on the edge as a compass point.
+See URL `https://graphviz.org/docs/attr-types/portPos/'.")
 
 (defcustom graphviz-dot-value-keywords
   '("true" "false" "normal" "inv" "dot" "invdot" "odot" "invodot"
@@ -517,8 +421,7 @@ not immediately visible."
     "wheat3" "wheat4" "white" "whitesmoke" "yellow" "yellow1" "yellow2"
     "yellow3" "yellow4" "yellowgreen")
   "Possible color constants in the dot language.
-The list of constant is available at http://www.research.att.com/~erg/graphviz\
-/info/colors.html")
+See URL `https://graphviz.org/doc/info/colors.html'")
 
 
 ;;; Key map
@@ -552,7 +455,6 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
    ("^#" (0 "< b"))))
 
 (defvar graphviz-dot-font-lock-keywords
-  ;; See https://graphviz.gitlab.io/_pages/doc/info/lang.html.
   `(;; Match ID, first case
     ("\\(?:di\\|sub\\)?graph\\(?:[[:space:]]+\\)\\([a-zA-Z_]+[a-zA-Z0-9_]*\\)"
      (1 font-lock-function-name-face))
@@ -560,13 +462,13 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
     ("\\(?:di\\|sub\\)?graph\\(?:[[:space:]]+\\)\\(-?[0-9]*\\(\\.[0-9]*\\)?\\)"
      (1 font-lock-function-name-face))
     (,(regexp-opt graphviz-dot-value-keywords 'words)
-     . font-lock-reference-face)
+     . font-lock-constant-face)
     ;; to build the font-locking for the colors,
     ;; we need more room for max-specpdl-size,
     ;; after that we take the list of symbols,
     ;; convert them to a list of strings, and make
     ;; an optimized regexp from them
-    (,(let ((max-specpdl-size (max max-specpdl-size 1200)))
+    (,(let ((max-lisp-eval-depth (max max-lisp-eval-depth 1200)))
         (regexp-opt graphviz-dot-color-keywords 'words))
      . font-lock-string-face)
     (,(concat
@@ -583,7 +485,8 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
      1 'font-lock-keyword-face)
     ;; The 'subgraph' nonterminal
     ("\\_<subgraph\\_>" . 'font-lock-keyword-face))
-  "Keyword highlighting specification for `graphviz-dot-mode'.")
+  "Keyword highlighting specification for `graphviz-dot-mode'.
+See URL `https://graphviz.org/doc/info/lang.html'.")
 
 (defun graphviz-output-file-name (f-name)
   "Return the filename of the preview, using F-NAME."
@@ -607,6 +510,114 @@ be changed with `graphviz-dot-preview-extension'."
                    (file-name-unquote
                     (file-local-name (graphviz-output-file-name f-name))))))))
 
+(defun graphviz-dot--syntax-at-point ()
+  "Return the syntax at point.
+This can be one of comment, string, out, value, attribute, color,
+arrow, shape, style, dir, outputmode or other."
+  (let ((state (syntax-ppss)))
+    (cond
+     ((nth 4 state) 'comment)
+     ((nth 3 state) 'string)
+     ((not (nth 1 state)) 'out)
+     (t (save-excursion
+          (skip-chars-backward "^[\\[,;=:\n]")
+          (backward-char)
+          (cond
+           ((looking-at "[\\[,;\n]") 'attribute)
+	   ((looking-at ":") 'compasspoint)
+           ((looking-at "=")
+	    (progn
+	      (backward-word 1)
+	      (cond
+	       ((looking-at "[a-zA-Z]*color")  'color)
+	       ((member (word-at-point) graphviz-attributes-type-arrow) 'arrow)
+	       ((member (word-at-point) graphviz-attributes-type-shape) 'shape)
+	       ((member (word-at-point) graphviz-attributes-type-style) 'style)
+	       ((member (word-at-point) graphviz-attributes-type-dir) 'dir)
+	       ((member (word-at-point) graphviz-attributes-type-outputmode) 'outputmode)
+	       ((member (word-at-point) graphviz-attributes-type-packmode) 'packmode)
+	       ((member (word-at-point) graphviz-attributes-type-pagedir) 'pagedir)
+	       ((member (word-at-point) graphviz-attributes-type-portpos) 'portpos)
+	       ((member (word-at-point) graphviz-attributes-splines) 'splines)
+	       ((member (word-at-point) graphviz-attributes-type-bool) 'bool)
+	       (t 'value))))
+           (t 'other)))))))
+
+;; dynamic node completion
+(defun graphviz-dot--collect-node-ids ()
+  "Return a de-duplicated list of node IDs in the current buffer.
+
+• Ignores identifiers inside comments, double-quoted strings,
+  square-bracket attribute lists, or immediately following an '=' or ':'.
+• Filters out everything in `graphviz-dot-attr-keywords`
+  so language and attribute names never appear."
+  (save-excursion
+    (goto-char (point-min))
+    (let (ids)
+      (while (re-search-forward
+              ;; bare identifiers or double-quoted identifiers
+              "\\(?:\\_<\\([A-Za-z_][A-Za-z0-9_]*\\)\\_>\\|\"\\([^\"]+\\)\"\\)"
+              nil t)
+        (let* ((match-beg   (match-beginning 0))
+               (match-end   (match-end 0))         ; keep point progressing
+               (state       (syntax-ppss match-beg))
+               (in-string   (nth 3 state))
+               (in-comment  (nth 4 state))
+               (bracket-pos (nth 1 state))
+               (in-attr-list
+                (and bracket-pos (eq (char-after bracket-pos) ?\[)))
+               ;; identifier just after '='  ?
+               (preceded-by-equal
+                (save-excursion
+                  (goto-char match-beg)
+                  (skip-chars-backward " \t")
+                  (eq (char-before) ?=)))
+               ;; identifier just after ':'  ?
+               (preceded-by-colon
+                (save-excursion
+                  (goto-char match-beg)
+                  (skip-chars-backward " \t")
+                  (eq (char-before) ?:))))
+          (unless (or in-string in-comment in-attr-list
+                      preceded-by-equal preceded-by-colon)
+            (push (or (match-string-no-properties 1)
+                      (match-string-no-properties 2))
+                  ids))
+          (goto-char match-end)))
+      (cl-set-difference
+       (cl-delete-duplicates ids :test #'string= :from-end t)
+       graphviz-dot-attr-keywords
+       :test #'string=))))
+
+(defun graphviz-completion-at-point ()
+  "Offer context-aware completion for Graphviz.
+Adds dynamic node/subgraph names alongside the static keyword tables."
+  (let* ((bounds (bounds-of-thing-at-point 'symbol))
+         (start  (if bounds (car bounds) (point)))
+         (end    (if bounds (cdr bounds) (point)))
+         (context (graphviz-dot--syntax-at-point))
+         (collection
+          (cl-case context
+            (compasspoint graphviz-values-type-portpos)
+            (color        graphviz-dot-color-keywords)
+            (arrow        graphviz-values-type-arrow)
+            (shape        graphviz-values-type-shape)
+            (style        graphviz-values-type-style)
+            (dir          graphviz-values-type-dir)
+            (outputmode   graphviz-values-type-outputmode)
+            (packmode     graphviz-values-type-packmode)
+            (pagedir      graphviz-values-type-pagedir)
+            (portpos      graphviz-values-type-portpos)
+            (splines      graphviz-attributes-splines-values)
+            (bool         graphviz-values-type-bool)
+            (value        graphviz-dot-value-keywords)
+            ((comment string) nil)                       ; nothing in strings/comments
+            (t (append (graphviz-dot--collect-node-ids)  ; in all other places
+                       graphviz-dot-attr-keywords)))))
+    (when collection
+      (list start end collection :exclusive 'no))))
+
+
 (defvar dot-menu nil
   "Menu for Graphviz Dot Mode.
 This menu will get created automatically if you have the `easymenu'
@@ -614,13 +625,18 @@ package.")
 
 ;;;###autoload
 (define-derived-mode graphviz-dot-mode prog-mode "dot"
-  "Major mode for the dot language. \\<graphviz-dot-mode-map>
-TAB indents for graph lines.
+  "Major mode for the dot language.
 
-\\[graphviz-dot-indent-graph]\t- Indentation function.
-\\[graphviz-dot-preview]\t- Previews graph in a buffer.
-\\[graphviz-dot-view]\t- Views graph in an external viewer.
-\\[graphviz-dot-indent-line]\t- Indents current line of code.
+Functionality specific to this mode:
+
+  `indent-for-tab-command'    \\[indent-for-tab-command]
+        Indents a single line.
+  `graphviz-dot-preview'      \\[graphviz-dot-preview]
+        Previews graph in a buffer.
+  `graphviz-dot-view'         \\[graphviz-dot-view]
+        Views graph in an external viewer.
+  `graphviz-dot-indent-line'  \\[graphviz-dot-indent-line]
+        Indents current line of code.
 
 Variables specific to this mode:
 
@@ -638,7 +654,7 @@ Variables specific to this mode:
   (setq-local font-lock-defaults '(graphviz-dot-font-lock-keywords))
   (setq-local comment-start "//")
   (setq-local comment-start-skip "/\\*+ *\\|//+ *")
-  (setq-local indent-line-function 'graphviz-dot-indent-line)
+  (setq-local indent-line-function #'graphviz-dot-indent-line)
   (setq-local syntax-propertize-function
               graphviz-dot-syntax-propertize-function)
   (when (buffer-file-name)
@@ -648,9 +664,25 @@ Variables specific to this mode:
   (add-to-list 'compilation-error-regexp-alist-alist
 	       '(dot "^Error: \\(.+\\): .*error in line \\([0-9]+\\).*" 1 2))
   (add-hook 'after-save-hook 'graphviz-live-reload-hook)
+  (add-hook 'completion-at-point-functions
+	    'graphviz-completion-at-point
+	    nil
+	    'local)
   (run-hooks 'graphviz-dot-mode-hook))
 
+
+;;;;
+;;;; Syntax Checking with flycheck
+;;;;
+
+
+;; only require the graphviz-dot-flycheck support if flycheck was loaded
+(with-eval-after-load 'flycheck
+  (require 'graphviz-dot-flycheck))
+
+;;;;
 ;;;; Menu definitions
+;;;;
 
 (and (condition-case nil
          (require 'easymenu)
@@ -702,7 +734,10 @@ Variables specific to this mode:
    ;; other cases need to look at previous lines
    (t
     (indent-line-to (save-excursion
-                      (forward-line -1)
+		      (forward-line -1)
+		      (while (and (not (bobp))
+                                  (looking-back "^[[:space:]]*$" (line-beginning-position)))
+			(forward-line -1))
                       (cond
                        ((looking-at "\\(^.*{[^}]*$\\)")
                         ;; previous line opened a block
@@ -719,22 +754,24 @@ Variables specific to this mode:
                         ;; previous line stopped filling
                         ;; attributes, find the line that started
                         ;; filling them and indent to that line
-                        (while (or (looking-at ".*\\[.*\\].*")
-                                   (not (looking-at ".*\\[.*"))) ; TODO:PP : "
+                        (while (and (not (bobp))
+                                    (or (looking-at ".*\\[.*\\].*")
+                                        (not (looking-at ".*\\[.*")))) ; TODO:PP : "
                           (forward-line -1))
                         (current-indentation))
                        (t
                         ;; default case, indent the
                         ;; same as previous NON-BLANK line
                         ;; (or the first line, if there are no previous non-blank lines)
-                        (while (and (< (point-min) (point))
+                        (while (and (not (bobp))
                                     (looking-at "^\[ \t\]*$"))
                           (forward-line -1))
                         ;; if we find a closing square bracket, don't indent
                         ;; to the level of its attributes, but instead
                         ;; find the opening bracket and indent to that
                         (if (looking-at ".*\\].*")
-                            (while (not (looking-at ".*\\[.*"))
+                            (while (and (not (bobp))
+                                        (not (looking-at ".*\\[.*")))
                               (forward-line -1)))
                         (current-indentation)) ))) )))
 
@@ -764,23 +801,76 @@ then indent this and each subgraph in it."
             ;; as long as we are not completed or at end of buffer
             (and (> bracket-count 0) (not (eobp))))))))
 
+(defconst graphviz-preview-buffer
+  "*Graphviz Preview: %s*")
+
+(defconst graphviz-error-buffer
+  "*Graphviz Errors*")
+
+(defun graphviz--display-preview-buffer (stdout-buffer)
+  "Display STDOUT-BUFFER as the dot preview."
+  (with-current-buffer stdout-buffer
+    (goto-char (point-min))
+    (image-mode))
+  (display-buffer stdout-buffer))
+
+(defun graphviz--display-stderr-buffer (stderr-buffer input-file)
+  "Display the compilation buffer when the preview fails.
+STDERR-BUFFER is the compilation buffer.
+INPUT-FILE is the file we are previewing."
+  (with-current-buffer stderr-buffer
+    (let ((inhibit-read-only t))
+      (goto-char (point-min))
+      (while (search-forward "<stdin>" nil t)
+	(replace-match  input-file)))
+    (compilation-mode))
+  (display-buffer stderr-buffer)
+  (with-selected-window (get-buffer-window stderr-buffer)
+    (goto-char (point-min))))
+
 ;;;###autoload
-(defun graphviz-dot-preview ()
-  "Compile the graph and preview it in an other buffer."
+(defun graphviz-dot-preview (&optional begin end)
+  "Compile the graph between BEGIN and END and preview it in an other buffer.
+BEGIN (resp. END) is a number defaulting to `point-min' (resp. `point-max')
+representing the current buffer's point where the graph definition starts
+\(resp. stops)."
   (interactive)
-  (save-buffer)
-  (let ((windows (window-list))
-        (f-name (graphviz-output-file-name (buffer-file-name)))
-        (command-result (trim-whitespace (shell-command-to-string compile-command))))
-    (if (string-prefix-p "Error:" command-result)
-        (message command-result)
-      (progn
-        (sleep-for 0 graphviz-dot-revert-delay)
-        (with-selected-window (selected-window)
-          (switch-to-buffer-other-window (find-file-noselect f-name t))
-          ;; I get "changed on disk; really edit the buffer?" prompt w/o this
-          (sleep-for 0 50)
-          (revert-buffer t t))))))
+  (let* ((use-empty-active-region nil)
+         (graphviz-preview-buffer (format graphviz-preview-buffer
+					  (buffer-name)))
+         (stdout (get-buffer-create graphviz-preview-buffer))
+         (stderr (get-buffer-create graphviz-error-buffer))
+         (begin (or begin
+                    (and (use-region-p) (region-beginning))
+                    (point-min)))
+         (end (or end
+                  (and (use-region-p) (region-end))
+                  (point-max)))
+         (process (make-process
+                   :name "graphviz-dot"
+                   :command `(,graphviz-dot-dot-program
+                              ,(format "-T%s" graphviz-dot-preview-extension))
+                   :buffer stdout
+                   :stderr stderr
+                   :connection-type 'pipe
+                   :coding 'binary
+                   :sentinel
+                   (lambda (_ event)
+                     (cond
+                      ((string= event "finished\n")
+                       (graphviz--display-preview-buffer stdout))
+                      ((string-prefix-p "exited" event)
+		       (graphviz--display-stderr-buffer stderr
+							(buffer-name))))))))
+    (with-current-buffer stdout
+      (fundamental-mode)
+      (erase-buffer))
+    (with-current-buffer stderr
+      (let ((inhibit-read-only t))
+	(fundamental-mode)
+	(erase-buffer)))
+    (process-send-region process begin end)
+    (process-send-eof process)))
 
 ;;;###autoload
 (defun graphviz-turn-on-live-preview ()
@@ -813,14 +903,9 @@ This creates an external process every time it is executed.  If
 saved before the command is executed."
   (interactive)
   (let ((cmd (if graphviz-dot-view-edit-command
-                 (if (fboundp 'read-shell-command)
                      (read-shell-command "View command: "
                                          (format graphviz-dot-view-command
                                                  (shell-quote-argument (buffer-file-name))))
-                   ;; read-shell-command not available in GNU Emacs 21
-                   (read-from-minibuffer "View command: "
-                                         (format graphviz-dot-view-command
-                                                 (shell-quote-argument (buffer-file-name)))))
                (format graphviz-dot-view-command
                        (shell-quote-argument (buffer-file-name))))))
     (if graphviz-dot-save-before-view
