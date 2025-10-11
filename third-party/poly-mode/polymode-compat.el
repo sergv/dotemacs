@@ -72,8 +72,6 @@ Elements of ALIST that are not conses are ignored."
 
 ;;; Various Wrappers for Around Advice
 
-(defvar *span* nil)
-
 ;; advice doesn't provide named symbols. So we need to define specialized
 ;; wrappers for some key functions (unfinished)
 (defmacro pm-define-wrapp-protected (fun)
@@ -215,8 +213,7 @@ are passed to ORIG-FUN."
 ;; REPLACE:
 ;;   before-change:(obeg,oend)=(50,56)
 ;;   lsp-on-change:(nbeg,nend,olen)=(50,60,6)
-
-(defun pm--lsp-text-document-content-change-event (beg end len)
+(defun pm--lsp-buffer-content-document-content-change-event (beg end len)
   "Make a TextDocumentContentChangeEvent body for BEG to END, of length LEN."
   (if (zerop len)
       ;; insertion
@@ -228,7 +225,6 @@ are passed to ORIG-FUN."
           (pm--lsp-change-event beg end-pos text))
       (pm--lsp-full-change-event))))
 
-(defvar-local pm--lsp-before-change-end-position nil)
 (defun pm--lsp-position (pos)
   (save-restriction
     (widen)
@@ -248,42 +244,46 @@ are passed to ORIG-FUN."
    :text text))
 
 (defun pm--lsp-full-change-event ()
-  (list :text (pm--lsp-text)))
+  (list :text (pm--lsp-buffer-content)))
 
-(defun pm--lsp-text (&optional beg end)
-  (save-restriction
-    (widen)
-    (setq beg (or beg (point-min)))
-    (setq end (or end (point-max)))
-    (let ((cmode major-mode)
-          (end-eol (save-excursion (goto-char end)
-                                   (point-at-eol)))
-          line-acc acc)
-      (pm-map-over-modes
-       (lambda (sbeg send)
-         (let ((beg1 (max sbeg beg))
-               (end1 (min send end))
-               (rem))
-           (if (eq cmode major-mode)
-               (progn
-                 (when (eq sbeg beg1)
-                   ;; first line of mode; use line-acc
-                   (setq acc (append line-acc acc))
-                   (setq line-acc nil))
-                 ;; if cur-mode follows after end on same line, accumulate the
-                 ;; last line but not the actual text
-                 (when (< beg1 end)
-                   (push (buffer-substring-no-properties beg1 end1) acc)))
-             (goto-char beg1)
-             (if (<= end1 (point-at-eol))
-                 (when (< beg1 end1) ; don't accumulate on last line
-                   (push (make-string (- end1 beg1) ? ) line-acc))
-               (while (< (point-at-eol) end1)
-                 (push "\n" acc)
-                 (forward-line 1))
-               (setq line-acc (list (make-string (- end1 (point)) ? )))))))
-       beg end-eol)
-      (apply #'concat (reverse acc)))))
+(defun pm--lsp-buffer-content (&optional beg end)
+  "Get text between BEG and END cleaned from non-current mode content.
+The text from non-current mode is replaced with whitespaces, thus
+preserving locations arriving from LSP intact."
+  (pm-with-synchronized-points
+    (save-excursion
+      (save-restriction
+        (widen)
+        (setq beg (or beg (point-min)))
+        (setq end (or end (point-max)))
+        (let ((cmode major-mode)
+              (end-eol (save-excursion (goto-char end)
+                                       (line-end-position)))
+              line-acc acc)
+          (pm-map-over-modes
+           (lambda (sbeg send)
+             (let ((beg1 (max sbeg beg))
+                   (end1 (min send end)))
+               (if (eq cmode major-mode)
+                   (progn
+                     (when (eq sbeg beg1)
+                       ;; first line of mode; use line-acc
+                       (setq acc (append line-acc acc))
+                       (setq line-acc nil))
+                     ;; if cur-mode follows after end on same line,
+                     ;; accumulate the last line but not the actual text
+                     (when (< beg1 end)
+                       (push (buffer-substring-no-properties beg1 end1) acc)))
+                 (goto-char beg1)
+                 (if (<= end1 (line-end-position))
+                     (when (< beg1 end1) ; don't accumulate on last line
+                       (push (make-string (- end1 beg1) ? ) line-acc))
+                   (while (< (line-end-position) end1)
+                     (push "\n" acc)
+                     (forward-line 1))
+                   (setq line-acc (list (make-string (- end1 (point)) ? )))))))
+           beg end-eol)
+          (apply #'concat (reverse acc)))))))
 
 ;; We cannot compute original change location when modifications are complex
 ;; (aka multiple changes are combined). In those cases we send an entire
@@ -294,18 +294,20 @@ are passed to ORIG-FUN."
     (and (eq beg (car bcr))
          (eq len (- (cdr bcr) (car bcr))))))
 
-;; advises
 (defun polymode-lsp-buffer-content (orig-fun)
+  "In polymode buffers, replace other modes' content with whitespaces.
+Use as around advice for lsp--buffer-content."
   (if (and polymode-mode pm/polymode)
-      (pm--lsp-text)
+      (pm--lsp-buffer-content)
     (funcall orig-fun)))
 
 (defun polymode-lsp-change-event (orig-fun beg end len)
   (if (and polymode-mode pm/polymode)
-      (pm--lsp-text-document-content-change-event beg end len)
+      (pm--lsp-buffer-content-document-content-change-event beg end len)
     (funcall orig-fun beg end len)))
 
-(defvar-local polymode-lsp-integration t)
+(defvar-local polymode-lsp-integration t
+  "Non-nil if lsp polymode integration should be enabled for this buffer.")
 
 (with-eval-after-load "lsp-mode"
   (when polymode-lsp-integration
@@ -318,9 +320,6 @@ are passed to ORIG-FUN."
     ;; (add-to-list 'polymode-move-these-minor-modes-from-old-buffer 'lsp-headerline-breadcrumb-mode)
     (pm-around-advice 'lsp--buffer-content #'polymode-lsp-buffer-content)
     (pm-around-advice 'lsp--text-document-content-change-event #'polymode-lsp-change-event)))
-
-;; (advice-remove 'lsp--buffer-content #'polymode-lsp-buffer-content)
-;; (advice-remove 'lsp--text-document-content-change-event #'polymode-lsp-change-event)
 
 
 ;;; Flyspel
@@ -428,32 +427,29 @@ are passed to ORIG-FUN."
 
 ;;; DESKTOP SAVE #194 #240
 
-;; NB: desktop-save will not save indirect buffer.
-;; For base buffer, if it's hidden as per #34, we will save it unhide by removing left whitespaces.
+;; NB: We advice desktop-save functionality to not save indirect buffers and for base buffers,
+;; save the buffers with un-hidden name.
 
 (defun polymode-fix-desktop-buffer-info (fn buffer)
-  "Unhide poly-mode base buffer which is hidden as per #34.
-This is done by modifying `uniquify-buffer-base-name' to `pm--core-buffer-name'."
+  "Unhide poly-mode base buffer which is hidden by removing
+the leading spaces from the name."
   (with-current-buffer buffer
     (let ((out (funcall fn buffer)))
       (when (and polymode-mode
                  (not (buffer-base-buffer))
                  (not (car out)))
-        (setf (car out) pm--core-buffer-name))
+        (setf (car out) (replace-regexp-in-string "^ +" "" (buffer-name buffer))))
       out)))
-
-(declare-function desktop-buffer-info "desktop")
-(with-eval-after-load "desktop"
-  (advice-add #'desktop-buffer-info :around #'polymode-fix-desktop-buffer-info))
 
 (defun polymode-fix-desktop-save-buffer-p (_ bufname &rest _args)
   "Dont save polymode buffers which are indirect buffers."
   (with-current-buffer bufname
-    (not (and polymode-mode
-              (buffer-base-buffer)))))
+    (not (and polymode-mode (buffer-base-buffer)))))
 
+(declare-function desktop-buffer-info "desktop")
 (declare-function desktop-save-buffer-p "desktop")
 (with-eval-after-load "desktop"
+  (advice-add #'desktop-buffer-info :around #'polymode-fix-desktop-buffer-info)
   (advice-add #'desktop-save-buffer-p :before-while #'polymode-fix-desktop-save-buffer-p))
 
 
