@@ -5,9 +5,10 @@ lisp: $(ELCS) loaddefs check-declare
 
 loaddefs: $(PKG)-autoloads.el
 
-$(PKG).elc:
-$(PKG)-desc.elc: $(PKG).elc
-$(PKG)-list.elc: $(PKG).elc
+ghub.elc:
+gsexp.elc:
+ghub-graphql.elc: ghub.elc gsexp.elc
+ghub-legacy.elc: ghub.elc gsexp.elc ghub-graphql.elc
 
 %.elc: %.el
 	@printf "Compiling $<\n"
