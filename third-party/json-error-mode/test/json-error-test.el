@@ -1,0 +1,33 @@
+(require 'ert)
+(require 'json-error)
+
+(ert-deftest json-error--test-valid ()
+  (dolist (file (directory-files (expand-file-name "testdata/valid/") t ".*\\.json$"))
+    (with-temp-buffer
+      (json-error-mode)
+      (insert-file-contents file)
+      (json-error-reparse (current-buffer))
+      (let ((beg (point-min))
+            (end (point-max))
+            (error-count 0))
+        (dolist (o (overlays-in beg end))
+          (when (overlay-get o 'json-error-error)
+            (setq error-count (+ error-count 1))))
+        (should (= error-count 0)))
+      (json-error-mode -1))))
+
+
+(ert-deftest json-error--test-invalid ()
+  (dolist (file (directory-files (expand-file-name "testdata/invalid/") t ".*\\.json$"))
+    (with-temp-buffer
+      (json-error-mode)
+      (insert-file-contents file)
+      (json-error-reparse (current-buffer))
+      (let ((beg (point-min))
+            (end (point-max))
+            (error-count 0))
+        (dolist (o (overlays-in beg end))
+          (when (overlay-get o 'json-error-error)
+            (setq error-count (+ error-count 1))))
+        (should (> error-count 0)))
+      (json-error-mode -1))))
