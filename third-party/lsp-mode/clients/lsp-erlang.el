@@ -267,18 +267,31 @@ Code Lenses. Only applies when `#elp.lens.enabled` and
   :group 'lsp-erlang-elp
   :package-version '(lsp-mode . "8.0.0"))
 
-(defcustom lsp-erlang-elp-download-url
-  (format "https://github.com/WhatsApp/erlang-language-platform/releases/latest/download/%s"
-          (pcase system-type
-            ('gnu/linux "elp-linux-x86_64-unknown-linux-gnu-otp-26.tar.gz")
-            ('darwin
-             (if (string-match "^aarch64-.*" system-configuration)
-                 "elp-macos-aarch64-apple-darwin-otp-25.3.tar.gz"
-               "elp-macos-x86_64-apple-darwin-otp-25.3.tar.gz"))))
-  "Automatic download url for erlang-language-platform."
-  :type 'string
+(defcustom lsp-erlang-elp-otp-download-version "27.1"
+  "OTP version used as part of the file name when downlading the ELP binary.
+It must match those used in https://github.com/WhatsApp/erlang-language-platform/releases/latest"
+  :type '(choice (string :tag "25.3")
+                 (string :tag "26.2")
+                 (string :tag "27.1"))
   :group 'lsp-erlang-elp
   :package-version '(lsp-mode . "8.0.0"))
+
+(defcustom lsp-erlang-elp-download-url
+  (format "https://github.com/WhatsApp/erlang-language-platform/releases/latest/download/elp-%s-otp-%s.tar.gz"
+          (pcase system-type
+            ('gnu/linux
+             (if (string-match "^aarch64-.*" system-configuration)
+                 "linux-aarch64-unknown-linux-gnu"
+               "linux-x86_64-unknown-linux-gnu"))
+             ('darwin
+              (if (string-match "^aarch64-.*" system-configuration)
+                  "macos-aarch64-apple-darwin"
+                "macos-x86_64-apple-darwin")))
+            lsp-erlang-elp-otp-download-version)
+          "Automatic download url for erlang-language-platform."
+          :type 'string
+          :group 'lsp-erlang-elp
+          :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-erlang-elp-store-path (f-join lsp-server-install-dir
                                                 "erlang"
@@ -312,11 +325,20 @@ Code Lenses. Only applies when `#elp.lens.enabled` and
   "The face modification to use for exported functions."
   :group 'lsp-erlang-elp-semantic-tokens)
 
+(defface lsp-erlang-elp-exported-type-modifier-face
+  '((t :underline t))
+  "The face modification to use for exported types."
+  :group 'lsp-erlang-elp-semantic-tokens)
+
 (defface lsp-erlang-elp-deprecated-function-modifier-face
   '((t :strike-through t))
   "The face modification to use for deprecated functions."
   :group 'lsp-erlang-elp-semantic-tokens)
 
+(defface lsp-erlang-elp-type-dynamic-modifier-face
+  '((t (:weight bold)))
+  "The face modification to use for dynamic types."
+  :group 'lsp-erlang-elp-semantic-tokens)
 
 ;; ---------------------------------------------------------------------
 ;; Semantic token modifier face customization
@@ -333,8 +355,20 @@ Code Lenses. Only applies when `#elp.lens.enabled` and
   :group 'lsp-erlang-elp-semantic-tokens
   :package-version '(lsp-mode . "9.0.0"))
 
+(defcustom lsp-erlang-elp-exported-type-modifier 'lsp-erlang-elp-exported-type-modifier-face
+  "Face for semantic token modifier for `exported_type' attribute."
+  :type 'face
+  :group 'lsp-erlang-elp-semantic-tokens
+  :package-version '(lsp-mode . "9.0.0"))
+
 (defcustom lsp-erlang-elp-deprecated-function-modifier 'lsp-erlang-elp-deprecated-function-modifier-face
   "Face for semantic token modifier for `deprecated_function' attribute."
+  :type 'face
+  :group 'lsp-erlang-elp-semantic-tokens
+  :package-version '(lsp-mode . "9.0.0"))
+
+(defcustom lsp-erlang-elp-type-dynamic-modifier 'lsp-erlang-elp-type-dynamic-modifier-face
+  "Face for semantic token modifier for `type_dynamic' attribute."
   :type 'face
   :group 'lsp-erlang-elp-semantic-tokens
   :package-version '(lsp-mode . "9.0.0"))
@@ -348,7 +382,9 @@ tokens legend."
   `(
     ("bound" . ,lsp-erlang-elp-bound-modifier)
     ("exported_function" . ,lsp-erlang-elp-exported-function-modifier)
-    ("deprecated_function" . ,lsp-erlang-elp-deprecated-function-modifier)))
+    ("exported_type" . ,lsp-erlang-elp-exported-type-modifier)
+    ("deprecated_function" . ,lsp-erlang-elp-deprecated-function-modifier)
+    ("type_dynamic" . ,lsp-erlang-elp-type-dynamic-modifier)))
 
 ;; ---------------------------------------------------------------------
 ;; Client
