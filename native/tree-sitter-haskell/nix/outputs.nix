@@ -28,6 +28,7 @@
     include = [
       "grammar"
       (filter.matchExt "js")
+      "tree-sitter.json"
     ];
   };
 
@@ -57,6 +58,7 @@
       "src"
       (filter.matchExt "h")
       "src/scanner.c"
+      "tree-sitter.json"
     ];
   };
 
@@ -309,6 +311,7 @@
   tree-sitter test
   test/parse/run.bash
   test/query/run.bash
+  test/tags-local/run.bash
   '';
 
   tests = script "tree-sitter-haskell-tests" ''
