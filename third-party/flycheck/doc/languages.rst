@@ -183,6 +183,10 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. _cppcheck: http://cppcheck.sourceforge.net/
 
+      .. defcustom:: flycheck-cppcheck-args
+
+         A list of additional arguments.
+
       .. defcustom:: flycheck-cppcheck-checks
 
          A list of enabled checks.  Each item is the name of a check for the
@@ -833,10 +837,16 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
 .. supported-language:: Markdown
 
+   Flycheck checks Markdown with `markdownlint-cli`, `markdownlint-cli2`,
+   `mdl` (that's the binary of the Ruby project `markdownlint`) or `pymarkdown`.
+   `markdownlint-cli` and `markdownlint-cli2` are different command-line interfaces
+   for the same `markdownlint` library (written in JavaScript).
+
    .. syntax-checker:: markdown-markdownlint-cli
 
-      Check Markdown with `markdownlint-cli
-      <https://github.com/igorshubovych/markdownlint-cli>`_.
+      Check Markdown with markdownlint-cli_.
+
+      .. _markdownlint-cli: https://github.com/igorshubovych/markdownlint-cli
 
       .. syntax-checker-config-file:: flycheck-markdown-markdownlint-cli-config
 
@@ -848,9 +858,19 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
          A list of enabled rules.
 
+   .. syntax-checker:: markdown-markdownlint-cli2
+
+      Check Markdown with markdownlint-cli2_.
+
+      .. _markdownlint-cli2: https://github.com/DavidAnson/markdownlint-cli2
+
+      .. syntax-checker-config-file:: flycheck-markdown-markdownlint-cli2-config
+
    .. syntax-checker:: markdown-mdl
 
-      Check Markdown with `markdownlint <https://github.com/markdownlint/markdownlint/>`_.
+      Check Markdown with markdownlint_ (a.k.a. ``mdl``).
+
+      .. _markdownlint: https://github.com/markdownlint/markdownlint/
 
       .. defcustom:: flycheck-markdown-mdl-rules
 
@@ -864,8 +884,9 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: markdown-pymarkdown
 
-      Check Markdown with `PyMarkdown
-      <https://pypi.org/project/pymarkdownlnt/>`_.
+      Check Markdown with PyMarkdown_.
+
+      .. _PyMarkdown: https://pypi.org/project/pymarkdownlnt/
 
       .. syntax-checker-config-file:: flycheck-markdown-pymarkdown-config
 

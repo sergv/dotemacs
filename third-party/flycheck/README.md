@@ -1,4 +1,4 @@
-# [![Flycheck][logo]](https://www.flycheck.org) #
+# [![Flycheck][logo]](https://www.flycheck.org)
 
 [![License GPL 3](https://img.shields.io/github/license/flycheck/flycheck.svg)][COPYING]
 [![Join the chat](https://img.shields.io/gitter/room/flycheck/flycheck.svg)](https://gitter.im/flycheck/flycheck)
@@ -158,7 +158,6 @@ PARTICULAR PURPOSE.  See the [GNU General Public License][copying] for more
 details.
 
 [COPYING]: https://github.com/flycheck/flycheck/blob/master/COPYING
-[manual]: https://www.flycheck.org/en/latest/index.html#the-user-guide
 [logo]: https://raw.githubusercontent.com/flycheck/flycheck/master/doc/_static/logo.png
 [try it]: https://www.flycheck.org/en/latest/#try-out
 [Installation]: https://www.flycheck.org/en/latest/user/installation.html
