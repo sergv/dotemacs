@@ -1,4 +1,212 @@
 # -*- mode: org -*-
+* v0.10.1    2025-10-06
+
+- ~transient--get-savable-value~ now also functions properly when
+  used while exiting the menu.  #410
+
+* v0.10.0    2025-09-01
+
+- Added more context-specific functions for getting the prefix's
+  value and improved the documentation explaining when to use which
+  function and why.  b4edb633 (See also the commit message.)
+
+- When suffixes are being initialized, no longer drop inactive
+  suffixes (inap suffixes and those on a level that is currently
+  not being used).  If/when such a suffix later becomes active,
+  it now uses its set or saved value; previously the default value
+  would have been used.  #316, #364, #407
+
+- The value and scope of inapt suffixes are now initialized when
+  the prefix is being initialized, which is useful because they
+  may later become apt.  #407
+
+- While setting up suffixes, the suffix being setup can now access
+  suffixes that have already been setup (including their values).
+  #316
+
+- After suffixes have been setup, the value of the prefix's ~value~
+  slot is now made unbound, to prevent access to this potentially
+  outdated value.  5bf26de9
+
+- Added new face ~transient-inapt-argument~ and use it for arguments
+  and values that are set but aren't being used because the suffix
+  is currently inapt.  fed866ba
+
+- Added new prefix slot ~remember-value~, which allows specifing
+  various modes of automatically saving the current value.  #287
+
+* v0.9.4    2025-08-01
+
+- When using coordinates, trying to insert the same suffix into the
+  same menu twice, caused it to instead be removed the second time.
+  #400
+
+* v0.9.3    2025-07-01
+
+- Improved kludge to work around a bug in Emacs, which may cause
+  a subprocess to be killed, when the user types ~C-g~, expecting
+  that to quit a transient menu.  #388
+
+- Fixed an edge-case when trying to put point on the same suffix
+  after refreshing the menu.  e508e658
+
+- Removed an unnecessary redraw, which additionally happened too
+  early, before suffixes were refreshed.  #397
+
+* v0.9.2    2025-06-09
+
+- Fixed a regression in v0.9.0, which made it impossible to change the
+  level of a suffix, if that was set inline in the prefix definition.
+
+* v0.9.1    2025-06-03
+
+- As an additional safety measure, unconditionally reset ~inhibit-quit~
+  when the emergency exit is taken.  b326421f
+
+- Including groups that are still defined as a variable, instead of
+  using ~transient-define-group~ (added in v0.9.0), failed in some cases
+  and prevented the menu from being displayed at all.  #389
+
+* v0.9.0    2025-06-01
+
+- Key descriptions (as returned by ~key-description~ and understood by
+  ~kbd~) are now the only key binding format understood by Transient.
+  Vectors are no longer supported.  c4e0cba6
+
+- Vectors are now preferred to identify a suffix or group in a menu by
+  coordinates.  It is still possible, but discouraged, to use a list.
+  1933dda9
+
+- The internal format used to store menu layouts has been improved.
+  The old format is still supported and translated on the fly when
+  encountered.  Instead of rely on that translation, users are advised
+  to recompile dependent packages after updating Transient to this
+  release.  bcc0bf83
+
+- Added new macro ~transient-define-group~, which defines one or more
+  groups of suffixes to be included in multiple menus.  Such included
+  groups are no longer immediately inlined when referenced in a menu
+  definition, which makes it possible for users to make changes to
+  included group and have those change affect all menus that include
+  them.  bcc0bf83
+
+- Added new macro ~transient-inline-group~, which inlines an included
+  group into a specific menu.  bcc0bf83
+
+- Added new, experimental suffix class ~transient-cons-option~, which is
+  intended for situations where ~transient-args~ should return an alist,
+  instead of a list of strings (arguments).  81727bac, e8eb3ebd
+
+- While a transient menu is active, ~inhibit-quit~ is now set to t.
+  #388
+
+* v0.8.8    2025-05-01
+
+- Added option ~transient-common-command-prefix~ to allow using a key
+  other than ~C-x~ as the prefix key used for many commands common to
+  all transient menus.  Because the use of the ~C-x~ prefix for these
+  commands causes many global bindings to be shadowed even for menus
+  that allow invoking non-suffix commands, I highly recommend that
+  users customize this.  7d08039c
+
+- Added option ~transient-error-on-insert-failure~, defaulting to ~nil~.
+  I.e., go back to the pre-v0.8.7 behavior by default but let users
+  opt-in to errors for certain minor issues.  #374
+
+- Address a conflict with the keyboard used by the Android port.
+  #376.
+
+* v0.8.7    2025-04-01
+
+- Added new hook ~transient-post-exit-hook~.  55050b60
+
+- ~transient-insert-suffix~ and ~transient-append-suffix~ now signal
+  error if the specified location is invalid.  #374
+
+Bug fixes:
+
+- Autoloaded commands were loaded too late in ~transient-init-suffix~,
+  resulting in the suffix prototype object not being used.  00112c11
+
+* v0.8.6    2025-03-15
+
+Bug fixes:
+
+- ~transient-show-summary~ errored for commands that have neither a
+  summary nor a docstring.  0886651d
+
+- ~transient-format-description~ errored for ~transient-information~
+  and ~transient-information*~ suffixes.  #366
+
+- ~transient--wrap-command~ failed to load autoloaded commands.
+  40308623
+
+- ~transient-suffix-object~ errored if a command is bound more than
+  once and is invoked using the mouse or ~RET~.  f69e1286
+
+- For some releases ~transient-suffix-object~ errored if it could not
+  identify a unique suffix, which helped establish that it is in fact
+  legitimate to use this function as a predicate.  No longer error if
+  there are zero matches, but continue to error if their are multiple
+  matches that cannot be disambiguated.  4a06aeb0
+
+* v0.8.5    2025-03-01
+
+- Added new faces ~transient-key-recurse~ and ~transient-key-stack~.
+  58e22554
+
+Bug fixes:
+
+- ~transient--setup-recursion~ did not consider the ~recurse~ shorthand.
+  32a7e256
+
+- The parent group was not always stored in suffix objects.  #354
+
+- Invoking a suffix of a sub-prefix (which is configured to return to
+  the outer prefix), did exit instead of returning, if the suffix's
+  own behavior was not explicitly specified.  #352
+
+- The color of a suffix that returns to the outer prefix, was wrong
+  when there isn't actually an outer prefix.  e88005d2
+
+- When potentially removing other bindings for the same command
+  while adding a new binding, false-negative avoidance was too heavily
+  favored over false-positive avoidance.  #355
+
+- Defining the ~transient-higher-level~ face involves calling
+  ~face-attributes~ on another face.  That call requested the value
+  for the current frame (which may not exist yet) instead of using
+  the default.  #359
+
+- When the transient window is hidden while the minibuffer is used,
+  then it was not restored if using Helm.  #361
+
+- Non-suffix command that aren't accessed via a symbol, were not
+  properly wrapped to ensure post-command cleanup happens even in
+  case of an error or if the user aborts a minibuffer use, causing
+  the menu window to get stuck.  08201f06
+
+* v0.8.4    2025-02-01
+
+- Added new option ~transient-show-docstring-format~.  65cd6cec
+
+- Unless called with a prefix argument, ~transient-toggle-docstrings~
+  now only shows docstrings for the current menu invocation.  13f3f5e0
+
+- The ~##~ macro from the ~llama~ package can now be used after keywords
+  in group specifications (including suffix bindings).  7c650436
+
+- Suffix commands can now be advised using the new ~advice~ and ~advice*~
+  slots available for suffixes and groups.  This feature is still
+  experimental.  #340
+
+- ~transient-scope~ can now also match against prefix classes, not just
+  specific prefix commands.  #334
+
+- The default level of a suffix command can now be set via its
+  prototype, using the new function ~transient-set-default-level~.
+  f6c249c7
+
 * v0.8.3    2025-01-03
 
 - Added new constant ~transient-version~.  3022f6d5
@@ -58,10 +266,14 @@ Bug fixes:
 
 - Added documentation for ~inapt-if*~ slots to manual.  179545a6
 
-- ~transient-args~ and ~transient-scope~ now both take a prefix command or
-  a list of prefix commands as argument.  ~transient-scope~ can still be
-  called without an argument, but that should only be done in functions
-  that take part in setting up a menu, not in a suffix command.
+- ~transient-args~ now takes a prefix command or a list of prefix
+  commands as argument.
+
+- ~transient-scope~ now takes a prefix command or a list of prefix
+  commands and/or a prefix class or list of prefix classes as
+  arguments.  It can still be called without any argument, but that
+  should only be done in functions that take part in setting up a
+  menu, not in a suffix command.
 
 - Added new generic function ~transient-prefix-value~, giving finer
   control over how the value returned by ~transient-args~ is determined.
