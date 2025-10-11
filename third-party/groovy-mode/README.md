@@ -1,6 +1,5 @@
 # Emacs Modes for Groovy and Grails
 
-[![Travis-CI](https://travis-ci.org/Groovy-Emacs-Modes/groovy-emacs-modes.svg?branch=master)](https://travis-ci.org/Groovy-Emacs-Modes/groovy-emacs-modes)
 [![Coverage Status](https://coveralls.io/repos/github/Groovy-Emacs-Modes/groovy-emacs-modes/badge.svg?branch=master)](https://coveralls.io/github/Groovy-Emacs-Modes/groovy-emacs-modes?branch=master)
 [![Licence](https://img.shields.io/badge/license-GPL_3-green.svg)](https://www.gnu.org/licenses/gpl-3.0.txt)
 [![MELPA](https://melpa.org/packages/groovy-mode-badge.svg)](https://melpa.org/#/groovy-mode)
@@ -33,6 +32,8 @@ Alternatively, if you just want stable releases:
 (package-initialize)
 ```
 
+You can now use `M-x list-packages` to find groovy-mode and install it.
+
 ## A Bit of History
 
 This mode was originally developed as a derived mode of `java-mode` (a derived mode of `cc-mode`) inspired
@@ -57,5 +58,5 @@ like string interpolation highlighting, compared to the CC Mode based version..
 
 ![screenshot](groovy-mode.png)
 
-You can configure the standalone `groovy-mode` with `M-x customize RET
-groovy-mode RET`.
+You can configure the standalone `groovy-mode` with `M-x customize`,
+and searching for `groovy`.
