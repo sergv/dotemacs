@@ -1,6 +1,6 @@
 ;;; flycheck.el --- On-the-fly syntax checking -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2024 Flycheck contributors
+;; Copyright (C) 2017-2025 Flycheck contributors
 ;; Copyright (C) 2012-2016 Sebastian Wiesner and Flycheck contributors
 ;; Copyright (C) 2013, 2014 Free Software Foundation, Inc.
 ;;
@@ -10,7 +10,7 @@
 ;;             Bozhidar Batsov <bozhidar@batsov.dev>
 ;; URL: https://www.flycheck.org
 ;; Keywords: convenience, languages, tools
-;; Version: 35.0-snapshot
+;; Version: 35.0
 ;; Package-Requires: ((emacs "27.1"))
 
 ;; This file is not part of GNU Emacs.
@@ -183,6 +183,7 @@
     lua-luacheck
     lua
     markdown-markdownlint-cli
+    markdown-markdownlint-cli2
     markdown-mdl
     markdown-pymarkdown
     nix
@@ -1278,7 +1279,7 @@ Only has effect when variable `global-flycheck-mode' is non-nil."
 
 
 
-(defconst flycheck-version "35.0-snapshot"
+(defconst flycheck-version "35.0"
   "The current version of Flycheck.
 
 Should be kept in sync with the package version metadata.
@@ -8089,6 +8090,9 @@ Requires GCC 4.4 or newer.  See URL `https://gcc.gnu.org/'."
   :modes (c-mode c++-mode c-ts-mode c++-ts-mode)
   :next-checkers ((warning . c/c++-cppcheck)))
 
+(flycheck-def-args-var flycheck-cppcheck-args c/c++-cppcheck
+  :package-version '(flycheck . "35"))
+
 (flycheck-def-option-var flycheck-cppcheck-checks '("style") c/c++-cppcheck
   "Enabled checks for Cppcheck.
 
@@ -8181,6 +8185,7 @@ See URL `https://cppcheck.sourceforge.net/'."
                   (pcase major-mode
                     ((or `c++-mode `c++-ts-mode) "c++")
                     ((or `c-mode `c-ts-mode) "c")))
+            (eval flycheck-cppcheck-args)
             source)
   :error-parser flycheck-parse-cppcheck
   :modes (c-mode c++-mode c-ts-mode c++-ts-mode))
@@ -10674,6 +10679,7 @@ See URL `https://docs.astral.sh/ruff/'."
   :command ("ruff"
             "check"
             (config-file "--config" flycheck-python-ruff-config)
+            ;; older versions of ruff (before 0.2) used "text" instead of "concise"
             "--output-format=concise"
             (option "--stdin-filename" buffer-file-name)
             "-")
@@ -11083,6 +11089,35 @@ See URL `https://github.com/igorshubovych/markdownlint-cli'."
           (url "https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#%s"))
       (and error-code `(url . ,(format url error-code))))))
 
+(flycheck-def-config-file-var flycheck-markdown-markdownlint-cli2-config
+    markdown-markdownlint-cli2
+    '(".markdownlint-cli2.json" ".markdownlint-cli2.jsonc" ".markdownlint-cli2.yaml")
+  :package-version '(flycheck . "35"))
+
+(flycheck-define-checker markdown-markdownlint-cli2
+  "Markdown checker using markdownlint-cli2.
+
+See URL `https://github.com/DavidAnson/markdownlint-cli2'."
+  :command ("markdownlint-cli2"
+            (config-file "--config" flycheck-markdown-markdownlint-cli2-config)
+            "--"
+            source)
+  :error-patterns
+  ((error line-start
+          (file-name) ":" line
+          (? ":" column) " " (id (one-or-more (not (any space))))
+          " " (message) line-end))
+  :error-filter
+  (lambda (errors)
+    (flycheck-sanitize-errors
+     (flycheck-remove-error-file-names "(string)" errors)))
+  :modes (markdown-mode gfm-mode)
+  :error-explainer
+  (lambda (err)
+    (let ((error-code (substring (flycheck-error-id err) 0 5))
+          (url "https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#%s"))
+      (and error-code `(url . ,(format url error-code))))))
+
 (flycheck-def-option-var flycheck-markdown-mdl-rules nil markdown-mdl
   "Rules to enable for mdl.
 
@@ -11144,7 +11179,7 @@ See URL `https://github.com/markdownlint/markdownlint'."
 
 See URL `https://pypi.org/project/pymarkdownlnt/'."
   :command ("pymarkdown"
-            (config-file "--config" flycheck-markdown-markdownlint-cli-config)
+            (config-file "--config" flycheck-markdown-pymarkdown-config)
             "scan"
             source)
   :error-patterns
@@ -11477,7 +11512,8 @@ See URL `https://www.ruby-lang.org/'."
   ((error line-start "SyntaxError in -:" line ": " (message) line-end)
    (warning line-start "-:" line ":" (optional column ":")
             " warning: " (message) line-end)
-   (error line-start "-:" line ": " (message) line-end))
+   ;; Ruby 3.4 includes the interpreter path when emitting syntax errors
+   (error line-start (optional (one-or-more (not (any ":"))) ": ") "-:" line ": " (message) line-end))
   :modes (enh-ruby-mode ruby-mode ruby-ts-mode)
   :next-checkers ((warning . ruby-chef-cookstyle)))
 
