@@ -1,6 +1,6 @@
 ;;; flycheck-test.el --- Flycheck: Unit test suite   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2024 Flycheck contributors
+;; Copyright (C) 2017-2025 Flycheck contributors
 ;; Copyright (C) 2013-2016 Sebastian Wiesner and Flycheck contributors
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
@@ -2119,7 +2119,10 @@
     (should (= (length (flycheck-overlays-in (point-min) (point-max))) 2))
     ;; Remove restrictions and test that all errors are reported
     (widen)
-    (should (= (length (flycheck-overlays-in (point-min) (point-max))) 4))
+    (should (= (length (flycheck-overlays-in (point-min) (point-max)))
+               (if (< emacs-major-version 30)
+                   4
+                 5)))
     (skip-unless (version<= emacs-version "29"))
     (when (version<= "29.1" emacs-version)
       (ert-skip "Skipped for 29.1, the position seems to be off a litte..."))
@@ -4130,7 +4133,7 @@ Perhaps:
   ;; because Click, used by ProseLint, when running with python 3 will refuse to
   ;; work unless an Unicode locale is exported. See:
   ;; http://click.pocoo.org/5/python3/#python-3-surrogate-handling
-  (let ((flycheck-disabled-checkers '(markdown-markdownlint-cli markdown-mdl markdown-pymarkdown)))
+  (let ((flycheck-disabled-checkers '(markdown-markdownlint-cli markdown-markdownlint-cli2 markdown-mdl markdown-pymarkdown)))
     (flycheck-ert-with-env '(("LC_ALL" . nil))
       (flycheck-ert-should-syntax-check
        "language/text/text.txt" '(text-mode markdown-mode)
@@ -4430,7 +4433,7 @@ Perhaps:
        :id "MD009/no-trailing-spaces" :checker markdown-markdownlint-cli)))
 
 (flycheck-ert-def-checker-test markdown-mdl markdown nil
-  (let ((flycheck-disabled-checkers '(markdown-markdownlint-cli markdown-pymarkdown)))
+  (let ((flycheck-disabled-checkers '(markdown-markdownlint-cli markdown-markdownlint-cli2 markdown-pymarkdown)))
     (flycheck-ert-should-syntax-check
      "language/markdown.md" 'markdown-mode
      '(1 nil error "First header should be a top level header"
@@ -4441,7 +4444,7 @@ Perhaps:
          :id "MD009" :checker markdown-mdl))))
 
 (flycheck-ert-def-checker-test markdown-pymarkdown markdown nil
-  (let ((flycheck-disabled-checkers '(markdown-markdownlint-cli markdown-mdl)))
+  (let ((flycheck-disabled-checkers '(markdown-markdownlint-cli markdown-markdownlint-cli2 markdown-mdl)))
     (flycheck-ert-should-syntax-check
      "language/markdown.md" 'markdown-mode
      '(1 nil error "Headings should be surrounded by blank lines. [Expected: 1; Actual: 2; Below] (blanks-around-headings,blanks-around-headers)"
@@ -5082,7 +5085,7 @@ The manifest path is relative to
        :checker texinfo)))
 
 (flycheck-ert-def-checker-test textlint (text markdown) nil
-  (let ((flycheck-disabled-checkers '(proselint markdown-markdownlint-cli markdown-mdl))
+  (let ((flycheck-disabled-checkers '(proselint markdown-markdownlint-cli markdown-markdownlint-cli2 markdown-mdl))
         (flycheck-textlint-config "language/text/textlintrc.json"))
     (flycheck-ert-should-syntax-check
      "language/text/text.txt" '(text-mode markdown-mode)
