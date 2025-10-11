@@ -5,20 +5,14 @@ lisp: $(ELCS) loaddefs check-declare
 
 loaddefs: $(PKG)-autoloads.el
 
-%.elc: %.el
-	@printf "Compiling $<\n"
-	@$(EMACS) -Q --batch $(EMACS_ARGS) $(LOAD_PATH) -f batch-byte-compile $<
-
 check-declare:
 	@printf " Checking function declarations\n"
 	@$(EMACS) -Q --batch $(EMACS_ARGS) $(LOAD_PATH) \
 	--eval "(check-declare-directory default-directory)"
 
-CLEAN = $(ELCS) $(PKG)-autoloads.el
-
 clean:
 	@printf " Cleaning lisp/*...\n"
-	@rm -rf $(CLEAN)
+	@rm -rf $(ELCS) $(PKG)-autoloads.el
 
 $(PKG)-autoloads.el: $(ELS)
 	@printf " Creating $@\n"
