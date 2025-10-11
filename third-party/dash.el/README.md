@@ -43,7 +43,7 @@ Libraries")`](https://gnu.org/software/emacs/manual/html_node/emacs/Lisp-Librari
 
 Add something like this to the library's headers:
 
-    ;; Package-Requires: ((dash "2.19.1"))
+    ;; Package-Requires: ((dash "2.20.0"))
 
 See [`(info "(elisp) Library
 Headers")`](https://gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html).
@@ -520,6 +520,7 @@ Thus function `fn` should return a list.
 #### -copy `(list)`
 
 Create a shallow copy of `list`.
+The elements of `list` are not copied; they are shared with the original.
 
 ```el
 (-copy '(1 2 3)) ;; => (1 2 3)
@@ -791,12 +792,17 @@ Its anaphoric counterpart is `--keep`.
 
 #### -concat `(&rest sequences)`
 
-Concatenate all the arguments and make the result a list.
+Concatenate all `sequences` and make the result a list.
 The result is a list whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
 
 All arguments except the last argument are copied.  The last argument
-is just used as the tail of the new list.
+is just used as the tail of the new list.  If the last argument is not
+a list, this results in a dotted list.
+
+As an exception, if all the arguments except the last are `nil`, and the
+last argument is not a list, the return value is that last argument
+unaltered, not a list.
 
 ```el
 (-concat '(1)) ;; => (1)
@@ -2507,7 +2513,7 @@ Starting with the value of `x`, thread each expression through `forms`.
 
 Insert `x` at the position signified by the symbol `it` in the first
 form.  If there are more forms, insert the first form at the position
-signified by `it` in in second form, etc.
+signified by `it` in the second form, etc.
 
 ```el
 (--> "def" (concat "abc" it "ghi")) ;; => "abcdefghi"
@@ -3348,7 +3354,7 @@ New contributors are very welcome.  See the
 
 ## License
 
-Copyright (C) 2012-2024 Free Software Foundation, Inc.
+Copyright (C) 2012-2025 Free Software Foundation, Inc.
 
 Author: Magnar Sveen <magnars@gmail.com>
 
