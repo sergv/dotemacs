@@ -1,7 +1,5 @@
 \input texinfo @c -*-texinfo-*-
 
-@comment "@(#)$Name$:$Id$"
-
 @comment Documentation for the GNU Emacs SML mode.
 @comment Copyright (C) 1997-1999 Matthew J.@: Morley
 
@@ -27,15 +25,14 @@
 @direntry
 * sml:(sml-mode).	Emacs mode for editing SML
 @end direntry
-@setchapternewpage on
 
 @titlepage
 @sp 5
 @center @titlefont{Editing and Running Standard ML}
 @center @titlefont{under GNU Emacs}
 @sp 5
-@center {SML mode, Version $Name$}
-@center {August 1999}
+@center SML mode
+@center August 1999
 @sp 2
 @author Authors: Matthew J.@: Morley and Stefan Monnier
 
@@ -57,13 +54,11 @@ Public License for more details.
 
 @sp 1
 @noindent
-You should have received a copy of the GNU General Public License along
-with GNU Emacs; see the file COPYING. If not, write to the Free Software
-Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 @end titlepage
 
-@setchapternewpage off
 @headings double
 
 @c ============================================================ TOP NODE
@@ -77,7 +72,7 @@ Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 @noindent
 You are looking at the top node of the Info tree documenting
-@sc{sml-mode} (Version $Name$). Not all functions are documented here, but
+@sc{sml-mode}. Not all functions are documented here, but
 those that aren't you probably won't miss. All commands and settable
 variables have built-in documentation, as per usual Emacs conventions.
 @end ifinfo
@@ -96,7 +91,6 @@ Indexes
 
 Introduction
 * Contributors::        Who did what
-* Getting Started::     What to tell Emacs
 * Getting Help::        How Emacs can help
 
 SML Mode
@@ -194,7 +188,6 @@ ML compilers, and other SML based tools.
 
 @menu
 * Contributors::        Who did what
-* Getting Started::     What to tell Emacs
 * Getting Help::        How Emacs can help
 @end menu
 
@@ -202,7 +195,7 @@ ML compilers, and other SML based tools.
 
 @c ======================================================== CONTRIBUTORS
 
-@node Contributors, Getting Started, Introduction, Introduction
+@node Contributors
 
 @section Contributors to the SML mode
 @cindex Contributors
@@ -251,62 +244,7 @@ the current maintainer since after version 3.4.
 
 @c ===================================================== GETTING STARTED
 
-@node Getting Started, Getting Help, Contributors, Introduction
-
-@section Getting started
-
-@c == Getting Started, Getting Help, Contributors, Introduction ========
-
-
-@noindent
-With luck your system administrator will have installed SML mode
-somewhere convenient, so it will just magically all work---you can
-skip the rest of this getting started section. Otherwise you will need
-to tell Emacs where to find all the SML mode @file{.el} files, and
-when to use them. The where is addressed by locating the Lisp code on
-your Emacs Lisp load path---you may have to create a directory for this,
-say @file{/home/mjm/elisp}, and then insert the following lines in your
-@file{/home/mjm/.emacs} file:
-
-@lisp
-(add-to-list 'load-path "/home/mjm/elisp")
-(autoload 'sml-mode "sml-mode" "Major mode for editing SML." t)
-(autoload 'run-sml "sml-proc" "Run an inferior SML process." t)
-@end lisp
-
-@noindent
-The first line adjusts Emacs' internal search path so it can locate the
-Lisp source you have copied to that directory; the second and third
-lines tell Emacs to load the code automatically when it is needed. You
-can then switch any Emacs buffer into SML mode by entering the command
-
-@example
-M-x sml-mode
-@end example
-
-@noindent
-It is usually more convenient to have Emacs automatically place the
-buffer in SML mode whenever you visit a file containing ML
-programs. The simplest way of achieving this is to put something like
-
-@lisp
-(add-to-list 'auto-mode-alist '("\\.\\(sml\\|sig\\)\\'" . sml-mode))
-@end lisp
-
-@noindent
-also in your @file{.emacs} file. Subsequently (after a restart), any
-files with these extensions will be placed in SML mode buffers when
-you visit them.
-
-
-You may want to pre-compile the @file{sml-*.el} files (@kbd{M-x
-byte-compile-file}) for greater speed---byte compiled code loads and
-runs somewhat faster.
-
-
-@c ======================================================== GETTING HELP
-
-@node Getting Help, , Getting Started, Introduction
+@node Getting Help
 
 @section Help!
 
@@ -317,8 +255,8 @@ runs somewhat faster.
 You're reading it. Apart from the on-line info tree (@kbd{C-h i} is the
 Emacs key to enter the @code{info} system---you should follow the brief
 tutorial if this is unfamiliar), there are further details on specific
-commands in their documentation strings. Only the most useful
-SML mode commands are documented in the info tree: to find out more
+commands in their documentation strings.  Only the most useful
+SML mode commands are documented in the info tree: to find out more,
 use Emacs' help facilities.
 
 Briefly, to get help on a specific function use @kbd{C-h f} and enter
@@ -396,8 +334,7 @@ common SML forms (macros or templates).
 @deffn Command sml-mode
 This switches a buffer into SML mode. This is a @emph{major mode} in
 Emacs. To get out of SML mode the buffer's major mode must be set to
-something else, like @t{text-mode}. @xref{Getting Started}, for details
-on how to set this up automatically when visiting an SML file.
+something else, like @t{text-mode}.
 @end deffn
 
 Emacs is all hooks of course. A hook is a variable: if the variable is
