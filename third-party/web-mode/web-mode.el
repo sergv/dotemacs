@@ -1,8 +1,8 @@
 ;;; web-mode.el --- major mode for editing web templates -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright 2011-2024 François-Xavier Bois
+;; Copyright 2011-2025 François-Xavier Bois
 
-;; Version: 17.3.21
+;; Version: 17.3.22
 ;; Author: François-Xavier Bois
 ;; Maintainer: François-Xavier Bois <fxbois@gmail.com>
 ;; Package-Requires: ((emacs "23.1"))
@@ -23,7 +23,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "17.3.21"
+(defconst web-mode-version "17.3.22"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -3830,7 +3830,7 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
 
           ((string= web-mode-engine "vue")
            (cond
-             ((string-match-p "[:@][-[:alpha:]]+=\"" tagopen)
+             ((string-match-p "[:@][-[:alpha:].]+=\"" tagopen)
               (setq closing-string "\""
                     delim-open tagopen
                     delim-close "\""))
@@ -5478,7 +5478,8 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
         ;;(message "%S: %S (%S %S)" (point) (match-string-no-properties 0) reg-beg reg-end)
 
         (setq flags 0
-              tname (downcase (match-string-no-properties 1))
+              tnameraw (match-string-no-properties 1)
+              tname (downcase tnameraw)
               char (aref tname 0)
               tbeg (match-beginning 0)
               tend nil
@@ -5507,7 +5508,9 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
 
           ((not (member char '(?\! ?\?)))
            (cond
-             ((string-match-p "-" tname)
+             ((or (string-match-p "-" tname)
+                  (let ((case-fold-search nil))
+                    (string-match-p "^/?[[:upper:]][[:lower:]]" tnameraw)))
               (setq flags (logior flags 2)))
              ;;((string-match-p ":" tname)
              ;; (setq flags (logior flags 32)))
@@ -6333,7 +6336,7 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
  (defun web-mode-jsx-skip (reg-end) ;; #1299
    (let ((continue t) (pos nil) (i 0) (tag nil) (regexp nil) (regexp0 nil)
          (regexp1 nil) (counter 0) (ret nil) (match nil) (inside t))
-     (looking-at "<\\([[:alpha:]][[:alnum:]:-]*\\)")
+     (looking-at "<\\([[:alpha:]][[:alnum:].:-]*\\)") ;; #1327
      (setq tag (match-string-no-properties 1))
      (if (null tag)
          (progn
@@ -8682,7 +8685,7 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
          (cond
            ((string= web-mode-engine "blade")
             (save-excursion
-              (when (web-mode-rsf "{[{!]+[ ]*")
+              (when (web-mode-rsf "{[{!]+[ ]*\\|@props[ ]*[(]") ;; #1318
                 (setq reg-col (current-column))))
             (setq reg-beg (+ reg-beg 2))
             )
@@ -9646,8 +9649,16 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
                                                               language
                                                               reg-beg))))
 
+          ((member language '("django"))
+           (when debug (message "I430(%S) django-indentation" pos))
+           (setq offset nil)
+           )
+
           (t
-           (when debug (message "I430(%S) bracket-indentation" pos))
+           (when debug
+             (message "I440(%S) generic bracket-indentation" pos)
+             ;;(message "reg-col=%S curr-ind=%S lang=%S reg-beg=%S" reg-col curr-indentation language reg-beg)
+             )
            (setq offset (car (web-mode-bracket-indentation pos
                                                            reg-col
                                                            curr-indentation
