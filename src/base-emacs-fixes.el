@@ -1357,6 +1357,20 @@ Before and after saving the buffer, this function runs
         ;; Add explicit return value.
         (el-patch-add nil)))))
 
+;;;###autoload
+(el-patch-feature arc-mode)
+
+(when-emacs-version (<= 30 it)
+  (defun arc-mode-init ()
+    (el-patch-defun archive-get-lineno ()
+      (if (el-patch-wrap 2 0
+            (and archive-file-list-start
+                 (>= (point) archive-file-list-start)))
+          (count-lines archive-file-list-start
+		       (line-beginning-position))
+        0)))
+  (eval-after-load "arg-mode" '(arg-mode-init)))
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
