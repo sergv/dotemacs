@@ -55,14 +55,14 @@
 ;;;###autoload
 (defun magit-reset-soft (commit)
   "Reset the `HEAD' to COMMIT, but not the index and working tree.
-\n(git reset --soft REVISION)"
+\n(git reset --soft COMMIT)"
   (interactive (list (magit-reset-read-branch-or-commit "Soft reset %s to")))
   (magit-reset-internal "--soft" commit))
 
 ;;;###autoload
 (defun magit-reset-hard (commit)
   "Reset the `HEAD', index, and working tree to COMMIT.
-\n(git reset --hard REVISION)"
+\n(git reset --hard COMMIT)"
   (interactive (list (magit-reset-read-branch-or-commit
                       (concat (magit--propertize-face "Hard" 'bold)
                               " reset %s to"))))
@@ -71,7 +71,7 @@
 ;;;###autoload
 (defun magit-reset-keep (commit)
   "Reset the `HEAD' and index to COMMIT, while keeping uncommitted changes.
-\n(git reset --keep REVISION)"
+\n(git reset --keep COMMIT)"
   (interactive (list (magit-reset-read-branch-or-commit "Reset %s to")))
   (magit-reset-internal "--keep" commit))
 
@@ -134,4 +134,15 @@ or \"detached head\" will be substituted for %s."
 
 ;;; _
 (provide 'magit-reset)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-reset.el ends here
