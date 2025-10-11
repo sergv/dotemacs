@@ -56,6 +56,7 @@ magit-gitignore.elc:       magit.elc
 magit-sparse-checkout.elc: magit.elc
 magit-bundle.elc:          magit.elc
 magit-extras.elc:          magit.elc magit-merge.elc
+magit-dired.elc:           magit.elc
 git-rebase.elc:            magit.elc
 magit-bookmark.elc:        magit.elc
 
@@ -71,7 +72,8 @@ versionlib: $(PKG)-version.el
 	(when (file-exists-p \"$@\")\
 	  (delete-file \"$@\"))\
 	(setq with-editor-emacsclient-executable nil)\
-	$$suppress_warnings)" \
+	(when (< emacs-major-version 30)\
+	  (require 'transient)))" \
 	-f batch-byte-compile $<
 
 $(PKG)-autoloads.el: $(ELS)
@@ -114,7 +116,7 @@ clean:
 ## Templates #########################################################
 
 define VERSIONLIB_TMPL
-;;; $(PKG)-version.el --- the Magit version you are using
+;;; $(PKG)-version.el --- The Magit version you are using  -*- lexical-binding:t -*-
 
 (setq $(PKG)-version "$(VERSION)")
 
@@ -131,16 +133,3 @@ define VERSIONLIB_TMPL
 endef
 export VERSIONLIB_TMPL
 #'
-
-define suppress_warnings
-(remhash (indirect-function 'derived-mode-p) advertised-signature-table)
-(fset 'original-message (symbol-function 'message))
-(fset 'message
-      (lambda (f &rest a)
-        (unless (or (equal f "Wrote %s")
-                    (equal f "pcase-memoize: equal first branch, yet different")
-                    (and (equal f "Warning: Unknown defun property `%S' in %S")
-                         (memq (car a) '(pure side-effect-free interactive-only))))
-          (apply 'original-message f a))))
-endef
-export suppress_warnings
