@@ -4,7 +4,7 @@
 
 ;; Author: Felipe Lema <felipelema@mortemale.org>
 ;; Created: 2021-07-14
-;; Version: 0.0.4
+;; Version: 0.0.5
 ;; Package-Requires: ((emacs "27.1") (jsonrpc "1.0.9"))
 ;; URL: https://codeberg.org/FelipeLema/session-async.el
 
@@ -44,11 +44,12 @@
 
 (defcustom session-async-wrap-remote-with-ease-bindings
   t
-  "Whether every REMOTE-SEXP in `session-async-start' should be wrapped
-with bindings that eases the remote setup (less code to write).
+  "Whether every REMOTE-SEXP in `session-async-start' should bind vars.
+If t, then REMOTE-SEXP will be wrapped with let- bindings that eases the remote
+setup (less code to write).
 
 See `session-async-bindings-to-mirror-setup'."
-  :type 'bool
+  :type 'boolean
   :group 'session-async)
 
 ;;;; remote process
@@ -80,11 +81,11 @@ Returns:
   (let (result error-message)
     (condition-case err
         (thread-last sexp-as-string
-          (format "(funcall %s)")
-          (read-from-string)
-          (car)
-          (eval)
-          (setq result))
+                     (format "(funcall %s)")
+                     (read-from-string)
+                     (car)
+                     (eval)
+                     (setq result))
       (error
        (setq
         error-message
@@ -118,11 +119,11 @@ See `session-async--evaluate'"
 (defun session-async-handle-request (method &rest params)
   "Handle request from user-facing Emacs process.
 
-Accepted METHOD: 'eval
+Accepted METHOD: eval
 All other methods will be ignored.
 
 Returned sexp from calling `session-async--evaluate' with PARAMS will be
-immediately `session-async--sexp-to-string'-ed before returning from this
+immediately `session-async--sexp-to-string' -ed before returning from this
 function.
 
 This way it can be safely sent back through communication socket."
@@ -140,8 +141,8 @@ This way it can be safely sent back through communication socket."
 Do not run this in user-facing session.  It will hang Emacs until exit."
   (setq session-async--keep-loop-running t)
   (let* ((port (thread-last command-line-args-left
-                 (car)
-                 (string-to-number)))
+                            (car)
+                            (string-to-number)))
          (connection-to-main-emacs
           (make-instance
            'jsonrpc-process-connection
@@ -205,9 +206,9 @@ Optional argument CLEANUP whether processes should be cleaned."
               (session-async-connection--listener-process conn)))
     (when (process-live-p p)
       (delete-process p))
-    (when (and cleanup
-               (process-buffer p))
-      (kill-buffer (process-buffer p)))))
+    (when cleanup
+      (when-let ((p (process-buffer p)))
+       (kill-buffer p)))))
 
 ;;;###autoload
 (cl-defun session-async-new (&optional
@@ -241,6 +242,8 @@ here (user-facing Emacs porcess)."
                    ;; this is a second unexpected connection
                    ;; so we ditch it
                    (delete-process client)
+                 ;; ↓ hay que matar este buf
+                 (message "%s" (process-buffer client))
                  (push
                   (setq session
                         (session-async-connection
@@ -269,7 +272,7 @@ here (user-facing Emacs porcess)."
              (list
               emacs-command
               "-l"
-	      (locate-library "session-async") ;; installed as package
+              (locate-library "session-async") ;; installed as package
               "-batch"
               "-f" "session-async-eval-loop"
               (format "%d"
@@ -307,7 +310,7 @@ here (user-facing Emacs porcess)."
 (defvar connection-local-profile-alist)
 (defvar connection-local-criteria-alist)
 (defun session-async-bindings-to-mirror-setup ()
-  "Bindings that will ease the of remote calls.
+  "Bindings that will ease the of a remote call.
 
 Mostly variables important to Tramp.  And `load-path' and `default-directory'.
 
@@ -320,9 +323,13 @@ bindings."
                                  tramp-remote-path)))
     (tramp-use-ssh-controlmaster-options ,(when (boundp 'tramp-use-ssh-controlmaster-options)
                                             tramp-use-ssh-controlmaster-options))
+    (tramp-use-connection-share ,(when (boundp 'tramp-use-connection-share)
+                                   tramp-use-connection-share))
     (enable-connection-local-variables ,enable-connection-local-variables)
-    (connection-local-profile-alist (quote ,connection-local-profile-alist))
-    (connection-local-criteria-alist (quote ,connection-local-criteria-alist))
+    (connection-local-profile-alist (quote ,(when (boundp 'connection-local-profile-alist)
+                                              connection-local-profile-alist)))
+    (connection-local-criteria-alist (quote ,(when (boundp 'connection-local-criteria-alist)
+                                               connection-local-criteria-alist)))
     (default-directory ,default-directory)
     (load-path (quote ,load-path))))
 
@@ -447,8 +454,8 @@ If RUNNING-SESSION is not provided, will create a new one-shot session."
 
 ;;;###autoload
 (cl-defun session-async-get-session-create (sym
-                              &key
-                              (session-name (session-async--create-unique-session-name)))
+                                            &key
+                                            (session-name (session-async--create-unique-session-name)))
   "Get a running session and create it if it's necessary.
 
 SYM is the symbol the session is being used to handle the session.
