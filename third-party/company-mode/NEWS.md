@@ -2,6 +2,16 @@
 
 # Next
 
+* The minimum required version of Emacs is now 26.1.
+* `TAB` binding changed to `company-complete-common-or-cycle`, and `backtab`
+  binding to `company-cycle-backward`
+  (#[1499](https://github.com/company-mode/company-mode/pull/1499)).
+* Completion is restarted if it enters a new "field" at the end, as indicated by
+  the `adjust-boundaries` backend action
+  (#[1497](https://github.com/company-mode/company-mode/pull/1497)). This
+  benefits file name (and directory) completion.  The user option
+  `company-files-chop-trailing-slash` has been removed, and the
+  `post-completion` handler in `company-files` has been removed as well.
 * Handle the case when the current c-a-p-f function changes mid-session
   (#[1494](https://github.com/company-mode/company-mode/pull/1494)).
 
