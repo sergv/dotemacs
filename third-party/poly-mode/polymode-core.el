@@ -37,8 +37,11 @@
   (require 'cl-lib)
   (require 'derived))
 
+
 
 ;;; ESSENTIAL DECLARATIONS
+
+;; fixme: rename into pm-active-span or something similar
 (defvar *span* nil)
 (defvar-local pm/polymode nil)
 (put 'pm/polymode 'permanent-local t)
@@ -82,6 +85,23 @@
   (with-no-warnings
     (eieio-object-name-string obj)))
 
+
+
+;; CORE EMACS COMPATS
+
+;;; emacs 30
+(unless (fboundp 'major-mode-remap)
+  (defvar major-mode-remap-alist nil)
+  (defvar major-mode-remap-defaults nil)
+  (defalias 'major-mode-remap
+    (lambda (mode)
+      "Return the function to use to enable MODE."
+      (or (cdr (or (assq mode major-mode-remap-alist)
+                   (assq mode major-mode-remap-defaults)))
+          mode))))
+
+
+
 ;; SHIELDS
 
 (defvar pm-allow-after-change-hook t)
@@ -104,14 +124,22 @@
 (defvar pm-initialization-in-progress nil)
 
 (defvar pm-hide-implementation-buffers t)
-(defvar-local pm--core-buffer-name nil)
+(defvar-local pm--base-buffer-name nil
+  "Local name of the base buffer in the base buffer.
+Currently, we only use it to track renames of the buffer.")
 
-(defun pm--hidden-buffer-name ()
-  (generate-new-buffer-name (concat " " pm--core-buffer-name)))
 
-(defun pm--visible-buffer-name ()
-  (generate-new-buffer-name
-   (replace-regexp-in-string "^ +" "" pm--core-buffer-name)))
+(defun pm--buffer-name (&optional hidden)
+  (let ((name (if-let* ((bbuf (buffer-base-buffer)))
+                  (let ((postfix (replace-regexp-in-string "poly-\\|-mode" "" (symbol-name major-mode)))
+                        (base-name (buffer-local-value 'pm--base-buffer-name bbuf)))
+                    (format "%s[%s]" (replace-regexp-in-string "^ " "" base-name)
+                            (or (cdr (assoc postfix polymode-mode-abbrev-aliases))
+                                postfix)))
+                pm--base-buffer-name)))
+    (when hidden
+      (setq name (concat " " name)))
+    (generate-new-buffer-name name)))
 
 
 
@@ -186,9 +214,9 @@ inner chunk (such as in markdown mode), the detected symbol might
 not correspond to the desired mode. This alist maps discovered
 symbols into desired modes. For example
 
-  (add-to-list 'polymode-mode-name-aliases '(julia . ess-julia))
+  (add-to-list \\='polymode-mode-name-aliases \\='(julia . ess-julia))
 
-will cause installation of `ess-julia-mode' in markdown ```julia chunks."
+will cause installation of `ess-julia-mode' in markdown julia chunks."
   :group 'polymode
   :type 'alist)
 
@@ -228,6 +256,7 @@ The hook is run in chunkmode's body buffer from `pm-initialze'
 `pm-chunkmode' methods. Slot :init-functions `pm-chunkmode'
 objects provides same functionality for narrower scope. See also
 `polymode-init-host-hook'.")
+
 
 
 ;;; Mode Macros
@@ -641,12 +670,12 @@ forward."
          (block-col (if (< cur-indent cur-col)
                         cur-indent
                       (1- cur-indent)))
-         (end (point-at-eol)))
+         (end (line-end-position)))
     (forward-line 1)
     (while (and (not (eobp))
                 (or (looking-at-p "[ \t]*$")
                     (and (> (current-indentation) block-col)
-                         (setq end (point-at-eol)))))
+                         (setq end (line-end-position)))))
       (forward-line 1))
     ;; end at bol for the sake of indentation
     (setq end (min (point-max) (1+ end)))
@@ -866,7 +895,7 @@ forward spans from pos."
                           (cons (point-max) (point-max)))))
             (when can-overlap
               (goto-char (cdr head))
-              (when-let ((hbeg (car (funcall head-matcher 1))))
+              (when-let* ((hbeg (car (funcall head-matcher 1))))
                 (when (< hbeg (car tail))
                   (setq tail (cons hbeg hbeg)))))
             (list (car head) (cdr head) (car tail) (cdr tail))))))))
@@ -918,7 +947,7 @@ TYPE is either a symbol or a list of symbols of span types."
   (unless pm-initialization-in-progress
     (when global-hook
       (run-hooks global-hook))
-    (pm--run-hooks object :init-functions (or type 'host))))
+    (pm--run-hooks object 'init-functions (or type 'host))))
 
 (defun pm--collect-parent-slots (object slot &optional do-when inclusive)
   "Descend into parents of OBJECT and return a list of SLOT values.
@@ -932,7 +961,7 @@ of the first object for which DO-WHEN failed."
         (failed nil))
     (while inst
       (if (not (slot-boundp inst slot))
-          (setq inst (and (slot-boundp inst :parent-instance)
+          (setq inst (and (slot-boundp inst 'parent-instance)
                           (eieio-oref inst 'parent-instance)))
         (push (eieio-oref inst slot) vals)
         (setq inst (and
@@ -942,7 +971,7 @@ of the first object for which DO-WHEN failed."
                           (or (funcall do-when inst)
                               (and inclusive
                                    (setq failed t)))))
-                    (slot-boundp inst :parent-instance)
+                    (slot-boundp inst 'parent-instance)
                     (eieio-oref inst 'parent-instance)))))
     vals))
 
@@ -1048,7 +1077,7 @@ switch."
                       ((eq mode 'host) (pm-base-buffer))
                       (mode (or (pm-get-buffer-of-mode mode)
                                 ;; not throwing because in auto-modes mode might not
-                                ;; be installed yet and there is no way install it
+                                ;; be installed yet and there is no way to install it
                                 ;; from here
                                 buffer))))))
     ;; no further action if BUFFER is already the current buffer
@@ -1056,10 +1085,12 @@ switch."
       (when (and own visibly)
         (run-hook-with-args 'polymode-before-switch-buffer-hook
                             cbuf buffer))
-      (pm--move-vars polymode-move-these-vars-from-base-buffer
-                     (pm-base-buffer) buffer)
-      (pm--move-vars polymode-move-these-vars-from-old-buffer
-                     cbuf buffer)
+
+      (pm--move-vars polymode-move-these-vars-from-base-buffer (pm-base-buffer) buffer)
+      (pm--move-vars polymode-move-these-vars-from-old-buffer cbuf buffer)
+
+      ;; synchronize again just in case
+      (pm--synchronize-points cbuf)
       (if visibly
           ;; Slow, visual selection. Don't perform in foreign indirect buffers.
           (when own
@@ -1078,7 +1109,7 @@ switch."
         (hlf header-line-format))
 
     (when pm-hide-implementation-buffers
-      (rename-buffer (pm--hidden-buffer-name)))
+      (rename-buffer (pm--buffer-name 'hidden)))
 
     (setq pm/current nil)
 
@@ -1089,8 +1120,16 @@ switch."
 
     (pm--move-overlays old-buffer new-buffer)
 
-    (switch-to-buffer new-buffer)
+    (let ((dedicated-flag (window-dedicated-p)))
+      (when dedicated-flag
+        (set-window-dedicated-p nil nil))
+      (set-buffer new-buffer)
+      (set-window-buffer nil new-buffer 'keep-margins)
+      (when dedicated-flag
+        (set-window-dedicated-p nil dedicated-flag)))
+
     (bury-buffer-internal old-buffer)
+    ;; remove old-buffer form window-prev-buffers
     (set-window-prev-buffers nil (assq-delete-all old-buffer (window-prev-buffers nil)))
 
     ;; if header line is active in some modes, make it active everywhere
@@ -1100,14 +1139,13 @@ switch."
 
     (setq pm/current t)
 
-    ;; fixme: what is the right way to do this ... activate-mark-hook?
+    (set-mark mkt)
     (if (not ractive)
         (deactivate-mark)
-      (set-mark mkt)
       (activate-mark))
 
     (when pm-hide-implementation-buffers
-      (rename-buffer (pm--visible-buffer-name)))
+      (rename-buffer (pm--buffer-name)))
 
     ;; avoid display jumps
     (goto-char point)
@@ -1115,16 +1153,62 @@ switch."
       (set-window-start (get-buffer-window new-buffer t) window-start))
 
     (run-hook-with-args 'polymode-after-switch-buffer-hook old-buffer new-buffer)
-    (pm--run-hooks pm/polymode :switch-buffer-functions old-buffer new-buffer)
-    (pm--run-hooks pm/chunkmode :switch-buffer-functions old-buffer new-buffer)))
+    (pm--run-hooks pm/polymode 'switch-buffer-functions old-buffer new-buffer)
+    (pm--run-hooks pm/chunkmode 'switch-buffer-functions old-buffer new-buffer)))
+
+
+(defvar polymode-copy-overlays-with-these-properties-from-old-buffer '(invisible)
+  "Overlays with these non-nil properties should be copied instead of moved.
+The overlay is matched if `pm--overlay-match-p' returns non-nil with
+any of the properties in the list.")
+
+(defvar polymode-ignore-overlays-with-these-properties
+  '(linum-str yas--snippet (face region show-paren-match hl-line))
+  "Overlays with these properties should be left untouched when switching polymode buffers.
+The overlay is matched if `pm--overlay-match-p' returns non-nil with any
+of the properties in the list.")
+
+(defun pm--overlay-match-p (overlay prop)
+  "Return non-nil if the overlay's properties match PROP.
+When PROP is a symbol, return non-nil if the overlay contains that property
+and its value is non-nil. When PROP is a list, return non-nil if the value
+of the overlay's property (car PROP) is one of the (cdr PROP).
+"
+  (if (symbolp prop)
+      (overlay-get overlay prop)
+    (memq (overlay-get overlay (car prop)) (cdr prop))))
 
 (defun pm--move-overlays (from-buffer to-buffer)
+  "Delete all overlays in TO-BUFFER, then copy FROM-BUFFER overlays to it."
+  ;; Some overlays need to be copied to avoid changing the display in other windows
+  ;; which display same polymode buffer
+  ;; #348 for an example where overaly with invisible property should be copied
+  ;; #350 for examples where overlays should be moved (most of them)
+
+  ;; Ensure that the overlays which we will copy are not already in the to-buffer. This
+  ;; is a rough brush, but there is no way currently to identify the overlays more
+  ;; precisely, and it's probably not worth the extra effort.
+  (with-current-buffer to-buffer
+    (mapc (lambda (o)
+            (when
+                (cl-some (lambda (p) (pm--overlay-match-p o p))
+                         polymode-copy-overlays-with-these-properties-from-old-buffer)
+              (delete-overlay o)))
+          (overlays-in 1 (1+ (buffer-size)))))
+
   (with-current-buffer from-buffer
     (mapc (lambda (o)
-            (unless (or (overlay-get o 'linum-str)
-                        (overlay-get o 'yas--snippet))
-              (move-overlay o (overlay-start o) (overlay-end o) to-buffer)))
-          (overlays-in 1 (1+ (buffer-size))))))
+            (unless (cl-some (lambda (p) (pm--overlay-match-p o p))
+                             polymode-ignore-overlays-with-these-properties)
+              (if (cl-some (lambda (p) (pm--overlay-match-p o p))
+                           polymode-copy-overlays-with-these-properties-from-old-buffer)
+                  (let ((o-copy (copy-overlay o))
+                        (start (overlay-start o))
+                        (end (overlay-end o)))
+                    (move-overlay o-copy start end  to-buffer))
+                (move-overlay o (overlay-start o) (overlay-end o) to-buffer))))
+          (overlays-in 1 (1+ (buffer-size)))))
+  )
 
 (defun pm--move-vars (vars from-buffer &optional to-buffer)
   (let ((to-buffer (or to-buffer (current-buffer))))
@@ -1198,7 +1282,6 @@ spans. Two adjacent spans might have same major mode, thus
       (widen)
       (let* ((hostmode (eieio-oref pm/polymode '-hostmode))
              (pos beg)
-             (ttype 'dummy)
              (span (pm-innermost-span beg))
              (nspan span)
              (ttype (pm-true-span-type span))
@@ -1395,17 +1478,22 @@ Placed with high priority in `after-change-functions' hook."
         ;;   (remove-hook 'after-change-functions 'jit-lock-after-change t))
         ))))
 
-(defun pm--run-other-hooks (allow syms hook &rest args)
-  (when (and allow polymode-mode pm/polymode)
-    (dolist (sym syms)
+(defun pm--run-hooks-in-other-buffers (function-names hook-name &rest args)
+  "Run each function in FUNCTION-NAMES in other polymode buffers.
+But, only if it is part of the hook HOOK-NAME. Each function is called
+witih arguments ARGS."
+  (when (and polymode-mode pm/polymode)
+    (let ((cbuf (current-buffer)))
       (dolist (buf (eieio-oref pm/polymode '-buffers))
         (when (buffer-live-p buf)
-          (unless (eq buf (current-buffer))
+          (unless (eq buf cbuf)
             (with-current-buffer buf
-              (when (memq sym (symbol-value hook))
-                (if args
-                    (apply sym args)
-                  (funcall sym))))))))))
+              (let ((hooks (symbol-value hook-name)))
+                (dolist (sym function-names)
+                  (when (memq sym hooks)
+                    (if args
+                        (apply sym args)
+                      (funcall sym))))))))))))
 
 ;; BUFFER SAVE
 ;; TOTHINK: add auto-save-hook?
@@ -1423,17 +1511,28 @@ declared in the base buffer is triggered.")
   "Run after-save-hooks in indirect buffers.
 Only those in `polymode-run-these-after-save-functions-in-other-buffers'
 are triggered if present."
-  (pm--run-other-hooks t
-                       polymode-run-these-before-save-functions-in-other-buffers
-                       'after-save-hook))
+  (pm--run-hooks-in-other-buffers
+   polymode-run-these-before-save-functions-in-other-buffers
+   'after-save-hook))
 
 (defun polymode-after-save ()
   "Run after-save-hooks in indirect buffers.
 Only those in `polymode-run-these-after-save-functions-in-other-buffers'
 are triggered if present."
-  (pm--run-other-hooks t
-                       polymode-run-these-after-save-functions-in-other-buffers
-                       'after-save-hook))
+  (let ((new-name (replace-regexp-in-string "^ +" "" (buffer-name))))
+   (unless (equal new-name pm--base-buffer-name)
+     (let ((cbuf (current-buffer)))
+       ;; Ensure we are in the base-buffer
+       (cl-assert (eq (buffer-base-buffer) nil))
+       (setq pm--base-buffer-name new-name)
+       ;; Rename indirect buffers (#346)
+       (dolist (buf (eieio-oref pm/polymode '-buffers))
+         (unless (eq buf cbuf)
+           (with-current-buffer buf
+             (rename-buffer (pm--buffer-name (not (get-buffer-window buf 'visible))))))))))
+  (pm--run-hooks-in-other-buffers
+   polymode-run-these-after-save-functions-in-other-buffers
+   'after-save-hook))
 
 
 ;; change hooks
@@ -1442,30 +1541,36 @@ are triggered if present."
 (defvar polymode-run-these-after-change-functions-in-other-buffers nil
   "After-change functions to run in all other buffers.")
 
+;; FIXME: LSP specific; move this to compat somehow
+(declare-function pm--lsp-position "polymode-compat")
+(defvar-local pm--lsp-before-change-end-position nil)
+
 (defun polymode-before-change (beg end)
   "Polymode before-change fixes.
 Run `polymode-run-these-before-change-functions-in-other-buffers'.
 Placed with low priority in `before-change-functions' hook."
   (pm--prop-put :before-change-range (cons beg end))
-  ;; FIXME: LSP specific move this out somehow
   (when (boundp 'lsp-mode)
     (dolist (buf (eieio-oref pm/polymode '-buffers))
       (with-current-buffer buf
         (when lsp-mode
           (setq pm--lsp-before-change-end-position (pm--lsp-position end))))))
-  (pm--run-other-hooks pm-allow-before-change-hook
-                       polymode-run-these-before-change-functions-in-other-buffers
-                       'before-change-functions
-                       beg end))
+  (when pm-allow-before-change-hook
+   (pm--run-hooks-in-other-buffers
+    polymode-run-these-before-change-functions-in-other-buffers
+    'before-change-functions
+    beg end)))
 
 (defun polymode-after-change (beg end len)
   "Polymode after-change fixes.
 Run `polymode-run-these-after-change-functions-in-other-buffers'.
 Placed with low priority in `after-change-functions' hook."
-  (pm--run-other-hooks pm-allow-after-change-hook
-                       polymode-run-these-after-change-functions-in-other-buffers
-                       'after-change-functions
-                       beg end len))
+  ;; ensure points are synchronized (after-change runs BEFORE post-command-hook)
+  (when pm-allow-after-change-hook
+    (pm--run-hooks-in-other-buffers
+     polymode-run-these-after-change-functions-in-other-buffers
+     'after-change-functions
+     beg end len)))
 
 (defvar polymode-run-these-pre-commands-in-other-buffers nil
   "These commands, if present in `pre-command-hook', are run in other bufers.")
@@ -1477,13 +1582,13 @@ Placed with low priority in `after-change-functions' hook."
 Currently synchronize points and runs
 `polymode-run-these-pre-commands-in-other-buffers' if any. Runs in
 local `pre-command-hook' with very high priority."
-  (pm--synchronize-points (current-buffer))
-  (condition-case err
-      (pm--run-other-hooks pm-allow-pre-command-hook
-                           polymode-run-these-pre-commands-in-other-buffers
-                           'pre-command-hook)
-    (error (message "error polymode-pre-command run other hooks: (%s) %s"
-                    (point) (error-message-string err)))))
+  (when pm-allow-pre-command-hook
+    (condition-case err
+        (pm--run-hooks-in-other-buffers
+         polymode-run-these-pre-commands-in-other-buffers
+         'pre-command-hook)
+      (error (message "error polymode-pre-command run other hooks: (%s) %s"
+                      (point) (error-message-string err))))))
 
 (defun polymode-post-command ()
   "Select the buffer relevant buffer and run post-commands in other buffers.
@@ -1503,9 +1608,10 @@ appropriate. This function is placed into local
       (condition-case err
           (if (eq cbuf (current-buffer))
               ;; 1. same buffer, run hooks in other buffers
-              (pm--run-other-hooks pm-allow-post-command-hook
-                                   polymode-run-these-post-commands-in-other-buffers
-                                   'post-command-hook)
+              (when pm-allow-post-command-hook
+               (pm--run-hooks-in-other-buffers
+                polymode-run-these-post-commands-in-other-buffers
+                'post-command-hook))
             ;; 2. Run all hooks in this (newly switched to) buffer
             (run-hooks 'post-command-hook))
         (error (message "error in polymode-post-command run other hooks: (%s) %s"
@@ -1916,11 +2022,12 @@ Return FALLBACK if non-nil, otherwise the value of
                 (fboundp polymode-default-inner-mode))
         polymode-default-inner-mode)
       (when (or (eq fallback 'host)
-                (fboundp fallback))
+                (and (fboundp fallback)
+                     (functionp fallback)))
         fallback)
       'poly-fallback-mode))
     ;; proper mode symbol
-    ((and (symbolp name) (fboundp name) name))
+    ((and (symbolp name) (and (fboundp name) (functionp name)) name))
     ;; compute from name
     ((let* ((str (pm--symbol-name
                   (or (cdr (assq (intern (pm--symbol-name name))
@@ -1929,28 +2036,30 @@ Return FALLBACK if non-nil, otherwise the value of
             (mname (if (string-match-p "-mode$" str)
                        str
                      (concat str "-mode"))))
-       (or
-        ;; direct search
-        (let ((mode (intern mname)))
-          (when (fboundp mode)
-            mode))
-        ;; downcase
-        (let ((mode (intern (downcase mname))))
-          (when (fboundp mode)
-            mode))
-        ;; auto-mode alist
-        (let ((dummy-file (concat "a." str)))
-          (cl-loop for (k . v) in auto-mode-alist
-                   if (and (string-match-p k dummy-file)
-                           (not (string-match-p "^poly-" (symbol-name v))))
-                   return v))
-        (when (or (eq polymode-default-inner-mode 'host)
-                  (fboundp polymode-default-inner-mode))
-          polymode-default-inner-mode)
-        (when (or (eq fallback 'host)
-                  (fboundp fallback))
-          fallback)
-        'poly-fallback-mode))))))
+       (major-mode-remap
+        (or
+         ;; direct search
+         (let ((mode (intern mname)))
+           (when (and (fboundp mode) (functionp mode))
+             mode))
+         ;; downcase
+         (let ((mode (intern (downcase mname))))
+           (when (and (fboundp mode) (functionp mode))
+             mode))
+         ;; auto-mode alist
+         (let ((dummy-file (concat "a." str)))
+           (cl-loop for (k . v) in auto-mode-alist
+                    if (and (string-match-p k dummy-file)
+                            (not (string-match-p "^poly-" (symbol-name v))))
+                    return v))
+         (when (or (eq polymode-default-inner-mode 'host)
+                   (and (fboundp polymode-default-inner-mode)
+                        (functionp polymode-default-inner-mode)))
+           polymode-default-inner-mode)
+         (when (or (eq fallback 'host)
+                   (and (fboundp fallback) (functionp fallback)))
+           fallback)
+         'poly-fallback-mode)))))))
 
 (defun pm--oref-with-parents (object slot)
   "Merge slots SLOT from the OBJECT and all its parent instances."
@@ -1959,7 +2068,7 @@ Return FALLBACK if non-nil, otherwise the value of
       (setq VALS (append (and (slot-boundp object slot) ; don't cascade
                               (eieio-oref object slot))
                          VALS)
-            object (and (slot-boundp object :parent-instance)
+            object (and (slot-boundp object 'parent-instance)
                         (eieio-oref object 'parent-instance))))
     VALS))
 
@@ -2032,17 +2141,20 @@ Elements of LIST can be either strings or symbols."
   (when (and polymode-mode
              (buffer-live-p buffer))
     (let* ((bufs (eieio-oref pm/polymode '-buffers))
-           ;; (buffer (or buffer
-           ;;             (cl-loop for b in bufs
-           ;;                      if (and (buffer-live-p b)
-           ;;                              (buffer-local-value 'pm/current b))
-           ;;                      return b)
-           ;;             (current-buffer)))
            (pos (with-current-buffer buffer (point))))
       (dolist (b bufs)
         (when (buffer-live-p b)
           (with-current-buffer b
             (goto-char pos)))))))
+
+(defmacro pm-with-synchronized-points (&rest body)
+  "Run BODY and ensure the points in all polymode buffers are
+synchronized before and after BODY."
+  (declare (indent 0) (debug (body)))
+  (pm--synchronize-points)
+  `(prog1
+       ,@body
+     (pm--synchronize-points)))
 
 (defun pm--completing-read (prompt collection &optional predicate require-match
                                    initial-input hist def inherit-input-method)
