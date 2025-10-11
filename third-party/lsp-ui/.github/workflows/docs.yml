@@ -10,15 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - uses: purcell/setup-emacs@master
-        with:
-          version: 27.1
-
-      - uses: conao3/setup-cask@master
-        with:
-          version: 0.8.4
+        uses: actions/checkout@v5
 
       - name: MkDocs
         run: |
