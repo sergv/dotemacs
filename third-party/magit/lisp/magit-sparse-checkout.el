@@ -113,7 +113,7 @@ directories, call `magit-sparse-checkout-set' instead."
            (let ((re (concat
                       "\\`"
                       (regexp-opt (magit-sparse-checkout-directories)))))
-             (lambda (d) (string-match-p re d)))
+             (##string-match-p re %))
            (magit-revision-directories "HEAD")))))
   (magit-sparse-checkout--auto-enable)
   (magit-run-git-async "sparse-checkout" "add" directories))
@@ -155,4 +155,15 @@ This header is not inserted by default.  To enable it, add it to
 
 ;;; _
 (provide 'magit-sparse-checkout)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-sparse-checkout.el ends here

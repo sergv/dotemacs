@@ -20,6 +20,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Magit.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; This library implements support for "git bundle".
+;; The entry point is the `magit-bundle' menu command.
+
+;; See (man "git-bundle").
+
 ;;; Code:
 
 (require 'magit)
@@ -92,7 +99,7 @@
 ;;;###autoload
 (defun magit-bundle-update-tracked (tag)
   "Update a bundle that is being tracked using TAG."
-  (interactive (list (magit-read-tag "Update bundle tracked by tag" t)))
+  (interactive (list (magit-read-tag "Update bundle tracked by tag")))
   (let (msg)
     (let-alist (magit--with-temp-process-buffer
                  (save-excursion
@@ -129,4 +136,15 @@
 
 ;;; _
 (provide 'magit-bundle)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-bundle.el ends here
