@@ -1,6 +1,15 @@
 ``master`` (unreleased)
 ======================
 
+-----------
+Bugs fixed
+-----------
+
+- [#2086]: Fix the name of the PyMarkdown config.
+
+35.0 (2025-04-23)
+======================
+
 ------------
 New Features
 ------------
@@ -18,12 +27,13 @@ New Features
   customize how error messages are to be cleared.
 - [#2075]: Add the ``flycheck-chktex-extra-flags`` option to the ``tex-chktex`` checker.
 - [#2107]: Add ``-Xcompiler`` option for ``cuda-nvcc``.
+- Add new ``markdownlint-cli2`` checker.
 
 -----------
 Bugs fixed
 -----------
 
-- [#2057]: Revert the extraction of ``flycheck-version`` with ``lm-version``.
+- [#2057]: Revert the replacement of ``flycheck-version`` with ``lm-version``.
 - [#1972]: Refine flycheck-display-errors lifecycle so error messages can be cleared.
 - [#2067]: Handle correctly GHC 9.6 error output format.
 - [#2079]: Fix ruff ``error-patterns`` and ``error-filter``.
