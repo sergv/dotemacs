@@ -5,22 +5,23 @@ PKG = ghub
 ELS   = $(PKG).el
 ELS  += gsexp.el
 ELS  += $(PKG)-graphql.el
-ELS  += glab.el
-ELS  += gtea.el
-ELS  += gogs.el
-ELS  += buck.el
+ELS  += $(PKG)-legacy.el
 ELCS  = $(ELS:.el=.elc)
 
 DEPS  = compat
+DEPS += llama
 DEPS += treepy
 
 DOMAIN      ?= magit.vc
 CFRONT_DIST ?= E2LUHBKU1FBV02
 
 VERSION ?= $(shell test -e $(TOP).git && git describe --tags --abbrev=0 | cut -c2-)
+REVDESC := $(shell test -e $(TOP).git && git describe --tags)
 
 EMACS      ?= emacs
-EMACS_ARGS ?=
+EMACS_ARGS ?= --eval "(progn \
+  (put 'if-let 'byte-obsolete-info nil) \
+  (put 'when-let 'byte-obsolete-info nil))"
 
 LOAD_PATH  ?= $(addprefix -L ../../,$(DEPS))
 LOAD_PATH  += -L .
