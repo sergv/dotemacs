@@ -52,7 +52,6 @@
 (ert-deftest define/hooks-run-in-indirect-buffers ()
   ;; For unknown reasons this test fails even in vanilla Emacs.
   :expected-result :failed
-  (skip-when (pm-running-on-github-p))
   (setq ran-body-in-modes nil
         ran-hooks-in-modes nil
         ran-inner-hooks-in-modes nil
