@@ -129,8 +129,8 @@ while two prefix arguments are equivalent to `--all'."
   (interactive
    (progn (when (and (magit-merge-in-progress-p)
                      (not (magit-y-or-n-p "\
-Stashing and resetting during a merge conflict. \
-Applying the resulting stash won't restore the merge state. \
+Stashing and resetting during a merge conflict.  \
+Applying the resulting stash won't restore the merge state.  \
 Proceed anyway? ")))
             (user-error "Abort"))
           (magit-stash-read-args)))
@@ -143,7 +143,7 @@ Unstaged and untracked changes are not stashed.  The stashed
 changes are applied in reverse to both the index and the
 worktree.  This command can fail when the worktree is not clean.
 Applying the resulting stash has the inverse effect."
-  (interactive (list (magit-stash-read-message)))
+  (interactive (list (funcall magit-stash-read-message-function)))
   (magit-stash-save message t nil nil t 'worktree))
 
 ;;;###autoload
@@ -173,14 +173,15 @@ while two prefix arguments are equivalent to `--all'."
 
 The message that Git would have picked, is available as the
 default (used when the user enters the empty string) and as
-the next history element (which can be accessed with \
-\\<minibuffer-local-map>\\[next-history-element])."
-  (read-string (format "Stash message (default: On%s:%s): "
-                       (magit--ellipsis) (magit--ellipsis))
-               nil nil
-               (format "On %s: %s"
-                       (or (magit-get-current-branch) "(no branch)")
-                       (magit-rev-format "%h %s"))))
+the first future history element.  The second future history
+element is just \"On BRANCH: \".  Future history elements can
+be accessed using \\<minibuffer-local-map>\\[next-history-element])."
+  (let ((branch (or (magit-get-current-branch) "(no branch)"))
+        (ellipsis (magit--ellipsis)))
+    (read-string (format "Stash message (default: On%s:%s): " ellipsis ellipsis)
+                 nil nil
+                 (list (format "On %s: %s" branch (magit-rev-format "%h %s"))
+                       (format "On %s: " branch)))))
 
 (defun magit-stash-read-message-traditional ()
   "Read a message from the minibuffer, to be used for a stash.
@@ -330,7 +331,7 @@ want to fall back to using \"--3way\", without being prompted."
                      (concat
                       "Could not apply stash because of unstaged changes.\n\n"
                       "To do a tree-way merge, these files have to be staged\n"
-                      (mapconcat (lambda (f) (format "  %s" f)) conflicts "\n")
+                      (mapconcat (##format "  %s" %) conflicts "\n")
                       "\n")
                      nil
                    (?s (format
@@ -412,7 +413,7 @@ Then apply STASH, dropping it if it applies cleanly."
 
 ;;;###autoload
 (defun magit-stash-format-patch (stash)
-  "Create a patch from STASH"
+  "Create a patch from STASH."
   (interactive (list (magit-read-stash "Create patch from stash")))
   (with-temp-file (magit-rev-format "0001-%f.patch" stash)
     (magit-git-insert "stash" "show" "-p" stash))
@@ -447,10 +448,10 @@ Then apply STASH, dropping it if it applies cleanly."
     (unless noerror
       (user-error "No %s changes to save" (cond ((not index)  "unstaged")
                                                 ((not worktree) "staged")
-                                                (t "local"))))))
+                                                ("local"))))))
 
-(defun magit-stash-store (message ref commit)
-  (magit-update-ref ref message commit))
+(defun magit-stash-store (message ref rev)
+  (magit-update-ref ref message rev))
 
 (defun magit-stash-create (message index worktree untracked)
   (unless (magit-rev-parse "--verify" "HEAD")
@@ -527,16 +528,12 @@ instead of \"Stashes:\"."
             (magit-insert-section (stash autostash)
               (insert (propertize "AUTOSTASH" 'font-lock-face 'magit-hash))
               (insert " " msg "\n")
-              (save-excursion
-                (backward-char)
-                (magit-log-format-margin autostash author date)))))
+              (magit-log-format-margin autostash author date))))
         (if verified
             (magit-git-wash (apply-partially #'magit-log-wash-log 'stash)
               "reflog" "--format=%gd%x00%aN%x00%at%x00%gs" ref)
           (insert ?\n)
-          (save-excursion
-            (backward-char)
-            (magit-make-margin-overlay)))))))
+          (magit-make-margin-overlay))))))
 
 ;;; List Stashes
 
@@ -572,7 +569,8 @@ instead of \"Stashes:\"."
 
 (defun magit-stashes-maybe-update-stash-buffer (&optional _)
   "When moving in the stashes buffer, update the stash buffer.
-If there is no stash buffer in the same frame, then do nothing."
+If there is no stash buffer in the same frame, then do nothing.
+See also info node `(magit)Section Movement'."
   (when (derived-mode-p 'magit-stashes-mode)
     (magit--maybe-update-stash-buffer)))
 
@@ -639,8 +637,8 @@ If there is no stash buffer in the same frame, then do nothing."
 (cl-defmethod magit-buffer-value (&context (major-mode magit-stash-mode))
   magit-buffer-revision)
 
-(defun magit-stash-insert-section (commit range message &optional files)
-  (magit-insert-section (commit commit)
+(defun magit-stash-insert-section (rev range message &optional files)
+  (magit-insert-section (commit rev)
     (magit-insert-heading message)
     (magit--insert-diff nil
       "diff" range "-p" "--no-prefix" magit-buffer-diff-args
@@ -683,4 +681,15 @@ that make up the stash."
 
 ;;; _
 (provide 'magit-stash)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-stash.el ends here

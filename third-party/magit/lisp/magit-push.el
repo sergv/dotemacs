@@ -39,13 +39,13 @@
    ("-F" "Force"            ("-f" "--force"))
    ("-h" "Disable hooks"    "--no-verify")
    ("-n" "Dry run"          ("-n" "--dry-run"))
-   (5 "-u" "Set upstream"   "--set-upstream")
-   (7 "-t" "Follow tags"    "--follow-tags")]
+   ("-u" "Set upstream"   "--set-upstream" :level 5)
+   ("-T" "Include all tags" "--tags")
+   ("-t" "Include related annotated tags" "--follow-tags")]
   [:if magit-get-current-branch
-   :description (lambda ()
-                  (format (propertize "Push %s to" 'face 'transient-heading)
+   :description (##format (propertize "Push %s to" 'face 'transient-heading)
                           (propertize (magit-get-current-branch)
-                                      'face 'magit-branch-local)))
+                                      'face 'magit-branch-local))
    ("p" magit-push-current-to-pushremote)
    ("u" magit-push-current-to-upstream)
    ("e" "elsewhere" magit-push-current)]
@@ -107,8 +107,7 @@ argument the push-remote can be changed before pushed to it."
                                       'magit-branch-remote)))
      (remote
       (format "%s, replacing invalid" v))
-     (t
-      (format "%s, setting that" v)))))
+     ((format "%s, setting that" v)))))
 
 ;;;###autoload (autoload 'magit-push-current-to-upstream "magit-push" nil t)
 (transient-define-suffix magit-push-current-to-upstream (args)
@@ -128,13 +127,13 @@ the upstream."
               (not (or (magit-get-upstream-branch branch)
                        (magit--unnamed-upstream-p remote merge)
                        (magit--valid-upstream-p remote merge))))
-      (let* ((branches (cl-union (--map (concat it "/" branch)
-                                        (magit-list-remotes))
+      (let* ((branches (cl-union (mapcar (##concat % "/" branch)
+                                         (magit-list-remotes))
                                  (magit-list-remote-branch-names)
                                  :test #'equal))
              (upstream (magit-completing-read
                         (format "Set upstream of %s and push there" branch)
-                        branches nil nil nil 'magit-revision-history
+                        branches nil 'any nil 'magit-revision-history
                         (or (car (member (magit-remote-branch-at-point) branches))
                             (car (member "origin/master" branches)))))
              (upstream* (or (magit-get-tracked upstream)
@@ -155,7 +154,7 @@ the upstream."
     (magit-run-git-async "push" "-v" args remote (concat branch ":" merge))))
 
 (defun magit-push--upstream-description ()
-  (and-let* ((branch (magit-get-current-branch)))
+  (and-let ((branch (magit-get-current-branch)))
     (or (magit-get-push-upstream-branch branch)
         (let ((remote (magit-get "branch" branch "remote"))
               (merge  (magit-get "branch" branch "merge"))
@@ -174,8 +173,7 @@ the upstream."
                     (magit--propertize-face merge 'magit-branch-remote)))
            ((or remote merge)
             (concat u ", creating it and replacing invalid"))
-           (t
-            (concat u ", creating it")))))))
+           ((concat u ", creating it")))))))
 
 ;;;###autoload
 (defun magit-push-current (target args)
@@ -197,10 +195,10 @@ Both the source and the target are read in the minibuffer."
      (list source
            (magit-read-remote-branch
             (format "Push %s to" source) nil
-            (if (magit-local-branch-p source)
-                (or (magit-get-push-branch source)
-                    (magit-get-upstream-branch source))
-              (and (magit-rev-ancestor-p source "HEAD")
+            (cond ((magit-local-branch-p source)
+                   (or (magit-get-push-branch source)
+                       (magit-get-upstream-branch source)))
+                  ((magit-rev-ancestor-p source "HEAD")
                    (or (magit-get-push-branch)
                        (magit-get-upstream-branch))))
             source 'confirm)
@@ -221,7 +219,7 @@ is used."
          (magit-completing-read-multiple
           "Push refspec,s: "
           (cons "HEAD" (magit-list-local-branch-names))
-          nil nil nil 'magit-push-refspecs-history)
+          nil 'any nil 'magit-push-refspecs-history)
          (magit-push-arguments)))
   (run-hooks 'magit-credential-hook)
   (magit-run-git-async "push" "-v" args remote refspecs))
@@ -261,7 +259,7 @@ branch as default."
 (defun magit-push-notes-ref (ref remote &optional args)
   "Push a notes ref to another repository."
   (interactive
-   (let ((note (magit-notes-read-ref "Push notes" nil nil)))
+   (let ((note (magit-notes-read-ref "Push notes")))
      (list note
            (magit-read-remote (format "Push %s to remote" note) nil t)
            (magit-push-arguments))))
@@ -305,12 +303,12 @@ what this command will do.  To add it use something like:
                      ;; Note: Avoid `magit-get-remote' because it
                      ;; filters out the local repo case (".").
                      (magit-get "branch" branch "remote")
-                     (let ((remotes (magit-list-remotes)))
-                       (cond
-                        ((and (magit-git-version>= "2.27")
-                              (length= remotes 1))
-                         (car remotes))
-                        ((member "origin" remotes) "origin"))))))
+                       (cond-let
+                         [[remotes (magit-list-remotes)]]
+                         ((and (magit-git-version>= "2.27")
+                               (length= remotes 1))
+                          (car remotes))
+                         ((car (member "origin" remotes)))))))
     (if (null remote)
         "nothing (no remote)"
       (let ((refspec (magit-get "remote" remote "push")))
@@ -373,4 +371,15 @@ You can add this command as a suffix using something like:
 
 ;;; _
 (provide 'magit-push)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-push.el ends here

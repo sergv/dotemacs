@@ -189,9 +189,9 @@ Type \\[magit-reset] to reset `HEAD' to the commit at point.
 
 (defun magit-reflog-format-subject (subject)
   (let* ((match (string-match magit-reflog-subject-re subject))
-         (command (and match (match-string 1 subject)))
-         (option  (and match (match-string 2 subject)))
-         (type    (and match (match-string 3 subject)))
+         (command (and match (match-str 1 subject)))
+         (option  (and match (match-str 2 subject)))
+         (type    (and match (match-str 3 subject)))
          (label (if (string= command "commit")
                     (or type command)
                   command))
@@ -205,4 +205,15 @@ Type \\[magit-reset] to reset `HEAD' to the commit at point.
 
 ;;; _
 (provide 'magit-reflog)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-reflog.el ends here
