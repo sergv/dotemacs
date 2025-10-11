@@ -163,14 +163,14 @@ Also see `magit-notes-merge'."
 
 ;;; Readers
 
-(defun magit-notes-read-ref (prompt _initial-input history)
-  (and-let* ((ref (magit-completing-read
-                   prompt (magit-list-notes-refnames) nil nil
-                   (and-let* ((def (magit-get "core.notesRef")))
-                     (if (string-prefix-p "refs/notes/" def)
-                         (substring def 11)
-                       def))
-                   history)))
+(defun magit-notes-read-ref (prompt &optional _initial-input history)
+  (and-let ((ref (magit-completing-read
+                  prompt (magit-list-notes-refnames) nil t
+                  (and-let ((def (magit-get "core.notesRef")))
+                    (if (string-prefix-p "refs/notes/" def)
+                        (substring def 11)
+                      def))
+                  history)))
     (if (string-prefix-p "refs/" ref)
         ref
       (concat "refs/notes/" ref))))
@@ -192,10 +192,21 @@ Also see `magit-notes-merge'."
 
 (defun magit-notes-read-args (prompt)
   (list (magit-read-branch-or-commit prompt (magit-stash-at-point))
-        (and-let* ((str (--first (string-match "^--ref=\\(.+\\)" it)
+        (and-let ((str (seq-find (##string-match "^--ref=\\(.+\\)" %)
                                  (transient-args 'magit-notes))))
-          (match-string 1 str))))
+          (match-str 1 str))))
 
 ;;; _
 (provide 'magit-notes)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-notes.el ends here
