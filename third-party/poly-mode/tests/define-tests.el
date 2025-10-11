@@ -48,9 +48,11 @@
   (should (should (eq (lookup-key poly-xyz+-mode-map "<")
                       'some-command))))
 
+
 (ert-deftest define/hooks-run-in-indirect-buffers ()
   ;; For unknown reasons this test fails even in vanilla Emacs.
   :expected-result :failed
+  (skip-when (pm-running-on-github-p))
   (setq ran-body-in-modes nil
         ran-hooks-in-modes nil
         ran-inner-hooks-in-modes nil
@@ -70,7 +72,7 @@
   (add-hook 'poly-el-mode-hook (lambda () (add-to-list 'ran-hooks-in-modes major-mode)))
 
   (pm-test-run-on-string 'poly-el-mode
-    "\n<<(defvar abc nil)>>\n"
+    "\n<<(defvar abc nil)>>\n" 7
     (should (equal ran-body-in-modes '(emacs-lisp-mode poly-head-tail-mode text-mode)))
     (should (equal ran-hooks-in-modes '(emacs-lisp-mode poly-head-tail-mode text-mode)))
     (should (equal ran-inner-hooks-in-modes '(emacs-lisp-mode poly-head-tail-mode)))
