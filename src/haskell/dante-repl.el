@@ -242,13 +242,14 @@ otherwise the command for starting repl will be inferred."
 (defvar-local dante-repl--file-name-to-load-instead nil)
 
 (defun dante-repl-get-component-build-dir (buf)
+  (dante-get-component-build-dir buf (dante-repl-get-package-build-dir buf)))
+
+(defun dante-repl-get-package-build-dir (buf)
   (let ((method (buffer-local-value 'dante--selected-method buf)))
     ;; Must be already initialized.
     (cl-assert method)
-    (dante-get-component-build-dir
-     buf
-     (when-let ((f (dante-method-get-repl-build-dir method)))
-       (funcall f (eproj-get-project-for-buf-lax buf))))))
+    (when-let ((f (dante-method-get-repl-build-dir method)))
+      (funcall f (eproj-get-project-for-buf-lax buf)))))
 
 (defun dante-repl-get-file-to-load--hsc2hs-impl (buf)
   (with-current-buffer buf
