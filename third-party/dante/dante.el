@@ -114,16 +114,6 @@ will be in loaded in different GHCi sessions."
   (and (cached-executable-find "nix")
        t))
 
-(defun dante-nix-shell-available? (_buf)
-  "Non-nil iff ‘nix-shell’ executable is avaliable."
-  (and (cached-executable-find "nix-shell")
-       t))
-
-(defun dante-stack-available? (_buf)
-  "Non-nil iff ‘stack’ executable is avaliable."
-  (and (cached-executable-find "stack")
-       t))
-
 (defun dante-nix-cabal-script-buf? (buf)
   "Non-nil if BUF is a cabal-style script which has no extra configuration."
   (and (dante-nix-available? buf)
@@ -148,11 +138,6 @@ will be in loaded in different GHCi sessions."
                                           eos))
        t))
 
-(defun dante-cabal-vanilla (d)
-  "non-nil iff D contains a cabal project file or a cabal file."
-  (and (dante-directory-regular-files d (rx ".cabal" eos))
-       t))
-
 (defun dante-flake-nix (d)
   "non-nil iff D contains a nix flake file and a cabal file."
   (rx-let ((nix "flake.nix"))
@@ -165,26 +150,6 @@ will be in loaded in different GHCi sessions."
   (rx-let ((nix "flake.nix")
            (cabal (or "cabal.project" "cabal.project.local" ".cabal")))
     (let ((files (dante-directory-regular-files d (rx (or nix cabal)))))
-      ;; Both files must be present.
-      (and (--any? (string-match-p (rx nix eos) it) files)
-           (--any? (string-match-p (rx cabal eos) it) files)
-           t))))
-
-(defun dante-cabal-new-nix (d)
-  "Non-nil iff directory D hosts a nix file and a cabal file."
-  (rx-let ((nix (or "shell.nix" "default.nix"))
-           (cabal (or "cabal.project" "cabal.project.local" ".cabal")))
-    (let ((files (dante-directory-regular-files d (rx (or nix cabal)))))
-      ;; Both files must be present.
-      (and (--any? (string-match-p (rx nix eos) it) files)
-           (--any? (string-match-p (rx cabal eos) it) files)
-           t))))
-
-(defun dante-cabal-nix (d)
-  "Non-nil iff directory D hosts a nix file and a cabal file."
-  (rx-let ((nix (or "shell.nix" "default.nix"))
-           (cabal (or ".cabal")))
-    (let ((files (dante-directory-regular-files d (rx (or nix cabal) eos))))
       ;; Both files must be present.
       (and (--any? (string-match-p (rx nix eos) it) files)
            (--any? (string-match-p (rx cabal eos) it) files)
