@@ -670,6 +670,17 @@ inclusively."
        (delete-region (point-min) (line-end-position))
        (delete-char 1)))))
 
+(defun comint-get-last-output ()
+  "Return last output as string."
+  (let ((proc (get-buffer-process (current-buffer))))
+    (save-excursion
+      (with-marker
+          (pmark
+           (progn (goto-char (process-mark proc))
+		  (forward-line 0)
+		  (point-marker)))
+        (buffer-substring-no-properties comint-last-input-end pmark)))))
+
 (provide 'comint-setup)
 
 ;; Local Variables:
