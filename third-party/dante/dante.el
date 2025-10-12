@@ -99,9 +99,6 @@ Customize as a file or directory variable."
   "Configured command line to run preprocessing step, usually via dummy cabal repl without
 underlying ghci.")
 
-(defvar-local dante-current-eproj-project nil
-  "eproj project, if available.")
-
 (defcustom dante-target nil
   "The target to demand from cabal repl, as a string or nil.
 Customize as a file or directory variable.  Different targets
@@ -467,8 +464,7 @@ values of the above variables."
                                     proj
                                     (funcall (dante-method-get-check-build-dir method) proj))
 
-                           dante--selected-method method
-                           dante-current-eproj-project proj)))))))
+                           dante--selected-method method)))))))
               (-non-nil (--map (dante--methods-lookup it dante-methods-defs)
                                dante-methods)))
       (error "No GHCi loading method applies.  Customize `dante-methods' or (`dante-check-command-line' and `dante-project-root')")))
@@ -1021,7 +1017,7 @@ The path returned is canonicalized and stripped of any text properties."
       (concat (aif dante-build-dir
                   it
                 (concat
-                 (aif (buffer-local-value 'dante-current-eproj-project buffer)
+                 (aif (eproj-get-project-for-buf-lax buffer)
                      (concat (strip-trailing-slash (eproj-project/root it)) "/")
                    "")
                  "dist-newstyle"))
@@ -1035,7 +1031,7 @@ The path returned is canonicalized and stripped of any text properties."
     (dante-get-component-build-dir
      buffer
      (when-let ((f (dante-method-get-check-build-dir method)))
-       (funcall f (buffer-local-value 'dante-current-eproj-project buffer))))))
+       (funcall f (eproj-get-project-for-buf-lax buffer))))))
 
 (defun dante-temp-file-name--hsc2hs-impl (buffer)
   "Return filename where cabal would put result of preprocessing BUFFER’s file."
