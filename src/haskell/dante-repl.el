@@ -273,6 +273,10 @@ otherwise the command for starting repl will be inferred."
       (let ((buf (get-buffer-create repl-buf-name)))
         (dante-repl--start-in-buffer buf cmd nil nil nil)))))
 
+(defun dante-repl-get-last-output ()
+  "Return last output as string."
+  (comint-get-last-output))
+
 (defun dante-repl-clear-buffer-above-prompt ()
   (interactive)
   (let ((col (current-column-fixed)))
