@@ -329,13 +329,14 @@ will be in loaded in different GHCi sessions."
               :get-repl-build-dir
               get-repl-build-dir
               :make-preprocess-command-line
-              (lambda (flake-root proj build-dir)
+              (lambda (flake-root proj build-dir target)
                 (cl-assert (or (null build-dir) (stringp build-dir)))
                 (funcall template
                          :flake-root flake-root
                          :flags (append (when build-dir
                                           (list "--builddir" build-dir))
-                                        (list "--repl-no-load" "--with-repl=echo")))))))))
+                                        (list "--repl-no-load" "--with-repl=echo"))
+                         :target target)))))))
     (dante--mk-methods
      (list
       (funcall mk-dante-method
@@ -356,7 +357,7 @@ will be in loaded in different GHCi sessions."
                :template
                (cl-function
                 (lambda (&key flake-root flags target)
-                  (nix-call-via-flakes `("cabal" "repl" ,dante-target ,@flags) flake-root))))
+                  (nix-call-via-flakes `("cabal" "repl" ,target ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'build-script
@@ -388,7 +389,7 @@ will be in loaded in different GHCi sessions."
                :template
                (cl-function
                 (lambda (&key flake-root flags target)
-                  (declare (ignore flake-root flags))
+                  (declare (ignore flake-root flags target))
                   '("ghci"))))))))
 
 (defvar dante--default-methods
@@ -462,7 +463,8 @@ values of the above variables."
                            (funcall (dante-method-make-preprocess-command-line method)
                                     flake-root
                                     proj
-                                    (funcall (dante-method-get-check-build-dir method) proj))
+                                    (funcall (dante-method-get-check-build-dir method) proj)
+                                    dante-target)
 
                            dante--selected-method method)))))))
               (-non-nil (--map (dante--methods-lookup it dante-methods-defs)
@@ -1010,11 +1012,11 @@ The path returned is canonicalized and stripped of any text properties."
         (setq dante-temp-file-name
               (dante-tramp-make-tramp-temp-file buffer)))))
 
-(defun dante-get-component-build-dir (buffer dante-build-dir)
+(defun dante-get-component-build-dir (buffer package-build-dir)
   (let ((component (buffer-local-value 'dante-component buffer)))
     (cl-assert (cabal-component-p component))
     (let ((build-dir (cabal-component/build-dir component)))
-      (concat (aif dante-build-dir
+      (concat (aif package-build-dir
                   it
                 (concat
                  (aif (eproj-get-project-for-buf-lax buffer)
@@ -1025,13 +1027,18 @@ The path returned is canonicalized and stripped of any text properties."
               build-dir))))
 
 (defun dante-check-get-component-build-dir (buffer)
+  (dante-get-component-build-dir buffer (dante-check-get-package-build-dir buffer)))
+
+(defun dante-check-get-package-build-dir (buffer)
   (let ((method (buffer-local-value 'dante--selected-method buffer)))
+    (unless method
+      (with-current-buffer buffer
+        (dante-initialize-method))
+      (setf method (buffer-local-value 'dante--selected-method buffer)))
     ;; Must be already initialized.
-    (cl-assert method)
-    (dante-get-component-build-dir
-     buffer
-     (when-let ((f (dante-method-get-check-build-dir method)))
-       (funcall f (eproj-get-project-for-buf-lax buffer))))))
+    (cl-assert method nil "No dante method for buffer %s" buffer)
+    (when-let ((f (dante-method-get-check-build-dir method)))
+      (funcall f (eproj-get-project-for-buf-lax buffer)))))
 
 (defun dante-temp-file-name--hsc2hs-impl (buffer)
   "Return filename where cabal would put result of preprocessing BUFFER’s file."
