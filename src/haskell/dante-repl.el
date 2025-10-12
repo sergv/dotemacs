@@ -248,7 +248,7 @@ otherwise the command for starting repl will be inferred."
     (dante-get-component-build-dir
      buf
      (when-let ((f (dante-method-get-repl-build-dir method)))
-       (funcall f (buffer-local-value 'dante-current-eproj-project buf))))))
+       (funcall f (eproj-get-project-for-buf-lax buf))))))
 
 (defun dante-repl-get-file-to-load--hsc2hs-impl (buf)
   (with-current-buffer buf
