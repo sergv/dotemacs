@@ -16,12 +16,7 @@
 (require 'haskell-syntax-table)
 
 (defvar-local dante-repl--command-line-to-use nil
-  "Pair of command lines both of which can be used to start current
-repl session, created with the help of ‘dante--mk-repl-cmdline’.
-
-One command should be used for a session that should load all
-project modules into new repl. Another command should be used to
-get a “fresh” repl with no modules loaded.
+  "Value of type ‘dante-repl-cmdline’.
 
 This variable gets assigned by ‘dante-initialize-method’.")
 
@@ -32,10 +27,10 @@ This variable gets assigned by ‘dante-initialize-method’.")
   (let ((dante-repl-cmdline
          (or dante-repl--command-line-to-use
              (progn (dante-initialize-method) dante-repl--command-line-to-use))))
-    (cl-assert (dante--repl-cmdline-p dante-repl-cmdline))
+    (cl-assert (dante-repl-cmdline-p dante-repl-cmdline))
     (if load-all-on-start
-        (dante--repl-cmdline-loading-all-modules dante-repl-cmdline)
-      (dante--repl-cmdline-loading-no-modules dante-repl-cmdline))))
+        (dante-repl-cmdline?cmdline-loading-all-modules dante-repl-cmdline)
+      (dante-repl-cmdline/cmdline-loading-no-modules dante-repl-cmdline))))
 
 ;;;###autoload
 (defun dante-repl-buffer-name ()
