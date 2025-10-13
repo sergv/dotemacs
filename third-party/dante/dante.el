@@ -190,18 +190,12 @@ will be in loaded in different GHCi sessions."
            (--any? (string-match-p (rx cabal eos) it) files)
            t))))
 
-(defsubst dante--mk-repl-cmdline (a b)
-  (cons 'dante-repl-cmdline (list a b)))
-
-(defsubst dante--repl-cmdline-p (x)
-  (and (consp x)
-       (eq 'dante-repl-cmdline (car x))))
-
-(defsubst dante--repl-cmdline-loading-all-modules (x)
-  (cadr x))
-
-(defsubst dante--repl-cmdline-loading-no-modules (x)
-  (caddr x))
+(cl-defstruct (dante-repl-cmdline
+               (:conc-name dante-repl-cmdline/))
+  ;; Command for a repl session that should load all project modules into new repl.
+  (cmdline-loading-all-modules nil :read-only t)
+  ;; Command to get a “fresh” repl with no modules loaded.
+  (cmdline-loading-no-modules nil :read-only t))
 
 (defconst dante--methods-tag 'dante-methods)
 
@@ -313,11 +307,13 @@ will be in loaded in different GHCi sessions."
                          :target target))
               :repl-command-line
               (lambda (flake-root proj target)
-                (dante--mk-repl-cmdline
+                (make-dante-repl-cmdline
+                 :cmdline-loading-all-modules
                  (funcall template
                           :flake-root flake-root
                           :flags (append (funcall repl proj) repl-options)
                           :target target)
+                 :cmdline-loading-no-modules
                  (funcall template
                           :flake-root flake-root
                           :flags (append (funcall repl proj) (cons "--repl-no-load" repl-options))
