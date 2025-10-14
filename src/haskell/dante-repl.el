@@ -15,29 +15,25 @@
 (require 'dante)
 (require 'haskell-syntax-table)
 
-(defvar-local dante-repl--command-line-to-use nil
-  "Value of type ‘dante-repl-cmdline’.
-
-This variable gets assigned by ‘dante-initialize-method’.")
-
 (defvar-local dante-repl--last-command-line nil
   "Last command line used to start the REPL session.")
 
-(defun dante-repl--command-line-to-use (load-all-on-start)
-  (let ((dante-repl-cmdline
-         (or dante-repl--command-line-to-use
-             (progn (dante-initialize-method) dante-repl--command-line-to-use))))
+(defun dante-repl--make-command-line (load-all-on-start?)
+  (let* ((cfg (dante-get-config))
+         (dante-repl-cmdline
+          (funcall (dante-method/make-repl-command-line (dante-config/method cfg))
+                   cfg)))
     (cl-assert (dante-repl-cmdline-p dante-repl-cmdline))
-    (if load-all-on-start
-        (dante-repl-cmdline?cmdline-loading-all-modules dante-repl-cmdline)
+    (if load-all-on-start?
+        (dante-repl-cmdline/cmdline-loading-all-modules dante-repl-cmdline)
       (dante-repl-cmdline/cmdline-loading-no-modules dante-repl-cmdline))))
 
 ;;;###autoload
-(defun dante-repl-buffer-name ()
+(defun dante-repl-buffer-name (&optional buf)
   (replace-regexp-in-string
    "^ *\\*dante#"
    "*dante-repl#"
-   (dante-buffer-name)))
+   (dante-buffer-name (dante-get-config buf))))
 
 ;;;###autoload
 (defun dante-repl-switch-to-repl-buffer ()
@@ -98,7 +94,7 @@ otherwise the command for starting repl will be inferred."
           (let ((command-line
                  (cond
                    (select-new-command?
-                    (dante-repl--command-line-to-use (y-or-n-p "Load all modules on REPL start?")))
+                    (dante-repl--make-command-line (y-or-n-p "Load all modules on REPL start?")))
                    (t
                     (if dante-repl--last-command-line
                         dante-repl--last-command-line
@@ -133,14 +129,15 @@ otherwise the command for starting repl will be inferred."
                          (match-end 1)
                          ?\|))))))
 
-(defun dante-repl--start-in-buffer (repl-buf initial-repl-command load-all-on-start command current-dir)
+(defun dante-repl--start-in-buffer (repl-buf initial-repl-command load-all-on-start? command current-dir)
   (let ((command-line
          (or command
-             (-non-nil (-map #'eval (dante-repl--command-line-to-use load-all-on-start))))))
+             (dante-repl--make-command-line load-all-on-start?))))
     (dante-repl--start-in-buffer-with-command-line repl-buf command-line initial-repl-command current-dir)))
 
 (defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line initial-repl-command current-dir)
-  (let ((dir (or current-dir (dante-project-root))))
+  (let ((dir (or current-dir
+                 (dante-config/project-root (dante-get-config)))))
     (with-current-buffer repl-buf
       (cd dir)
       (dante-repl-mode)
@@ -226,10 +223,10 @@ otherwise the command for starting repl will be inferred."
         (dante-repl-load-file--send-load-command repl-buf-name repl-buf tmp-file)))
     (switch-to-buffer-other-window (get-buffer repl-buf-name))))
 
-(defvar dante-repl-get-file-to-load--impl #'dante-repl-get-file-to-load--default-impl)
+(defvar dante-repl--get-file-to-load--impl #'dante-repl-get-file-to-load--default-impl)
 
 (defun dante-repl-get-file-to-load (buf)
-  (funcall dante-repl-get-file-to-load--impl buf))
+  (funcall dante-repl--get-file-to-load--impl buf))
 
 (defun dante-repl-get-file-to-load--default-impl (buf)
   (buffer-file-name buf))
@@ -237,16 +234,10 @@ otherwise the command for starting repl will be inferred."
 (defvar-local dante-repl--file-name-to-load-instead nil)
 
 (defun dante-repl-get-component-build-dir (buf)
-  (dante-get-component-build-dir buf (dante-repl-get-package-build-dir buf)))
+  (dante-get-component-build-dir buf
+                                 (dante-config/repl-dir (dante-get-config buf))))
 
-(defun dante-repl-get-package-build-dir (buf)
-  (let ((method (buffer-local-value 'dante--selected-method buf)))
-    ;; Must be already initialized.
-    (cl-assert method)
-    (when-let ((f (dante-method-get-repl-build-dir method)))
-      (funcall f (eproj-get-project-for-buf-lax buf)))))
-
-(defun dante-repl-get-file-to-load--hsc2hs-impl (buf)
+(defun dante-repl-get-file-to-load--hsc2hs (buf)
   (with-current-buffer buf
     (or dante-repl--file-name-to-load-instead
         (setq-local dante-repl--file-name-to-load-instead

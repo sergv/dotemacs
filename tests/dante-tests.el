@@ -40,13 +40,12 @@
              (with-current-buffer ,buf-var
                ,@body)
            (when (buffer-live-p ,buf-var)
-             (with-current-buffer ,buf-var
-               (awhen (get-buffer (dante-buffer-name))
-                 (when (buffer-live-p it)
-                   (kill-buffer it)))
-               (awhen (get-buffer (dante-repl-buffer-name))
-                 (when (buffer-live-p it)
-                   (kill-buffer it))))
+             (awhen (get-buffer (dante-buffer-name (dante-get-config ,buf-var)))
+               (when (buffer-live-p it)
+                 (kill-buffer it)))
+             (awhen (get-buffer (dante-repl-buffer-name ,buf-var))
+               (when (buffer-live-p it)
+                 (kill-buffer it)))
              (kill-buffer ,buf-var)))))))
 
 (defmacro dante-tests/check-buffer-and-assert-when-done (&rest body)
@@ -103,10 +102,10 @@
     (should flycheck-mode)
     (should dante-mode)
 
-    (dante-initialize-method)
-    (should (string= dante-target "emacs-dante-simple-check-test-project:lib:emacs-dante-simple-check-test-project"))
+    (should (string= (dante-config/cabal-target (dante-get-config))
+                     "emacs-dante-simple-check-test-project:lib:emacs-dante-simple-check-test-project"))
 
-    (delete-directory (dante-check-get-package-build-dir (current-buffer)) t)
+    (delete-directory (dante-config/build-dir (dante-get-config)) t)
 
     (dante-tests/check-buffer-and-assert-when-done
      (should (not (null flycheck-current-errors)))
@@ -151,10 +150,10 @@
       (should flycheck-mode)
       (should dante-mode)
 
-      (dante-initialize-method)
-      (should (string= dante-target "emacs-dante-simple-check-test-project:lib:emacs-dante-simple-check-test-project"))
+      (should (string= (dante-config/cabal-target (dante-get-config))
+                       "emacs-dante-simple-check-test-project:lib:emacs-dante-simple-check-test-project"))
 
-      (delete-directory (dante-check-get-package-build-dir (current-buffer)) t)
+      (delete-directory (dante-config/build-dir (dante-get-config)) t)
 
       (dante-tests/check-buffer-and-assert-when-done
        (should (not (null flycheck-current-errors)))
@@ -215,11 +214,10 @@
     (should flycheck-mode)
     (should dante-mode)
 
-    (dante-initialize-method)
-    (should (string= dante-target
+    (should (string= (dante-config/cabal-target (dante-get-config))
                      "emacs-dante-simple-repl-test-project:lib:emacs-dante-simple-repl-test-project"))
 
-    (delete-directory (dante-repl-get-package-build-dir (current-buffer)) t)
+    (delete-directory (dante-config/repl-dir (dante-get-config)) t)
 
     (vim:haskell-dante-load-file-into-repl:wrapper)
 
@@ -278,12 +276,12 @@
       (should flycheck-mode)
       (should dante-mode)
 
-      (dante-initialize-method)
-      (should (string= dante-target "emacs-dante-simple-check-test-project-with-hsc:lib:emacs-dante-simple-check-test-project-with-hsc"))
+      (should (string= (dante-config/cabal-target (dante-get-config))
+                       "emacs-dante-simple-check-test-project-with-hsc:lib:emacs-dante-simple-check-test-project-with-hsc"))
 
-      (should (eq 'build (dante-method-name dante--selected-method)))
+      (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
 
-      (delete-directory (dante-check-get-package-build-dir (current-buffer)) t)
+      (delete-directory (dante-config/build-dir (dante-get-config)) t)
 
       (dante-tests/check-buffer-and-assert-when-done
        (should (not (null flycheck-current-errors)))
@@ -354,12 +352,12 @@
       (should flycheck-mode)
       (should dante-mode)
 
-      (dante-initialize-method)
-      (should (string= dante-target "emacs-dante-simple-check-test-project-with-hsc:lib:emacs-dante-simple-check-test-project-with-hsc"))
+      (should (string= (dante-config/cabal-target (dante-get-config))
+                       "emacs-dante-simple-check-test-project-with-hsc:lib:emacs-dante-simple-check-test-project-with-hsc"))
 
-      (should (eq 'build (dante-method-name dante--selected-method)))
+      (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
 
-      (delete-directory (dante-check-get-package-build-dir (current-buffer)) t)
+      (delete-directory (dante-config/build-dir (dante-get-config)) t)
 
       (dante-tests/check-buffer-and-assert-when-done
        (should (not (null flycheck-current-errors)))
@@ -408,13 +406,12 @@
     (should flycheck-mode)
     (should dante-mode)
 
-    (dante-initialize-method)
-    (should (string= dante-target
+    (should (string= (dante-config/cabal-target (dante-get-config))
                      "emacs-dante-simple-repl-test-project-with-hsc:lib:emacs-dante-simple-repl-test-project-with-hsc"))
 
-    (should (eq 'build (dante-method-name dante--selected-method)))
+    (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
 
-    (delete-directory (dante-repl-get-package-build-dir (current-buffer)) t)
+    (delete-directory (dante-config/repl-dir (dante-get-config)) t)
 
     (vim:haskell-dante-load-file-into-repl:wrapper)
 
@@ -457,13 +454,12 @@
    (should flycheck-mode)
    (should dante-mode)
 
-   (dante-initialize-method)
-   (should (string= dante-target
+   (should (string= (dante-config/cabal-target (dante-get-config))
                     "emacs-dante-simple-repl-test-project-with-hsc:lib:emacs-dante-simple-repl-test-project-with-hsc"))
 
-   (should (eq 'build (dante-method-name dante--selected-method)))
+   (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
 
-   (delete-directory (dante-repl-get-package-build-dir (current-buffer)) t)
+   (delete-directory (dante-config/repl-dir (dante-get-config)) t)
 
    (vim:haskell-dante-load-file-into-repl:wrapper)
 
@@ -493,6 +489,11 @@
      (comint-send-input)
      (dante-repl/wait-for-prompt repl-proc)
      (should (string= (dante-repl-get-last-output) "0.0\n")))))
+
+(ert-deftest dante-tests/repl-hsc-project-3 ()
+  ;; todo: unpack simple-check-project-with-hsc.zip and try fixing and reloading to see
+  ;; that changes in hsc file are picked up by dante-repl ghci session
+  )
 
 (provide 'dante-tests)
 
