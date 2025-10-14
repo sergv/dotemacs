@@ -681,7 +681,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 ;;;###autoload
 (defun haskell-hsc-setup ()
   (haskell-ts-setup)
-  (setq-local dante-temp-file-name--impl #'dante-temp-file-name--hsc2hs
+  (setq-local dante-get-filename-to-load--impl #'dante-get-filename-to-load--hsc2hs
               dante-check--get-file-to-load--impl #'dante-check--get-file-to-load--hsc2hs
               dante-repl--get-file-to-load--impl #'dante-repl-get-file-to-load--hsc2hs))
 
