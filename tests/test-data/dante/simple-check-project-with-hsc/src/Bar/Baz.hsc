@@ -14,5 +14,5 @@ type CDoubleTyp = #{type double}
 
 foreign import ccall unsafe "math.h sin" sinFunc :: Double -> CDoubleTyp
 
-baz :: Double -> a
+baz :: Double -> CDoubleTyp
 baz x = sinFunc x
