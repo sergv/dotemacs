@@ -14,8 +14,6 @@
 (require 'nix-integration)
 
 (defun haskell-flycheck-cabal-build--check (checker cont)
-  (unless dante-project-root (dante-initialize-method))
-
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
          (proj-dir (configurable-compilation-proj-dir))
          (build-dir (eproj-query/fold-build-dir
@@ -27,7 +25,7 @@
                      (lambda (dir)
                        dir)))
          (command (nix-maybe-call-via-flakes
-                   (list "cabal" "build" "--builddir" build-dir dante-target)
+                   (list "cabal" "build" "--builddir" build-dir (dante-config/cabal-target (dante-get-config)))
                    proj-dir)))
     (flycheck-report-status 'running)
     (let ((buf (get-buffer-create (haskell-flycheck-cabal-build--buffer-name))))
@@ -114,8 +112,8 @@
        (cons 'finished nil)))))
 
 (defun haskell-flycheck-cabal-build--buffer-name ()
-  (unless dante-project-root (dante-initialize-method))
-  (concat " *flycheck#" dante-target "#" dante-project-root "*"))
+  (let ((cfg (dante-get-config)))
+    (concat " *flycheck#" (dante-config/cabal-target cfg) "#" (dante-config/project-root cfg) "*")))
 
 (flycheck-define-generic-checker 'haskell-cabal-build
   "A syntax and type checker for Haskell using regular ‘cabal build’.
@@ -124,8 +122,7 @@ Not as low-latency as ‘haskell-dante’ checker, but works with .hsc files."
   :start 'haskell-flycheck-cabal-build--check
   :modes '(haskell-mode haskell-ts-mode haskell-literate-mode haskell-hsc-mode)
   :working-directory (lambda (_checker)
-                       (unless dante-project-root (dante-initialize-method))
-                       dante-project-root))
+                       (dante-config/project-root (dante-get-config))))
 
 (provide 'haskell-flycheck-cabal-build)
 
