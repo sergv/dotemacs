@@ -247,6 +247,8 @@ targets and components about current buffer’s ghci session."
   ;; cabal so that it will put latest results of running e.g. alex,
   ;; happy or hsc2hs into the specified build directory where cabal
   ;; usually puts them.
+  ;;
+  ;; May be nil for cases when we don’t need preprocessing.
   (make-preprocess-command-line nil :read-only t))
 
 (defun dante--get-build-dir (name proj-root root)
@@ -958,48 +960,50 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
     fname))
 
 (lcr-def dante--preprocess-project-if-needed (cfg package-build-dir)
-  (let* ((src-dirs (let* ((component
-                           (dante-config/cabal-component cfg))
-                          (cabal-file-dir
-                           (strip-trailing-slash
-                            (file-name-directory
-                             (cabal-component/cabal-file component)))))
-                     (--map (concat cabal-file-dir "/" it)
-                            (cabal-component/source-dirs component))))
+  (when (dante-method/make-preprocess-command-line (dante-config/method cfg))
+    (let* ((src-dirs (let* ((component
+                             (dante-config/cabal-component cfg))
+                            (cabal-file-dir
+                             (strip-trailing-slash
+                              (file-name-directory
+                               (cabal-component/cabal-file component)))))
+                       (--map (concat cabal-file-dir "/" it)
+                              (cabal-component/source-dirs component))))
 
-         (component-build-dir (dante-get-component-build-dir cfg package-build-dir))
+           (component-build-dir (dante-get-component-build-dir cfg package-build-dir))
 
-         (needs-preprocessing? (null (file-directory-p component-build-dir)))
-         (already-preprocessed-files (unless needs-preprocessing?
-                                       (find-rec* :root component-build-dir
-                                                  :globs-to-find '("*.hs")
-                                                  :relative-paths t)))
-         (already-preprocessed-trie
-          (let ((tr (make-empty-trie)))
-            (dolist (x already-preprocessed-files)
-              (trie-insert! (reverse (file-name-sans-extension x)) x tr))
-            tr))
-         (sources (find-rec-multi* :roots src-dirs
-                                   :globs-to-find (eval-when-compile
-                                                    (--map (concat "*." it)
-                                                           +haskell-preprocessing-extensions+)))))
+           (needs-preprocessing? (null (file-directory-p component-build-dir)))
+           (already-preprocessed-files (unless needs-preprocessing?
+                                         (find-rec* :root component-build-dir
+                                                    :globs-to-find '("*.hs")
+                                                    :relative-paths t)))
+           (already-preprocessed-trie
+            (let ((tr (make-empty-trie)))
+              (dolist (x already-preprocessed-files)
+                (trie-insert! (reverse (file-name-sans-extension x)) x tr))
+              tr))
+           (sources (find-rec-multi* :roots src-dirs
+                                     :globs-to-find (eval-when-compile
+                                                      (--map (concat "*." it)
+                                                             +haskell-preprocessing-extensions+)))))
 
-    (unless needs-preprocessing?
-      (setf needs-preprocessing?
-            (catch 'found
-              (dolist (src sources)
-                (when-let ((preprocessed (trie-matches-string-suffix? already-preprocessed-trie
-                                                                      (file-name-sans-extension src))))
-                  (when (dante--is-file-newer-than? src (concat component-build-dir "/" preprocessed))
-                    (throw 'found t))))
-              nil)))
+      (unless needs-preprocessing?
+        (setf needs-preprocessing?
+              (catch 'found
+                (dolist (src sources)
+                  (when-let ((preprocessed (trie-matches-string-suffix? already-preprocessed-trie
+                                                                        (file-name-sans-extension src))))
+                    (when (dante--is-file-newer-than? src (concat component-build-dir "/" preprocessed))
+                      (throw 'found t))))
+                nil)))
 
-    (when needs-preprocessing?
-      (lcr-call dante--preprocess-current-project
-                cfg
-                package-build-dir))))
+      (when needs-preprocessing?
+        (lcr-call dante--preprocess-current-project!
+                  cfg
+                  package-build-dir)))))
 
-(lcr-def dante--preprocess-current-project (cfg build-dir)
+(lcr-def dante--preprocess-current-project! (cfg build-dir)
+  (cl-assert (dante-method/make-preprocess-command-line (dante-config/method cfg)))
   (let* ((default-directory (dante-config/project-root cfg))
          (cmdline (funcall (dante-method/make-preprocess-command-line (dante-config/method cfg))
                            cfg
@@ -1030,7 +1034,7 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
     ;; may miss some situations where we should run preprocessing.
     ;; (when (or (not (file-exists-p preprocessed-file))
     ;;           (dante--is-file-newer-than? current-file preprocessed-file))
-    ;;   (lcr-call dante--preprocess-current-project
+    ;;   (lcr-call dante--preprocess-current-project!
     ;;             cfg
     ;;             (dante-config/build-dir cfg)))
     preprocessed-file))
