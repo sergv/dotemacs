@@ -40,7 +40,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (defvar dante-repl--command-line-to-use)
   (require 'cl-lib)
   (require 'company)
   (require 'dash)
@@ -69,7 +68,6 @@
   "Interactive development mode for Haskell."
   :group 'haskell)
 
-
 (defcustom dante-debug nil
   "Show debug output."
   :group 'dante :safe t
@@ -77,37 +75,6 @@
 
 ;; (setf dante-debug '(inputs outputs responses command-line))
 ;; (setf dante-debug nil)
-
-(defcustom dante-check-command-line nil
-  "Command line to start GHCi, as a list: the executable and its arguments.
-When nil, dante will guess the value depending on
-the variable `dante-project-root'  This should usually be customized
-as a file or directory variable.  Each element of the list is a
-sexp which is evaluated to a string before being passed to the
-shell."
-  :group 'dante
-  :type '(repeat sexp))
-
-(defcustom dante-project-root nil
-  "The project root, as a string or nil.
-When nil, dante will guess the value by looking for a cabal file.
-Customize as a file or directory variable."
-  :group 'dante :safe #'stringp
-  :type '(choice (const nil) string))
-
-(defvar-local dante-check-preprocess-command-line nil
-  "Configured command line to run preprocessing step, usually via dummy cabal repl without
-underlying ghci.")
-
-(defcustom dante-target nil
-  "The target to demand from cabal repl, as a string or nil.
-Customize as a file or directory variable.  Different targets
-will be in loaded in different GHCi sessions."
-  :group 'dante :safe #'stringp
-  :type '(choice (const nil) string))
-
-(defvar-local dante-component nil
-  "Cabal component that this buffer belongs to. A structure of type ‘cabal-component’")
 
 (defun dante-nix-available? (_buf)
   "Non-nil iff ‘nix’ executable is avaliable."
@@ -131,11 +98,13 @@ will be in loaded in different GHCi sessions."
 
 (defun dante-cabal-new (d)
   "non-nil iff D contains a cabal project file or a cabal file."
-  (and (dante-directory-regular-files d
-                                      (rx (or "cabal.project"
-                                              "cabal.project.local"
-                                              ".cabal")
-                                          eos))
+  (and (or (dante-directory-regular-files d
+                                          (rx (or "cabal.project"
+                                                  "cabal.project.local")
+                                              eos))
+           (dante-directory-regular-files d
+                                          (rx ".cabal"
+                                              eos)))
        t))
 
 (defun dante-flake-nix (d)
@@ -167,12 +136,12 @@ will be in loaded in different GHCi sessions."
 (defsubst dante--mk-methods (defs)
   (let ((tbl (make-hash-table :test #'eq)))
     (dolist (def defs)
-      (puthash (dante-method-name def)
+      (puthash (dante-method/name def)
                def
                tbl))
     (list dante--methods-tag
           tbl
-          (-map #'dante-method-name defs))))
+          (-map #'dante-method/name defs))))
 
 (defsubst dante--methods-p (x)
   (eq (car x) dante--methods-tag))
@@ -189,43 +158,113 @@ will be in loaded in different GHCi sessions."
   (cl-assert (dante--methods-p x))
   (caddr x))
 
+(defvar-local dante--config nil)
+
+(defun dante-get-config (&optional buf)
+  "Get config for current buffer that specifies all the necessary paths,
+targets and components about current buffer’s ghci session."
+  (let ((b (or buf (current-buffer))))
+    (let ((dante-config (or (buffer-local-value 'dante--config b)
+                            (setf (buffer-local-value 'dante--config b) (dante--make-config)))))
+      (cl-assert (not (null dante-config)))
+      dante-config)))
+
+;; Already set up command lines for use in current buffer.
+;; Will be typically populated twice, once for checking and
+;; second time for the ‘dante-repl’.
+(cl-defstruct (dante-config
+               (:conc-name dante-config/))
+
+  ;; String path with the project root - working directory for the
+  ;; flycheck checker.
+  (project-root nil :read-only t)
+
+  ;; String with path thas is guaranteed to resolve to eproj project
+  ;; for this buffer (via ‘eproj-get-project-for-path’) or nil.
+  (eproj-root nil :read-only t)
+
+  ;; Nil or string with a directory where flake.nix for current project
+  ;; resides.
+  (flake-root nil :read-only t)
+
+  ;; String or nil, e.g. "foo:lib:foo"
+  (cabal-target nil :read-only t)
+
+  ;; Value of type ‘cabal-component’ struct or nil.
+  (cabal-component nil :read-only t)
+
+  ;; Cabal build directory for checking session, e.g. /tmp/dist/dante-xxxxx
+  (build-dir nil :read-only t)
+
+  ;; Cabal build directory for the dante-repl session, e.g. /tmp/dist/dante-repl-xxxxx
+  (repl-dir nil :read-only t)
+
+  ;; Value of type ‘dante-method’
+  (method nil :read-only t))
+
 ;; Describes how to make various command lines depending on found flakes,
 ;; presence of eproj project, etc.
-(cl-defstruct dante-method
-  name
-  is-enabled-pred
-  find-root-pred       ;; Can be nil in which case default directory will be used.
-  check-command-line   ;; List of strings.
-  repl-command-line    ;; Whatever ‘dante--mk-repl-cmdline’ returns.
+(cl-defstruct (dante-method
+               (:conc-name dante-method/))
+  (name nil :read-only t)
+  ;; Function that takes buffer and returns boolean whether this method
+  ;; should be considered for enabling in this buffer.
+  (is-enabled-pred nil :read-only t)
+  ;; Function of one directory string argument.
+  ;; Can be nil in which case default directory will be used.
+  (find-root-pred nil :read-only t)
+  ;; Function of one argument that takes value of type
+  ;; ‘dante-config’ and returns list of strings.
+  (make-check-command-line nil :read-only t)
+  ;; Function of one argument that takes value of type
+  ;; ‘dante-config’ and returns value of type ‘dante-repl-cmdline’.
+  (make-repl-command-line nil :read-only t)
 
-  repl-buf-name-func   ;; Function of 0 arguments that returns buffer name for dante repl
+  ;; Function of one argument of type ‘dante-config’ that
+  ;; returns string buffer name for dante repl buffer
+  (repl-buf-name-func nil :read-only t)
 
-  get-check-build-dir  ;; nil or lambda that takes current project’s and returns string absolute path
-  get-repl-build-dir   ;; nil or lambda that takes current project’s and returns string absolute path
+  ;; Function of two arguments, project root and build directory that returns
+  ;; subdirectory of build directory where build artifacts for the checking
+  ;; will be stored.
+  ;;
+  ;; Build directory may be nil, in which case may return either absolute or
+  ;; relative path. Relative path would be relative to the project root.
+  (get-check-build-dir nil :read-only t)
+  ;; Function of two arguments, project root and build directory that returns
+  ;; subdirectory of build directory where build artifacts for the repl session
+  ;; will be stored.
+  ;;
+  ;; Build directory may be nil, in which case may return either absolute or
+  ;; relative path. Relative path would be relative to the project root.
+  (get-repl-build-dir nil :read-only t)
 
-  ;; Function of three arguments arguments:
-  ;; 1 flake root
-  ;; 2 current eproj project
-  ;; 3 build directory as used for cabal
+  ;; Function of two arguments:
+  ;; 1 Value of type ‘dante-config’
+  ;; 2 Build directory to use for preprocessing
   ;;
   ;; Returns command line to run for preprocessing current project via
   ;; cabal so that it will put latest results of running e.g. alex,
   ;; happy or hsc2hs into the specified build directory where cabal
   ;; usually puts them.
-  make-preprocess-command-line)
+  (make-preprocess-command-line nil :read-only t))
 
-(defun dante--get-build-dir (name proj tmp)
+(defun dante--get-build-dir (name proj-root root)
   (cl-assert (stringp name))
-  (cl-assert (or (null proj) (eproj-project-p proj)))
-  (cl-assert (stringp tmp))
-  (cl-assert (or (not (file-exists-p tmp)) (file-directory-p tmp)))
-  (concat tmp
-          "/"
-          name
-          (when proj
-            (concat "-" (sha1 (eproj-project/root proj))))))
+  (cl-assert (or (null proj-root)
+                 (and (stringp proj-root)
+                      (file-directory-p proj-root))))
+  (cl-assert (stringp root))
+  (cl-assert (or (not (file-exists-p root)) (file-directory-p root)))
+  (if root
+      (concat root
+              "/"
+              name
+              (awhen proj-root
+                (concat "-" (sha1 it))))
+    (concat "dist-newstyle/" name)))
 
-(defun dante--make-methods (tmp)
+(defconst dante-methods-defs
   (let* ((ghci-options
           '("-fbyte-code"
             "-Wall"
@@ -241,20 +280,16 @@ will be in loaded in different GHCi sessions."
             "-fprint-potential-instances"
             "-fdefer-typed-holes"))
 
-         (get-check-build-dir (when tmp
-                                (lambda (proj)
-                                  (dante--get-build-dir "dante" proj tmp))))
-         (get-repl-build-dir (when tmp
-                                (lambda (proj)
-                                  (dante--get-build-dir "dante-repl" proj tmp))))
-         (build (lambda (proj)
-                  (when tmp
-                    (list "--builddir"
-                          (funcall get-check-build-dir proj)))))
-         (repl (lambda (proj)
-                 (when tmp
-                   (list "--builddir"
-                         (funcall get-repl-build-dir proj)))))
+         (get-check-build-dir (lambda (proj-root build-dir)
+                                (cl-assert (stringp proj-root))
+                                (cl-assert (file-directory-p proj-root))
+                                (cl-assert (stringp build-dir))
+                                (dante--get-build-dir "dante" proj-root build-dir)))
+         (get-repl-build-dir (lambda (proj-root build-dir)
+                               (cl-assert (file-directory-p proj-root))
+                               (cl-assert (stringp build-dir))
+                               (dante--get-build-dir "dante-repl" proj-root build-dir)))
+
          (repl-options (--mapcat (list "--repl-option" it) ghci-options))
          (mk-dante-method
           (cl-function
@@ -264,25 +299,39 @@ will be in loaded in different GHCi sessions."
               :name name
               :is-enabled-pred is-enabled-pred
               :find-root-pred find-root-pred
-              :check-command-line
-              (lambda (flake-root proj target)
-                (funcall template
-                         :flake-root flake-root
-                         :flags (funcall build proj)
-                         :target target))
-              :repl-command-line
-              (lambda (flake-root proj target)
-                (make-dante-repl-cmdline
-                 :cmdline-loading-all-modules
-                 (funcall template
-                          :flake-root flake-root
-                          :flags (append (funcall repl proj) repl-options)
-                          :target target)
-                 :cmdline-loading-no-modules
-                 (funcall template
-                          :flake-root flake-root
-                          :flags (append (funcall repl proj) (cons "--repl-no-load" repl-options))
-                          :target target)))
+              :make-check-command-line
+              (lambda (cfg)
+                (let ((result
+                       (funcall template
+                                :flake-root (dante-config/flake-root cfg)
+                                :flags (list "--builddir"
+                                             (dante-config/build-dir cfg))
+                                :target (dante-config/cabal-target cfg))))
+                  (cl-assert (-all? #'stringp result))
+                  result))
+              :make-repl-command-line
+              (lambda (cfg)
+                (let ((load-all-mods
+                       (funcall template
+                                :flake-root (dante-config/flake-root cfg)
+                                :flags (append (list "--builddir"
+                                                     (dante-config/repl-dir cfg))
+                                               repl-options)
+                                :target (dante-config/cabal-target cfg)))
+                      (load-no-mods
+                       (funcall template
+                                :flake-root (dante-config/flake-root cfg)
+                                :flags (append (list "--builddir"
+                                                     (dante-config/repl-dir cfg))
+                                               (cons "--repl-no-load" repl-options))
+                                :target (dante-config/cabal-target cfg))))
+                  (cl-assert (-all? #'stringp load-all-mods))
+                  (cl-assert (-all? #'stringp load-no-mods))
+                  (make-dante-repl-cmdline
+                   :cmdline-loading-all-modules
+                   load-all-mods
+                   :cmdline-loading-no-modules
+                   load-no-mods)))
               :repl-buf-name-func
               repl-buf-name-func
               :get-check-build-dir
@@ -290,14 +339,16 @@ will be in loaded in different GHCi sessions."
               :get-repl-build-dir
               get-repl-build-dir
               :make-preprocess-command-line
-              (lambda (flake-root proj build-dir target)
-                (cl-assert (or (null build-dir) (stringp build-dir)))
-                (funcall template
-                         :flake-root flake-root
-                         :flags (append (when build-dir
-                                          (list "--builddir" build-dir))
-                                        (list "--repl-no-load" "--with-repl=echo"))
-                         :target target)))))))
+              (lambda (cfg build-dir)
+                (cl-assert (stringp build-dir))
+                (let ((result
+                       (funcall template
+                                :flake-root (dante-config/flake-root cfg)
+                                :flags (append (list "--builddir" build-dir)
+                                               (list "--repl-no-load" "--with-repl=echo"))
+                                :target (dante-config/cabal-target cfg))))
+                  (cl-assert (-all? #'stringp result))
+                  result)))))))
     (dante--mk-methods
      (list
       (funcall mk-dante-method
@@ -308,6 +359,7 @@ will be in loaded in different GHCi sessions."
                :template
                (cl-function
                 (lambda (&key flake-root flags target)
+                  (declare (ignore target))
                   (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags) flake-root))))
 
       (funcall mk-dante-method
@@ -318,6 +370,7 @@ will be in loaded in different GHCi sessions."
                :template
                (cl-function
                 (lambda (&key flake-root flags target)
+                  (cl-assert (stringp target))
                   (nix-call-via-flakes `("cabal" "repl" ,target ,@flags) flake-root))))
 
       (funcall mk-dante-method
@@ -328,7 +381,7 @@ will be in loaded in different GHCi sessions."
                :template
                (cl-function
                 (lambda (&key flake-root flags target)
-                  (declare (ignore flake-root))
+                  (declare (ignore flake-root target))
                   `("cabal" "repl" buffer-file-name ,@flags))))
 
       (funcall mk-dante-method
@@ -340,6 +393,7 @@ will be in loaded in different GHCi sessions."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore flake-root))
+                  (cl-assert (stringp target))
                   `("cabal" "repl" ,target ,@flags))))
 
       (funcall mk-dante-method
@@ -353,107 +407,127 @@ will be in loaded in different GHCi sessions."
                   (declare (ignore flake-root flags target))
                   '("ghci"))))))))
 
-(defvar dante--default-methods
-  (dante--make-methods (fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
-
-(defvar dante-methods-defs dante--default-methods)
-
-(defcustom dante-methods (dante--methods-names dante--default-methods)
+(defcustom dante-methods (dante--methods-names dante-methods-defs)
   "Keys in `dante-methods-alist' to try, in order.
 Consider setting this variable as a directory variable."
    :group 'dante :safe t :type '(repeat symbol))
 
 (put 'dante-methods 'safe-local-variable #'listp)
 
-(defun dante-initialize-method ()
-  "Initialize the method used to run GHCi.
-Set `dante-project-root', `dante-check-command-line' and
-`dante-target'.  Do so according to `dante-methods' and previous
-values of the above variables."
-  (haskell-misc--configure-dante-if-needed!)
-  (unless (stringp dante-target)
-    (error "dante-target not set up"))
-  (or (-first (lambda (method)
-                (let ((pred (dante-method-is-enabled-pred method)))
-                  (when (or (null pred)
-                            (funcall pred (current-buffer)))
-                    (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
-                           (proj-root (awhen proj
-                                        (f-full (eproj-project/root it)))))
-                      (when-let ((root (if-let ((pred (dante-method-find-root-pred method)))
-                                           (locate-dominating-file default-directory
-                                                                   (lambda (dir)
-                                                                     (and (if proj-root
-                                                                              ;; If there’s a project then don’t ascend past it.
-                                                                              (string-prefix-p proj-root
-                                                                                               (f-full dir))
-                                                                            t)
-                                                                          (funcall pred dir))))
-                                         default-directory)))
-                        (setf root (expand-file-name root))
-                        (let ((flake-root
-                               (when (dante-nix-available? (current-buffer))
-                                 (cond
-                                   ((file-exists-p (concat root "/flake.nix"))
-                                    root)
-                                   (proj
-                                    (let ((eproj-root (eproj-project/root proj)))
-                                      (when (file-exists-p (concat eproj-root "/flake.nix"))
-                                        eproj-root)))
-                                   (t
-                                    nil)))))
+(defun dante--make-config ()
+  "Initialize the method used to run GHCi according to ‘dante-methods’."
+  (let ((cabal-cfg (haskell-misc-configure-dante)))
+    ;; (haskell-misc--configure-dante-if-needed!)
+    (when (and cabal-cfg
+               (not (stringp (dante-configuration-result/target cabal-cfg))))
+      (error "dante target not configured"))
+    (let ((result nil)
+          (ms dante-methods))
+      (dolist (method-name dante-methods)
+        (while (and (not result)
+                    ms)
+          (let ((method-name (car ms)))
+            (setf ms (cdr ms))
+            (when-let ((method (dante--methods-lookup method-name dante-methods-defs)))
+              (let ((pred (dante-method/is-enabled-pred method)))
+                (when (or (null pred)
+                          (funcall pred (current-buffer)))
+                  (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
+                         (proj-root (awhen proj
+                                      (f-full (eproj-project/root it)))))
+                    (when-let ((root (if-let ((find-root-pred (dante-method/find-root-pred method)))
+                                         (locate-dominating-file default-directory
+                                                                 (lambda (dir)
+                                                                   (and (if proj-root
+                                                                            ;; If there’s a project then don’t ascend past it.
+                                                                            (string-prefix-p proj-root
+                                                                                             (f-full dir))
+                                                                          t)
+                                                                        (funcall find-root-pred dir))))
+                                       default-directory)))
+                      (setf root (expand-file-name root))
+                      (let ((flake-root
+                             (when (dante-nix-available? (current-buffer))
+                               (cond
+                                 ((file-exists-p (concat root "/flake.nix"))
+                                  root)
+                                 (proj
+                                  (let ((eproj-root (eproj-project/root proj)))
+                                    (when (file-exists-p (concat eproj-root "/flake.nix"))
+                                      eproj-root)))
+                                 (t
+                                  nil))))
+                            (build-dir
+                             (eproj-query/fold-build-dir
+                              proj
+                              ;; if not defined
+                              (lambda ()
+                                (fold-platform-os-type "/tmp/dist/dante" "dist-newstyle/dante"))
+                              ;; if defined
+                              #'identity)))
 
-                          (setq-local
-                           dante-project-root (or dante-project-root root)
-                           dante-check-command-line (or dante-check-command-line
-                                                        (funcall (dante-method-check-command-line method)
-                                                                 flake-root
-                                                                 proj
-                                                                 dante-target))
-
-                           dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
-                                                                 dante-repl--command-line-to-use)
-                                                               (funcall (dante-method-repl-command-line method)
-                                                                        flake-root
-                                                                        proj
-                                                                        dante-target)
-                                                               ;; Fall back to command used by dante for checking else
-                                                               (error "Cannot configure dante repl command line"))
-
-                           dante-check-preprocess-command-line
-                           (funcall (dante-method-make-preprocess-command-line method)
-                                    flake-root
-                                    proj
-                                    (funcall (dante-method-get-check-build-dir method) proj)
-                                    dante-target)
-
-                           dante--selected-method method)))))))
-              (-non-nil (--map (dante--methods-lookup it dante-methods-defs)
-                               dante-methods)))
-      (error "No GHCi loading method applies.  Customize `dante-methods' or (`dante-check-command-line' and `dante-project-root')")))
+                        (cl-assert (stringp root))
+                        (cl-assert (file-directory-p root))
+                        (cl-assert (or (null proj-root)
+                                       (and (stringp proj-root)
+                                            (file-directory-p proj-root))))
+                        (cl-assert (or (null flake-root)
+                                       (and (stringp flake-root)
+                                            (file-directory-p flake-root))))
+                        (cl-assert (dante-method-p method))
+                        (setf result
+                              (make-dante-config
+                               :project-root root
+                               :eproj-root proj-root
+                               :flake-root flake-root
+                               :cabal-target (dante-configuration-result/target cabal-cfg)
+                               :cabal-component (dante-configuration-result/component cabal-cfg)
+                               :build-dir (funcall (dante-method/get-check-build-dir method) root build-dir)
+                               :repl-dir (funcall (dante-method/get-repl-build-dir method) root build-dir)
+                               :method method)))))))))))
+      (if result
+          result
+        (error "Dante not configured - no method applies")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Session-local variables. These are set *IN THE GHCi INTERACTION BUFFER*
 
-(defvar-local dante-ghci-path nil "Path where GHCi runs.
-Variable `dante-project-root' can be different because of cabal behaviour.")
-(defvar-local dante-flymake-token 1000)
-(defvar-local dante-command-line nil "Command line used to start GHCi.")
-(defvar-local dante-load-message nil "Load messages.")
-(defvar-local dante-loaded-file "<DANTE:NO-FILE-LOADED>")
-(defvar-local dante-queue nil "List of ready GHCi queries.")
-(defvar-local dante-state nil
-  "The current state.
-- nil: initial state
-- deleting: The process of the buffer is being deleted.
-- dead: GHCi died on its own.  Do not try restarting
-automatically.  The user will have to manually run `dante-restart'
-to destroy the buffer and create a fresh one without this variable enabled.
-- other value: informative value for the user about what GHCi is doing.")
+(defstruct (dante-check-ghci-state
+            (:conc-name dante-check-ghci-state/))
+  ;; Path where GHCi runs.
+  ;;
+  ;; May be different to what ‘dante-config/project-root’ returns
+  ;; because of cabal behaviour.
+  ghci-path
 
-(defmacro dante-get-var (var)
-  "Return the value of SYMBOL in the GHCi process buffer."
-  `(when-let ((bp (dante-buffer-p))) (buffer-local-value ',var bp)))
+  ;; Command line used to start GHCi.
+  command-line
+
+  ;; Load messages from GHCi before actual repl starts.
+  load-message
+
+  loaded-file
+
+  ;; List of ready GHCi queries.
+  queue
+
+  ;;  The current checker state.
+  ;; - nil: initial state
+  ;; - deleting: The process of the buffer is being deleted.
+  ;; - dead: GHCi died on its own.  Do not try restarting
+  ;; automatically.  The user will have to manually run `dante-restart'
+  ;; to destroy the buffer and create a fresh one without this variable enabled.
+  ;; - other value: informative value for the user about what GHCi is doing.
+  checker-state)
+
+(defvar-local dante--ghci-state nil
+  "Value of type ‘dante-check-ghci-state’ in the GHCi buffer.")
+
+(defun dante-get-ghci-state (&optional buf)
+  (when-let ((ghci-buf (or buf (dante-buffer-p))))
+    (buffer-local-value 'dante--ghci-state ghci-buf)))
+
+(defvar-local dante-flymake-token 1000)
 
 (add-hook
  'lcr-context-switch-hook
@@ -462,36 +536,41 @@ to destroy the buffer and create a fresh one without this variable enabled.
    ;; when whatever green thread was running is over, we're back in
    ;; the original source buffer. It's time to check if anything
    ;; queued should be run.
-   (if-let ((buffer (dante-buffer-p)))
-       (with-current-buffer buffer
-         (unless lcr-process-callback
-           ;; Note that dante green threads are not interleaved,
-           ;; because they only yield by placing a callback.
-           (let ((req (pop dante-queue)))
-             (when req (funcall req buffer))))))
+   (when-let ((ghci-buf (dante-buffer-p)))
+     (with-current-buffer ghci-buf
+       (unless lcr-process-callback
+         ;; Note that dante green threads are not interleaved,
+         ;; because they only yield by placing a callback.
+         (let ((req (pop (dante-check-ghci-state/queue (dante-get-ghci-state ghci-buf)))))
+           (when req (funcall req ghci-buf))))))
    ;; we're about to yield back to emacs main loop. Inform the user of status.
    (force-mode-line-update t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mode
 
-(defvar dante-mode-map (make-sparse-keymap) "Dante minor mode's map.")
+(defconst dante-mode-map (make-sparse-keymap) "Dante minor mode's map.")
 
 (defun dante-status ()
   "Return dante's status for the current source buffer."
   (condition-case err
-      (let ((buf (dante-buffer-p))
+      (let ((ghci-buf (dante-buffer-p))
             (fname (buffer-file-name (current-buffer))))
-        (if (not buf) "stopped"
-          (with-current-buffer buf
+        (if (not ghci-buf)
+            "stopped"
+          (let ((ghci-state (dante-get-ghci-state ghci-buf)))
             (concat
-             (if lcr-process-callback "busy " "")
-             (pcase dante-state
+             (if (buffer-local-value 'lcr-process-callback ghci-buf) "busy " "")
+             (pcase (dante-check-ghci-state/checker-state ghci-state)
                (`(ghc-err (compiling ,mod)) (format "error(%s)" mod))
-               (`(loaded ,_loaded-mods) (if (s-equals? dante-loaded-file fname) "loaded" (format "loaded(%s)" (file-name-base dante-loaded-file))))
+               (`(loaded ,_loaded-mods)
+                (let ((loaded-file (dante-check-ghci-state/loaded-file ghci-state)))
+                  (if (s-equals? loaded-file fname) "loaded" (format "loaded(%s)" (file-name-base loaded-file)))))
                ;; (`(,hd . ,_tl) (format "%s" hd))
-               (_ (format "%s" dante-state)))
-             (if dante-queue (format "+%s" (length dante-queue)) "")))))
+               (other (format "%s" other)))
+             (if-let ((queue (dante-check-ghci-state/queue ghci-state)))
+                 (format "+%s" (length queue))
+               "")))))
     (error (format "error %s" err))))
 
 (defcustom dante-modeline-prefix " Danté:" "Modeline prefix." :group 'dante :type 'string)
@@ -650,24 +729,26 @@ Interpreting puts all symbols from the current module in
 scope.  Compiling avoids re-interpreting the dependencies over
 and over."
   (let* ((curr-buf (current-buffer))
-         (buf (resolve-to-base-buffer curr-buf))
+         (resolved-buf (resolve-to-base-buffer curr-buf))
          (fingerprint (sha1 curr-buf))
          (unchanged (equal fingerprint dante-temp-fingerprint))
          ;; Make sure to not use indirect buffer’s filename (which is typically nil)
          ;; or we’ll overwrite the base buffer and trigger its revert!
-         (src-fname (buffer-file-name buf))
-         (buffer (lcr-call dante-session))
+         (src-fname (buffer-file-name resolved-buf))
+         (ghci-buf (lcr-call dante-session))
+         (ghci-state (dante-get-ghci-state ghci-buf))
          (same-target (and (or dante-interpreted (not interpret))
-                           (s-equals? (buffer-local-value 'dante-loaded-file buffer) src-fname))))
+                           (s-equals? (dante-check-ghci-state/loaded-file ghci-state)
+                                      src-fname))))
     (if (and unchanged same-target) ; see #52
-        (buffer-local-value 'dante-load-message buffer)
-      (let ((fname (lcr-call dante-setup-file-to-load src-fname curr-buf)))
+        (dante-check-ghci-state/load-message ghci-state)
+      (let ((fname (lcr-call dante-check--get-file-to-load src-fname curr-buf)))
         (setq dante-temp-fingerprint fingerprint)
         (setq dante-interpreted interpret)
         (puthash (dante-local-name fname) src-fname dante-original-buffer-map)
         ;; GHCi will interpret the buffer if both -fbyte-code and :l * are used.
         (lcr-call dante-async-call (if interpret ":set -fbyte-code" ":set -fobject-code"))
-        (with-current-buffer buffer
+        (with-current-buffer ghci-buf
           (setq-local dante-status 'loading)
           (dante-async-write (if same-target
                                  ":r!"
@@ -675,9 +756,10 @@ and over."
                                        (if interpret "*" "")
                                        (dante-local-name fname))))
           (cl-destructuring-bind (_status err-messages _loaded-modules)
-              (lcr-call dante-load-loop "" err-fn)
-            (setq dante-loaded-file src-fname
-                  dante-load-message
+              (lcr-call dante-load-loop ghci-buf "" err-fn)
+            (setf (dante-check-ghci-state/loaded-file ghci-state)
+                  src-fname
+                  (dante-check-ghci-state/load-message ghci-state)
                   (let ((ansi-color-context nil))
                     (--map (-map #'ansi-color-apply it) err-messages)))))))))
 
@@ -695,7 +777,7 @@ won’t have any effect (ghci’s recompilation avoidance will make it skip doin
 
 (defun dante-check (checker cont)
   "Run a check with CHECKER and pass the status onto CONT."
-  (if (eq (dante-get-var dante-state) 'dead)
+  (if (eq (awhen (dante-get-ghci-state) (dante-check-ghci-state/checker-state it)) 'dead)
       (funcall cont 'interrupted)
     (lcr-spawn
       (let* ((messages (lcr-call dante-async-load-current-buffer dante-check-force-interpret nil))
@@ -720,12 +802,11 @@ won’t have any effect (ghci’s recompilation avoidance will make it skip doin
 (flycheck-define-generic-checker 'haskell-dante
   "A syntax and type checker for Haskell using a Dante worker
 process."
-  :start 'dante-check
+  :start #'dante-check
   :predicate (lambda () dante-mode)
   :modes '(haskell-mode haskell-ts-mode haskell-hsc-mode haskell-literate-mode)
   :working-directory (lambda (_checker)
-                       (unless dante-project-root (dante-initialize-method))
-                       dante-project-root))
+                       (dante-config/project-root (dante-get-config))))
 
 (add-to-list 'flycheck-checkers 'haskell-dante)
 
@@ -737,7 +818,7 @@ process."
   "Map of regular expressions to flycheck error types, ordered by priority."
   :group 'dante :type '(repeat cons (regex symbol)))
 
-(defun dante-fly-message (matched checker buffer temp-file)
+(defun dante-fly-message (matched checker buf temp-file)
   "Convert the MATCHED message to flycheck format.
 CHECKER and BUFFER are added if the error is in TEMP-FILE."
   (save-match-data
@@ -749,7 +830,7 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
              (location (dante-parse-error-location location-raw)))
         ;; FIXME: sometimes the "error type" contains the actual error too.
         (when type
-          (let ((buf-name (dante-buffer-file-name-for-error-message buffer)))
+          (let ((buf-name (dante-buffer-file-name-for-error-message buf)))
             (flycheck-error-new-at (car location) (cadr location) type
                                    (replace-regexp-in-string (regexp-quote temp-file)
                                                              (car buf-name)
@@ -757,7 +838,7 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
                                                                      "\n"
                                                                      (trim-whitespace-right msg)))
                                    :checker checker
-                                   :buffer buffer
+                                   :buffer buf
                                    :filename (if (string= (dante-canonicalize-path temp-file)
                                                           (dante-canonicalize-path file))
                                                  (cdr buf-name)
@@ -772,9 +853,9 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
                         "(\\(?1:[0-9]+\\),\\(?2:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?4:[0-9]+\\))") ;; "(289,5)-(291,36)"
                        string))))
 
-(defun dante-call-in-buffer (buffer func &rest args)
+(defun dante-call-in-buffer (buf func &rest args)
   "In BUFFER, call FUNC with ARGS."
-  (with-current-buffer buffer (apply func args)))
+  (with-current-buffer buf (apply func args)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Company integration (auto-completion)
@@ -809,7 +890,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
                 (is-import (eq import-end id-start)))
            (buffer-substring-no-properties (if is-import import-start id-start) (point))))))
     (candidates
-     (unless (eq (dante-get-var dante-state) 'dead)
+     (unless (eq (awhen (dante-get-ghci-state) (dante-check-ghci-state/checker-state it)) 'dead)
        (cons :async (lambda (callback) (lcr-spawn (lcr-halt callback (lcr-call dante-complete arg)))))))))
 
 (with-eval-after-load 'company
@@ -841,28 +922,33 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
 May return a qualified name."
   (thing-at-point 'qualified-haskell-symbol))
 
-(defun dante-buffer-file-name-for-error-message (&optional buffer)
+(defun dante-buffer-file-name-for-error-message (&optional buf)
   "Call function `buffer-file-name' for BUFFER and clean its result.
 The path returned is canonicalized and stripped of any text properties."
-  (if-let (name (buffer-file-name buffer))
+  (if-let (name (buffer-file-name buf))
       (let ((path (dante-canonicalize-path (substring-no-properties name))))
         (cons path path))
-    (cons (buffer-name buffer) nil)))
+    (cons (buffer-name buf) nil)))
 
-(defvar dante-setup-file-to-load-impl #'dante-setup-file-to-load--regular-file)
+(defvar dante-check--get-file-to-load--impl #'dante-check--get-file-to-load--regular-file)
 
-(lcr-def dante-setup-file-to-load (src-fname buf)
-  (lcr-funcall dante-setup-file-to-load-impl src-fname buf))
+(lcr-def dante-check--get-file-to-load (src-fname buf)
+  "Prepare filename SRC-FNAME, visited in buffer BUF, to load into
+underlying ghci session. Return the filename that should actually be loaded,
+which may be different from SRC-FNAME if e.g. preprocessing was performed."
+  (lcr-funcall dante-check--get-file-to-load--impl src-fname buf))
 
-(lcr-def dante-setup-file-to-load--regular-file (src-fname buf)
+(lcr-def dante-check--get-file-to-load--regular-file (src-fname buf)
   "Prepare to load into GHCi a regular Haskell file."
   (let* ((fname (dante-temp-file-name--default-impl buf))
          (build-dir (dante-check-get-component-build-dir buf))
-         (src-dirs (progn
-                     (cl-assert (cabal-component-p dante-component))
-                     (let ((cabal-file-dir (file-name-directory (cabal-component/cabal-file dante-component))))
-                       (--map (concat cabal-file-dir "/" it)
-                              (cabal-component/source-dirs dante-component)))))
+         (src-dirs (let* ((component
+                           (dante-config/cabal-component (dante-get-config)))
+                          (cabal-file-dir
+                           (file-name-directory
+                            (cabal-component/cabal-file component))))
+                     (--map (concat cabal-file-dir "/" it)
+                            (cabal-component/source-dirs component))))
          (needs-preprocessing? (null (file-directory-p build-dir)))
          (already-preprocessed-files (unless needs-preprocessing?
                                        (find-rec* :root build-dir
@@ -889,7 +975,7 @@ The path returned is canonicalized and stripped of any text properties."
               nil)))
 
     (when needs-preprocessing?
-      (lcr-call dante-setup-file-to-load--preprocess-current-project))
+      (lcr-call dante-check--get-file-to-load--preprocess-current-project))
 
     ;; Take care not to overwrite original buffer needlessly if we’re
     ;; calling this function from a remote buffer or base buffer will be
@@ -901,9 +987,12 @@ The path returned is canonicalized and stripped of any text properties."
           (write-region nil nil fname nil 0))))
     fname))
 
-(lcr-def dante-setup-file-to-load--preprocess-current-project ()
-  (let ((default-directory dante-project-root)
-        (cmdline dante-check-preprocess-command-line))
+(lcr-def dante-check--get-file-to-load--preprocess-current-project ()
+  (let* ((cfg (dante-get-config))
+         (default-directory (dante-config/project-root cfg))
+         (cmdline (funcall (dante-method/make-preprocess-command-line (dante-config/method cfg))
+                           cfg
+                           (dante-config/build-dir cfg))))
     (with-fresh-buffer-no-switch tmp-buf (get-buffer-create " *dante-cabal-preprocessing*")
       (let ((exit-code (lcr-call lcr-call-process-async
                                  (list
@@ -921,12 +1010,12 @@ The path returned is canonicalized and stripped of any text properties."
                    (with-current-buffer tmp-buf
                      (buffer-substring-no-properties (point-min) (point-max))))))))))
 
-(lcr-def dante-setup-file-to-load--preprocessed-file (current-file buf)
+(lcr-def dante-check--get-file-to-load--hsc2hs (current-file buf)
   "Prepare to load into GHCi a file that requires preprocessing."
-  (let ((preprocessed-file (dante-temp-file-name--hsc2hs-impl buf)))
+  (let ((preprocessed-file (dante-temp-file-name--hsc2hs buf)))
     (when (or (not (file-exists-p preprocessed-file))
               (dante--is-file-newer-than? current-file preprocessed-file))
-      (lcr-call dante-setup-file-to-load--preprocess-current-project))
+      (lcr-call dante-check--get-file-to-load--preprocess-current-project))
     preprocessed-file))
 
 (defun dante--is-file-newer-than? (file-to-test file-to-test-against)
@@ -935,16 +1024,13 @@ The path returned is canonicalized and stripped of any text properties."
     (and (not (equal to-test-against-modtime to-test-modtime))
          (time-less-p to-test-against-modtime to-test-modtime))))
 
-(defvar-local dante-temp-file-name nil
-  "The name of a temporary file to which the current buffer's content is copied.")
-
 (require 'tramp)
-(defun dante-tramp-make-tramp-temp-file (buffer)
+(defun dante-tramp-make-tramp-temp-file (buf)
   "Create a temporary file for BUFFER, perhaps on a remote host."
-  (if-let (fname (buffer-file-name buffer))
+  (if-let (fname (buffer-file-name buf))
       (let ((suffix (file-name-extension fname t)))
         (if (file-remote-p fname)
-            (with-parsed-tramp-file-name (buffer-file-name buffer) vec
+            (with-parsed-tramp-file-name (buffer-file-name buf) vec
               (let ((prefix (concat
                              (expand-file-name
                               tramp-temp-name-prefix (tramp-get-remote-tmpdir vec))
@@ -961,53 +1047,46 @@ The path returned is canonicalized and stripped of any text properties."
           fname))
     (make-temp-file "dante" nil ".hs")))
 
-(defvar dante-temp-file-name-impl #'dante-temp-file-name--default-impl)
+(defvar dante-temp-file-name--impl #'dante-temp-file-name--default-impl)
 
-(defun dante-temp-file-name (buffer)
-  (funcall dante-temp-file-name-impl buffer))
+(defvar-local dante-temp-file-name nil
+  "The name of a temporary file to which the current buffer's content is copied.")
 
-(defun dante-temp-file-name--default-impl (buffer)
+(defun dante-temp-file-name (buf)
+  (funcall dante-temp-file-name--impl buf))
+
+(defun dante-temp-file-name--default-impl (buf)
   "Return a (possibly remote) filename suitable to store BUFFER's contents."
-  (with-current-buffer buffer
+  (with-current-buffer buf
     (or dante-temp-file-name
         (setq dante-temp-file-name
-              (dante-tramp-make-tramp-temp-file buffer)))))
+              (dante-tramp-make-tramp-temp-file buf)))))
 
-(defun dante-get-component-build-dir (buffer package-build-dir)
-  (let ((component (buffer-local-value 'dante-component buffer)))
+(defun dante-get-component-build-dir (buf package-build-dir)
+  (let ((component (dante-config/cabal-component (dante-get-config buf))))
     (cl-assert (cabal-component-p component))
     (let ((build-dir (cabal-component/build-dir component)))
       (concat (aif package-build-dir
                   it
                 (concat
-                 (aif (eproj-get-project-for-buf-lax buffer)
+                 (aif (eproj-get-project-for-buf-lax buf)
                      (concat (strip-trailing-slash (eproj-project/root it)) "/")
                    "")
                  "dist-newstyle"))
               "/"
               build-dir))))
 
-(defun dante-check-get-component-build-dir (buffer)
-  (dante-get-component-build-dir buffer (dante-check-get-package-build-dir buffer)))
+(defun dante-check-get-component-build-dir (buf)
+  (dante-get-component-build-dir buf
+                                 (dante-config/build-dir (dante-get-config buf))))
 
-(defun dante-check-get-package-build-dir (buffer)
-  (let ((method (buffer-local-value 'dante--selected-method buffer)))
-    (unless method
-      (with-current-buffer buffer
-        (dante-initialize-method))
-      (setf method (buffer-local-value 'dante--selected-method buffer)))
-    ;; Must be already initialized.
-    (cl-assert method nil "No dante method for buffer %s" buffer)
-    (when-let ((f (dante-method-get-check-build-dir method)))
-      (funcall f (eproj-get-project-for-buf-lax buffer)))))
-
-(defun dante-temp-file-name--hsc2hs-impl (buffer)
+(defun dante-temp-file-name--hsc2hs (buf)
   "Return filename where cabal would put result of preprocessing BUFFER’s file."
-  (with-current-buffer buffer
+  (with-current-buffer buf
     (or dante-temp-file-name
         (setq-local dante-temp-file-name
                     (concat
-                     (dante-check-get-component-build-dir buffer)
+                     (dante-check-get-component-build-dir buf)
                      "/"
                      (replace-regexp-in-string "[.]"
                                                "/"
@@ -1060,12 +1139,12 @@ This applies to paths of the form x:\\foo\\bar"
 (defun dante-destroy ()
   "Stop GHCi and kill its associated process buffer."
   (interactive)
-  (when-let ((buf (dante-buffer-p)))
-    (dante-set-state 'deleting)
-    (when-let ((process (get-buffer-process buf)))
+  (when-let ((ghci-buf (dante-buffer-p)))
+    (dante--set-checker-state! 'deleting ghci-buf)
+    (when-let ((process (get-buffer-process ghci-buf)))
       (kill-process process)
       (delete-process process))
-    (kill-buffer buf)))
+    (kill-buffer ghci-buf)))
 
 (defun dante-restart ()
   "Restart GHCi with the same configuration (root, command line, …) as before."
@@ -1078,14 +1157,15 @@ This applies to paths of the form x:\\foo\\bar"
 (defun dante-session (cont)
   "Get the session or create one if none exists.
 If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
-  (if-let* ((buf (dante-buffer-p)))
-      (if (buffer-local-value 'lcr-process-callback buf)
+  (if-let* ((ghci-buf (dante-buffer-p)))
+      (if (buffer-local-value 'lcr-process-callback ghci-buf)
           (lcr-context-switch
-              (with-current-buffer buf
-                (when dante-queue
+              (let ((ghci-state (dante-get-ghci-state ghci-buf)))
+                (when (dante-check-ghci-state/queue ghci-state)
                   (message "Overriding previously queued GHCi request."))
-                (setq dante-queue (cons (lambda (x) (lcr-resume cont x)) nil))))
-        (funcall cont buf))
+                (setf (dante-check-ghci-state/queue ghci-state)
+                      (cons (lambda (x) (lcr-resume cont x)) nil))))
+        (funcall cont ghci-buf))
     (dante-start cont)))
 
 (defcustom dante-load-flags '("+c" "-fdiagnostics-color=never" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-ferror-spans" "-Wwarn")
@@ -1099,23 +1179,25 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                             ("-fdiagnostics-color=never" "No color codes in error messages (color codes will trigger bugs in Dante)")
                             ("-fno-diagnostics-show-caret" "Cleaner error messages for GHC >=8.2 (ignored by earlier versions)")))))
 
-(defun dante--make-file-process (name buffer program args filter sentinel)
+(defun dante--make-file-process (name buf program args filter sentinel)
   (let ((fh (find-file-name-handler default-directory 'dante--make-file-process)))
     (if fh
-        (apply fh #'make-process :name name :buffer buffer :command (cons program args) :filter filter :sentinel sentinel :file-handler t)
-      (apply #'make-process :name name :buffer buffer :command (cons program args) :filter filter :sentinel sentinel :file-handler t))))
+        (apply fh #'make-process :name name :buffer buf :command (cons program args) :filter filter :sentinel sentinel :file-handler t)
+      (apply #'make-process :name name :buffer buf :command (cons program args) :filter filter :sentinel sentinel :file-handler t))))
 
 (lcr-def dante-start ()
   "Start a GHCi process and return its buffer."
-  (let* ((buffer (dante-buffer-create))
-         (args (-non-nil (-map #'eval dante-check-command-line)))
+  (let* ((ghci-buf (dante--create-ghci-interaction-buffer))
+         (cfg (dante-get-config))
+         (args (funcall (dante-method/make-check-command-line (dante-config/method cfg))
+                        cfg))
          (ghc-initialising? t)
          (initial-ghc-messages nil)
-         (vanilla-filter (lcr-process-make-filter buffer))
-         (process (with-current-buffer buffer
+         (vanilla-filter (lcr-process-make-filter ghci-buf))
+         (process (with-current-buffer ghci-buf
                     (message "Dante: Starting GHCi: %s" (combine-and-quote-strings args))
                     (make-process :name "dante"
-                                  :buffer buffer
+                                  :buffer ghci-buf
                                   :command args
                                   :noquery t
                                   :filter (lambda (process str)
@@ -1133,10 +1215,11 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                                                               (and ghc-initialising?
                                                                    initial-ghc-messages)))
                                   :file-handler t))))
-    (with-current-buffer buffer
+    (with-current-buffer ghci-buf
       (erase-buffer)
-      (setq-local dante-command-line (process-command process)))
-    (dante-set-state 'starting)
+      (setf (dante-check-ghci-state/command-line dante--ghci-state)
+            (process-command process)))
+    (dante--set-checker-state! 'starting ghci-buf)
     (lcr-call dante-async-call
               (s-join "\n" (--map (concat ":set " it)
                                   (append dante-load-flags
@@ -1147,15 +1230,15 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                                                 "-ignore-dot-ghci")))))
     (let ((dir (fold-platform-os-type (lcr-call dante-async-call ":!pwd")
                                       (lcr-call dante-async-call "System.IO.putStrLn =<< System.Directory.getCurrentDirectory"))))
-      (with-current-buffer buffer
-        (setq dante-ghci-path
+      (with-current-buffer ghci-buf
+        (setf (dante-check-ghci-state/ghci-path dante--ghci-state)
               (fold-platform-os-type
                dir
                (msys-or-cygwin-file-name-to-emacs dir)))))
-    (dante-set-state 'started)
+    (dante--set-checker-state! 'started ghci-buf)
     (setf ghc-initialising? nil
           initial-ghc-messages nil)
-    buffer))
+    ghci-buf))
 
 (defun dante-debug (category msg &rest objects)
   "Append a debug message MSG to the current buffer.
@@ -1193,14 +1276,15 @@ Must be called from GHCi process buffer."
 (defconst dante-error-regexp
   "^\\(?:\e\\\[[0-9;]*m\\)?\\(?4:\\(?:[a-zA-Z]:\\)?[^ \n:][^:\n\r]+\\):\\(?5:[0-9()-:]+\\): \\(?6:.*\\)\n\\(?7:\\(?:[ ]+.*\r?\n\\)*\\)")
 
-(lcr-def dante-load-loop (str err-fn)
+(lcr-def dante-load-loop (ghci-buf str err-fn)
   "Parse the output of load command.
 ACC umulate input and ERR-MSGS."
   (save-match-data
     (let (result
           cur-file
           err-msgs
-          (acc str))
+          (acc str)
+          (ghci-state (dante-get-ghci-state ghci-buf)))
       (while (not result)
         (let* ((i (string-match (eval-when-compile
                                   (dante-regexp-disjoin dante-ghci-prompt
@@ -1213,24 +1297,29 @@ ACC umulate input and ERR-MSGS."
                       (match-beginning 1))
                  ;; (and m
                  ;;      (string-match dante-ghci-prompt m))
-                 (setq dante-state (list 'ghc-err (pcase dante-state
-                                                    (`(compiling ,module) (ansi-color-apply module))
-                                                    (_ cur-file)))) ; when the module name is wrong, ghc does not output any "Compiling ..." message
+                 (setf (dante-check-ghci-state/checker-state ghci-state)
+                       (list 'ghc-err (pcase (dante-check-ghci-state/checker-state ghci-state)
+                                        (`(compiling ,module) (ansi-color-apply module))
+                                        (_ cur-file)))) ; when the module name is wrong, ghc does not output any "Compiling ..." message
                  (setq result (list 'failed (nreverse err-msgs) (match-string 1 acc))))
 
                 ((and i
                       (match-beginning 2))
-                 (setq dante-state (list 'compiling (match-string 2 acc))))
+                 (setf (dante-check-ghci-state/checker-state ghci-state)
+                       (list 'compiling (match-string 2 acc))))
 
                 ((and i
                       (match-beginning 3))
                  ;; With the +c setting, GHC (8.2) prints:
                  ;; 1. error messages+warnings, if compiling only
                  ;; 2. if successful, repeat the warnings
-                 (setq dante-state 'process-warnings)
-                 (cl-destructuring-bind (_status warning-msgs loaded-mods) (lcr-call dante-load-loop rest nil)
-                   (setq dante-state (list 'loaded loaded-mods)
-                         result (list 'ok (or (nreverse err-msgs) warning-msgs) loaded-mods))))
+                 (setf (dante-check-ghci-state/checker-state ghci-state)
+                       'process-warnings)
+                 (cl-destructuring-bind (_status warning-msgs loaded-mods) (lcr-call dante-load-loop ghci-buf rest nil)
+                   (setf (dante-check-ghci-state/checker-state ghci-state)
+                         (list 'loaded loaded-mods)
+                         result
+                         (list 'ok (or (nreverse err-msgs) warning-msgs) loaded-mods))))
 
                 ((and i
                       (not (zerop (length rest)))
@@ -1270,13 +1359,16 @@ ACC umulate input and ERR-MSGS."
 (defun dante-sentinel (process change initial-ghc-messages)
   "Handle when PROCESS reports a CHANGE.
 This is a standard process sentinel function."
-  (let ((buffer (process-buffer process)))
-    (when (and (buffer-live-p buffer) (not (process-live-p process)))
-      (if (eq (buffer-local-value 'dante-state buffer) 'deleting)
-          (message "GHCi process deleted.")
-        (with-current-buffer buffer (setq dante-state 'dead))
-        (let ((init-msg (join-lines (reverse (--drop-while (string= "" it) initial-ghc-messages)))))
-          (dante-show-process-problem process change init-msg))))))
+  (let ((ghci-buf (process-buffer process)))
+    (when (and (buffer-live-p ghci-buf)
+               (not (process-live-p process)))
+      (let ((ghci-state (dante-get-ghci-state ghci-buf)))
+        (if (eq (dante-check-ghci-state/checker-state ghci-state) 'deleting)
+            (message "GHCi process deleted.")
+          (progn
+            (setf (dante-check-ghci-state/checker-state ghci-state) 'dead)
+            (let ((init-msg (join-lines (reverse (--drop-while (string= "" it) initial-ghc-messages)))))
+              (dante-show-process-problem process change init-msg))))))))
 
 (defun dante-diagnose ()
   "Show all state info in a help buffer."
@@ -1285,16 +1377,16 @@ This is a standard process sentinel function."
     (with-help-window (help-buffer)
       (princ info))))
 
-(defun dante-debug-info (buffer init-msg)
+(defun dante-debug-info (buf init-msg)
   "Show debug info for dante buffer BUFFER."
-  (if buffer
-      (with-current-buffer buffer
+  (if buf
+      (with-current-buffer buf
         (s-join "\n"
                 (cons (and init-msg
                            (concat "GHCi output\n" init-msg))
-                      (cons (concat "dante-command-line " (s-join " " dante-command-line))
+                      (cons (concat "dante-command-line " (s-join " " (dante-check-ghci-state/command-line (dante-get-ghci-state))))
                             (--map (format "%s %S" it (eval it))
-                                   '(default-directory dante-ghci-path dante-state dante-queue dante-loaded-file dante-load-message lcr-process-callback))))))
+                                   '(default-directory (dante-get-config) (dante-get-ghci-state) lcr-process-callback))))))
     "No GHCi interaction buffer"))
 
 (defun dante-show-process-problem (process change init-msg)
@@ -1315,62 +1407,49 @@ This is a standard process sentinel function."
             "Process state change: " change "\n"
             (dante-debug-info (current-buffer) init-msg))))
 
-(defvar-local dante--selected-method nil)
-
-(defun dante-buffer-name ()
+(defun dante-buffer-name (cfg)
   "Create a dante process buffer name."
-  (unless dante--selected-method (dante-initialize-method))
-  (funcall (dante-method-repl-buf-name-func dante--selected-method)))
+  (funcall (dante-method/repl-buf-name-func (dante-config/method cfg)) cfg))
 
-(defun dante-buffer-name--default ()
+(defun dante-buffer-name--default (cfg)
   "Default implementation for getting name of the GHCi interaction buffer.
 First, if needed, initialize the GHCi invokation method.  Then construct the
 appropriate buffer name on this basis."
-  (unless dante-project-root (dante-initialize-method))
-  (concat " *dante#" dante-target "#" dante-project-root "*"))
+  (concat " *dante#" (dante-config/cabal-target cfg) "#" (dante-config/project-root cfg) "*"))
 
-(cl-defstruct dante-initialize-state
-  (project-root    nil :read-only t)
-  (selected-method nil :read-only t)
-  (target          nil :read-only t))
-
-(defun dante-store-initialize-state ()
-  (make-dante-initialize-state
-   :project-root    dante-project-root
-   :selected-method dante--selected-method
-   :target          dante-target))
-
-(defun dante-restore-initialize-state (state)
-  ;; Important to transfer all variables confnigured by ‘dante-initialize-method’
-  ;; to this new buffer so that functions like ‘dante-buffer-name’ will pick them up
-  ;; instead of trying to initialize method once again from within GHCI buffer, which
-  ;; would fail since it doesn’t have file associated.
-  ;;
-  ;; Most of these settings are included into buffer name anyway so different
-  ;; buffers obviously have different values of the following parameters.
-
-  (setq-local dante-project-root     (dante-initialize-state-project-root state)
-              dante--selected-method (dante-initialize-state-selected-method state)
-              dante-target           (dante-initialize-state-target state)))
-
-(defun dante-buffer-create ()
-  "Create the buffer for GHCi."
-  (unless dante-project-root (dante-initialize-method))
-  (let ((state (dante-store-initialize-state)))
-    (with-current-buffer (get-buffer-create (dante-buffer-name))
-      (cd (dante-initialize-state-project-root state))
+(defun dante--create-ghci-interaction-buffer ()
+  "Create the buffer for GHCi interaction."
+  (let ((cfg (dante-get-config)))
+    (with-current-buffer (get-buffer-create (dante-buffer-name cfg))
+      (cd (dante-config/project-root cfg))
       (fundamental-mode) ;; this has several effects, including resetting the local variables
       (buffer-disable-undo)
-      (dante-restore-initialize-state state)
+      ;; Important to transfer all variables confnigured by ‘dante--make-config’
+      ;; to this new buffer so that functions like ‘dante-buffer-name’ will pick them up
+      ;; instead of trying to initialize method once again from within GHCI buffer, which
+      ;; would fail since it doesn’t have file associated.
+      ;;
+      ;; Most of these settings are included into buffer name anyway so different
+      ;; buffers obviously have different values of the following parameters.
+      (setq-local dante--config cfg
+                  dante--ghci-state
+                  (make-dante-check-ghci-state
+                   :ghci-path nil
+                   :command-line nil
+                   :load-message nil
+                   :loaded-file "<DANTE:NO-FILE-LOADED>"
+                   :queue nil
+                   :checker-state nil))
       (current-buffer))))
 
-(defun dante-set-state (state)
-  "Set the `dante-state' to STATE."
-  (with-current-buffer (dante-buffer-p) (setq-local dante-state state)))
+(defun dante--set-checker-state! (state &optional ghci-buf)
+  "Set the `dante--config' to STATE."
+  (setf (dante-check-ghci-state/checker-state (dante-get-ghci-state ghci-buf))
+        state))
 
 (defun dante-buffer-p ()
   "Return the GHCi buffer if it exists, nil otherwise."
-  (get-buffer (dante-buffer-name)))
+  (get-buffer (dante-buffer-name (dante-get-config))))
 
 (defun dante-cabal-find-file (&optional file)
   "Search for directory of cabal file.
@@ -1407,7 +1486,7 @@ Search upwards in the directory structure, starting from FILE (or
           (col (string-to-number (match-string 3 string))))
       (xref-make-file-location
        (or (gethash file dante-original-buffer-map)
-           (expand-file-name file (dante-get-var dante-ghci-path)))
+           (expand-file-name file (dante-check-ghci-state/ghci-path (dante-get-ghci-state))))
        line (1- col)))))
 
 (defun dante--summarize-src-spans (spans file)
@@ -1495,7 +1574,7 @@ The command block is indicated by the >>> symbol."
   (interactive (list (if (region-active-p)
                          (buffer-substring-no-properties (region-beginning) (region-end))
                        dante-exec-default)))
-  (dante-set-state 'running)
+  (dante--set-checker-state! 'running)
   (lcr-spawn
     (lcr-call dante-async-load-current-buffer nil nil)
     (message "%s" (lcr-call dante-async-call command))))
@@ -1506,7 +1585,7 @@ The command block is indicated by the >>> symbol."
 (defun dante-flymake (report-fn &rest _args)
   "Run a check and pass the status onto REPORT-FN."
   (let* ((src-buffer (current-buffer))
-         (buf0 (dante-buffer-p))
+         (ghci-buf (dante-buffer-p))
          (temp-file (dante-local-name (dante-temp-file-name src-buffer)))
          (nothing-done t)
          ;; flymake raises errors when any report is made using an
@@ -1516,12 +1595,16 @@ The command block is indicated by the >>> symbol."
          ;; function is detected.  This token must be set before any
          ;; context switch occurs, otherwise we cannot detect if we
          ;; got another call from flymake in between.
-         (local-token (if buf0 (with-current-buffer buf0 (setq dante-flymake-token (1+ dante-flymake-token)))
+         (local-token (if ghci-buf
+                          (with-current-buffer ghci-buf
+                            (setq dante-flymake-token (1+ dante-flymake-token)))
                         dante-flymake-token)))
-    (if (eq (dante-get-var dante-state) 'dead) (funcall report-fn :panic :explanation "Ghci is dead")
+    (if (eq (awhen (dante-get-ghci-state ghci-buf) (dante-check-ghci-state/checker-state it)) 'dead)
+        (funcall report-fn :panic :explanation "Ghci is dead")
       (lcr-spawn
-        (let* ((buf (lcr-call dante-session)) ; yield until GHCi is ready to process the request
-               (token-guard (lambda () (eq (buffer-local-value 'dante-flymake-token buf) local-token)))
+        (let* ((ghci-buf (lcr-call dante-session)) ; yield until GHCi is ready to process the request
+               (token-guard (lambda ()
+                              (eq (buffer-local-value 'dante-flymake-token ghci-buf) local-token)))
                (msg-fn (lambda (messages)
                          (when (funcall token-guard)
                            (setq nothing-done nil)
@@ -1543,7 +1626,7 @@ The command block is indicated by the >>> symbol."
       (move-to-character-column (1- c))
       (point))))
 
-(defun dante-fm-message (matched buffer temp-file)
+(defun dante-fm-message (matched buf temp-file)
   "Convert the MATCHED message to flymake format.
 Or nil if BUFFER / TEMP-FILE are not relevant to the message."
   (cl-destructuring-bind (file location-raw first-line msg) matched
@@ -1561,12 +1644,12 @@ Or nil if BUFFER / TEMP-FILE are not relevant to the message."
                       (t (list :error msg-start)))))
              (location (dante-parse-error-location location-raw))
              (r (pcase location
-                  (`(,l1 ,c1 ,l2 ,c2) (cons (dante-pos-at-line-col buffer l1 c1) (dante-pos-at-line-col buffer (or l2 l1) (1+ c2))))
-                  (`(,l ,c) (flymake-diag-region buffer l c)))))
+                  (`(,l1 ,c1 ,l2 ,c2) (cons (dante-pos-at-line-col buf l1 c1) (dante-pos-at-line-col buf (or l2 l1) (1+ c2))))
+                  (`(,l ,c) (flymake-diag-region buf l c)))))
         (when r
           (cl-destructuring-bind (type msg-first-line) type-analysis
             (let* ((final-msg (trim-whitespace (concat msg-first-line "\n" (replace-regexp-in-string "^    " "" msg)))))
-              (flymake-make-diagnostic buffer (car r) (cdr r) type final-msg))))))))
+              (flymake-make-diagnostic buf (car r) (cdr r) type final-msg))))))))
 
 (provide 'dante)
 
