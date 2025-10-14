@@ -782,7 +782,7 @@ won’t have any effect (ghci’s recompilation avoidance will make it skip doin
     (lcr-spawn
       (let* ((messages (lcr-call dante-async-load-current-buffer dante-check-force-interpret nil))
              ;; todo: map current buffer to base buffer if it’s an indirect one?
-             (temp-file (dante-local-name (dante-temp-file-name (current-buffer)))))
+             (temp-file (dante-local-name (dante-get-filename-to-load (current-buffer)))))
         (funcall cont
                  'finished
                  (let ((errs (-non-nil (--map (dante-fly-message it checker (current-buffer) temp-file) messages))
@@ -940,18 +940,38 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
 
 (lcr-def dante-check--get-file-to-load--regular-file (src-fname buf)
   "Prepare to load into GHCi a regular Haskell file."
-  (let* ((fname (dante-temp-file-name--default-impl buf))
-         (build-dir (dante-check-get-component-build-dir buf))
-         (src-dirs (let* ((component
-                           (dante-config/cabal-component (dante-get-config)))
+  (let ((fname (dante-get-filename-to-load--default-impl buf))
+        (cfg (dante-get-config)))
+
+    (lcr-call dante--preprocess-project-if-needed
+              cfg
+              (dante-config/build-dir cfg))
+
+    ;; Take care not to overwrite original buffer needlessly if we’re
+    ;; calling this function from a remote buffer or base buffer will be
+    ;; auto-reverted and, for example, will lose all its flycheck error overlays.
+    (unless (s-equals? src-fname fname)
+      ;; Set `noninteractive' to suppress messages from `write-region'.
+      (let ((noninteractive t))
+        (with-current-buffer buf
+          (write-region nil nil fname nil 0))))
+    fname))
+
+(lcr-def dante--preprocess-project-if-needed (cfg package-build-dir)
+  (let* ((src-dirs (let* ((component
+                           (dante-config/cabal-component cfg))
                           (cabal-file-dir
-                           (file-name-directory
-                            (cabal-component/cabal-file component))))
+                           (strip-trailing-slash
+                            (file-name-directory
+                             (cabal-component/cabal-file component)))))
                      (--map (concat cabal-file-dir "/" it)
                             (cabal-component/source-dirs component))))
-         (needs-preprocessing? (null (file-directory-p build-dir)))
+
+         (component-build-dir (dante-get-component-build-dir cfg package-build-dir))
+
+         (needs-preprocessing? (null (file-directory-p component-build-dir)))
          (already-preprocessed-files (unless needs-preprocessing?
-                                       (find-rec* :root build-dir
+                                       (find-rec* :root component-build-dir
                                                   :globs-to-find '("*.hs")
                                                   :relative-paths t)))
          (already-preprocessed-trie
@@ -970,29 +990,20 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
               (dolist (src sources)
                 (when-let ((preprocessed (trie-matches-string-suffix? already-preprocessed-trie
                                                                       (file-name-sans-extension src))))
-                  (when (dante--is-file-newer-than? src (concat build-dir "/" preprocessed))
+                  (when (dante--is-file-newer-than? src (concat component-build-dir "/" preprocessed))
                     (throw 'found t))))
               nil)))
 
     (when needs-preprocessing?
-      (lcr-call dante-check--get-file-to-load--preprocess-current-project))
+      (lcr-call dante--preprocess-current-project
+                cfg
+                package-build-dir))))
 
-    ;; Take care not to overwrite original buffer needlessly if we’re
-    ;; calling this function from a remote buffer or base buffer will be
-    ;; auto-reverted and, for example, will lose all its flycheck error overlays.
-    (unless (s-equals? src-fname fname)
-      ;; Set `noninteractive' to suppress messages from `write-region'.
-      (let ((noninteractive t))
-        (with-current-buffer buf
-          (write-region nil nil fname nil 0))))
-    fname))
-
-(lcr-def dante-check--get-file-to-load--preprocess-current-project ()
-  (let* ((cfg (dante-get-config))
-         (default-directory (dante-config/project-root cfg))
+(lcr-def dante--preprocess-current-project (cfg build-dir)
+  (let* ((default-directory (dante-config/project-root cfg))
          (cmdline (funcall (dante-method/make-preprocess-command-line (dante-config/method cfg))
                            cfg
-                           (dante-config/build-dir cfg))))
+                           build-dir)))
     (with-fresh-buffer-no-switch tmp-buf (get-buffer-create " *dante-cabal-preprocessing*")
       (let ((exit-code (lcr-call lcr-call-process-async
                                  (list
@@ -1012,10 +1023,16 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
 
 (lcr-def dante-check--get-file-to-load--hsc2hs (current-file buf)
   "Prepare to load into GHCi a file that requires preprocessing."
-  (let ((preprocessed-file (dante-temp-file-name--hsc2hs buf)))
-    (when (or (not (file-exists-p preprocessed-file))
-              (dante--is-file-newer-than? current-file preprocessed-file))
-      (lcr-call dante-check--get-file-to-load--preprocess-current-project))
+  (let ((preprocessed-file (dante-get-filename-to-load--hsc2hs buf))
+        (cfg (dante-get-config)))
+    (lcr-call dante--preprocess-project-if-needed cfg (dante-config/build-dir cfg))
+    ;; Only check current buffer’s file if it’s stale, faster but
+    ;; may miss some situations where we should run preprocessing.
+    ;; (when (or (not (file-exists-p preprocessed-file))
+    ;;           (dante--is-file-newer-than? current-file preprocessed-file))
+    ;;   (lcr-call dante--preprocess-current-project
+    ;;             cfg
+    ;;             (dante-config/build-dir cfg)))
     preprocessed-file))
 
 (defun dante--is-file-newer-than? (file-to-test file-to-test-against)
@@ -1047,51 +1064,48 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
           fname))
     (make-temp-file "dante" nil ".hs")))
 
-(defvar dante-temp-file-name--impl #'dante-temp-file-name--default-impl)
+(defvar dante-get-filename-to-load--impl #'dante-get-filename-to-load--default-impl)
 
-(defvar-local dante-temp-file-name nil
-  "The name of a temporary file to which the current buffer's content is copied.")
+(defvar-local dante-get-filename-to-load nil
+  "The name of a file whish should actually be loaded instead of buffer’s filename.")
 
-(defun dante-temp-file-name (buf)
-  (funcall dante-temp-file-name--impl buf))
+(defun dante-get-filename-to-load (buf)
+  (funcall dante-get-filename-to-load--impl buf))
 
-(defun dante-temp-file-name--default-impl (buf)
+(defun dante-get-filename-to-load--default-impl (buf)
   "Return a (possibly remote) filename suitable to store BUFFER's contents."
   (with-current-buffer buf
-    (or dante-temp-file-name
-        (setq dante-temp-file-name
+    (or dante-get-filename-to-load
+        (setq dante-get-filename-to-load
               (dante-tramp-make-tramp-temp-file buf)))))
 
-(defun dante-get-component-build-dir (buf package-build-dir)
-  (let ((component (dante-config/cabal-component (dante-get-config buf))))
+(defun dante-get-component-build-dir (cfg package-build-dir)
+  (let ((component (dante-config/cabal-component cfg)))
     (cl-assert (cabal-component-p component))
     (let ((build-dir (cabal-component/build-dir component)))
       (concat (aif package-build-dir
                   it
                 (concat
-                 (aif (eproj-get-project-for-buf-lax buf)
-                     (concat (strip-trailing-slash (eproj-project/root it)) "/")
+                 (aif (dante-config/eproj-root cfg)
+                     (concat (strip-trailing-slash it) "/")
                    "")
                  "dist-newstyle"))
               "/"
               build-dir))))
 
-(defun dante-check-get-component-build-dir (buf)
-  (dante-get-component-build-dir buf
-                                 (dante-config/build-dir (dante-get-config buf))))
-
-(defun dante-temp-file-name--hsc2hs (buf)
+(defun dante-get-filename-to-load--hsc2hs (buf)
   "Return filename where cabal would put result of preprocessing BUFFER’s file."
   (with-current-buffer buf
-    (or dante-temp-file-name
-        (setq-local dante-temp-file-name
-                    (concat
-                     (dante-check-get-component-build-dir buf)
-                     "/"
-                     (replace-regexp-in-string "[.]"
-                                               "/"
-                                               (treesit-haskell-get-buffer-module-name))
-                     ".hs")))))
+    (or dante-get-filename-to-load
+        (let ((cfg (dante-get-config buf)))
+          (setq-local dante-get-filename-to-load
+                      (concat
+                       (dante-get-component-build-dir cfg (dante-config/build-dir cfg))
+                       "/"
+                       (replace-regexp-in-string "[.]"
+                                                 "/"
+                                                 (treesit-haskell-get-buffer-module-name))
+                       ".hs"))))))
 
 (defun dante-canonicalize-path (path)
   "Return a standardized version of PATH.
@@ -1126,7 +1140,7 @@ This applies to paths of the form x:\\foo\\bar"
     (let ((beg (car reg))
           (end (cdr reg)))
       (format "%S %d %d %d %d %s"
-              (dante-local-name (dante-temp-file-name (current-buffer)))
+              (dante-local-name (dante-get-filename-to-load (current-buffer)))
               (line-number-at-pos beg)
               (dante--ghc-column-number-at-pos beg)
               (line-number-at-pos end)
@@ -1586,7 +1600,7 @@ The command block is indicated by the >>> symbol."
   "Run a check and pass the status onto REPORT-FN."
   (let* ((src-buffer (current-buffer))
          (ghci-buf (dante-buffer-p))
-         (temp-file (dante-local-name (dante-temp-file-name src-buffer)))
+         (temp-file (dante-local-name (dante-get-filename-to-load src-buffer)))
          (nothing-done t)
          ;; flymake raises errors when any report is made using an
          ;; "old" call to the backend. However, we must deal with all
