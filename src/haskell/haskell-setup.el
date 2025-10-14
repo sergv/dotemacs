@@ -57,13 +57,11 @@
 ;;;###autoload (autoload 'vim:dante-repl-switch-to-repl-buffer "haskell-setup" nil t)
 ;;;###autoload (autoload 'vim:dante-repl-switch-to-repl-buffer:interactive "haskell-setup" nil t)
 (vim-defcmd vim:dante-repl-switch-to-repl-buffer (nonrepeatable)
-  (haskell-misc--configure-dante-if-needed!)
   (dante-repl-switch-to-repl-buffer))
 
 ;;;###autoload (autoload 'vim:haskell-dante-load-file-into-repl "haskell-setup" nil t)
 ;;;###autoload (autoload 'vim:haskell-dante-load-file-into-repl:interactive "haskell-setup" nil t)
 (vim-defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
-  (haskell-misc--configure-dante-if-needed!)
   (dante-repl-load-file))
 
 (vim-defcmd vim:haskell-dante-repl-restart (nonrepeatable)
@@ -217,7 +215,8 @@ regexps to not be confused by the instance location."
                        (line (string->number (match-string 2 info)))
                        (column (string->number (match-string 3 info))))
                    (unless (file-name-absolute-p file)
-                     (setq file (expand-file-name file (dante-project-root))))
+                     (setq file (expand-file-name file
+                                                  (dante-config/project-root (dante-get-config)))))
                    (eproj-symbnav--jump-to-location file line column (eproj-symbnav-current-home-entry) identifier)))
                 ;; Now try to check whether :loc-at produce module name we could use. The same module
                 ;; name is available in the output of :i command but :loc-at also includes
@@ -277,7 +276,7 @@ regexps to not be confused by the instance location."
                 file))
            (line (string-to-number (match-string-no-properties 2 string)))
            (col (string-to-number (match-string-no-properties 3 string))))
-      (make-eproj-tag (expand-file-name resolved-file (dante-project-root))
+      (make-eproj-tag (expand-file-name resolved-file (dante-config/project-root (dante-get-config)))
                       line
                       nil
                       t
@@ -682,9 +681,9 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 ;;;###autoload
 (defun haskell-hsc-setup ()
   (haskell-ts-setup)
-  (setq-local dante-temp-file-name-impl #'dante-temp-file-name--hsc2hs-impl
-              dante-setup-file-to-load-impl #'dante-setup-file-to-load--preprocessed-file
-              dante-repl-get-file-to-load--impl #'dante-repl-get-file-to-load--hsc2hs-impl))
+  (setq-local dante-temp-file-name--impl #'dante-temp-file-name--hsc2hs
+              dante-check--get-file-to-load--impl #'dante-check--get-file-to-load--hsc2hs
+              dante-repl--get-file-to-load--impl #'dante-repl-get-file-to-load--hsc2hs))
 
 ;;;###autoload
 (defun dante-repl-mode-setup ()

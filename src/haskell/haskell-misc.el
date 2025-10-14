@@ -1306,9 +1306,6 @@ value section should have if it is to be properly indented."
   (with-ignored-invisibility
    ad-do-it))
 
-(defvar-local haskell-misc--dante-configured? nil
-  "Whether ‘haskell-misc--configure-dante!’ was called once.")
-
 ;;;###autoload
 (defun haskell-misc-cabal-script-buf? (buf)
   "Non-nil if BUF is a cabal-style script which has no extra configuration."
@@ -1326,75 +1323,73 @@ value section should have if it is to be properly indented."
                     (re-search-forward "^{-[ \t]*cabal:" nil t))))))
        t))
 
-;;;###autoload
-(defun haskell-misc--configure-dante-if-needed! ()
-  "Call ‘haskell-misc--configure-dante!’ if it has not been called before."
-  (unless (haskell-misc-cabal-script-buf? (current-buffer))
-    (unless haskell-misc--dante-configured?
-      (setf haskell-misc--dante-configured?
-            (haskell-misc--configure-dante!)))))
+(defstruct (dante-configuration-result
+            (:conc-name dante-configuration-result/))
+  ;; String
+  (target nil :read-only t)
+  ;; nil or value of type ‘cabal-component’
+  (component nil :read-only t))
 
-(defun haskell-misc--configure-dante! ()
+(defun haskell-misc-configure-dante ()
   "Set up vital variables for operation of ‘dante-mode’.
 
 Returns ‘t’ on success, otherwise returns ‘nil’."
-  (let* ((buf (resolve-to-base-buffer (current-buffer)))
-         (proj (eproj-get-project-for-buf-lax buf))
-         (vars (and proj
-                    (eproj-query/local-variables proj major-mode nil)))
-         (val-dante-target (cadr-safe (assq 'dante-target vars)))
-         (all-warnings nil)
-         (fname (buffer-file-name buf)))
-    (if val-dante-target
-        (progn
-          (setq-local dante-target it)
-          t)
-      (if fname
-          (if (file-directory-p default-directory)
-              (if-let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory fname))))
-                  (let ((component nil)
-                        (pkg-name nil)
-                        (tmp cabal-files))
-                    (while (and (not component)
-                                tmp)
-                      (let ((cabal-file (car tmp)))
-                        (when-let ((config (flycheck-haskell-get-configuration cabal-file proj)))
-                          (let-alist-static config (package-name components)
-                            (let* ((cabal-components (--map (parse-cabal-component cabal-file it) components))
-                                   (result
-                                    (haskell-misc--configure-dante--find-cabal-component-for-file
-                                     cabal-components
-                                     fname))
-                                   (candidate-component (car result))
-                                   (warnings (cadr result)))
-                              (when candidate-component
-                                (setf component candidate-component
-                                      pkg-name (car package-name))
-                                (cl-assert (stringp pkg-name) nil
-                                           "Expected package name to be a string but got %s" pkg-name))
-                              (setf all-warnings (nconc warnings all-warnings))))))
+  (unless (haskell-misc-cabal-script-buf? (current-buffer))
+    (let* ((buf (resolve-to-base-buffer (current-buffer)))
+           (proj (eproj-get-project-for-buf-lax buf))
+           (vars (and proj
+                      (eproj-query/local-variables proj major-mode nil)))
+           (val-dante-target (cadr-safe (assq 'dante-target vars)))
+           (all-warnings nil)
+           (fname (buffer-file-name buf))
+           (result nil))
+      (if val-dante-target
+          (make-dante-configuration-result
+           :target it)
+        (if fname
+            (if (file-directory-p default-directory)
+                (if-let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory fname))))
+                    (let ((component nil)
+                          (pkg-name nil)
+                          (tmp cabal-files))
+                      (while (and (not component)
+                                  tmp)
+                        (let ((cabal-file (car tmp)))
+                          (when-let ((config (flycheck-haskell-get-configuration cabal-file proj)))
+                            (let-alist-static config (package-name components)
+                              (let* ((cabal-components (--map (parse-cabal-component cabal-file it) components))
+                                     (result
+                                      (haskell-misc--configure-dante--find-cabal-component-for-file
+                                       cabal-components
+                                       fname))
+                                     (candidate-component (car result))
+                                     (warnings (cadr result)))
+                                (when candidate-component
+                                  (setf component candidate-component
+                                        pkg-name (car package-name))
+                                  (cl-assert (stringp pkg-name) nil
+                                             "Expected package name to be a string but got %s" pkg-name))
+                                (setf all-warnings (nconc warnings all-warnings))))))
 
-                      (setf tmp (cdr tmp)))
-                    (if component
-                        (progn
-                          (unless val-dante-target
-                            (setq-local dante-target (concat pkg-name ":"
-                                                             (cabal-component-get-cabal-target component))
-                                        dante-component component))
-                          t)
-                      (error "Couldn’t determine cabal component for %s from cabal file%s%s"
-                             (file-name-nondirectory fname)
-                             (if (null (cdr cabal-files))
-                                 (concat " " (car cabal-files))
-                               (concat "s "
-                                       (mapconcat #'file-name-nondirectory cabal-files ", ")))
-                             (if all-warnings
-                                 (format "\nFound problems:\n%s"
-                                         (mapconcat (lambda (x) (concat "- " x)) all-warnings "\n"))
+                        (setf tmp (cdr tmp)))
+                      (if component
+                          (make-dante-configuration-result
+                           :target (concat pkg-name ":"
+                                           (cabal-component-get-cabal-target component))
+                           :component component)
+                        (error "Couldn’t determine cabal component for %s from cabal file%s%s"
+                               (file-name-nondirectory fname)
+                               (if (null (cdr cabal-files))
+                                   (concat " " (car cabal-files))
+                                 (concat "s "
+                                         (mapconcat #'file-name-nondirectory cabal-files ", ")))
+                               (if all-warnings
+                                   (format "\nFound problems:\n%s"
+                                           (mapconcat (lambda (x) (concat "- " x)) all-warnings "\n"))
                                  ""))))
-                (error "No cabal files"))
-            (error "Buffer’s directory doesn’t exist: %s" default-directory))
-        (error "Buffer has no file: %s" buf)))))
+                  (error "No cabal files"))
+              (error "Buffer’s directory doesn’t exist: %s" default-directory))
+          (error "Buffer has no file: %s" buf))))))
 
 (defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
   "Get components dumped by get-cabal-configuration.hs for current package and attempt
@@ -1557,14 +1552,6 @@ Returns (<component name or nil> . <list of warnings>)"
                   (find-file-other-window related-file)
                 (find-file related-file))
             (error "Related file doesn’t exist: %s" related-file)))))))
-
-(defun dante-project-root ()
-  "Get the root directory for the project.
-If the variable `dante-project-root' is non-nil, return that,
-otherwise search for project root using
-`dante-initialize-method'."
-  (or dante-project-root
-      (progn (dante-initialize-method) dante-project-root)))
 
 (defun haskell-misc-find-tag-default ()
   (when-let ((bnds (bounds-of-haskell-symbol)))

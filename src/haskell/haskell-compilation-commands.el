@@ -50,24 +50,19 @@
 (sessions-mark-global-var-for-save 'haskell-compile--build-presets-history)
 
 (defun haskell-compilation-commands-install! (proj)
-  (let* ((presets (eproj-query/fold-build-dir
-                   proj
-                   ;; if not defined
-                   (lambda ()
-                     (cons haskell-compilation--default-cabal-build-command-presets
-                           dante--default-methods))
-                   ;; if defined
-                   (lambda (dir)
-                     (cons (haskell-compilation--make-cabal-build-command-presets dir)
-                           (dante--make-methods dir)))))
-         (comp-commands (car presets))
-         (dante-check-and-repl-methods (cdr presets)))
+  (let* ((comp-commands
+          (eproj-query/fold-build-dir
+           proj
+           ;; if not defined
+           (lambda ()
+             haskell-compilation--default-cabal-build-command-presets)
+           ;; if defined
+           (lambda (dir)
+             (haskell-compilation--make-cabal-build-command-presets dir)))))
     (configurable-compilation-install-command-presets!
      comp-commands
      'haskell-compile--build-presets-history
-     'haskell-compilation-mode)
-    (setq-local dante-methods-alist dante-check-and-repl-methods
-                dante-methods (dante--methods-names dante-check-and-repl-methods)))
+     'haskell-compilation-mode))
 
   (dolist (cmd '("c" "compile"))
     (vim-local-emap cmd 'vim:haskell-compile))

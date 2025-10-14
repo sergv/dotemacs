@@ -1032,7 +1032,7 @@ variable or symbol 'unresolved.")
               fs (cdr fs)))
       (when (and strict
                  (not result))
-        (error "Filed to infer project info for root %s" root))
+        (error "Failed to infer project info for root %s" root))
       result)))
 
 (defvar-local eproj/buffer-directory nil
