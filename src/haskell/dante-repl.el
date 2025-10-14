@@ -14,6 +14,7 @@
 (require 'current-column-fixed)
 (require 'dante)
 (require 'haskell-syntax-table)
+(require 'lcr)
 
 (defvar-local dante-repl--last-command-line nil
   "Last command line used to start the REPL session.")
@@ -210,9 +211,10 @@ otherwise the command for starting repl will be inferred."
          (repl-buf (get-buffer repl-buf-name)))
     (aif (buffer-file-name)
         ;; Buffer backed by a file.
-        (dante-repl-load-file--send-load-command repl-buf-name
-                                                 repl-buf
-                                                 (dante-repl-get-file-to-load (current-buffer)))
+        (lcr-spawn-and-wait
+          (dante-repl-load-file--send-load-command repl-buf-name
+                                                   repl-buf
+                                                   (lcr-call dante-repl-get-file-to-load (current-buffer))))
       ;; Temporary buffer without file counterpart.
       (with-temporary-file tmp-file
           (shell-quote-argument (file-name-nondirectory (buffer-name)))
@@ -225,29 +227,31 @@ otherwise the command for starting repl will be inferred."
 
 (defvar dante-repl--get-file-to-load--impl #'dante-repl-get-file-to-load--default-impl)
 
-(defun dante-repl-get-file-to-load (buf)
-  (funcall dante-repl--get-file-to-load--impl buf))
+(lcr-def dante-repl-get-file-to-load (buf)
+  (lcr-funcall dante-repl--get-file-to-load--impl buf))
 
-(defun dante-repl-get-file-to-load--default-impl (buf)
+(lcr-def dante-repl-get-file-to-load--default-impl (buf)
   (buffer-file-name buf))
 
-(defvar-local dante-repl--file-name-to-load-instead nil)
+(defvar-local dante-repl--file-name-to-load-instead nil
+  "Cache result of ‘dante-repl-get-file-to-load’.
 
-(defun dante-repl-get-component-build-dir (buf)
-  (dante-get-component-build-dir buf
-                                 (dante-config/repl-dir (dante-get-config buf))))
+Specifies filename that should be loaded instead of current buffer’s file.")
 
-(defun dante-repl-get-file-to-load--hsc2hs (buf)
+(lcr-def dante-repl-get-file-to-load--hsc2hs (buf)
   (with-current-buffer buf
-    (or dante-repl--file-name-to-load-instead
-        (setq-local dante-repl--file-name-to-load-instead
-                    (concat
-                     (dante-repl-get-component-build-dir buf)
-                     "/"
-                     (replace-regexp-in-string "[.]"
-                                               "/"
-                                               (treesit-haskell-get-buffer-module-name))
-                     ".hs")))))
+    (let* ((cfg (dante-get-config))
+           (package-build-dir (dante-config/repl-dir cfg)))
+      (lcr-call dante--preprocess-project-if-needed cfg package-build-dir)
+      (or dante-repl--file-name-to-load-instead
+          (setq-local dante-repl--file-name-to-load-instead
+                      (concat
+                       (dante-get-component-build-dir cfg package-build-dir)
+                       "/"
+                       (replace-regexp-in-string "[.]"
+                                                 "/"
+                                                 (treesit-haskell-get-buffer-module-name))
+                       ".hs"))))))
 
 (defun dante-repl-load-file--send-load-command (repl-buf-name repl-buf file-to-load)
   (let ((cmd (concat ":load \"*" file-to-load "\"")))
