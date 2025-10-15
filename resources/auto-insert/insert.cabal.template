@@ -44,7 +44,7 @@ source-repository head
 
 common ghc-options
   default-language:
-    GHC2021
+    GHC2024
 
   default-extensions:
     LambdaCase
