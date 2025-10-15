@@ -76,7 +76,8 @@
                       (member "MagicHash" extensions)
                       (haskell-ext-tracking-known-exts-import-qualified-post haskell-ext-tracking-known-exts--store)
                       (or (member "ImportQualifiedPost" extensions)
-                          (member "GHC2021" languages))))))
+                          (member "GHC2021" languages)
+                          (member "GHC2024" languages))))))
           (haskell-ext-tracking--update!)
           (dolist (hook '(after-save-hook after-revert-hook))
             (add-hook hook
