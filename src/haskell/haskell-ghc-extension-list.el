@@ -71,6 +71,7 @@
       "GADTSyntax"
       "GADTs"
       "GHC2021"
+      "GHC2024"
       "GHCForeignImportPrim"
       "GeneralisedNewtypeDeriving"
       "GeneralizedNewtypeDeriving"
