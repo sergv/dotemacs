@@ -19,7 +19,7 @@ build-depends:
   , text${1:
   , ${2:vector ^>= 0.12}
 default-language:
-  GHC2021
+  GHC2024
 ghc-options:
   -threaded -rtsopts \"-with-rtsopts=-A32m -s\"}
 -}$(3:
