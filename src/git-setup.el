@@ -301,6 +301,8 @@ _j_: default vim hydra
   ("j" hydra-vim-normal-read-only-j-ext/body))
 
 (defun magit-bind-common-vimless-mode-keymap (map)
+  (def-keys-for-map (magit-mode-map)
+    ("," magit-discard))
   (def-keys-for-map (magit-unstaged-section-map
                      magit-file-section-map
                      magit-hunk-section-map
