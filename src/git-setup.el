@@ -247,8 +247,8 @@ _x_: reset
 _z_: stash
 
 Work with changes:
-         _s_tage      _u_nstage
-d_i_scard  _S_tage all  _U_nstage all
+d_i_scard  _s_tage      _u_nstage
+         _S_tage all  _U_nstage all
 
 Diff chunks:
 _+_: more context
