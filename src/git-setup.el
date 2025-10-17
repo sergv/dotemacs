@@ -520,8 +520,8 @@ under git version control."
 ;;;###autoload
 (defun git-add ()
   (interactive)
-  (aif buffer-file-name
-      (magit-stage-file it)
+  (if buffer-file-name
+      (magit-file-stage)
     (error "Current buffer has no file"))
   ;; (shell-command (concat "git add " (shell-quote-argument buffer-file-name)))
   )
