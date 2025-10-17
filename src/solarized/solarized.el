@@ -307,6 +307,7 @@
 
       (bison-rule-name-face :foreground ,yellow)
       (rust-question-mark :weight bold :inherit font-lock-negation-char-face)
+      (elisp-shorthand-font-lock-face :inherit font-lock-keyword-face)
 
       (haskell-operator-face :foreground ,red)
       (haskell-constructor-face :inherit font-lock-type-face)
