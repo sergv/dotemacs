@@ -214,20 +214,30 @@ _S-<up>_:    fast enlarge vertically
   (interactive)
   (tab-bar-move-tab -1))
 
+(defhydra-ext hydra-tab-management-close (:exit t :foreign-keys warn :hint nil)
+  "
+_c_urrent
+_o_nly (close other)
+to the _l_eft
+to the _r_ight
+_u_ndo last close
+"
+  ("c" tab-close :exit nil)
+  ("o" tab-close-other)
+  ("l" tab-bar-close-tabs-to-the-left)
+  ("r" tab-bar-close-tabs-to-the-right)
+  ("u" tab-undo :exit nil))
+
 (defhydra-ext hydra-tab-management (:exit t :foreign-keys warn :hint nil)
   "
-_n_ew                 _s_elect by name
-_c_lose               _r_ename
-_o_nly (close other)
-_u_ndo last close
+_n_ew        _s_elect by name
+_c_lose      _r_ename
 cop_y_ tab
 
 _<left>_:  move tab to the left
 _<right>_: move tab to the right"
   ("n" tab-new)
-  ("c" tab-close)
-  ("o" tab-close-other)
-  ("u" tab-undo)
+  ("c" hydra-tab-management-close/body)
   ("y" tab-bar-duplicate-tab)
 
   ("r" tab-rename)
