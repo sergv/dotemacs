@@ -135,6 +135,73 @@
           menu-item ""
           ,(alist-get 'close-binding tab)))))))
 
+(defun tab-bar-close-tabs-to-the-right ()
+  "Close tabs to the right of the selected one."
+  (interactive)
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (current-index (tab-bar--current-tab-index tabs)))
+    (tab-bar--close-tabs-by-predicate tabs
+                                      current-index
+                                      (lambda (idx _)
+                                        (< current-index idx)))))
+
+(defun tab-bar-close-tabs-to-the-left ()
+  "Close tabs to the right of the selected one."
+  (interactive)
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (current-index (tab-bar--current-tab-index tabs)))
+    (tab-bar--close-tabs-by-predicate tabs
+                                      current-index
+                                      (lambda (idx _)
+                                        (< idx current-index)))))
+
+(defun tab-bar--close-tabs-by-predicate (tabs current-index predicate)
+  "Close all tabs on the selected frame for which PREDICATE returns t.
+
+PREDICATE should accept two arguments: tab index and tab structure and return
+t if that tab should be deleted."
+  (let* ((total-tabs (length tabs))
+         (frame (selected-frame))
+         (num-deleted 0)
+         (index 0)
+         (removed nil))
+
+    (dolist (tab tabs)
+      (when (and (funcall predicate index tab)
+                 (let ((last-tab-p (= 1 (- total-tabs num-deleted))))
+                   (not (run-hook-with-args-until-success
+                         'tab-bar-tab-prevent-close-functions
+                         tab
+                         last-tab-p))))
+        (push (cons index
+                    `((frame . ,frame)
+                      (index . ,index)
+                      (tab . ,tab)))
+              removed)
+        (run-hook-with-args 'tab-bar-tab-pre-close-functions tab nil)
+        ;; O(N^2) complexity, but probably OK since there’s never
+        ;; more than 100 tabs (N <= 100).
+        (setq tabs (delq tab tabs)
+              num-deleted (1+ num-deleted)))
+      (setq index (1+ index)))
+
+    (setf tab-bar-closed-tabs
+          (append (-map #'cdr
+                        ;; Removed tabs should be in order of
+                        ;; increasing indices so that undoing
+                        ;; their close will put them at correct index.
+                        (sort removed
+                              :key #'car
+                              :lessp #'<
+                              :in-place t))
+                  tab-bar-closed-tabs))
+    (tab-bar-tabs-set tabs)
+
+    ;; Recalculate tab-bar-lines and update frames
+    (tab-bar--update-tab-bar-lines)
+
+    (force-mode-line-update)))
+
 ;; The tab bar will appear automatically once new tab is created
 ;; thanks to setting ‘tab-bar-show’ to 1.
 ;; (tab-bar-mode 1)
