@@ -488,7 +488,7 @@ entries."
                   (with-current-buffer buf
                     (let ((drop-properties?
                            ;; These properties hold on to too much data.
-                           (memq major-mode '(markdown-mode)))
+                           (memq major-mode '(markdown-mode nxml-mode)))
                           (base (buffer-base-buffer)))
                       (make-session-entry
                        nil
