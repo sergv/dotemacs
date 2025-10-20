@@ -59,6 +59,7 @@ Intended to be used with comment-util-mode."
 (comment-util-auto-comment-advice vim:cmd-insert-line-below)
 (comment-util-auto-comment-advice vim:cmd-insert-line-above)
 (comment-util-auto-comment-advice haskell-newline-with-signature-expansion)
+(comment-util-auto-comment-advice newline)
 
 (vimmize-function comment-util-comment-lines :has-count t)
 (vimmize-function comment-util-uncomment-region :has-count nil)
