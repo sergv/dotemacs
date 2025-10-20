@@ -98,9 +98,7 @@
     ("C-<left>"  nil)
     ("C-<right>" nil)
     ("M-<left>"  paredit-backward-slurp-sexp)
-    ("M-<right>" paredit-backward-barf-sexp))
-
-  (comment-util-auto-comment-advice paredit-newline))
+    ("M-<right>" paredit-backward-barf-sexp)))
 
 (eval-after-load 'paredit '(paredit-init))
 
