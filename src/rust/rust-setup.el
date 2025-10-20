@@ -366,9 +366,13 @@ foo {
        (smart-operators--point-surrounded-by ?\{ ?\})
      (when is-surrounded?
        (delete-region start end))
-     (newline-and-indent)
+     (delete-horizontal-space t)
+     (insert-char ?\n)
+     (indent-according-to-mode)
      (when is-surrounded?
-       (newline-and-indent)
+       (delete-horizontal-space t)
+       (insert-char ?\n)
+       (indent-according-to-mode)
        (let ((line-indent (current-line-indentation-str)))
          (forward-line -1)
          (insert line-indent)

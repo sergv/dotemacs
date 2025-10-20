@@ -70,12 +70,12 @@
   (pcase vim--insert-newline
     (`above
      (vim:motion-beginning-of-line:wrapper)
-     (newline)
+     (insert-char ?\n)
      (forward-line -1)
      (indent-according-to-mode))
     (`below
      (vim:motion-end-of-line:wrapper)
-     (newline)
+     (insert-char ?\n)
      (indent-according-to-mode))))
 
 (defun vim-start-insert-mode (&optional count newline)
