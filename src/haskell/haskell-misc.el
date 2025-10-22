@@ -68,10 +68,9 @@ of my home config.")
                             (match "|" @pipe)))))
 
 (defun haskell-misc--indent-line--fingerprint ()
-  (treesit-utils--get-ast-node-soup
-   (treesit-node-parent
-    (treesit-utils-largest-node-starting-at
-     (line-beginning-position)))))
+  (when-let* ((node (treesit-utils-largest-node-starting-at (line-beginning-position)))
+              (parent (treesit-node-parent node)))
+    (treesit-utils--get-ast-node-soup parent)))
 
 (defun haskell-misc--indent-line-with-treesitter ()
   (treesit-update-ranges (line-beginning-position)
@@ -375,14 +374,7 @@ _#-}_: on pragma close"
 (defun haskell-ts-reindent-region (_start _end)
   (interactive "r*")
   (with-region-bounds start end
-    (haskell-ts-reindent-region--impl start end)))
-
-(defun haskell-ts-reindent-region--impl (start end)
-  (haskell-format--format-region-preserving-position haskell-indent-offset
-                                                     nil
-                                                     start
-                                                     end
-                                                     nil))
+    (haskell-format--format-region-with-treesitter-preserving-position start end)))
 
 ;;;###autoload
 (defun haskell-reindent-at-point (&optional width)
@@ -438,11 +430,13 @@ _#-}_: on pragma close"
                              (save-excursion
                                (forward-line 1)
                                (setf end-mark (point-marker)))))))))
-         (haskell-format--format-region-preserving-position haskell-indent-offset
-                                                            width
-                                                            start
-                                                            end
-                                                            format-with-brittany?)))
+         (if (derived-mode-p 'haskell-ts-base-mode)
+             (haskell-format--format-region-with-treesitter-preserving-position start end)
+           (haskell-format--format-region-preserving-position haskell-indent-offset
+                                                              width
+                                                              start
+                                                              end
+                                                              format-with-brittany?))))
       (t
        (error "Don't know how to reindent construct at point")))))
 
