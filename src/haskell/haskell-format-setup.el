@@ -16,6 +16,8 @@
 (defvar haskell-format-default-width 100)
 
 (defun haskell-format--format-region-preserving-position (indent-offset width start end format-with-brittany?)
+  "Format region between START and END positions. When done try to return point
+to the line where it was located before the formatting."
   (let* ((p (point))
          (line-before (buffer-substring-no-properties (line-beginning-position) (point)))
          (line-after (buffer-substring-no-properties (point) (line-end-position)))
@@ -24,8 +26,8 @@
                           (if use-line-after?
                               line-after
                             line-before))))
-    (with-marker (end-mark (copy-marker end))
-      (if format-with-brittany?
+    (if format-with-brittany?
+        (with-marker (end-mark (copy-marker end))
           (haskell-format--format-with-brittany indent-offset
                                                 (if (and width
                                                          (< 1 width))
@@ -33,28 +35,44 @@
                                                   haskell-format-default-width)
                                                 start
                                                 end)
-        (haskell-format--format-region-by-toplevel-chunks-with-treesitter! start end-mark))
-      (goto-char start)
-      (if (re-search-forward fingerprint-re end-mark t)
-          (goto-char (if use-line-after? (match-beginning 0) (match-end 0)))
-        (goto-char p)))))
+          (goto-char start)
+          (if (re-search-forward fingerprint-re end-mark t)
+              (goto-char (if use-line-after? (match-beginning 0) (match-end 0)))
+            (goto-char p)))
+      (haskell-format--format-region-by-toplevel-chunks-with-treesitter! start end))))
 
-(defun haskell-format--format-region-by-toplevel-chunks-with-treesitter! (start end-mark)
+(defun haskell-format--format-region-with-treesitter-preserving-position (start end)
+  (with-marker (p (point-marker))
+    (haskell-format--format-region-by-toplevel-chunks-with-treesitter! (min start end) (max start end))
+    (goto-char p)
+    ;; Skip indentation, sometimes treesitter formatter puts p at 0th
+    ;; column for some unknown reason.
+    (move-to-column (max (current-column) (indentation-size)))))
+
+(defun haskell-format--format-region-by-toplevel-chunks-with-treesitter! (start end)
+  "Format the region begin START and END positions line by line using treesitter rules."
   (cl-assert (numberp start))
-  (cl-assert (markerp end-mark))
+  (cl-assert (numberp end))
+  (cl-assert (<= start end))
   (goto-char start)
   (skip-whitespace-forward)
   (with-marker (m (copy-marker start))
-    (while (< (point) end-mark)
-      (let ((beg (point)))
-        (haskell-move-to-topmost-end)
-        (let* ((line-count (count-lines-fixed beg (point)))
-               (treesit--indent-region-batch-size (max treesit--indent-region-batch-size
-                                                       (+ (* 2 line-count) 10))))
-          (set-marker m (point))
-          (indent-region beg (point))
-          (goto-char m)
-          (skip-whitespace-forward))))))
+    (with-marker (end-mark (copy-marker end))
+      (with-undo-amalgamate
+        (with-inhibited-modification-hooks
+         (while (< (point) end-mark)
+           (let ((beg (point))
+                 (topmost-end-pos (save-excursion
+                                    (haskell-move-to-topmost-end)
+                                    (point))))
+             (goto-char (min topmost-end-pos end-mark))
+             (let* ((line-count (count-lines-fixed beg (point)))
+                    (treesit--indent-region-batch-size (max treesit--indent-region-batch-size
+                                                            (+ (* 2 line-count) 10))))
+               (set-marker m (point))
+               (treesit-indent-region beg (point))
+               (goto-char m)
+               (skip-whitespace-forward)))))))))
 
 (defun haskell-format--fingerprint-re (str)
   "Take current line and come up with a fingerprint
