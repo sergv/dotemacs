@@ -76,6 +76,7 @@
                         (re-search-forward "_|_" nil t))
                   (error "More than one occurrence of _|_ in source"))
                 (setf start (point))
+                (goto-char (point-min))
                 (if (re-search-forward "_||_" nil t)
                     (replace-match "")
                   (error "No _||_ marker for point position within contents:\n%s" ,contents))
@@ -87,7 +88,7 @@
                 ;; ‘indent-region’ produces incorrect results because
                 ;; of too small ‘treesit--indent-region-batch-size’.
                 ;; Increasing it to cover everything is not possible.
-                (haskell-format--format-region-by-toplevel-chunks-with-treesitter! start (copy-marker end))
+                (haskell-format--format-region-with-treesitter-preserving-position start end)
                 (insert "_|_")))
             :contents ,contents
             :expected-value ,expected-value
@@ -3804,7 +3805,7 @@
   ""))
 
 (haskell-indentation-tests--test-treesitter-region
- :name haskell-indentation-tests--test-treesitter-region-1
+ :name haskell-indentation-tests--test-treesitter-region-1a
  :contents
  (tests-utils--multiline
   "foo ="
@@ -3818,7 +3819,24 @@
   "  ["
   "    bar $ quux"
   "  , baz"
-  "  ]_|_"))
+  "  _|_]"))
+
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-1b
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  " _||_["
+  "  bar $ quux"
+  "  , baz"
+  " _|_]")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  _|_["
+  "    bar $ quux"
+  "  , baz"
+  "  ]"))
 
 (haskell-indentation-tests--test-treesitter-region
  :name haskell-indentation-tests--test-treesitter-region-2
@@ -5356,6 +5374,152 @@
   "          | startsWith11110# ch0 -> 4#"
   "          | otherwise            -> 1#"
   "_|_"))
+
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-3a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  _|_( bar1"
+  "    , bar2"
+  "    , bar3"
+  "    , bar4"
+  "    , bar5"
+  "  _||_)"
+  "  = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  ( bar1"
+  "  , bar2"
+  "  , bar3"
+  "  , bar4"
+  "  , bar5"
+  "  _|_)"
+  "  = 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-3b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  _||_( bar1"
+  "    , bar2"
+  "  , bar3"
+  "    , bar4"
+  "    , bar5"
+  "  _|_)"
+  "  = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  _|_( bar1"
+  "  , bar2"
+  "  , bar3"
+  "  , bar4"
+  "  , bar5"
+  "  )"
+  "  = 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-3c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  _|_( bar1"
+  "    , bar2"
+  " , bar3"
+  "    , bar4"
+  "    , bar5"
+  "  _||_)"
+  "  = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  ( bar1"
+  "  , bar2"
+  "  , bar3"
+  "  , bar4"
+  "  , bar5"
+  "  _|_)"
+  "  = 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-3d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  _||_( bar1"
+  "    , bar2"
+  "            , bar3"
+  "    , bar4"
+  "    , bar5"
+  "  _|_)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  _|_( bar1"
+  "  , bar2"
+  "  , bar3"
+  "  , bar4"
+  "  , bar5"
+  "  )"
+  ""))
+
+;; Test that indentation is confined to the selected region bounds.
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-4
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  _|_( bar1"
+  "    , bar2"
+  "    , bar3"
+  "    , bar4"
+  "    , bar5"
+  "  _||_)"
+  "  ( quux1"
+  "    , quux2"
+  "    , quux3"
+  "    , quux4"
+  "    , quux5"
+  "    )"
+  "  = bar1 + quux1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo arg"
+  "  ( bar1"
+  "  , bar2"
+  "  , bar3"
+  "  , bar4"
+  "  , bar5"
+  "  _|_)"
+  "  ( quux1"
+  "    , quux2"
+  "    , quux3"
+  "    , quux4"
+  "    , quux5"
+  "    )"
+  "  = bar1 + quux1"
+  ""))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-string-1a
