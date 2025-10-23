@@ -365,16 +365,12 @@ _#-}_: on pragma close"
   "Format selected region with brittany formatter."
   (interactive "p*")
   (with-region-bounds start end
-    (haskell-format--format-region-preserving-position haskell-indent-offset
-                                                       width
-                                                       start
-                                                       end
-                                                       t)))
+    (haskell-format-region-with-brittany-preserving-position haskell-indent-offset width start end)))
 
 (defun haskell-ts-reindent-region (_start _end)
   (interactive "r*")
   (with-region-bounds start end
-    (haskell-format--format-region-with-treesitter-preserving-position start end)))
+    (haskell-format-region-with-treesitter-preserving-position! start end)))
 
 ;;;###autoload
 (defun haskell-reindent-at-point (&optional width)
@@ -430,13 +426,9 @@ _#-}_: on pragma close"
                              (save-excursion
                                (forward-line 1)
                                (setf end-mark (point-marker)))))))))
-         (if (derived-mode-p 'haskell-ts-base-mode)
-             (haskell-format--format-region-with-treesitter-preserving-position start end)
-           (haskell-format--format-region-preserving-position haskell-indent-offset
-                                                              width
-                                                              start
-                                                              end
-                                                              format-with-brittany?))))
+         (if format-with-brittany?
+             (haskell-format-region-with-brittany-preserving-position haskell-indent-offset width start end)
+           (haskell-format-region-with-treesitter-preserving-position! start end))))
       (t
        (error "Don't know how to reindent construct at point")))))
 
