@@ -16,7 +16,7 @@
 (require 'haskell-abbrev+)
 (require 'haskell-block-indent)
 (require 'haskell-cabal-components)
-(require 'haskell-format-setup)
+(require 'haskell-format)
 (require 'haskell-misc)
 (require 'haskell-regexen)
 (require 'haskell-smart-operators-mode)
