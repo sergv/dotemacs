@@ -34,7 +34,7 @@
 (require 'haskell-compile)
 (require 'haskell-compilation-commands)
 (require 'haskell-ext-tracking)
-(require 'haskell-format-setup)
+(require 'haskell-format)
 (require 'haskell-mode)
 (require 'haskell-regexen)
 (require 'haskell-smart-operators-mode)
