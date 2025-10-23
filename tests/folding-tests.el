@@ -15,7 +15,7 @@
 (require 'happy-mode)
 (require 'haskell-abbrev+)
 (require 'haskell-block-indent)
-(require 'haskell-format-setup)
+(require 'haskell-format)
 (require 'haskell-misc)
 (require 'haskell-regexen)
 (require 'haskell-smart-operators-mode)
