@@ -1,4 +1,4 @@
-;; haskell-format-setup.el --- -*- lexical-binding: t; -*-
+; haskell-format.el --- -*- lexical-binding: t; -*--
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -166,9 +166,9 @@ where \\w matches any whitespace including newlines"
      "--ghc-options" opts)
     (goto-char start)))
 
-(provide 'haskell-format-setup)
+(provide 'haskell-format)
 
 ;; Local Variables:
 ;; End:
 
-;; haskell-format-setup.el ends here
+;; haskell-format.el ends here
