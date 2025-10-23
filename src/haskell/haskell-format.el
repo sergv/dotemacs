@@ -15,7 +15,7 @@
 
 (defvar haskell-format-default-width 100)
 
-(defun haskell-format--format-region-preserving-position (indent-offset width start end format-with-brittany?)
+(defun haskell-format-region-with-brittany-preserving-position (indent-offset width start end)
   "Format region between START and END positions. When done try to return point
 to the line where it was located before the formatting."
   (let* ((p (point))
@@ -26,22 +26,20 @@ to the line where it was located before the formatting."
                           (if use-line-after?
                               line-after
                             line-before))))
-    (if format-with-brittany?
-        (with-marker (end-mark (copy-marker end))
-          (haskell-format--format-with-brittany indent-offset
-                                                (if (and width
-                                                         (< 1 width))
-                                                    width
-                                                  haskell-format-default-width)
-                                                start
-                                                end)
-          (goto-char start)
-          (if (re-search-forward fingerprint-re end-mark t)
-              (goto-char (if use-line-after? (match-beginning 0) (match-end 0)))
-            (goto-char p)))
-      (haskell-format--format-region-by-toplevel-chunks-with-treesitter! start end))))
+    (with-marker (end-mark (copy-marker end))
+      (haskell-format--format-with-brittany indent-offset
+                                            (if (and width
+                                                     (< 1 width))
+                                                width
+                                              haskell-format-default-width)
+                                            start
+                                            end)
+      (goto-char start)
+      (if (re-search-forward fingerprint-re end-mark t)
+          (goto-char (if use-line-after? (match-beginning 0) (match-end 0)))
+        (goto-char p)))))
 
-(defun haskell-format--format-region-with-treesitter-preserving-position (start end)
+(defun haskell-format-region-with-treesitter-preserving-position! (start end)
   (with-marker (p (point-marker))
     (haskell-format--format-region-by-toplevel-chunks-with-treesitter! (min start end) (max start end))
     (goto-char p)
