@@ -187,10 +187,10 @@ targets and components about current buffer’s ghci session."
   ;; resides.
   (flake-root nil :read-only t)
 
-  ;; String or nil, e.g. "foo:lib:foo"
+  ;; String or nil, e.g. "foo:lib:foo". Nil is for e.g. cabal script buffers with #!
   (cabal-target nil :read-only t)
 
-  ;; Value of type ‘cabal-component’ struct or nil.
+  ;; Value of type ‘cabal-component’ struct or nil. Nil is for e.g. cabal script buffers with #!
   (cabal-component nil :read-only t)
 
   ;; Cabal build directory for checking session, e.g. /tmp/dist/dante-xxxxx
@@ -239,7 +239,7 @@ targets and components about current buffer’s ghci session."
   ;; relative path. Relative path would be relative to the project root.
   (get-repl-build-dir nil :read-only t)
 
-  ;; Function of two arguments:
+  ;; Nil or function of two arguments:
   ;; 1 Value of type ‘dante-config’
   ;; 2 Build directory to use for preprocessing
   ;;
@@ -296,7 +296,7 @@ targets and components about current buffer’s ghci session."
          (mk-dante-method
           (cl-function
            (lambda
-             (&key name is-enabled-pred find-root-pred repl-buf-name-func template)
+             (&key name is-enabled-pred find-root-pred repl-buf-name-func template disable-preprocess)
              (make-dante-method
               :name name
               :is-enabled-pred is-enabled-pred
@@ -309,7 +309,10 @@ targets and components about current buffer’s ghci session."
                                 :flags (list "--builddir"
                                              (dante-config/build-dir cfg))
                                 :target (dante-config/cabal-target cfg))))
-                  (cl-assert (-all? #'stringp result))
+                  (cl-assert (-all? #'stringp result)
+                             nil
+                             "Dante method command line must contain only strings, but it’s: %s"
+                             result)
                   result))
               :make-repl-command-line
               (lambda (cfg)
@@ -341,16 +344,20 @@ targets and components about current buffer’s ghci session."
               :get-repl-build-dir
               get-repl-build-dir
               :make-preprocess-command-line
-              (lambda (cfg build-dir)
-                (cl-assert (stringp build-dir))
-                (let ((result
-                       (funcall template
-                                :flake-root (dante-config/flake-root cfg)
-                                :flags (append (list "--builddir" build-dir)
-                                               (list "--repl-no-load" "--with-repl=echo"))
-                                :target (dante-config/cabal-target cfg))))
-                  (cl-assert (-all? #'stringp result))
-                  result)))))))
+              (unless disable-preprocess
+                (lambda (cfg build-dir)
+                  (cl-assert (stringp build-dir))
+                  (let ((result
+                         (funcall template
+                                  :flake-root (dante-config/flake-root cfg)
+                                  :flags (append (list "--builddir" build-dir)
+                                                 (list "--repl-no-load" "--with-repl=echo"))
+                                  :target (dante-config/cabal-target cfg))))
+                    (cl-assert (-all? #'stringp result)
+                               nil
+                               "Dante method command line must contain only strings, but it’s: %s"
+                               result)
+                    result))))))))
     (dante--mk-methods
      (list
       (funcall mk-dante-method
@@ -358,11 +365,12 @@ targets and components about current buffer’s ghci session."
                :is-enabled-pred #'dante-nix-cabal-script-buf?
                :find-root-pred #'dante-flake-nix
                :repl-buf-name-func #'dante-buffer-name--default
+               :disable-preprocess t
                :template
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore target))
-                  (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags) flake-root))))
+                  (nix-call-via-flakes `("cabal" "repl" ,buffer-file-name ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'nix-flakes-build
@@ -380,11 +388,12 @@ targets and components about current buffer’s ghci session."
                :is-enabled-pred #'dante-vanilla-cabal-script-buf?
                :find-root-pred nil
                :repl-buf-name-func #'dante-buffer-name--default
+               :disable-preprocess t
                :template
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore flake-root target))
-                  `("cabal" "repl" buffer-file-name ,@flags))))
+                  `("cabal" "repl" ,buffer-file-name ,@flags))))
 
       (funcall mk-dante-method
                :name 'build
@@ -477,13 +486,17 @@ Consider setting this variable as a directory variable."
                                        (and (stringp flake-root)
                                             (file-directory-p flake-root))))
                         (cl-assert (dante-method-p method))
+                        (cl-assert (or (null cabal-cfg)
+                                       (dante-configuration-result-p cabal-cfg)))
                         (setf result
                               (make-dante-config
                                :project-root root
                                :eproj-root proj-root
                                :flake-root flake-root
-                               :cabal-target (dante-configuration-result/target cabal-cfg)
-                               :cabal-component (dante-configuration-result/component cabal-cfg)
+                               :cabal-target (and cabal-cfg
+                                                  (dante-configuration-result/target cabal-cfg))
+                               :cabal-component (and cabal-cfg
+                                                     (dante-configuration-result/component cabal-cfg))
                                :build-dir (funcall (dante-method/get-check-build-dir method) root build-dir)
                                :repl-dir (funcall (dante-method/get-repl-build-dir method) root build-dir)
                                :method method)))))))))))
