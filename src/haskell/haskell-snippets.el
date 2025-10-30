@@ -21,9 +21,22 @@ build-depends:
   , file-io
   , filepath >= 1.5
   , optparse-applicative
-  , text$(1:
-  , $(2:vector >= 0.12)
-ghc-options:
+  , text
+${1:  , ${2:vector >= 0.12}
+}ghc-options:
+  -Weverything
+  -Wno-all-missed-specialisations
+  -Wno-implicit-prelude
+  -Wno-missed-specialisations
+  -Wno-missing-import-lists
+  -Wno-missing-local-signatures
+  -Wno-safe
+  -Wno-unsafe
+  -Wno-missing-deriving-strategies
+  -Wno-missing-safe-haskell-mode
+  -Wno-missing-kind-signatures
+  -Wno-missing-role-annotations
+  -Wno-missing-poly-kind-signatures${2:
   -threaded -rtsopts \"-with-rtsopts=-A32m -s\"}
 -}$(3:
 {- project:
