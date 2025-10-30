@@ -386,7 +386,7 @@ value is a list which is appended to the result of
   (let ((have-language-pragmas? nil))
     (save-match-data
       (goto-char (point-min))
-      (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
+      (if (re-search-forward "^{-#[ \t]*LANGUAGE\\_>" nil t)
           (progn
             (goto-char (match-beginning 0))
             (setf have-language-pragmas? t))
