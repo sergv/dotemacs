@@ -1784,6 +1784,197 @@
   "  ( Match(..)"
   "  ) where"))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1a
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_HasCallStack => Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1b
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_(HasCallStack) => Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1c
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_(HasCallStack, Monad m) => Int -> m Int"
+  "foo x = return x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Monad m => Int -> Int"
+  "foo x = return x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1d
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_(Monad m, HasCallStack) => Int -> m Int"
+  "foo x = return x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Monad m => Int -> Int"
+  "foo x = return x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1e
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_(Monad m, HasCallStack, Num a) => a -> m a"
+  "foo x = return (x + x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Monad m => a -> a"
+  "foo x = return (x + x)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-2
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraints: (HasCallStack, Num a)"
+  "    In the type signature for:"
+  "         foo :: forall (m :: * -> *) a."
+  "                (Monad m, HasCallStack, Num a) =>"
+  "                a -> m a")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_(Monad m, HasCallStack, Num a) => a -> m a"
+  "foo x = return x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Monad m => a -> a"
+  "foo x = return x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-3
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraints: (HasCallStack, Foo a Int)"
+  "    In the type signature for:"
+  "         foo :: forall (m :: * -> *) a."
+  "                (Monad m, HasCallStack, Foo a Int) =>"
+  "                a -> m a")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_(Monad m, HasCallStack, a `Foo` Int) => a -> m a"
+  "foo x = return x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Monad m => a -> a"
+  "foo x = return x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unticked-promoted-constructor-1
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-49957] [-Wunticked-promoted-constructors]"
+  "    Unticked promoted constructor: Bar."
+  "    Suggested fix: Use 'Bar instead of Bar.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo = Bar"
+  ""
+  "data Quux (ix :: Foo) where"
+  "  Quux :: Quux _|_Bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo = Bar"
+  ""
+  "data Quux (ix :: Foo) where"
+  "  Quux :: Quux '_|_Bar"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
