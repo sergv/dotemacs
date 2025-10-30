@@ -11,15 +11,18 @@
 (defconst haskell-snippets--cabal-run-header--body
   "#!/usr/bin/env -S cabal run
 {- cabal:
+default-language:
+  GHC2024
 build-depends:
   , base
   , containers
-  , filepath
   , directory
-  , text${1:
-  , ${2:vector ^>= 0.12}
-default-language:
-  GHC2024
+  , directory-ospath-streaming
+  , file-io
+  , filepath >= 1.5
+  , optparse-applicative
+  , text$(1:
+  , $(2:vector >= 0.12)
 ghc-options:
   -threaded -rtsopts \"-with-rtsopts=-A32m -s\"}
 -}$(3:
