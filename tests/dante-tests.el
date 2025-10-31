@@ -64,7 +64,7 @@
        (add-hook 'flycheck-after-syntax-check-hook check-func nil t)
 
        (while (not checking-done)
-         (sleep-for 0.05))
+         (sit-for 0.05))
 
        (remove-hook 'flycheck-after-syntax-check-hook check-func t))))
 
