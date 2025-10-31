@@ -227,8 +227,9 @@ to the offending pattern and highlight the pattern."
              (goto-char (point-min))
              (insert (format "%s: %d\n" message start))
              (forward-char start)))
-         (pop-to-buffer buf)
-         (view-mode))))))
+         (save-selected-window
+           (pop-to-buffer buf)
+           (view-mode)))))))
 
 (defun treesit--named-children (node)
   "Get all children of NODE along with their names, return list of (NAME . CHILD) pairs."
