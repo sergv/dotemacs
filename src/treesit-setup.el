@@ -198,6 +198,38 @@ the function."
                          exp))))
         (t exp)))
 
+(el-patch-defun treesit-query-validate (language query)
+  "Check if QUERY is valid for LANGUAGE.
+If QUERY is invalid, display the query in a popup buffer, jump
+to the offending pattern and highlight the pattern."
+  (cl-assert (or (consp query) (stringp query)))
+  (let ((buf (get-buffer-create "*tree-sitter check query*")))
+    (with-temp-buffer
+      (treesit-parser-create language)
+      (condition-case err
+          (progn (treesit-query-capture language query)
+                 (message "QUERY is valid"))
+        (treesit-query-error
+         (with-current-buffer buf
+           (el-patch-add (text-mode))
+           (let* ((data (cdr err))
+                  (message (nth 0 data))
+                  (start (nth 1 data))
+                  (inhibit-read-only t))
+             (erase-buffer)
+             (insert (if (stringp query)
+                         query
+                       (treesit-query-expand query)))
+             (goto-char start)
+             (search-forward " " nil t)
+             (put-text-property start (point) 'face 'error)
+             (message "%s" (buffer-substring start (point)))
+             (goto-char (point-min))
+             (insert (format "%s: %d\n" message start))
+             (forward-char start)))
+         (pop-to-buffer buf)
+         (view-mode))))))
+
 (defun treesit--named-children (node)
   "Get all children of NODE along with their names, return list of (NAME . CHILD) pairs."
   (cl-loop
