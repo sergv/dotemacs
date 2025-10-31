@@ -86,7 +86,6 @@
 (defun emacs-lisp-newline-and-indent ()
   (interactive)
   (newline-and-indent))
-(comment-util-auto-comment-advice emacs-lisp-newline-and-indent)
 
 (defhydra-derive hydra-emacs-lisp-vim-normal-j-ext hydra-lisp-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
