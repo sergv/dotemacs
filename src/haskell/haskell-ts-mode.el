@@ -660,10 +660,6 @@ indented block will be their bounds without any extra processing."
          (error "Node at point is neither string nor quasiquote: %s"
                 node))))))
 
-(defconst haskell-ts--imported-name-query
-  (treesit-query-compile 'haskell
-                         '(((import_name) @name))))
-
 (defun haskell-ts-remove-from-import-statement-at (pos names)
   (cl-assert (listp names))
   (cl-assert (-all? #'stringp names))
