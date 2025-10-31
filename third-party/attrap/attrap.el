@@ -472,6 +472,8 @@ Error is given as MSG and reported between POS and END."
            (module-name (+ (any "_." alphanumeric)))
            (identifier (n) (seq "‘" (group-n n (* (not "’"))) "’"))
            (ws (any ?\n ?\r ?\s ?\t))
+           (spaces0 (* ?\s))
+           (spaces1 (+ ?\s))
            (spaces (+ ?\s))
            (name-capture (n) (group-n n (+ (not (any ?\n ?\r ?\s ?\t)))))
            (ghc-warning (n name)
@@ -905,7 +907,6 @@ Error is given as MSG and reported between POS and END."
     ;;     File name does not match module name:
     ;;     Saw     : ‘Data.Regex.FFI.Rure’
     ;;     Expected: ‘Data.Regex.Rure.FFI’
-    ;;   |
     (when (string-match
            (rx (ghc-error "28623") (+ ws)
                "File name does not match module name:" (+ ws)
@@ -918,7 +919,19 @@ Error is given as MSG and reported between POS and END."
           (save-match-data
             (goto-char pos)
             (search-forward old)
-            (replace-match new)))))))))
+            (replace-match new)))))
+    ;; warning: [GHC-49957] [-Wunticked-promoted-constructors]
+    ;;     Unticked promoted constructor: Bar.
+    ;;     Suggested fix: Use 'Bar instead of Bar.
+    (when (string-match
+           (rx (ghc-warning "49957" "unticked-promoted-constructors") spaces1
+               "Unticked promoted constructor:" spaces1 (group-n 1 (+ (not ?\s))) ".")
+           normalized-msg)
+      (let ((old (match-string-no-properties 1 msg)))
+        (attrap-one-option 'add-tick
+          (save-match-data
+            (goto-char pos)
+            (insert-char ?')))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
