@@ -1784,6 +1784,32 @@
   "  ( Match(..)"
   "  ) where"))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unticked-promoted-constructor-1
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-49957] [-Wunticked-promoted-constructors]"
+  "    Unticked promoted constructor: Bar."
+  "    Suggested fix: Use 'Bar instead of Bar.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo = Bar"
+  ""
+  "data Quux (ix :: Foo) where"
+  "  Quux :: Quux _|_Bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo = Bar"
+  ""
+  "data Quux (ix :: Foo) where"
+  "  Quux :: Quux _|_'Bar"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
