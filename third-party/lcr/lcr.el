@@ -125,7 +125,11 @@ Do this by transforming it to CPS, and run `lcr-scheduler' when done."
      (lcr-spawn
        (setq result (progn ,@body))
        (setq done t))
-     (while (not done) (sleep-for 0.01))
+     (while (not done)
+       ;; It’s important to use ‘sit-for’ instead of ‘sleep-for’ because we want
+       ;; waiting for keyboard input during which Emacs will run process sentinel
+       ;; callbacks. Simpler ‘sleep-for’ steals priority and callbacks are not run.
+       (sit-for 0.01))
      result))
 
 ;; (defmacro lcr-async-bind (var expr &rest body)
@@ -510,7 +514,11 @@ This function is a lightweight coroutine, see `lcr'."
   (let ((result nil))
     (funcall cont (lambda (reply) (setq result (list reply))))
     ;; use a list so that even 'nil' will be detected as a result.
-    (while (not result) (sleep-for 0.01))
+    (while (not result)
+      ;; It’s important to use ‘sit-for’ instead of ‘sleep-for’ because we want
+      ;; waiting for keyboard input during which Emacs will run process sentinel
+      ;; callbacks. Simpler ‘sleep-for’ steals priority and callbacks are not run.
+      (sit-for 0.01))
     (car result)))
 
 
