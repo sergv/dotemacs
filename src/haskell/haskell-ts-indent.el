@@ -108,6 +108,21 @@
   (cl-assert (treesit-node-p x))
   (make-treesit-computed-indent :anchor-node x :flags nil))
 
+(defun haskell-ts-indent--select-parens-anchor (curr-type curr prev)
+  (cl-assert (stringp curr-type))
+  (cl-assert (treesit-node-p curr))
+  (cl-assert (or (null prev) (treesit-node-p prev)))
+  (when (or (string= "parens" curr-type)
+            (string= "tuple" curr-type))
+    (if prev
+        (let ((open-paren (haskell-ts-indent--get-opening-paren curr)))
+          ;; If there’s space after parens then what’s within is the anchor.
+          ;; If there’s no space then it’s compact and parens are the anchor.
+          (if (extended-whitespace-char? (char-after (treesit-node-end open-paren)))
+              prev
+            curr))
+      curr)))
+
 (defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent bol support-functions? support-field-update? return-list-child?)
   (save-excursion
     (let ((prev2 nil)
@@ -116,13 +131,18 @@
           (tmp nil))
       (catch 'term
         (while curr
+          (cl-assert (treesit-node-p curr))
+          (cl-assert (or (null prev1) (treesit-node-p prev1)))
+          (cl-assert (or (null prev2) (treesit-node-p prev2)))
           (let ((curr-type (treesit-node-type curr)))
             (when (and support-functions?
                        (string= "function" curr-type))
               (let ((result-child (treesit-node-child-by-field-name curr "result")))
-                (if (equal result-child prev1)
-                    (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev1))
-                  (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))))
+                (throw 'term
+                       (haskell-ts-indent--make-trivial-computed-indent
+                        (if (equal result-child prev1)
+                            prev1
+                          curr)))))
             (when (and support-field-update?
                        (string= "field_update" curr-type))
               (when-let ((field-name (treesit-node-child-by-field-name curr "field")))
@@ -174,17 +194,17 @@
                         ((haskell-ts--is-standalone-node? double-colon)))
               ;; ... then type after colon is our anchor
               (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev1)))
+
+            (awhen (haskell-ts-indent--select-parens-anchor curr-type curr prev1)
+              (throw 'term (haskell-ts-indent--make-trivial-computed-indent it)))
+
             (cond
-              ((string= "parens" curr-type)
-               (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))
               ((or (string= "list" curr-type)
                    (string= "list_comprehension" curr-type))
                (throw 'term
                       (haskell-ts-indent--make-trivial-computed-indent (if return-list-child?
                                                                            prev1
                                                                          curr))))
-              ((string= "tuple" curr-type)
-               (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev1)))
               ((and (string= "match" curr-type)
                     (treesit-node-child-by-field-name curr "guards"))
                (throw 'term
@@ -248,6 +268,17 @@
                nil
                "Not an open brace node: %s, node = %s, parent = %s"
                open-brace
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-opening-paren (node)
+  (cl-assert (member (treesit-node-type node) '("parens" "tuple")))
+  (let ((result (treesit-node-child node 0)))
+    (cl-assert (string= "(" (treesit-node-type result))
+               nil
+               "Not an opening paren: %s, node = %s, parent = %s"
+               result
                node
                (treesit-node-parent node))
     result))
@@ -316,11 +347,9 @@
       (catch 'term
         (while curr
           (let ((curr-type (treesit-node-type curr)))
+            (awhen (haskell-ts-indent--select-parens-anchor curr-type curr prev1)
+              (throw 'term it))
             (cond
-              ((string= "parens" curr-type)
-               (throw 'term curr))
-              ((string= "tuple" curr-type)
-               (throw 'term prev1))
               ((string= "list" curr-type)
                (throw 'term prev1))
               ((and (string= "match" curr-type)
@@ -429,14 +458,13 @@
         (curr parent))
     (catch 'term
       (while curr
-        (let ((typ (treesit-node-type curr)))
+        (let ((curr-type (treesit-node-type curr)))
+          (awhen (haskell-ts-indent--select-parens-anchor curr-type curr prev)
+            (throw 'term it))
           (cond
-            ((string= typ "signature")
+            ((string= curr-type "signature")
              (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
-               (throw 'term double-colon)))
-            ((or (string= typ "parens")
-                 (string= typ "tuple"))
-             (throw 'term curr)))
+               (throw 'term double-colon))))
           (setf prev curr
                 curr (treesit-node-parent curr)))))))
 
@@ -713,9 +741,29 @@
               haskell-ts-indent--type-function-anchor
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
-                   (if (string= "::" (treesit-matched-anchor-node-type matched-anchor))
-                       0
-                     haskell-indent-offset))))
+                   (let* ((typ (treesit-matched-anchor-node-type matched-anchor))
+                          (parent (treesit-node-parent matched-anchor))
+                          (parent-typ (awhen parent
+                                        (treesit-matched-anchor-node-type it))))
+                     (cond
+                       ((string= "::" typ)
+                        0)
+                       ((and (or (string= "parens" parent-typ)
+                                 (string= "tuple" parent-typ))
+                             ;; Check that there’s enough space to put ‘->’ back like this
+                             ;; (      Foo
+                             ;;     -> Bar
+                             ;; )
+                             (progn
+                               (message "(- (treesit-node-start matched-anchor) (treesit-node-end (haskell-ts-indent--get-opening-paren parent))) = %s"
+                                        (- (treesit-node-start matched-anchor)
+                                           (treesit-node-end (haskell-ts-indent--get-opening-paren parent))))
+                               (>= (- (treesit-node-start matched-anchor)
+                                      (treesit-node-end (haskell-ts-indent--get-opening-paren parent)))
+                                   2)))
+                        -3)
+                       (t
+                        haskell-indent-offset))))))
 
              ((n-p-gp "|]" "quasiquote" nil)
               parent
