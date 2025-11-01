@@ -2133,6 +2133,101 @@
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-7a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  x"
+  "        _|_+ quux"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  x"
+  "  _|_+ quux"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-7b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  (x"
+  "        _|_+ quux)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  (x"
+  "  _|_+ quux)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-7c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( x"
+  "        _|_+ quux)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( x"
+  "    _|_+ quux)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-8
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  [ bar"
+  "  , x"
+  "        _|_+ quux"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  [ bar"
+  "  , x"
+  "    _|_+ quux"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-9
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  [ bar"
+  "  , x"
+  "    + quux"
+  "       _|_+ (baz x y z)"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  [ bar"
+  "  , x"
+  "    + quux"
+  "    _|_+ (baz x y z)"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-vertical-op-1
  :contents
  (tests-utils--multiline
@@ -2603,7 +2698,7 @@
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-3a
+ :name haskell-indentation-tests--test-treesitter-type-3aa
  :contents
  (tests-utils--multiline
   "foo"
@@ -2628,6 +2723,116 @@
   "         _|_-> Bar"
   "              Quux"
   "       , Fizz"
+  "       )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3ab
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       (    [Int]"
+  "       _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       (    [Int]"
+  "         _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3ac
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ([Int]"
+  "       _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ([Int]"
+  "         _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined"))
+
+;; Not enough space to put ‘->’ before ‘[Int]’, so use the list type node as
+;; the anchor for indenting the arrow.
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3ad
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ( [Int]"
+  "       _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ( [Int]"
+  "           _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3ae
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       (  [Int]"
+  "       _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       (  [Int]"
+  "       _|_-> Bar"
+  "              Quux"
   "       )"
   "foo = undefined"))
 
@@ -5829,6 +6034,293 @@
   "")
  ;; AST is incorrect so lambda construct is never fully parsed and thus cannot be indented.
  :expected-result :failed)
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar $"
+  "         _|_quux"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar $"
+  "      _|_quux"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar $"
+  "         _|_quux"
+  "  , frobnicate"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar $"
+  "      _|_quux"
+  "  , frobnicate"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-2a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar"
+  "         _|_quux"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar"
+  "      _|_quux"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-2b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar"
+  "         _|_quux"
+  "  , frobnicate"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar"
+  "      _|_quux"
+  "  , frobnicate"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-3a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( [ bar"
+  "         _|_, quux"
+  "    ]"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( [ bar"
+  "    _|_, quux"
+  "    ]"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-3b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( [ bar"
+  "         _|_, quux"
+  "    ]"
+  "  , frobnicate"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( [ bar"
+  "    _|_, quux"
+  "    ]"
+  "  , frobnicate"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-4a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( ( bar"
+  "         _|_, quux"
+  "    )"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( ( bar"
+  "    _|_, quux"
+  "    )"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-4b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( ( bar"
+  "         _|_, quux"
+  "    )"
+  "  , frobnicate"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( ( bar"
+  "    _|_, quux"
+  "    )"
+  "  , frobnicate"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-4c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( ( bar"
+  "         _|_, quux"
+  "    , frobnicate"
+  "    )"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( ( bar"
+  "    _|_, quux"
+  "    , frobnicate"
+  "    )"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-4d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( ( bar"
+  "         _|_, quux"
+  "    , frobnicate"
+  "    )"
+  "  , frobnicate"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( ( bar"
+  "    _|_, quux"
+  "    , frobnicate"
+  "    )"
+  "  , frobnicate"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-5a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( Foo"
+  "    _|_{ bar = 1"
+  "    , quux = 2"
+  "    }"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( Foo"
+  "      _|_{ bar = 1"
+  "    , quux = 2"
+  "    }"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-5b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( Foo"
+  "      { bar = 1"
+  "            _|_, quux = 2"
+  "      }"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( Foo"
+  "      { bar = 1"
+  "      _|_, quux = 2"
+  "      }"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-5c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( Foo"
+  "    _|_{ bar = 1"
+  "    , quux = 2"
+  "    }"
+  "  , frobnicate"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( Foo"
+  "      _|_{ bar = 1"
+  "    , quux = 2"
+  "    }"
+  "  , frobnicate"
+  "  )"
+  ""))
 
 (provide 'haskell-indentation-tests)
 
