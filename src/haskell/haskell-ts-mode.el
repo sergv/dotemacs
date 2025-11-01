@@ -420,12 +420,21 @@ but when paired then it’s like a string."
   (if-let ((name-node (treesit-node-child-by-field-name node "name")))
       (treesit-node-text-no-properties-unsafe name-node)
     (if-let ((first-child (treesit-node-child node 0))
-             ((string= "infix" (treesit-node-type first-child)))
-             (op (treesit-node-child-by-field-name first-child "operator"))
-             ((string= "infix_id" (treesit-node-type op)))
-             (name (treesit-node-child op 1)))
+             (name (haskell-ts--infix-name-node first-child)))
         (treesit-node-text-no-properties-unsafe name)
       (error "Cannot obtain function nome from node: %s" node))))
+
+(defun haskell-ts--infix-name-node (node)
+  "Extract operator name from an infix NODE."
+  (cl-assert (treesit-node-p node))
+  (cl-assert (string= "infix" (treesit-node-type node)))
+  (if-let ((op (treesit-node-child-by-field-name node "operator"))
+           ((string= "infix_id" (treesit-node-type op)))
+           (name (treesit-node-child op 1)))
+      (progn
+        (cl-assert (treesit-node-p name))
+        name)
+    (error "Infix node without infix_id: %s" node)))
 
 (defun haskell-ts--search-non-comment-nodes
     (start search-forward? found-predicate stop-after-first-find?)
@@ -758,6 +767,89 @@ indented block will be their bounds without any extra processing."
               (dolist (interval merged)
                 (delete-region (interval-with-margins-resolve-start interval)
                                (interval-with-margins-resolve-end interval))))))))))
+
+(defconst haskell-ts--type-synonym-type-query
+  (treesit-query-compile 'haskell
+                         '((type_synonym) type: (_) @type)))
+
+(defun haskell-ts--extract-apply-constructor (node)
+  "Turn apply NODE into list (<constructor> <arg1> <arg2> ... <argN>)."
+  (cl-assert (treesit-node-p node))
+  (cl-assert (string= (treesit-node-type node) "apply"))
+  (let ((continue? t)
+        (result nil))
+    (while (and continue?
+                (string= (treesit-node-type node) "apply"))
+      (aif (treesit-node-child-by-field-name node "constructor")
+          (if (string= (treesit-node-type it) "apply")
+              (setf node it)
+            (setf result it
+                  continue? nil))
+        (error "Constructor application has no constructor field: %s" node)))
+    result))
+
+(defun haskell-ts-fold-toplevel-tuples (node f acc)
+  "Fold potentially nested tuples in NODE, e.g. (a, (b, c), d) with F like (f a (f b (f c (f d acc))))."
+  (cl-assert (treesit-node-p node))
+  (cl-assert (string= (treesit-node-type node) "tuple"))
+  (let ((result nil))
+    (cl-loop
+     for i from (1- (treesit-node-child-count node nil)) downto 0
+     do
+     (when (string= (treesit-node-field-name-for-child node i)
+                    "element")
+       (let ((node (treesit-node-child node i)))
+         (setf acc (if (string= "tuple" (treesit-node-type node))
+                       (haskell-ts-fold-toplevel-tuples node f acc)
+                     (funcall f node acc))))))
+    acc))
+
+(defun haskell-ts--extract-single-constraint-name (node typ)
+  "Take node representing single class constraint, e.g. \"HasCallStack\", \"Foo a b\", \"a `Foo` b\"
+and explode it into (<constructor> <arg1> <arg2> ... <argN>)."
+  (cl-assert (treesit-node-p node))
+  (cl-assert (string= (treesit-node-type node) typ))
+  (cl-assert (member typ '("name" "apply" "infix")) nil
+             "Unexpected node type: %s"
+             typ)
+  (treesit-node-text-no-properties-unsafe
+   (pcase typ
+     ("name"  node)
+     ("apply" (haskell-ts--extract-apply-constructor node))
+     ("infix" (haskell-ts--infix-name-node node)))))
+
+(defun haskell-ts--extract-tuple-contraints (node)
+  (haskell-ts-fold-toplevel-tuples node
+                                   (lambda (x acc)
+                                     (cons (haskell-ts--extract-single-constraint-name x (treesit-node-type x)) acc))
+                                   nil))
+
+(defun haskell-ts-parse-constraint-names (str)
+  "Extract leading constraint classes from STR containing Haskell tuple of constraints like
+
+HasCallStack
+(Foo, Bar)
+(Foo, a `Bar` b)
+(Foo a, Bar a Double (b, c))"
+  (with-temp-buffer
+    (insert "type Constraints = " str)
+    (let ((results
+           (treesit-query-capture (treesit-buffer-root-node 'haskell)
+                                  haskell-ts--type-synonym-type-query
+                                  (point-min)
+                                  (point-max)
+                                  t ;; do not need capture names
+                                  )))
+      (when (not (null (cdr results)))
+        (error "Parsing of Haskell constraints tuple produced more than one candidate: %s"
+               results))
+      (let* ((node (car results))
+             (typ (treesit-node-type node)))
+        (cond
+          ((string= "tuple" typ)
+           (cons 'multiple-constraints (haskell-ts--extract-tuple-contraints node)))
+          (t
+           (cons 'single-constraint (haskell-ts--extract-single-constraint-name node typ))))))))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-base-mode prog-mode "Haskell[ts]"

@@ -613,6 +613,38 @@ have different input states."
              "\n")
   "\n"))
 
+(ert-deftest haskell-tests/parse-constraint-tuple ()
+  (should (equal (haskell-ts-parse-constraint-names "HasCallStack")
+                 '(single-constraint . "HasCallStack")))
+
+  (should (equal (haskell-ts-parse-constraint-names "Foo a")
+                 '(single-constraint . "Foo")))
+
+  (should (equal (haskell-ts-parse-constraint-names "Foo a b")
+                 '(single-constraint . "Foo")))
+
+  (should (equal (haskell-ts-parse-constraint-names "a `Foo` b")
+                 '(single-constraint . "Foo")))
+
+  (should (equal (haskell-ts-parse-constraint-names "Bar a `Foo` b")
+                 '(single-constraint . "Foo")))
+
+  (should (equal (haskell-ts-parse-constraint-names "(Foo a, Bar)")
+                 '(multiple-constraints
+                   "Foo"
+                   "Bar")))
+
+  (should (equal (haskell-ts-parse-constraint-names "(Foo a, (Bar, Baz))")
+                 '(multiple-constraints
+                   "Foo"
+                   "Bar"
+                   "Baz")))
+
+  (should (equal (haskell-ts-parse-constraint-names "(Foo a, Bar a Double (b, c))")
+                 '(multiple-constraints
+                   "Foo"
+                   "Bar"))))
+
 (ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list! ()
   (dolist (entry '((0 ()        (0))
                    (0 (2 4 6 8) (0 2 4 6 8))
