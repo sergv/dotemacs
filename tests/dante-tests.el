@@ -49,24 +49,23 @@
              (kill-buffer ,buf-var)))))))
 
 (defmacro dante-tests/check-buffer-and-assert-when-done (&rest body)
-  `(progn
+  `(let* ((checking-done nil)
+          (check-func
+           (lambda ()
+             (setf checking-done t))))
+
+     (add-hook 'flycheck-after-syntax-check-hook check-func nil t)
+
      (haskell-flycheck-force-run)
      ;; (flycheck-buffer)
 
-     (let* ((checking-done nil)
-            (check-func
-             (lambda ()
-               (unwind-protect
-                   (progn
-                     ,@body)
-                 (setf checking-done t)))))
+     (while (not checking-done)
+       (sit-for 0.05))
 
-       (add-hook 'flycheck-after-syntax-check-hook check-func nil t)
+     (remove-hook 'flycheck-after-syntax-check-hook check-func t)
 
-       (while (not checking-done)
-         (sit-for 0.05))
-
-       (remove-hook 'flycheck-after-syntax-check-hook check-func t))))
+     (progn
+       ,@body)))
 
 (defun dante-repl/wait-for-prompt (proc)
   "Spin in a loop until prompt dante-repl prompt shows up befor epoint."
