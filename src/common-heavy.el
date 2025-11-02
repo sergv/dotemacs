@@ -1294,6 +1294,7 @@ groups in the result is *not specified*."
 (defun narrow-to-region-indirect-setup-indirect-buffer ()
   (with-all-matching-overlays
       ov
+      nil
       t
     (if (overlay-get ov 'is-fixed-after-clone?)
         ;; So that subsequent indirect buffers don’t inherit
