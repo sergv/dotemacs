@@ -808,7 +808,7 @@ if we’re showing them) match given regexp RE."
                               (lambda ()
                                 (error "No buffers marked")))
     (when removed
-      (mapc #'ebuf-unmark-buffers-at-point removed)
+      (mapc #'ebuf--unmark-single-buffer removed)
       (ebuf-refresh))))
 
 (defun ebuf-with-marked-buffers (f if-none-selected)
