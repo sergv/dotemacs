@@ -176,8 +176,8 @@
       (setf p (treesit-node-parent p)))
     result))
 
-(defun treesit-utils-largest-node-starting-at (p)
-  (let* ((node (treesit-node-at p))
+(defun treesit-utils-largest-node-starting-at (p &optional lang)
+  (let* ((node (treesit-node-at p lang))
          (start (treesit-node-start node))
          (tmp (treesit-node-parent node)))
     (while (eq (treesit-node-start tmp) start)
