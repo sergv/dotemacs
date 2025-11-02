@@ -31,10 +31,13 @@
 (defsubst hl-paren-move-overlay-to (overlay pos)
   (move-overlay overlay pos (1+ pos)))
 
-(defun hl-paren-make-overlay (pos)
-  (let* ((x (make-overlay pos (1+ pos))))
-    (hl-paren-set-overlay-highlighting x t)
-    x))
+(defun hl-paren-make-overlay (pos tag)
+  (cl-assert (symbolp tag))
+  (cl-assert (memq tag '(first second)))
+  (let* ((ov (make-overlay pos (1+ pos))))
+    (hl-paren-set-overlay-highlighting ov t)
+    (overlay-put ov 'hl-paren-overlay tag)
+    ov))
 
 (defsubst hl-paren-set-overlay-highlighting (ov is-enabled?)
   (overlay-put ov 'face (and is-enabled? 'hl-paren-selection-face)))
@@ -75,8 +78,8 @@ Turn off highlighting if character at point is not parentheses."
               ;; re-create overlays
               (setq-local hl-paren-state
                           (make-hl-paren-state
-                           :first (hl-paren-make-overlay (point))
-                           :second (hl-paren-make-overlay matching-pos)
+                           :first (hl-paren-make-overlay (point) 'first)
+                           :second (hl-paren-make-overlay matching-pos 'second)
                            :is-enabled? t))))
         (hl-paren-disable-overlays!))
     (hl-paren-disable-overlays!)))
@@ -138,6 +141,32 @@ Turn off highlighting if character at point is not parentheses."
   ;;   (setq-local hl-paren-timer
   ;;               (run-with-idle-timer 0.1 1 #'hl-paren--highlight-in-timer)))
   )
+
+;;;###autoload
+(defun hl-paren--fix-state-after-clone ()
+  "Fixup ‘hl-paren--match-overlays’ in indirect buffer by detaching from the original buffer."
+  (when hl-paren-mode
+    (let ((first nil)
+          (second nil)
+          (result nil))
+      (with-all-matching-overlays
+          ov
+          ov-tag
+          (overlay-get ov 'hl-paren-overlay)
+        (cl-assert (symbolp ov-tag))
+        (cl-assert (memq ov-tag '(first second)))
+        (pcase ov-tag
+          (`first  (setf first ov))
+          (`second (setf second ov)))
+        (overlay-put ov 'is-fixed-after-clone? t))
+      ;; Overlays are already copied, need to only propagate them to correct variables
+      (cl-assert (overlayp first))
+      (cl-assert (overlayp second))
+      (setf (hl-paren-state-first hl-paren-state) first
+            (hl-paren-state-second hl-paren-state) second))))
+
+;;;###autoload
+(add-hook 'clone-indirect-buffer-hook #'hl-paren--fix-state-after-clone)
 
 (provide 'hl-paren)
 
