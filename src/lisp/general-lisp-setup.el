@@ -592,7 +592,6 @@ _o_: show sexps in region"
                :use-render-formula t
                :use-fci use-fci)
   (paredit-mode +1)
-  (rainbow-delimiters-mode 1)
   (setup-folding t '(:header-symbol ";" :length-min 3))
   ;; hiding of comments is rather annoying feature when working with lisps
 
