@@ -53,6 +53,7 @@
 ;; defined using `attrap-one-option'.
 
 (eval-when-compile
+  (require 'cl)
   (require 'macro-util))
 
 ;;; Code:
@@ -459,6 +460,18 @@ The import ends at LINE and COL in the file."
   `(attrap-option (format "add to import list of ‘%s’" ,module)
      (attrap-add-to-import--impl ,missing nil (string-to-number ,line) (string-to-number ,col))))
 
+;; (cl-defstruct (attrap-redundant-constraints-state
+;;                (:conc-name attrap-redundant-constraints-state/))
+;;   ;; List of strings
+;;   constrains-to-remove ; (haskell-ts-node-to-interval-with-margins x t)
+;;   ;; Integer, all constraints in a context
+;;   total-constraints
+;;
+;;   lparen
+;;   rparen
+;;   arrow
+;;   )
+
 (defun attrap-ghc-fixer (msg pos _end)
   "An `attrap' fixer for any GHC error or warning.
 Error is given as MSG and reported between POS and END."
@@ -524,15 +537,22 @@ Error is given as MSG and reported between POS and END."
                (delete-char 1)
                (insert it))
              options)))
-   (when (string-match "Redundant constraints?: (?\\([^,)\n]*\\)" msg)
-    (let ((constraint (match-string 1 msg)))
+   (when (string-match (rx (ghc-warning "30606" "redundant-constraints") spaces1
+                           "Redundant constraint" (? "s") ":" spaces1
+                           (or (group-n 1 "(" (* anything) ")")
+                               (group-n 1 (* anything)))
+                           spaces1
+                           "In the type signature for:")
+                       normalized-msg)
+    (let ((constraint (match-string 1 normalized-msg)))
       (attrap-one-option "delete redundant constraint"
-        (search-forward constraint)     ; find type sig
-        (delete-region (match-beginning 0) (match-end 0))
-        (when (looking-at "[ \t]*,")
-          (delete-region (point) (search-forward ",")))
-        (when (looking-at "[ \t]*=>")
-          (delete-region (point) (search-forward "=>"))))))
+        (let ((names-to-remove (haskell-ts-parse-constraint-names constraint))
+              (sig (treesit-utils-find-topmost-parent (treesit-node-at (point))
+                                                      (lambda (x)
+                                                        (string= "signature" (treesit-node-type x))))))
+          (unless sig
+            (error "Point is not inside function signature"))
+          (haskell-ts-remove-constraints-from-signature-node names-to-remove sig)))))
    ;; error: [GHC-44432]
    ;;     The type signature for ‘withSystemTempFileContents’
    ;;       lacks an accompanying binding

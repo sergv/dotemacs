@@ -828,7 +828,7 @@
 
 (ert-deftest datastructures-tests/interval-with-margins-merge-overlapping! ()
   (cl-macrolet ((i (start end &optional x y)
-                  `(mk-interval-with-margins ,start ,end ,x ,y)))
+                  `(mk-interval-with-margins ,start ,end ,x ,y nil nil)))
     (should (equal (interval-with-margins-merge-overlapping! (copy-list (list (i 1 2) (i 3 4))))
                    (list (i 1 2) (i 3 4))))
     (should (equal (interval-with-margins-merge-overlapping! (copy-list (list (i 3 4) (i 1 2))))

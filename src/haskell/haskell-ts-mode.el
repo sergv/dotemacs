@@ -15,6 +15,7 @@
 (require 'interval-with-margins)
 (require 'haskell-lexeme)
 (require 'haskell-syntax-table)
+(require 'haskell-ts-getters)
 (require 'haskell-ts-indent)
 (require 's)
 (require 'treesit)
@@ -685,9 +686,7 @@ indented block will be their bounds without any extra processing."
         (error "Cannot find import list in the import node at point: %s, ‘%s’"
                import-node
                (treesit-node-text-no-properties-unsafe import-node)))
-
       (let ((imported-names (treesit-node-children import-list t))
-
             (constructors (make-hash-table :test #'equal))
             (other (make-hash-table :test #'equal)))
         (dolist (name imported-names)
@@ -721,7 +720,6 @@ indented block will be their bounds without any extra processing."
 
         (let ((remove-nodes nil))
           (dolist (name names)
-
             ;; Transform Executable(buildInfo) -> buildInfo for when
             ;; we imported a type’s accessor but GHC reports it together
             ;; with parent type name.
@@ -744,29 +742,64 @@ indented block will be their bounds without any extra processing."
                  (remhash name constructors)
                  (push tmp remove-nodes)))))
 
-          (let ((remove-intervals nil))
+          (let ((intervals nil))
             (dolist (node remove-nodes)
-              (let ((margin-before (when-let* ((prev (treesit-node-prev-sibling node))
-                                               ((string= "," (treesit-node-type prev)))
-                                               (prev2 (treesit-node-prev-sibling prev)))
-                                     (- (treesit-node-start node)
-                                        (treesit-node-end prev2))))
-                    (margin-after (when-let* ((next (treesit-node-next-sibling node))
-                                              ((string= "," (treesit-node-type next)))
-                                              (next2 (treesit-node-next-sibling next)))
-                                    (- (treesit-node-start next2) (treesit-node-end node)))))
-                (push (mk-interval-with-margins (treesit-node-start node)
-                                                (treesit-node-end node)
-                                                ;; If surrounded by commas then remove the node
-                                                ;; itself, margins will be nil.
-                                                margin-before
-                                                margin-after)
-                      remove-intervals)))
+              (push (haskell-ts-node-to-interval-with-margins node nil)
+                    intervals))
+            (dolist (interval (nreverse (interval-with-margins-merge-overlapping! intervals)))
+              (delete-region (interval-with-margins-resolved-start interval)
+                             (interval-with-margins-resolved-end interval)))))))))
 
-            (let ((merged (nreverse (interval-with-margins-merge-overlapping! remove-intervals))))
-              (dolist (interval merged)
-                (delete-region (interval-with-margins-resolve-start interval)
-                               (interval-with-margins-resolve-end interval))))))))))
+(defun haskell-ts-node-with-surrounding-space-to-interval-with-margins (node include-spaces final-only?)
+  (cl-assert (memq include-spaces '(both only-before only-after)))
+  (let* ((start (treesit-node-start node))
+         (end (treesit-node-end node))
+         (margin-before (when (memq include-spaces '(both only-before))
+                          (save-excursion
+                            (goto-char start)
+                            (abs (skip-whitespace-backward)))))
+         (margin-after (when (memq include-spaces '(both only-after))
+                         (save-excursion
+                           (goto-char end)
+                           (skip-whitespace-forward)))))
+    (mk-interval-with-margins start
+                              end
+                              ;; Spaces here are not intended to participate in merging,
+                              ;; only in final deletions.
+                              (unless final-only? margin-before)
+                              (unless final-only? margin-after)
+                              margin-before
+                              margin-after)))
+
+(defun haskell-ts-node-to-interval-with-margins (node include-parens-before-and-after?)
+  (let* ((start (treesit-node-start node))
+         (end (treesit-node-end node))
+         (margin-before (when-let* ((prev (treesit-node-prev-sibling node))
+                                    ((string= "," (treesit-node-type prev)))
+                                    (prev2 (treesit-node-prev-sibling prev)))
+                          (- start
+                             (treesit-node-end prev2))))
+         (margin-after (when-let* ((next (treesit-node-next-sibling node))
+                                   ((string= "," (treesit-node-type next)))
+                                   (next2 (treesit-node-next-sibling next)))
+                         (- (treesit-node-start next2) end)))
+         (final-before (when include-parens-before-and-after?
+                         (when-let* ((prev (treesit-node-prev-sibling node))
+                                     ((string= "(" (treesit-node-type prev))))
+                           (- start
+                              (treesit-node-start prev)))))
+         (final-after (when include-parens-before-and-after?
+                        (when-let* ((next (treesit-node-next-sibling node))
+                                    ((string= ")" (treesit-node-type next))))
+                          (- (treesit-node-end next) end)))))
+    (mk-interval-with-margins start
+                              end
+                              ;; If surrounded by commas then remove the node
+                              ;; itself, margins will be nil.
+                              margin-before
+                              margin-after
+                              final-before
+                              final-after)))
 
 (defconst haskell-ts--type-synonym-type-query
   (treesit-query-compile 'haskell
@@ -788,25 +821,67 @@ indented block will be their bounds without any extra processing."
         (error "Constructor application has no constructor field: %s" node)))
     result))
 
-(defun haskell-ts-fold-toplevel-tuples (node f acc)
-  "Fold potentially nested tuples in NODE, e.g. (a, (b, c), d) with F like (f a (f b (f c (f d acc))))."
+(defun haskell-ts-foldr-toplevel-tuples (node f acc)
+  "Fold over elements of potentially nested tuples within tuple NODE in
+reverse order, e.g.
+(a, (b, c), d) becomes (f a (f b (f c (f d acc))))."
   (cl-assert (treesit-node-p node))
   (cl-assert (string= (treesit-node-type node) "tuple"))
-  (let ((result nil))
-    (cl-loop
-     for i from (1- (treesit-node-child-count node nil)) downto 0
-     do
-     (when (string= (treesit-node-field-name-for-child node i)
-                    "element")
-       (let ((node (treesit-node-child node i)))
-         (setf acc (if (string= "tuple" (treesit-node-type node))
-                       (haskell-ts-fold-toplevel-tuples node f acc)
-                     (funcall f node acc))))))
+  (cl-loop
+   for i from (1- (treesit-node-child-count node nil)) downto 0
+   do
+   (let* ((child (treesit-node-child node i))
+          (typ (treesit-node-type child)))
+     (unless (member typ '("(" ")" ","))
+       (setf acc (if (string= "tuple" typ)
+                     (haskell-ts-foldr-toplevel-tuples child f acc)
+                   (funcall f child acc))))))
+  acc)
+
+(defun haskell-ts-foldr-type-context (typ on-arrow on-parens f acc)
+  "Folds singleton and nested contexts of ‘type’ nodes."
+  ;; NB this function is applicable to many node types so it’s hard to
+  ;; enumerate them all in assert.
+  (cl-assert (or (null typ)
+                 (treesit-node-p typ)))
+  (if typ
+      (progn
+        (setf acc
+              (haskell-ts-foldr-type-context (treesit-node-child-by-field-name typ "type")
+                                             on-arrow
+                                             on-parens
+                                             f
+                                             acc))
+        (if (string= "context" (treesit-node-type typ))
+            (if-let* ((arr (treesit-node-child-by-field-name typ "arrow"))
+                      (ctx (treesit-node-child-by-field-name typ "context")))
+                (funcall on-arrow
+                         typ
+                         arr
+                         (pcase (treesit-node-type ctx)
+                           ("parens"
+                            (funcall on-parens
+                                     typ
+                                     (haskell-ts-getters--get-opening-paren ctx)
+                                     (haskell-ts-getters--get-closing-paren ctx)
+                                     (funcall f typ (haskell-ts-getters--get-parens-content ctx) acc)))
+                           ("tuple"
+                            (funcall on-parens
+                                     typ
+                                     (haskell-ts-getters--get-opening-paren ctx)
+                                     (haskell-ts-getters--get-closing-paren ctx)
+                                     (haskell-ts-foldr-toplevel-tuples ctx (lambda (x acc2) (funcall f typ x acc2)) acc)))
+                           (_
+                            (funcall f typ ctx acc))))
+              (error "Unexpected context node: %s" typ))
+          acc))
     acc))
 
-(defun haskell-ts--extract-single-constraint-name (node typ)
+(defun haskell-ts--extract-single-constraint-name (node &optional typ)
   "Take node representing single class constraint, e.g. \"HasCallStack\", \"Foo a b\", \"a `Foo` b\"
-and explode it into (<constructor> <arg1> <arg2> ... <argN>)."
+and extract it’s toplevel constructor name."
+  (unless typ
+    (setf typ (treesit-node-type node)))
   (cl-assert (treesit-node-p node))
   (cl-assert (string= (treesit-node-type node) typ))
   (cl-assert (member typ '("name" "apply" "infix")) nil
@@ -819,9 +894,9 @@ and explode it into (<constructor> <arg1> <arg2> ... <argN>)."
      ("infix" (haskell-ts--infix-name-node node)))))
 
 (defun haskell-ts--extract-tuple-contraints (node)
-  (haskell-ts-fold-toplevel-tuples node
+  (haskell-ts-foldr-toplevel-tuples node
                                    (lambda (x acc)
-                                     (cons (haskell-ts--extract-single-constraint-name x (treesit-node-type x)) acc))
+                                     (cons (haskell-ts--extract-single-constraint-name x) acc))
                                    nil))
 
 (defun haskell-ts-parse-constraint-names (str)
@@ -847,9 +922,106 @@ HasCallStack
              (typ (treesit-node-type node)))
         (cond
           ((string= "tuple" typ)
-           (cons 'multiple-constraints (haskell-ts--extract-tuple-contraints node)))
+           (haskell-ts--extract-tuple-contraints node))
           (t
-           (cons 'single-constraint (haskell-ts--extract-single-constraint-name node typ))))))))
+           (list (haskell-ts--extract-single-constraint-name node typ))))))))
+
+(cl-defstruct (haskell-ts--remove-constraints-state
+               (:conc-name haskell-ts--remove-constraints-state/))
+  ;; List of strings
+  constrains-to-remove ; (haskell-ts-node-to-interval-with-margins x t)
+  ;; Integer, all constraints in a context
+  total-constraints
+
+  lparen
+  rparen
+  arrow)
+
+(defun haskell-ts-remove-constraints--single-context (analysed-state)
+  (let* ((arrow-interval (haskell-ts-node-with-surrounding-space-to-interval-with-margins
+                          (haskell-ts--remove-constraints-state/arrow analysed-state)
+                          'both
+                          t))
+         (unmerged-intervals-per-constraints
+          (--map (haskell-ts-node-to-interval-with-margins it t)
+                 (haskell-ts--remove-constraints-state/constrains-to-remove analysed-state)))
+         (remove-length (length unmerged-intervals-per-constraints))
+         (intervals-for-constraints
+          (nreverse
+           (interval-with-margins-merge-overlapping!
+            unmerged-intervals-per-constraints)))
+         (total-constraints
+          (haskell-ts--remove-constraints-state/total-constraints analysed-state)))
+    (let* ((delete-all? (= total-constraints remove-length))
+           (delete-singleton-parens? (= total-constraints (1+ remove-length))))
+      (when (and delete-all?
+                 arrow-interval)
+        (delete-region (interval-with-margins-resolved-start arrow-interval t)
+                       (interval-with-margins-resolved-end arrow-interval t)))
+      (let ((to-delete-with-parens
+             (if (and delete-singleton-parens?
+                      (haskell-ts--remove-constraints-state/rparen analysed-state)
+                      (haskell-ts--remove-constraints-state/lparen analysed-state))
+                 (nreverse
+                  (interval-with-margins-merge-overlapping!
+                   (cons
+                    (haskell-ts-node-with-surrounding-space-to-interval-with-margins
+                     (haskell-ts--remove-constraints-state/rparen analysed-state)
+                     'only-before
+                     nil)
+                    (cons
+                     (haskell-ts-node-with-surrounding-space-to-interval-with-margins
+                      (haskell-ts--remove-constraints-state/lparen analysed-state)
+                      'only-after
+                      nil)
+                     intervals-for-constraints))))
+               intervals-for-constraints)))
+        (dolist (x to-delete-with-parens)
+          (delete-region (interval-with-margins-resolved-start x delete-all?)
+                         (interval-with-margins-resolved-end x delete-all?)))))))
+
+(defun haskell-ts-remove-constraints-from-signature-node (names-to-remove sig)
+  (cl-assert (listp names-to-remove))
+  (cl-assert (-all? #'stringp names-to-remove))
+  (cl-assert (treesit-node-p sig))
+  (let* ((get-state
+          (lambda (ctx states)
+            (or (gethash ctx states)
+                (make-haskell-ts--remove-constraints-state
+                 :constrains-to-remove nil
+                 :total-constraints 0
+                 :lparen nil
+                 :rparen nil
+                 :arrow nil))))
+         (states-for-all-contexts
+          (haskell-ts-foldr-type-context
+           (treesit-node-child-by-field-name sig "type")
+           (lambda (ctx arr per-ctx-states)
+             (let ((state (funcall get-state ctx per-ctx-states)))
+               (setf (haskell-ts--remove-constraints-state/arrow state) arr)
+               (setf (gethash ctx per-ctx-states) state)
+               per-ctx-states))
+           (lambda (ctx lparen rparen per-ctx-states)
+             (let ((state (funcall get-state ctx per-ctx-states)))
+               (setf (haskell-ts--remove-constraints-state/lparen state) lparen
+                     (haskell-ts--remove-constraints-state/rparen state) rparen)
+               (setf (gethash ctx per-ctx-states) state)
+               per-ctx-states))
+           (lambda (ctx x per-ctx-states)
+             (let ((state (funcall get-state ctx per-ctx-states)))
+               (cl-incf (haskell-ts--remove-constraints-state/total-constraints state))
+               (when (member (haskell-ts--extract-single-constraint-name x)
+                             names-to-remove)
+                 (push x (haskell-ts--remove-constraints-state/constrains-to-remove state)))
+               (setf (gethash ctx per-ctx-states) state)
+               per-ctx-states))
+           (make-hash-table :test #'equal))))
+    (dolist (state (sort (hash-table->alist states-for-all-contexts)
+                         :lessp (lambda (x y)
+                                  (> (treesit-node-start (car x))
+                                     (treesit-node-start (car y))))
+                         :in-place t))
+      (haskell-ts-remove-constraints--single-context (cdr state)))))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-base-mode prog-mode "Haskell[ts]"
