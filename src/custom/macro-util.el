@@ -925,19 +925,24 @@ MATCHING-PREDICATE expression. When the predicate returns non-nil, execute BODY 
              (setf ,ovs-var (cdr ,ovs-var))))
          (setf ,ovss-var (cdr ,ovss-var))))))
 
-(defmacro with-all-matching-overlays (ov-var matching-predicate &rest body)
+(defmacro with-all-matching-overlays (ov-var matching-outcome-var matching-predicate &rest body)
   "Loop over all overlays in current buffer binding each of them to OV-VAR and running
 MATCHING-PREDICATE expression. When the predicate returns non-nil, execute BODY and continue."
-  (declare (indent 2))
+  (declare (indent 3))
   (cl-assert (symbolp ov-var))
+  (cl-assert (or (null matching-outcome-var)
+                 (symbolp matching-outcome-var)))
+  (unless matching-outcome-var
+    (setf matching-outcome-var '#:matching-outcome))
   (let ((ovss-var '#:ovss)
         (ovs-var '#:ovs))
     `(let ((,ovss-var (overlay-lists)))
        (while ,ovss-var
          (let ((,ovs-var (car ,ovss-var)))
            (while ,ovs-var
-             (let ((,ov-var (car ,ovs-var)))
-               (when ,matching-predicate
+             (let* ((,ov-var (car ,ovs-var))
+                    (,matching-outcome-var ,matching-predicate))
+               (when ,matching-outcome-var
                  ,@body))
              (setf ,ovs-var (cdr ,ovs-var))))
          (setf ,ovss-var (cdr ,ovss-var))))))
