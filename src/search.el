@@ -549,9 +549,11 @@ called in buffer that initiated search."
     (let ((result nil))
       (with-all-matching-overlays
           ov
+          nil
           (overlay-get ov 'is-search-highlighting-overlay)
         (push ov result)
         (overlay-put ov 'is-fixed-after-clone? t))
+      ;; Overlays are already copied, need to only propagate them to correct variables
       (setf search--match-overlays result))))
 
 ;;;###autoload
