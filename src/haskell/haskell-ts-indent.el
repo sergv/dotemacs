@@ -7,13 +7,16 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'dash))
+  (require 'cl)
+  (require 'dash)
+  (require 'macro-util))
 
 (defvar haskell-indent-offset)
 
 (require 'common)
 (require 'common-whitespace)
 (require 'haskell-lexeme)
+(require 'haskell-ts-getters)
 (require 'treesit)
 (require 'treesit-utils)
 
@@ -115,7 +118,7 @@
   (when (or (string= "parens" curr-type)
             (string= "tuple" curr-type))
     (if prev
-        (let ((open-paren (haskell-ts-indent--get-opening-paren curr)))
+        (let ((open-paren (haskell-ts-getters--get-opening-paren curr)))
           ;; If there’s space after parens then what’s within is the anchor.
           ;; If there’s no space then it’s compact and parens are the anchor.
           (if (extended-whitespace-char? (char-after (treesit-node-end open-paren)))
@@ -268,17 +271,6 @@
                nil
                "Not an open brace node: %s, node = %s, parent = %s"
                open-brace
-               node
-               (treesit-node-parent node))
-    result))
-
-(defun haskell-ts-indent--get-opening-paren (node)
-  (cl-assert (member (treesit-node-type node) '("parens" "tuple")))
-  (let ((result (treesit-node-child node 0)))
-    (cl-assert (string= "(" (treesit-node-type result))
-               nil
-               "Not an opening paren: %s, node = %s, parent = %s"
-               result
                node
                (treesit-node-parent node))
     result))
@@ -754,13 +746,9 @@
                              ;; (      Foo
                              ;;     -> Bar
                              ;; )
-                             (progn
-                               (message "(- (treesit-node-start matched-anchor) (treesit-node-end (haskell-ts-indent--get-opening-paren parent))) = %s"
-                                        (- (treesit-node-start matched-anchor)
-                                           (treesit-node-end (haskell-ts-indent--get-opening-paren parent))))
-                               (>= (- (treesit-node-start matched-anchor)
-                                      (treesit-node-end (haskell-ts-indent--get-opening-paren parent)))
-                                   2)))
+                             (>= (- (treesit-node-start matched-anchor)
+                                    (treesit-node-end (haskell-ts-getters--get-opening-paren parent)))
+                                 2))
                         -3)
                        (t
                         haskell-indent-offset))))))

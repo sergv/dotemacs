@@ -615,34 +615,31 @@ have different input states."
 
 (ert-deftest haskell-tests/parse-constraint-tuple ()
   (should (equal (haskell-ts-parse-constraint-names "HasCallStack")
-                 '(single-constraint . "HasCallStack")))
+                 '("HasCallStack")))
 
   (should (equal (haskell-ts-parse-constraint-names "Foo a")
-                 '(single-constraint . "Foo")))
+                 '("Foo")))
 
   (should (equal (haskell-ts-parse-constraint-names "Foo a b")
-                 '(single-constraint . "Foo")))
+                 '("Foo")))
 
   (should (equal (haskell-ts-parse-constraint-names "a `Foo` b")
-                 '(single-constraint . "Foo")))
+                 '("Foo")))
 
   (should (equal (haskell-ts-parse-constraint-names "Bar a `Foo` b")
-                 '(single-constraint . "Foo")))
+                 '("Foo")))
 
   (should (equal (haskell-ts-parse-constraint-names "(Foo a, Bar)")
-                 '(multiple-constraints
-                   "Foo"
+                 '("Foo"
                    "Bar")))
 
   (should (equal (haskell-ts-parse-constraint-names "(Foo a, (Bar, Baz))")
-                 '(multiple-constraints
-                   "Foo"
+                 '("Foo"
                    "Bar"
                    "Baz")))
 
   (should (equal (haskell-ts-parse-constraint-names "(Foo a, Bar a Double (b, c))")
-                 '(multiple-constraints
-                   "Foo"
+                 '("Foo"
                    "Bar"))))
 
 (ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list! ()

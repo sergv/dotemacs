@@ -10,40 +10,69 @@
   (require 'cl))
 
 (cl-defstruct interval-with-margins
-  start ;; integer
-  end   ;; integer
-  margin-before ;; positive integer or nil
-  margin-after  ;; positive integer or nil
-  )
+  start ;; Integer
+  end   ;; Integer
+  margin-before ;; Positive integer or nil
+  margin-after  ;; Positive integer or nil
 
-(defun mk-interval-with-margins (start end margin-before margin-after)
+  ;; Positive integer or nil. Like margin but is only effective in the end and only when both finals are present.
+  final-margin-before
+  ;; Positive integer or nil. Like margin but is only effective in the end and only when both finals are present.
+  final-margin-after)
+
+(defun mk-interval-with-margins (start end margin-before margin-after final-margin-before final-margin-after)
   (cl-assert (numberp start))
   (cl-assert (numberp end))
-  (cl-assert (or (null margin-before) (and (numberp margin-before)
-                                           (<= 0 margin-before))))
-  (cl-assert (or (null margin-after) (and (numberp margin-after)
-                                          (<= 0 margin-after))))
+  (cl-assert (or (null margin-before)
+                 (and (numberp margin-before)
+                      (<= 0 margin-before))))
+  (cl-assert (or (null margin-after)
+                 (and (numberp margin-after)
+                      (<= 0 margin-after))))
+  (cl-assert (or (null final-margin-before)
+                 (and (numberp final-margin-before)
+                      (<= 0 final-margin-before))))
+  (cl-assert (or (null final-margin-after)
+                 (and (numberp final-margin-after)
+                      (<= 0 final-margin-after))))
   (make-interval-with-margins
    :start start
    :end end
    :margin-before margin-before
-   :margin-after margin-after))
+   :margin-after margin-after
+   :final-margin-before final-margin-before
+   :final-margin-after final-margin-after))
 
-(defun interval-with-margins-resolve-start (x)
-  (aif (interval-with-margins-margin-before x)
-      (progn
-        (cl-assert (>= it 0))
-        (- (interval-with-margins-start x) it))
-    (interval-with-margins-start x)))
+(defun interval-with-margins-resolved-start (x &optional consider-final?)
+  (cl-assert (or (null (interval-with-margins-margin-before x))
+                 (<= 0 (interval-with-margins-margin-before x))))
+  (cl-assert (or (null (interval-with-margins-final-margin-before x))
+                 (<= 0 (interval-with-margins-final-margin-before x))))
+  (- (interval-with-margins-start x)
+     (max (or (interval-with-margins-margin-before x) 0)
+          (or (and consider-final?
+                   ;; Both must be present to have an effect.
+                   (interval-with-margins-final-margin-after x)
+                   (interval-with-margins-final-margin-before x))
+              0))))
 
-(defun interval-with-margins-resolve-end (x)
+(defun interval-with-margins-resolved-end (x &optional consider-final?)
+  (cl-assert (or (null (interval-with-margins-margin-after x))
+                 (<= 0 (interval-with-margins-margin-after x))))
+  (cl-assert (or (null (interval-with-margins-final-margin-after x))
+                 (<= 0 (interval-with-margins-final-margin-after x))))
   (if (interval-with-margins-margin-before x)
-      (interval-with-margins-end x)
-    (aif (interval-with-margins-margin-after x)
-        (progn
-          (cl-assert (>= it 0))
-          (+ (interval-with-margins-end x) it))
-      (interval-with-margins-end x))))
+      (+ (interval-with-margins-end x)
+         (or (and consider-final?
+                  (interval-with-margins-final-margin-after x))
+             0))
+    (+ (interval-with-margins-end x)
+       (max (or (interval-with-margins-margin-after x) 0)
+            (or (and consider-final?
+                     ;; Both must be present to have an effect.
+                     (interval-with-margins-final-margin-before x)
+                     (interval-with-margins-final-margin-after x))
+                0)))))
 
 (defun interval-with-margins-merge-intervals (x y)
   (let ((start-x (interval-with-margins-start x))
@@ -55,11 +84,16 @@
               (mk-interval-with-margins start-x
                                         end-y
                                         (interval-with-margins-margin-before x)
-                                        (interval-with-margins-margin-after y))
-            (mk-interval-with-margins start-x
-                                      end-x
-                                      (interval-with-margins-margin-before x)
-                                      (interval-with-margins-margin-after x))))
+                                        (interval-with-margins-margin-after y)
+                                        (interval-with-margins-final-margin-before x)
+                                        (interval-with-margins-final-margin-after y))
+            x
+            ;; todo: is this equivalent to ‘x’?
+            ;; (mk-interval-with-margins start-x
+            ;;                           end-x
+            ;;                           (interval-with-margins-margin-before x)
+            ;;                           (interval-with-margins-margin-after x))
+            ))
       (interval-with-margins-merge-intervals y x))))
 
 (defun interval-with-margins--overlap? (x y)
