@@ -215,7 +215,7 @@
   (clrhash packing--file-path-component->idx-cache)
   (setf packing--file-path-idx->component-cache-capacity 32
         packing--file-path-idx->component-cache (make-vector packing--file-path-idx->component-cache-capacity 0))
-  (clrhash packnig--pack-file-path--cache))
+  (clrhash packing--pack-file-path--cache))
 
 (defun packing--pack-file-path--component->idx (component)
   (aif (gethash component packing--file-path-component->idx-cache)
@@ -249,14 +249,14 @@
    (-map #'packing--pack-file-path--idx->component
          (packing-unpack-list packed-path))))
 
-(defvar packnig--pack-file-path--cache (make-hash-table :test #'equal :size 997))
+(defvar packing--pack-file-path--cache (make-hash-table :test #'equal :size 997))
 
 (defun packing-pack-file-path-cached (path)
   (cl-assert (stringp path))
-  (if-let (cached (gethash path packnig--pack-file-path--cache))
+  (if-let (cached (gethash path packing--pack-file-path--cache))
       cached
     (let ((packed (packing-pack-file-path path)))
-      (puthash path packed packnig--pack-file-path--cache)
+      (puthash path packed packing--pack-file-path--cache)
       packed)))
 
 (provide 'packing)
