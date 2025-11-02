@@ -1620,9 +1620,12 @@ under version-control directories."
        (opts
         (flags ,@help-verbosity-flags
                ,@builddir-flags
+               ,@program-options-flags
+               ,@constraints-flags
                "-j"
                "--jobs"
-               "--build-depends")))
+               "--build-depends"
+               "--repl-options")))
       ("sandbox"
        (or ("init")
            ("delete")
