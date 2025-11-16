@@ -23,7 +23,9 @@
   is-enabled?)
 
 (defvar-local hl-paren-state nil
-  "Instance of ‘hl-paren-state’ structure.")
+  "Highlighting state for the current buffer. Either an instance of ‘hl-paren-state’ type, in
+which case overlays are properly set up or nil meaning no highlighting
+is currently done. The state will be created when there’s highlighting to show.")
 
 ;; (defvar-local hl-paren-timer nil
 ;;   "Latest highlighting timer.")
@@ -59,6 +61,8 @@
 (defsubst hl-paren-cleanup-overlays! ()
   "Remove any currently active overlays."
   (when hl-paren-state
+    (cl-assert (overlayp (hl-paren-state-first hl-paren-state)))
+    (cl-assert (overlayp (hl-paren-state-second hl-paren-state)))
     (delete-overlay (hl-paren-state-first hl-paren-state))
     (delete-overlay (hl-paren-state-second hl-paren-state))
     (setq-local hl-paren-state nil)))
@@ -160,10 +164,13 @@ Turn off highlighting if character at point is not parentheses."
           (`second (setf second ov)))
         (overlay-put ov 'is-fixed-after-clone? t))
       ;; Overlays are already copied, need to only propagate them to correct variables
-      (cl-assert (overlayp first))
-      (cl-assert (overlayp second))
-      (setf (hl-paren-state-first hl-paren-state) first
-            (hl-paren-state-second hl-paren-state) second))))
+      (if (and first second)
+          (progn
+            (cl-assert (overlayp first))
+            (cl-assert (overlayp second))
+            (setf (hl-paren-state-first hl-paren-state) first
+                  (hl-paren-state-second hl-paren-state) second))
+        (hl-paren-cleanup-overlays!)))))
 
 ;;;###autoload
 (add-hook 'clone-indirect-buffer-hook #'hl-paren--fix-state-after-clone)
