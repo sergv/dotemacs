@@ -49,7 +49,7 @@
             ("clj"      . "*.clj")
             ("clojure"  . "*.clj")
             ("java"     . "*.java")
-            ("android"  . "*.java *.kt *.xml")
+            ("android"  . "*.java *.kt *.xml *.gradle *.gradle.kts *.toml")
             ("mk"       . "[Mm]akefile* *.mk")
             ("make"     . "[Mm]akefile* *.mk")
             ("makefile" . "[Mm]akefile* *.mk")
