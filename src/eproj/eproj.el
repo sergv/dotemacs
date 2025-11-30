@@ -333,6 +333,7 @@
     :tag->string-func #'eproj/java-tag->string
     :extra-navigation-globs
     '("*.gradle"
+      "*.gradle.kts"
       "proguard.cfg"))
    (mk-eproj-lang
     :mode 'kotlin-mode
@@ -348,6 +349,7 @@
     :synonym-modes '(kotlin-ts-mode)
     :extra-navigation-globs
     '("*.gradle"
+      "*.gradle.kts"
       "proguard.cfg"))
    (mk-eproj-lang
     :mode 'emacs-lisp-mode
