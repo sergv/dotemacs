@@ -38,7 +38,11 @@
 ;;
 ;; [(language-specific
 ;;    [(haskell-mode
-;;       [(indent-offset <integer>)])])]
+;;       [(indent-offset <integer>)])]
+;;
+;;    [(<language>
+;;      [(indent-tab <t-or-nil>)]
+;;      [(delete-trailing-whitespace <t-or-nil>)])]
 ;;
 ;; [(checker
 ;;    [(haskell-mode <nil|haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>)])]
