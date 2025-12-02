@@ -167,9 +167,13 @@
   (interactive "P")
   (haskell-insert-general-info-template arg t nil))
 
-(cl-defun haskell-insert-pp-dict-info-template--helper (&key function-name
-                                                             make-print-entry
-                                                             realign)
+(cl-defun haskell-insert-pp-dict-info-template--helper
+    (&key function-name
+          make-print-entry
+          realign
+          extra-entries)
+  (cl-assert (listp extra-entries))
+  (cl-assert (-all? #'stringp extra-entries))
   (let ((start-column (indentation-size))
         (user-input nil)
         (make-str
@@ -197,40 +201,50 @@
       (indent-to (+ haskell-indent-offset start-column)))
     (let ((loop-start-position (point))
           (is-first-iteration? t))
-      (while (and (setf user-input
-                        (read-string-no-default "What to print: "
-                                                nil
-                                                nil
-                                                ""))
-                  (not (string= user-input "")))
-        (insert (if is-first-iteration?
-                    "[ "
-                  ", "))
-        (insert (funcall make-print-entry (funcall make-str user-input) user-input) "\n")
-        (funcall realign loop-start-position (point))
-        (indent-to (+ haskell-indent-offset start-column))
-        (setf is-first-iteration? nil))
+
+      (let ((insert-entry
+             (lambda (input)
+               (insert (if is-first-iteration?
+                           "[ "
+                         ", "))
+               (insert (funcall make-print-entry (funcall make-str input) input) "\n")
+               (funcall realign loop-start-position (point))
+               (indent-to (+ haskell-indent-offset start-column))
+               (setf is-first-iteration? nil))))
+
+        (while (and (setf user-input
+                          (read-string-no-default "What to print: "
+                                                  nil
+                                                  nil
+                                                  ""))
+                    (not (string= user-input "")))
+          (funcall insert-entry user-input))
+        (mapc insert-entry extra-entries))
       (insert "]"))))
 
-(defun haskell-insert-pp-dict-info-template ()
+(defun haskell-insert-pp-dict-info-template (&optional extra-entries)
   (interactive)
   (haskell-insert-pp-dict-info-template--helper
    :function-name "ppDictHeader"
    :make-print-entry (lambda (x y)
                        (concat x " --> " y))
-   :realign #'haskell-align-on-arrows-indent-region))
+   :realign #'haskell-align-on-arrows-indent-region
+   :extra-entries extra-entries))
 
 (defun haskell-insert-pp-info-template ()
   (interactive "*")
   (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-abbrev+--ensure-prettyprinter-combinators-available)
   (haskell-misc--ensure-language-pragma "OverloadedStrings")
-  (let ((indent (current-indentation)))
-    (insert "Debug.Trace.trace\n"
-            (make-string (+ indent haskell-indent-offset) ?\s)
-            "(renderString $ "))
-  (haskell-insert-pp-dict-info-template)
-  (insert ") $"))
+  (let* ((indent (current-indentation))
+         (one (make-string (+ indent haskell-indent-offset) ?\s))
+         (two (make-string (+ indent (* 2 haskell-indent-offset)) ?\s)))
+    (insert "(\\result ->\n"
+            one "Debug.Trace.trace\n"
+            two "(renderString $ ")
+    (haskell-insert-pp-dict-info-template '("result"))
+    (insert ")\n"
+            two "result) $")))
 
 (defun haskell-insert-monadic-pp-info-template ()
   (interactive "*")
@@ -238,7 +252,7 @@
   (haskell-abbrev+--ensure-prettyprinter-combinators-available)
   (haskell-misc--ensure-language-pragma "OverloadedStrings")
   (insert "Debug.Trace.traceM $ renderString $ ")
-  (haskell-insert-pp-dict-info-template))
+  (haskell-insert-pp-dict-info-template nil))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
