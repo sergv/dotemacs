@@ -35,7 +35,7 @@
             (cons '("\\.pro$" . prolog-mode)
                   (--filter (not (eq 'perl-mode (cdr it)))
                             auto-mode-alist))))
-;; (add-to-list 'auto-mode-alist '("\\.m$" . mercury-mode))
+;; (add-to-list 'auto-mode-alist '("\\.m\\'" . mercury-mode))
 
 (defhydra-ext hydra-prolog-dash (:exit t :foreign-keys nil :hint nil)
   "
