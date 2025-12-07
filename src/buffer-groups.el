@@ -232,6 +232,7 @@
                             (mode . hs-scan-mode)
                             (mode . gnuplot-run-mode)
                             (mode . eshell-mode)
+                            (mode . gdb-script-mode)
                             (predicate . (and (or (get-buffer-process (current-buffer))
                                                   (eq major-mode 'shell-mode))
                                               (not (string-match-p "Async Shell Command"
