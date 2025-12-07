@@ -26,7 +26,7 @@
   (setenv "SHELL" shell-file-name))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.xbindkeysrc$" . shell-script-mode))
+(add-to-list 'auto-mode-alist '("\\.xbindkeysrc\\'" . shell-script-mode))
 
 ;;;###autoload
 (add-to-list 'display-buffer-alist
