@@ -11,7 +11,7 @@
 ;;;###autoload
 (autoload 'dos-mode "dos" "Edit Dos scripts." t)
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.bat$" . dos-mode))
+(add-to-list 'auto-mode-alist '("\\.bat\\'" . dos-mode))
 
 ;;;###autoload
 (defun dos-setup ()

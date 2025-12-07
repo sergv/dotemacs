@@ -39,7 +39,7 @@
 (require 'octave-abbrev+)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.\\(?:m\\|octaverc\\)$" . octave-mode))
+(add-to-list 'auto-mode-alist '("\\.\\(?:m\\|octaverc\\)\\'" . octave-mode))
 
 ;;;###autoload
 (el-patch-feature octave)
