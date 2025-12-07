@@ -172,7 +172,8 @@ Intended to be used with comment-util-mode."
               ucf-mode
               yaml-mode
               snippet-mode
-              ptl-mode)
+              ptl-mode
+              gdb-script-mode)
              .
              ,(make-comment-format :one-line "#"
                                    :line-regexp "#+"
