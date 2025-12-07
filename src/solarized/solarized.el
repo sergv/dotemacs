@@ -11,15 +11,6 @@
 
 (require 'solarized-palettes)
 
-(defconst +solarized-red+     "#dc322f")
-(defconst +solarized-orange+  "#cb4b16")
-(defconst +solarized-yellow+  "#b58900")
-(defconst +solarized-green+   "#859900")
-(defconst +solarized-cyan+    "#2aa198")
-(defconst +solarized-blue+    "#268bd2")
-(defconst +solarized-violet+  "#6c71c4")
-(defconst +solarized-magenta+ "#d33682")
-
 ;; (defun solarized-color-clamp-lab (lab)
 ;;   "Restricts a LAB colorspace color if it is out of bounds."
 ;;   (list (min (max (nth 0 lab) 0.0) 100.0)
@@ -996,8 +987,6 @@ only installing unique attributes."
 
 (defvar solarized-known-color-themes
   (list
-   (list 'solarized-dark-improved       'solarized-light-improved       solarized-dark-high-contrast-improved-colors-palette)
-   (list 'solarized-light-improved      'solarized-dark-improved        solarized-light-high-contrast-improved-colors-palette)
    (list 'solarized-dark                'solarized-light                solarized-dark-color-palette)
    (list 'solarized-light               'solarized-dark                 solarized-light-color-palette)
    (list 'solarized-dark-high-constrast 'solarized-light-high-constrast solarized-dark-high-contrast-palette)

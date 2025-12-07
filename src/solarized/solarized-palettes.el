@@ -199,12 +199,49 @@
      :violet-aux-aux-aux-bg     (solarized-get-color 'violet-2bg  palette)
      :magenta-aux-aux-aux-bg    (solarized-get-color 'magenta-2bg palette))))
 
+(defconst +solarized-red-num+ #xdc322f)
+(defconst +solarized-magenta-num+ #xd33682)
+(defconst +solarized-violet-num+ #x6c71c4)
+(defconst +solarized-blue-num+ #x268bd2)
+(defconst +solarized-cyan-num+ #x2aa198)
+(defconst +solarized-orange-num+ #xcb4b16)
+(defconst +solarized-yellow-num+ #xb58900)
+
+;; ;; default one
+;; (defconst +solarized-green-num+ #x859900)
+
+;; this geen looks like green and is closest to the default one
+(defconst +solarized-green-num+ #x1aa625)
+
+;; ;; this one is a bit brighter - too bright compared to defalut colours like blue and yellow
+;; (defconst +solarized-green-num+ #x1abf25)
+
+(defconst +solarized-red+     (num->color +solarized-red-num+))
+(defconst +solarized-orange+  (num->color +solarized-orange-num+))
+(defconst +solarized-yellow+  (num->color +solarized-yellow-num+))
+(defconst +solarized-green+   (num->color +solarized-green-num+))
+(defconst +solarized-cyan+    (num->color +solarized-cyan-num+))
+(defconst +solarized-blue+    (num->color +solarized-blue-num+))
+(defconst +solarized-violet+  (num->color +solarized-violet-num+))
+(defconst +solarized-magenta+ (num->color +solarized-magenta-num+))
+
+;; Unclear what’s these
+;; (orange      . #xdb5823)
+;; ;; (orange      . #xcf771e)
+;;
+;; (yellow      . #xc49619)
+;; ;; (yellow      . #x93a61a)
+;;
+;; ;; (green       . #x93a61a)
+;; (green       . #x1aa625)
+
+
 ;; Each color is 3 bytes so we’re good
 (defconst solarized-dark-color-palette
   (eval-when-compile
     (make-solarized-palette
      nil
-     '(;; solarized-dark palette
+     `(;; solarized-dark palette
        (base03      . #x002b36)
        (base02      . #x073642)
        (base01      . #x586e75)
@@ -213,14 +250,14 @@
        (base1       . #x93a1a1)
        (base2       . #xeee8d5)
        (base3       . #xfdf6e3)
-       (yellow      . #xb58900)
-       (orange      . #xcb4b16)
-       (red         . #xdc322f)
-       (magenta     . #xd33682)
-       (violet      . #x6c71c4)
-       (blue        . #x268bd2)
-       (cyan        . #x2aa198)
-       (green       . #x859900)
+       (yellow      . ,+solarized-yellow-num+)
+       (orange      . ,+solarized-orange-num+)
+       (red         . ,+solarized-red-num+)
+       (magenta     . ,+solarized-magenta-num+)
+       (violet      . ,+solarized-violet-num+)
+       (blue        . ,+solarized-blue-num+)
+       (cyan        . ,+solarized-cyan-num+)
+       (green       . ,+solarized-green-num+)
        (yellow-1bg  . #x273532)
        (yellow-1fg  . #xaf8f41)
        (yellow-2bg  . #x433e20)
@@ -277,7 +314,7 @@
   (eval-when-compile
     (make-solarized-palette
      t
-     '(;; solarized-light palette
+     `(;; solarized-light palette
        (base03      . #x002b36)
        (base02      . #x073642)
        (base01      . #x586e75)
@@ -286,14 +323,14 @@
        (base1       . #x93a1a1)
        (base2       . #xeee8d5)
        (base3       . #xfdf6e3)
-       (yellow      . #xb58900)
-       (orange      . #xcb4b16)
-       (red         . #xdc322f)
-       (magenta     . #xd33682)
-       (violet      . #x6c71c4)
-       (blue        . #x268bd2)
-       (cyan        . #x2aa198)
-       (green       . #x859900)
+       (yellow      . ,+solarized-yellow-num+)
+       (orange      . ,+solarized-orange-num+)
+       (red         . ,+solarized-red-num+)
+       (magenta     . ,+solarized-magenta-num+)
+       (violet      . ,+solarized-violet-num+)
+       (blue        . ,+solarized-blue-num+)
+       (cyan        . ,+solarized-cyan-num+)
+       (green       . ,+solarized-green-num+)
        (yellow-1bg  . #xf8e8c6)
        (yellow-1fg  . #x876d26)
        (yellow-2bg  . #xf1d49b)
@@ -1041,162 +1078,6 @@
        (green-l     . #x5cb947)
        ;; palette end
        ))))
-
-
-(defconst solarized-dark-high-contrast-improved-colors-palette
-  (eval-when-compile
-    (make-solarized-palette
-     nil
-     '(;; solarized-dark-high-contrast palette
-       (base03      . #x002732)
-       (base02      . #x01323d)
-       (base01      . #x62787f)
-       (base00      . #x60767e)
-       (base0       . #x8d9fa1)
-       (base1       . #x9eacac)
-       (base2       . #xfaf3e0)
-       (base3       . #xffffee)
-
-       (red         . #xec423a)
-
-       (orange      . #xdb5823)
-       ;; (orange      . #xcf771e)
-
-       (yellow      . #xc49619)
-       ;; (yellow      . #x93a61a)
-
-       ;; (green       . #x93a61a)
-       (green       . #x1aa625)
-
-       (cyan        . #x3cafa5)
-       (blue        . #x3c98e0)
-       (violet      . #x7a7ed2)
-       (magenta     . #xe2468f)
-
-       (yellow-1bg  . #x273430)
-       (yellow-1fg  . #xbb9a4c)
-       (yellow-2bg  . #x484224)
-       (yellow-2fg  . #xbba165)
-       (yellow-d    . #x936d00)
-       (yellow-l    . #xf3be51)
-       (orange-1bg  . #x2d2d2f)
-       (orange-1fg  . #xd0744d)
-       (orange-2bg  . #x522f22)
-       (orange-2fg  . #xcd8464)
-       (orange-d    . #xa72e01)
-       (orange-l    . #xff8148)
-       (red-1bg     . #x2f2c31)
-       (red-1fg     . #xdc6a5a)
-       (red-2bg     . #x582b29)
-       (red-2fg     . #xd77e6f)
-       (red-d       . #xae1212)
-       (red-l       . #xff7254)
-       (magenta-1bg . #x292d3c)
-       (magenta-1fg . #xd16c96)
-       (magenta-2bg . #x512c46)
-       (magenta-2fg . #xcd809f)
-       (magenta-d   . #xa81761)
-       (magenta-l   . #xff75ab)
-       (violet-1bg  . #x103145)
-       (violet-1fg  . #x8589c4)
-       (violet-2bg  . #x213a5e)
-       (violet-2fg  . #x9095c4)
-       (violet-d    . #x3548a2)
-       (violet-l    . #x9b94f2)
-       (blue-1bg    . #x023447)
-       (blue-1fg    . #x649bce)
-       (blue-2bg    . #x004363)
-       (blue-2fg    . #x78a3cb)
-       (blue-d      . #x0069b0)
-       (blue-l      . #x7ebaff)
-       (cyan-1bg    . #x03373f)
-       (cyan-1fg    . #x60aca4)
-       (cyan-2bg    . #x004b4f)
-       (cyan-2fg    . #x73b0aa)
-       (cyan-d      . #x008981)
-       (cyan-l      . #x77dece)
-       (green-1bg   . #x1e3531)
-       (green-1fg   . #x97a54d)
-       (green-2bg   . #x354725)
-       (green-2fg   . #x9eaa66)
-       (green-d     . #x687f00)
-       (green-l     . #xc3d255)
-       ;; palette end
-       )))
-  "Solarized with real green colour.")
-
-(defconst solarized-light-high-contrast-improved-colors-palette
-  (eval-when-compile
-    (make-solarized-palette
-     t
-     '(;; solarized-light-high-contrast palette
-       (base03      . #x00212b)
-       (base02      . #x002b37)
-       (base01      . #x5d737a)
-       (base00      . #x596e76)
-       (base0       . #x88999b)
-       (base1       . #x98a6a6)
-       (base2       . #xf4eedb)
-       (base3       . #xfffce9)
-       (yellow      . #xa67c00)
-       (orange      . #xbb3e06)
-       (red         . #xcc1f24)
-       (magenta     . #xc42475)
-       (violet      . #x5e65b6)
-       (blue        . #x007ec4)
-       (cyan        . #x11948b)
-       (green       . #x208c00)
-       (yellow-1bg  . #xf7eacb)
-       (yellow-1fg  . #x7a6120)
-       (yellow-2bg  . #xecd29c)
-       (yellow-2fg  . #x6b5a2c)
-       (yellow-d    . #x785700)
-       (yellow-l    . #xd6a549)
-       (orange-1bg  . #xfee2c8)
-       (orange-1fg  . #x8a3b1c)
-       (orange-2bg  . #xfabc97)
-       (orange-2fg  . #x793e28)
-       (orange-d    . #x891b00)
-       (orange-l    . #xed6e3e)
-       (red-1bg     . #xffe1cb)
-       (red-1fg     . #x952f2a)
-       (red-2bg     . #xffb79f)
-       (red-2fg     . #x823731)
-       (red-d       . #x990001)
-       (red-l       . #xff6243)
-       (magenta-1bg . #xfce1da)
-       (magenta-1fg . #x8e3160)
-       (magenta-2bg . #xf9b9c4)
-       (magenta-2fg . #x7a395c)
-       (magenta-d   . #x93004d)
-       (magenta-l   . #xf46495)
-       (violet-1bg  . #xebe7e5)
-       (violet-1fg  . #x44528c)
-       (violet-2bg  . #xcdc8e1)
-       (violet-2fg  . #x3d4f7e)
-       (violet-d    . #x11328f)
-       (violet-l    . #x837bdf)
-       (blue-1bg    . #xe6ebe7)
-       (blue-1fg    . #x0a6395)
-       (blue-2bg    . #xbfd2e6)
-       (blue-2fg    . #x185b85)
-       (blue-d      . #x005797)
-       (blue-l      . #x6fa5e7)
-       (cyan-1bg    . #xe4efdd)
-       (cyan-1fg    . #x10716f)
-       (cyan-2bg    . #xb9ddcd)
-       (cyan-2fg    . #x196767)
-       (cyan-d      . #x006d68)
-       (cyan-l      . #x66c1b3)
-       (green-1bg   . #xeeedcb)
-       (green-1fg   . #x596c21)
-       (green-2bg   . #xd5d99d)
-       (green-2fg   . #x51622d)
-       (green-d     . #x4f6600)
-       (green-l     . #xa8b84b)
-       ;; palette end
-       )))
-  "The solarized color palette alist.")
 
 (provide 'solarized-palettes)
 
