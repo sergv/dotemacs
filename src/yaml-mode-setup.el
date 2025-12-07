@@ -13,9 +13,9 @@
 (autoload 'yaml-mode "yaml-mode.el" "Simple mode to edit YAML." t)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.clang-format$" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.clang-format\\'" . yaml-mode))
 
 ;;;###autoload
 (defun yaml-setup ()
