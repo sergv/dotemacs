@@ -161,14 +161,32 @@
                                curr
                                "operator")))
                 (cond
-                  ((equal prev1 left-child)
+                  ((or (equal prev1 left-child)
+                       (and left-child
+                            op-child
+                            ;; The cursor is on neither child of the infix operator.
+                            ;; The cursor is in the liminal (white)space between the operator
+                            ;; and its left argument.
+                            (< (treesit-node-end left-child)
+                               (point))
+                            (< (point)
+                               (treesit-node-start op-child))))
                    ;; Continue: we’re left operand of an infix operator,
                    ;; operator comes after us so if we’re not at bol then
                    ;; whe don’t care where operator is.
                    ;; (throw 'term prev1)
                    )
                   ((or (equal prev1 right-child)
-                       (equal prev1 op-child))
+                       (equal prev1 op-child)
+                       (and right-child
+                            op-child
+                            ;; The cursor is on neither child of the infix operator.
+                            ;; The cursor is in the liminal (white)space between the operator
+                            ;; and its right argument.
+                            (< (treesit-node-end op-child)
+                               (point))
+                            (< (point)
+                               (treesit-node-start right-child))))
                    ;; Operator may be on a line of its own, take it into account.
                    (when (haskell-ts--is-standalone-node? op-child)
                      (if (haskell-ts--is-standalone-node? right-child)
@@ -184,9 +202,11 @@
                    )
                   (t
                    ;; Should not happen but just don’t do anything then.
-                   (error "Unexpected infix field, node = %s, child = %s"
+                   (error "Unexpected infix field, node = %s, child = %s, point = %s, op = %s"
                           curr
-                          prev1)))))
+                          prev1
+                          (point)
+                          op-child)))))
             (when-let* (((string= "signature" curr-type))
                         (double-colon (haskell-ts-indent--get-signature-double-colon curr))
                         (type-child (treesit-node-child-by-field-name curr "type"))
