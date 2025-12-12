@@ -477,7 +477,8 @@ entries."
                      (sessions/get-special-buffer-variables buf)
                      (awhen (buffer-base-buffer)
                        (sessions/store-string (abbreviate-file-name it)))
-                     (when (buffer-narrowed-p)
+                     (when (and (buffer-narrowed-p)
+                                persistent-narrow-to-region--bounds)
                        (sessions/store-value persistent-narrow-to-region--bounds))
                      (sessions/store-string (buffer-name buf) t))))
                 (--filter (and (not (null (buffer-file-name it)))
@@ -508,7 +509,8 @@ entries."
                        (sessions/get-special-buffer-variables buf)
                        (awhen base
                          (sessions/store-string (buffer-name it)))
-                       (when (buffer-narrowed-p)
+                       (when (and (buffer-narrowed-p)
+                                  persistent-narrow-to-region--bounds)
                          (sessions/store-value persistent-narrow-to-region--bounds))
                        (sessions/store-string (buffer-name buf) t)))))
                 (-filter #'sessions/is-temporary-buffer? buffers)))
@@ -592,7 +594,7 @@ entries."
                 (narrow-to-region-indirect-setup-indirect-buffer))
 
               (awhen narrowing-bounds
-                (let ((bounds (sessions/versioned/restore-value version it)))
+                (when-let ((bounds (sessions/versioned/restore-value version it)))
                   (persistent-narrow-to-region (car bounds) (cdr bounds))))
 
               (sessions/report-and-ignore-asserts
