@@ -3966,6 +3966,29 @@
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-tuple-3
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: (Int, Int) -> Int"
+  "foo xs ="
+  "  \\("
+  "     _|_, y"
+  "   ) ->"
+  "    x + y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: (Int, Int) -> Int"
+  "foo xs ="
+  "  \\("
+  "   _|_, y"
+  "   ) ->"
+  "    x + y"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-unboxed-tuple-1b
  :contents
  (tests-utils--multiline
