@@ -29,9 +29,10 @@
 
 (cl-defmacro haskell-indentation-tests--test-treesitter
     (&key name
-          contents
-          expected-value
-          expected-result)
+          contents        ;; Buffer text before indent.
+          expected-value  ;; Buffer text after indent.
+          expected-result ;; Whether the test should fail or succeed.
+          )
   (let ((mode 'haskell-ts-mode))
     `(ert-deftest ,name ()
        :expected-result ,(or expected-result :passed) ;;:failed
@@ -90,6 +91,21 @@
         :suppress-cursor t
         :buffer-id
         ,(string->symbol (format "haskell-indentation-tests-%s" mode))))))
+
+(cl-defmacro haskell-indentation-tests--make-multiple-input-test-treesitter
+    (&key inputs expected-value expected-result)
+  "Define a set of tests that share final buffer state but
+have different input states."
+  (declare (indent 0))
+  `(progn
+     ,@(cl-loop
+        for entry in inputs
+        collect
+        `(haskell-indentation-tests--test-treesitter
+          :name ,(cl-first entry)
+          :contents ,(cl-second entry)
+          :expected-value ,expected-value
+          :expected-result ,expected-result))))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-apply-1
@@ -2225,6 +2241,99 @@
   "    + quux"
   "    _|_+ (baz x y z)"
   "  ]"
+  ""))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((haskell-indentation-tests--test-treesitter-infix-10a
+   (tests-utils--multiline
+    ""
+    "foo :: Int -> IO Int"
+    "foo n = do"
+    "  x :|"
+    "    y :|"
+    "      z :|"
+    "_|_"
+    "        Nil <- undefined"
+    "  pure 0"
+    "")
+   (haskell-indentation-tests--test-treesitter-infix-10b
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> IO Int"
+     "foo n = do"
+     "  x :|"
+     "    y :|"
+     "      z :|"
+     "      _|_"
+     "        Nil <- undefined"
+     "  pure 0"
+     ""))
+   (haskell-indentation-tests--test-treesitter-infix-10c
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> IO Int"
+     "foo n = do"
+     "  x :|"
+     "    y :|"
+     "      z :|"
+     "                    _|_"
+     "        Nil <- undefined"
+     "  pure 0"
+     ""))))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo n = do"
+  "  x :|"
+  "    y :|"
+  "      z :|"
+  "        _|_"
+  "        Nil <- undefined"
+  "  pure 0"
+  ""))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((haskell-indentation-tests--test-treesitter-infix-11a
+   (tests-utils--multiline
+    ""
+    "foo :: Int -> IO Int"
+    "foo n = do"
+    "  x"
+    "_|_"
+    "   :|"
+    "    y :|"
+    "      z :|"
+    "        Nil <- undefined"
+    "  pure 0"
+    ""))
+  (haskell-indentation-tests--test-treesitter-infix-11b
+   (tests-utils--multiline
+    ""
+    "foo :: Int -> IO Int"
+    "foo n = do"
+    "  x"
+    "       _|_"
+    "   :|"
+    "    y :|"
+    "      z :|"
+    "        Nil <- undefined"
+    "  pure 0"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo n = do"
+  "  x"
+  "    _|_" ;; We’re now in the application of x to a yet to be provided argument.
+  "   :|"
+  "    y :|"
+  "      z :|"
+  "        Nil <- undefined"
+  "  pure 0"
   ""))
 
 (haskell-indentation-tests--test-treesitter
