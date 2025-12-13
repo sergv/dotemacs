@@ -648,6 +648,7 @@
       (csv-separator-face :foreground ,magenta)
       (dired-directory :foreground ,blue)
       (dired-warning :inherit warning :bold t)
+      (dired-broken-symlink :inherit error :bold t)
       (ert-test-result-expected :background ,green-aux-bg)
       (ert-test-result-unexpected :background ,red-aux-bg)
       (flyspell-duplicate :bold t :foreground ,green :underline t)
