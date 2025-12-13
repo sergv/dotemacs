@@ -22,10 +22,11 @@
   "Pretty print Nix’s .drv files."
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (insert (shell-command-to-string
-             (format "%s show-derivation \"%s\""
-		     nix-executable
-		     (buffer-file-name))))
+    (call-process nix-executable nil (current-buffer) nil
+                  "derivation"
+                  "show"
+                  "--pretty"
+                  (buffer-file-name))
     (set-buffer-modified-p nil)
     (read-only-mode 1))
 
@@ -46,4 +47,5 @@
 (add-to-list 'auto-mode-alist '("^/nix/store/.+\\.drv\\'" . nix-drv-mode))
 
 (provide 'nix-drv-mode)
+
 ;;; nix-drv-mode.el ends here
