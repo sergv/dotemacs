@@ -25,8 +25,10 @@
 
 ;;; Code:
 
+(require 'set-up-tmp-paths)
+
 (defvar f-test/test-path
-  (directory-file-name (file-name-directory load-file-name))
+  +tmp-path+
   "Path to tests directory.")
 
 (defvar f-test/root-path
