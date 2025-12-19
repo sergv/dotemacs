@@ -427,7 +427,8 @@ get proper flycheck checker."
   (cached-file-list      nil)
   ;; List of absolute filename globs to ignore in current project.
   (ignored-files-globs   nil :read-only t)
-  ;; Thunk producing list of absolute directory paths to not descend into in current project.
+  ;; List of strings denoting some, either absolute or relative,
+  ;; directory paths to not descend into in current project.
   (ignored-dirs          nil :read-only t)
   ;; list of files, if specified in aux-info via 'file-list
   (file-list-filename    nil :read-only t)
@@ -747,6 +748,12 @@ cache tags in."
           (error "Invalid entry in .eproj-info: %s" entry)))
       info)))
 
+(defun eproj-get-absolute-ignored-dirs (proj)
+  "Return list of strings - absolute directory paths to not descend into in
+current project."
+  (--map (eproj--resolve-to-abs-path-cached it root)
+         (eproj-project/ignored-dirs proj)))
+
 ;;;; project creation
 
 (defun eproj--make-project-and-register! (root)
@@ -813,8 +820,7 @@ for project at ROOT directory."
             :languages languages
             :cached-file-list nil
             :ignored-files-globs ignored-files-globs
-            :ignored-dirs (eproj--make-thunk
-                           (--map (eproj--resolve-to-abs-path-cached it root) ignored-dirs))
+            :ignored-dirs ignored-dirs
             :file-list-filename file-list-filename
             :create-cache-files create-cache-files
             :tag-file (awhen tag-file
