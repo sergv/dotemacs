@@ -21,7 +21,10 @@
 ;;                             Can use ${eproj-root} variable which points to
 ;;                             the directory of the .eproj-info file, without
 ;;                             trailing slash.
-;; [(ignored-dirs <abs-or-rel-dir>*) - list of directories to never descend into.
+;; [(ignored-dirs <abs-or-rel-dir>*) - list of directories (not globs) to never descend into.
+;;                                     Can use ${eproj-root} variable which points to
+;;                                     the directory of the .eproj-info file, without
+;;                                     trailing slash.
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
 ;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `eproj-switch-to-file-or-buffer'.
 ;;
@@ -751,8 +754,9 @@ cache tags in."
 (defun eproj-get-absolute-ignored-dirs (proj)
   "Return list of strings - absolute directory paths to not descend into in
 current project."
-  (--map (eproj--resolve-to-abs-path-cached it root)
-         (eproj-project/ignored-dirs proj)))
+  (let ((root (eproj-project/root proj)))
+    (--map (eproj--resolve-to-abs-path-cached it root)
+           (eproj-project/ignored-dirs proj))))
 
 ;;;; project creation
 
@@ -780,9 +784,13 @@ for project at ROOT directory."
                                 root)
                         nil)))
          (ignored-files-globs
-          (eproj--get-ignored-files root aux-info))
+          (eproj--resolve-eproj-root
+           root
+           (eproj-project/query-aux-info-entry aux-info 'ignored-files)))
          (ignored-dirs
-          (eproj-project/query-aux-info-entry aux-info 'ignored-dirs))
+          (eproj--resolve-eproj-root
+           root
+           (eproj-project/query-aux-info-entry aux-info 'ignored-dirs)))
          (file-list-filename
           (awhen (eproj-project/query-aux-info aux-info 'file-list)
             (let ((fname (eproj--resolve-to-abs-path-cached it root)))
@@ -1147,7 +1155,8 @@ doing `eproj-switch-to-file-or-buffer'."
           :root (eproj-project/root proj)
           :globs-to-find (eproj--navigation-globs proj)
           :ignored-files-globs (eproj-project/ignored-files-globs proj)
-          :ignored-absolute-dirs (eproj-project/related-projects proj)
+          :ignored-absolute-dirs (append (eproj-project/related-projects proj)
+                                         (eproj-get-absolute-ignored-dirs proj))
           :ignored-directories +ignored-directories+
           :ignored-directory-prefixes +ignored-directory-prefixes+)))
     (eproj--filter-ignored-files-from-file-list proj files)))
@@ -1408,10 +1417,9 @@ projects into the mix."
                              projs)))))
     (hash-table-values visited)))
 
-(defun eproj--get-ignored-files (root aux-info)
+(defun eproj--resolve-eproj-root (root paths)
   (cl-assert (stringp root))
-  (--map (replace-regexp-in-string "[$]{eproj-root}" root it)
-         (eproj-project/query-aux-info-entry aux-info 'ignored-files)))
+  (--map (replace-regexp-in-string "[$]{eproj-root}" root it) paths))
 
 (defmacro eproj-resolve-to-abs-path (path proj)
   `(if (file-name-absolute-p ,path)
