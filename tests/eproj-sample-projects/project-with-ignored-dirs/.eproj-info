@@ -1,0 +1,3 @@
+((languages c-mode)
+ (ignored-dirs "bar"
+               "${eproj-root}/baz"))
