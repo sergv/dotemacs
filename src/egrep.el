@@ -425,7 +425,7 @@ string patterns."
                 dir
                 ignore-case
                 (awhen (eproj-get-project-for-buf-lax (current-buffer))
-                  (eproj-thunk-get-value (eproj-project/ignored-dirs it)))))
+                  (eproj-get-absolute-ignored-dirs it))))
 
 ;;;###autoload
 (defun egrep-region (str exts-globs dir &optional ignore-case)
