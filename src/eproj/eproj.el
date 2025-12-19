@@ -1290,7 +1290,8 @@ paths."
                                       (error "Unknown language: %s" lang)))
                                   (eproj-project/languages proj))
            :ignored-files-globs (eproj-project/ignored-files-globs proj)
-           :ignored-absolute-dirs related-projects-roots
+           :ignored-absolute-dirs (append related-projects-roots
+                                          (eproj-get-absolute-ignored-dirs proj))
            :ignored-directories +ignored-directories+
            :ignored-directory-prefixes +ignored-directory-prefixes+))))))
 
