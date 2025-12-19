@@ -628,13 +628,17 @@ under ROOT directory."
     (should (not (null proj)))
     (let ((actual-navigation-files nil)
           (expected-navigation-files
-           '("foo/foo1.txt"
-             "foo/foo2.txt")))
+           '("foo/foo1.c"
+             "foo/foo2.c")))
       (eproj-with-all-project-files-for-navigation proj
                                                    (lambda (_abs-path rel-path)
                                                      (push rel-path actual-navigation-files)))
       (should (equal (eproj-tests/sort-file-list actual-navigation-files)
-                     (eproj-tests/sort-file-list expected-navigation-files))))))
+                     (eproj-tests/sort-file-list expected-navigation-files)))
+      (should (equal (eproj-tests/sort-file-list (eproj--get-project-files proj))
+                     (eproj-tests/sort-file-list (--map (concat path "/" it) expected-navigation-files))))
+      (should (equal (eproj-tests/sort-file-list (eproj--get-all-files proj))
+                     (eproj-tests/sort-file-list (--map (concat path "/" it) expected-navigation-files)))))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
