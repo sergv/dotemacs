@@ -123,6 +123,9 @@ under ROOT directory."
 (defconst eproj-tests/java-kotlin-combined
   (expand-file-name (concat eproj-tests/project-dir "/java-kotlin-combined-project")))
 
+(defconst eproj-tests/project-with-ignored-dirs
+  (expand-file-name (concat eproj-tests/project-dir "/project-with-ignored-dirs")))
+
 (eproj-tests--define-tests
     "eproj-tests/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
@@ -617,6 +620,21 @@ under ROOT directory."
                                                    t
                                                    nil)
                                    'kotlin-mode))))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/project-with-ignored-dirs"
+  (let* ((path eproj-tests/project-with-ignored-dirs)
+         (proj (eproj-get-project-for-path path)))
+    (should (not (null proj)))
+    (let ((actual-navigation-files nil)
+          (expected-navigation-files
+           '("foo/foo1.txt"
+             "foo/foo2.txt")))
+      (eproj-with-all-project-files-for-navigation proj
+                                                   (lambda (_abs-path rel-path)
+                                                     (push rel-path actual-navigation-files)))
+      (should (equal (eproj-tests/sort-file-list actual-navigation-files)
+                     (eproj-tests/sort-file-list expected-navigation-files))))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
