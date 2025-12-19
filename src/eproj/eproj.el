@@ -1343,7 +1343,7 @@ Returns nil if no relevant entry found in AUX-INFO."
                         "Invalid patterns under aux-files/tree clause, expected a list of strings but got: %s"
                         patterns)
              (when-let ((resolved-tree-root
-                         (eproj--resolve-to-abs-path-with-translation-lax tree-root project-root)))
+                         (eproj--resolve-to-abs-path-lax-cached tree-root project-root)))
                (cl-assert (file-name-absolute-p resolved-tree-root)
                           nil
                           "Resolved aux tree root is not absolute: %s"
@@ -1420,27 +1420,47 @@ projects into the mix."
   "If set should be a function that amends paths according to some rule. E.g. when
 running in WSL it could translate c: as /mnt/c, for example.")
 
-(defun-caching eproj--resolve-to-abs-path-cached (path dir) eproj--resolve-to-abs-path-cached/reset-cache (cons path dir)
-  "If PATH is existing absoute file then return it, otherwise try
-to check whether it’s an existing file relative to DIR and return
-that. Report error if both conditions don’t hold."
+(defun-caching-extended
+    eproj--resolve-to-abs-path-cached (path dir)
+    nil
+    eproj--resolve-to-abs-path-cached/make-cache
+    eproj--resolve-to-abs-path-cached/reset-cache
+    eproj--resolve-to-abs-path-cached//uninitialized
+    eproj--resolve-to-abs-path-cached//internal-cache
+    (cons path dir)
   (resolve-to-abs-path (if eproj-translate-file-name (funcall eproj-translate-file-name path) path)
                        dir))
 
-(defun eproj--resolve-to-abs-path-with-translation-lax (path dir)
-  (resolve-to-abs-path-lax
-   (if eproj-translate-file-name
-       (funcall eproj-translate-file-name path)
-     path)
-   dir
-   #'ignore))
+(defun eproj--resolve-to-abs-path-lax-cached (path dir)
+  "Like ‘eproj--resolve-to-abs-path-cached’ but don’t Report error if PATH does
+not exist anywhere."
+  (let* ((cache-key (cons path dir))
+         (query
+          (gethash cache-key
+                   eproj--resolve-to-abs-path-cached//internal-cache
+                   eproj--resolve-to-abs-path-cached//uninitialized)))
+    (if (eq query eproj--resolve-to-abs-path-cached//uninitialized)
+        (when-let ((value
+                    (resolve-to-abs-path-lax
+                     (if eproj-translate-file-name
+                         (funcall eproj-translate-file-name path)
+                       path)
+                     dir
+                     (lambda (&args _ignored) nil))))
+          (puthash cache-key
+                   value
+                   eproj--resolve-to-abs-path-cached//internal-cache)
+          value)
+      query)))
 
 (defun-caching-extended
-  eproj-normalise-file-name-expand-cached (path &optional dir)
-  eproj-normalise-file-name-expand-cached/with-explicit-cache
-  eproj-normalise-file-name-expand-cached/make-cache
-  eproj-normalise-file-name-expand-cached/reset-cache
-  (cons path dir)
+    eproj-normalise-file-name-expand-cached (path &optional dir)
+    eproj-normalise-file-name-expand-cached/with-explicit-cache
+    eproj-normalise-file-name-expand-cached/make-cache
+    eproj-normalise-file-name-expand-cached/reset-cache
+    nil
+    nil
+    (cons path dir)
   (normalise-file-name (expand-file-name path dir)))
 
 (defun eproj--get-buffer-directory (buf)
