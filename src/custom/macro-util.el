@@ -223,27 +223,48 @@ that returnsn a value to use as a caching key.
 NB does not expect to cache values of ARGS that are nil. Also will recompute
 BODY if it returns nil."
   (declare (indent 4) (doc-string 5))
-  `(defun-caching-extended ,func ,args ,nil ,(string->symbol (format "%s/make-cache" func)) ,reset-cache-func ,mk-cache-key ,@body))
+  `(defun-caching-extended
+       ,func
+       ,args
+       nil
+       ,(string->symbol (format "%s/make-cache" func))
+       ,reset-cache-func
+       nil
+       nil
+       ,mk-cache-key
+     ,@body))
 
-(defmacro defun-caching-extended (func args func-with-explicit-cache make-cache-func reset-cache-func mk-cache-key &rest body)
+(defmacro defun-caching-extended (func args func-with-explicit-cache make-cache-func reset-cache-func uninitialized-value-binding internal-cache-binding mk-cache-key &rest body)
   "Defun new function FUNC that automatically caches it's output
 depending of value of MK-CACHE-KEY, which should be an expression
 that returnsn a value to use as a caching key.
 
 NB does not expect to cache values of ARGS that are nil. Also will recompute
 BODY if it returns nil."
-  (declare (indent 6) (doc-string 7))
+  (declare (indent 8) (doc-string 9))
   (cl-assert (symbolp func))
   (cl-assert (or (symbolp func-with-explicit-cache) (null func-with-explicit-cache)))
   (cl-assert (symbolp make-cache-func))
   (cl-assert (or (symbolp reset-cache-func) (null reset-cache-func)))
-  (let ((cache-var (string->symbol (concat (symbol->string func) "--internal--cache")))
-        (cache-arg '#:cache)
-        (query-var '#:query)
-        (value-var '#:value)
-        (cache-arg-var '#:cache-key)
-        (uninitialized '#:uninitialized))
+  (cl-assert (or (null uninitialized-value-binding) (symbolp uninitialized-value-binding)))
+  (cl-assert (or (null internal-cache-binding) (symbolp internal-cache-binding)))
+  (let* ((cache-var
+          (if internal-cache-binding
+              internal-cache-binding
+            (string->symbol (concat (symbol->string func) "--internal--cache"))))
+         (cache-arg '#:cache)
+         (query-var '#:query)
+         (value-var '#:value)
+         (cache-arg-var '#:cache-key)
+         (uninitialized '#:uninitialized)
+         (uninitialized-expr
+          (if uninitialized-value-binding
+              uninitialized-value-binding
+            `(quote uninitialized))))
     `(progn
+       ,@(awhen uninitialized-value-binding
+           (list
+            `(defvar ,uninitialized-value-binding ',uninitialized)))
        (defun ,make-cache-func ()
          (make-hash-table :test #'equal))
        (defvar ,cache-var (,make-cache-func))
@@ -257,8 +278,10 @@ BODY if it returns nil."
                ,(format "Similar to ‘%s’ but takes cache variable explicitly." func)
                (let* ((,cache-arg-var ,mk-cache-key)
                       (,query-var
-                       (gethash ,cache-arg-var ,cache-arg ',uninitialized)))
-                 (if (eq ,query-var ',uninitialized)
+                       (gethash ,cache-arg-var
+                                ,cache-arg
+                                ,uninitialized-expr)))
+                 (if (eq ,query-var ,uninitialized-expr)
                      (let ((,value-var (progn ,@body)))
                        (puthash ,cache-arg-var ,value-var ,cache-arg)
                        ,value-var)
@@ -268,8 +291,10 @@ BODY if it returns nil."
              (list (car body)))
          (let* ((,cache-arg-var ,mk-cache-key)
                 (,query-var
-                 (gethash ,cache-arg-var ,cache-var ',uninitialized)))
-           (if (eq ,query-var ',uninitialized)
+                 (gethash ,cache-arg-var
+                          ,cache-var
+                          ,uninitialized-expr)))
+           (if (eq ,query-var ,uninitialized-expr)
                (let ((,value-var (progn ,@(if (stringp (car body))
                                               (cdr body)
                                             body))))
