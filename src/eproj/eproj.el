@@ -755,8 +755,9 @@ cache tags in."
   "Return list of strings - absolute directory paths to not descend into in
 current project."
   (let ((root (eproj-project/root proj)))
-    (--map (eproj--resolve-to-abs-path-cached it root)
-           (eproj-project/ignored-dirs proj))))
+    (remq nil
+          (--map (eproj--resolve-to-abs-path-lax-cached it root)
+                 (eproj-project/ignored-dirs proj)))))
 
 ;;;; project creation
 
