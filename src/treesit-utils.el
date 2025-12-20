@@ -166,6 +166,7 @@
     result))
 
 (defun treesit-utils-find-topmost-parent-stop-at-first (node pred)
+  (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node)
         (continue? t))
@@ -175,6 +176,33 @@
               continue? nil))
       (setf p (treesit-node-parent p)))
     result))
+
+(defun treesit-utils-find-topmost-parent-stop-at-first-limited (node pred limit)
+  (cl-assert (treesit-node-p node))
+  (let ((result nil)
+        (p node)
+        (continue? t))
+    (while (and continue? (< 0 limit) p)
+      (when (funcall pred p)
+        (setf result p
+              continue? nil))
+      (setf p (treesit-node-parent p)
+            limit (- limit 1)))
+    result))
+
+(defun treesit-utils-find-topmost-parent-stop-at-first-with-count (node pred)
+  (cl-assert (treesit-node-p node))
+  (let ((result nil)
+        (p node)
+        (continue? t)
+        (n 0))
+    (while (and continue? p)
+      (when (funcall pred p)
+        (setf result p
+              continue? nil))
+      (setf p (treesit-node-parent p)
+            n (+ n 1)))
+    (cons result n)))
 
 (defun treesit-utils-largest-node-starting-at (p &optional lang)
   (let* ((node (treesit-node-at p lang))
