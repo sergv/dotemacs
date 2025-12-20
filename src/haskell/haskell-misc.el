@@ -711,6 +711,30 @@ a single entity."
   (haskell--simple-indent-newline-same-col)
   (insert-char ?\s haskell-indent-offset))
 
+(defun haskell-indent--after-indent-increasing-token? ()
+  (save-excursion
+    (skip-syntax-backward " ")
+    (and
+     ;; Will move point backwards.
+     (trie-matches-backwards?
+      (eval-when-compile
+        (trie-opt-recover-sharing!
+         (trie-from-list
+          (--map (cons (reverse it) t)
+                 '("where"
+                   "of"
+                   "do"
+                   "="
+                   "->"
+                   "<-"
+                   "\\case")))))
+      nil)
+     ;; Now point is before the construct that trie just matched backtwards.
+     (let ((before (char-before)))
+       (or (eq before ?\s)
+           (eq before ?\n)
+           (eq before ?\t))))))
+
 (defun haskell-newline-with-signature-expansion ()
   "Similar to ‘paredit-newline’ but autoexpands haskell signatures."
   (interactive "*")
@@ -893,25 +917,7 @@ a single entity."
               (insert-char ?\s
                            (+ 4
                               (if prev-char-is-equals? haskell-indent-offset 0)))))
-           ((save-excursion
-              (skip-syntax-backward " ")
-              (and (trie-matches-backwards?
-                    (eval-when-compile
-                      (trie-opt-recover-sharing!
-                       (trie-from-list
-                        (--map (cons (reverse it) t)
-                               '("where"
-                                 "of"
-                                 "do"
-                                 "="
-                                 "->"
-                                 "<-"
-                                 "\\case")))))
-                    nil)
-                   (let ((before (char-before)))
-                     (or (eq before ?\s)
-                         (eq before ?\n)
-                         (eq before ?\t)))))
+           ((haskell-indent--after-indent-increasing-token?)
             (haskell--simple-indent-newline-indent))
            (t
             (haskell--simple-indent-newline-same-col))))))))
