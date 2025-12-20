@@ -842,6 +842,81 @@ have different input states."
   "  showsPrec = foo"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-6a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    Nothing -> 1"
+  "    Just y  -> z + 1"
+  "    where"
+  "      _|_"
+  "      z = y + 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    Nothing -> 1"
+  "    Just y  -> z + 1"
+  "    where"
+  "      _|_"
+  "      z = y + 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-6b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    Nothing -> 1"
+  "    Just y  -> z + 1"
+  "    where"
+  "                 _|_"
+  "      z = y + 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    Nothing -> 1"
+  "    Just y  -> z + 1"
+  "    where"
+  "      _|_"
+  "      z = y + 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-6c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    Nothing -> 1"
+  "    Just y  -> z + 1"
+  "    where"
+  "_|_"
+  "      z = y + 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    Nothing -> 1"
+  "    Just y  -> z + 1"
+  "    where"
+  "      _|_"
+  "      z = y + 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-class-1
  :contents
  (tests-utils--multiline
