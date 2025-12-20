@@ -10,6 +10,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'cond-let)
   (require 'subr-x)
   (require 'macro-util)
   (require 'set-up-platform)
@@ -681,25 +682,28 @@ a single entity."
 
 ;; newline that detects haskell signatures
 
+(defun haskell--simple-indent-to (size)
+  (delete-horizontal-space t)
+  (insert-char ?\n)
+  (when size
+    (insert-char ?\s size)))
+
 (defun haskell--simple-indent-newline-same-col ()
   "Make a newline and go to the same column as the current line."
   (interactive "*")
   (delete-horizontal-space t)
-  (let ((indent-size
-         (save-excursion
-           (let* ((start (line-beginning-position))
-                  (end (progn
-                         (goto-char start)
-                         ;; (search-forward-regexp
-                         ;;  "[^ ]" (line-end-position) t 1)
-                         (skip-to-indentation)
-                         (point))))
-             (when (or (eobp)
-                       (not (eq ?\s (char-after))))
-               (- end start))))))
-    (insert-char ?\n)
-    (when indent-size
-      (insert-char ?\s indent-size))))
+  (haskell--simple-indent-to
+   (save-excursion
+     (let* ((start (line-beginning-position))
+            (end (progn
+                   (goto-char start)
+                   ;; (search-forward-regexp
+                   ;;  "[^ ]" (line-end-position) t 1)
+                   (skip-to-indentation)
+                   (point))))
+       (when (or (eobp)
+                 (not (eq ?\s (char-after))))
+         (- end start))))))
 
 (defun haskell--simple-indent-newline-indent ()
   "Make a newline on the current column and indent one step further."
@@ -823,7 +827,7 @@ a single entity."
                             (t
                              (or (haskell-smart-operators--in-string-syntax?-raw node)
                                  (nth 3 (syntax-ppss-update! syn)))))))
-         (cond
+         (cond-let
            (multiline-string-start
             (let ((string-start-column (save-excursion
                                          (goto-char multiline-string-start)
@@ -845,6 +849,50 @@ a single entity."
             (delete-horizontal-space t)
             (insert-char ?\n)
             (insert-char ?\s function-name-column))
+           ([enclosing-bind-node
+             (when-let ((curr-node (treesit-haskell--current-node)))
+               (destructuring-bind
+                   (enclosing-let-node . let-depth)
+                   (treesit-utils-find-topmost-parent-stop-at-first-with-count
+                    curr-node
+                    (lambda (node)
+                      (string= (treesit-node-type node) "let")))
+                 (when enclosing-let-node
+                   ;; Find match node that encloses us that’s still within
+                   ;; enclosing let.
+                   (let* ((bind-node
+                           (treesit-utils-find-topmost-parent-stop-at-first-limited
+                            curr-node
+                            (lambda (node)
+                              (string= (treesit-node-type node) "bind"))
+                            let-depth))
+                          (match-child
+                           (treesit-node-child-by-field-name bind-node "match")))
+                     (when (and match-child
+                                ;; Don’t want to indent anything if point is before =
+                                (treesit-haskell--is-inside-node? (point)
+                                                                  match-child)
+                                ;; Don’t want special indentation if we’re at
+                                ;; the very end - then we’ll indent regularly
+                                ;; for new let entry.
+                                (not (save-excursion
+                                       (skip-syntax-backward " ")
+                                       (= (point) (treesit-node-end match-child)))))
+                       bind-node)))))]
+            (haskell--simple-indent-to
+             (+ (character-column-at-pos (treesit-node-start enclosing-bind-node))
+                haskell-indent-offset)))
+           ((save-excursion
+              (skip-to-indentation)
+              (looking-at-p "let\\_>"))
+            (let ((prev-char-is-equals?
+                   (save-excursion
+                     (skip-syntax-backward " ")
+                     (eq (char-before) ?=))))
+              (haskell--simple-indent-newline-same-col)
+              (insert-char ?\s
+                           (+ 4
+                              (if prev-char-is-equals? haskell-indent-offset 0)))))
            ((save-excursion
               (skip-syntax-backward " ")
               (and (trie-matches-backwards?
@@ -865,11 +913,6 @@ a single entity."
                          (eq before ?\n)
                          (eq before ?\t)))))
             (haskell--simple-indent-newline-indent))
-           ((save-excursion
-              (skip-to-indentation)
-              (looking-at-p "let\\_>"))
-            (haskell--simple-indent-newline-same-col)
-            (insert-char ?\s 4))
            (t
             (haskell--simple-indent-newline-same-col))))))))
 
