@@ -6152,6 +6152,217 @@ have different input states."
    "    _|_"
    ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-8a
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let bar = f a b c_|_"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let bar = f a b c"
+  "      _|_"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-8b
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let bar = _|_f a b c"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let bar ="
+  "        _|_f a b c"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-8c
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let bar = f _|_a b c"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let bar = f"
+  "        _|_a b c"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-9a
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let baz = 1"
+  "      bar = f a b c_|_"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let baz = 1"
+  "      bar = f a b c"
+  "      _|_"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-9b
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let baz = 1"
+  "      bar = _|_f a b c"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let baz = 1"
+  "      bar ="
+  "        _|_f a b c"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-9c
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let baz = 1"
+  "      bar = f _|_a b c"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let baz = 1"
+  "      bar = f"
+  "        _|_a b c"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-10a
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let"
+  "    bar = f a b c_|_"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let"
+  "    bar = f a b c"
+  "    _|_"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-10b
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let"
+  "    bar = _|_f a b c"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let"
+  "    bar ="
+  "      _|_f a b c"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-10c
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let"
+  "    bar = f _|_a b c"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let"
+  "    bar = f"
+  "      _|_a b c"
+  "  pure (bar x)"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
