@@ -651,7 +651,14 @@
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
               0)
 
-             (no-node prev-adaptive-prefix 0)
+             (no-node
+              prev-adaptive-prefix
+              ,(lambda (_node _parent _bol)
+                 (if (save-excursion
+                       (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-from-any-column? nil t)
+                       (looking-at-p "\\_<where\\_>"))
+                     haskell-indent-offset
+                   0)))
 
              ((parent-is "data_constructors") grand-parent haskell-indent-offset)
              ((node-is "gadt_constructors") parent haskell-indent-offset)
