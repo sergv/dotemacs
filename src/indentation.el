@@ -197,7 +197,7 @@ Returns t if point moved."
         (t
          nil)))))
 
-(defun indent-backward-up-indentation-or-sexp (on-blank-line-p)
+(defun indent-backward-up-indentation-or-sexp (on-blank-line-p &optional enable-sexp? avoid-errors?)
   "Alternative ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (with-ignored-invisibility
@@ -216,7 +216,8 @@ sexps and indentation levels."
                  (when (/= p start)
                    p)))))
           (via-parens
-           (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
+           (when (and enable-sexp?
+                      (/= 0 (syntax-ppss-depth (syntax-ppss start))))
              (with-demoted-errors "Ignoring error: %s"
                (save-excursion
                  (paredit-backward-up)
@@ -226,9 +227,11 @@ sexps and indentation levels."
      (if (and via-indentation
               via-parens)
          (goto-char (max via-indentation via-parens))
-       (goto-char (or via-indentation
-                      via-parens
-                      (error "Both indentation-based and sexp-based navigations failed")))))))
+       (awhen (or via-indentation
+                  via-parens
+                  (unless avoid-errors?
+                    (error "Both indentation-based and sexp-based navigations failed")))
+         (goto-char it))))))
 
 (provide 'indentation)
 
