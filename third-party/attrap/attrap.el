@@ -281,6 +281,7 @@ Returns list of triples
     "TypeSynonymInstances"
     "UndecidableSuperClasses"
     "UndecidableInstances"
+    "UnliftedDatatypes"
     "UnliftedNewtypes"
     "UnliftedFFITypes"
     "ViewPatterns")
