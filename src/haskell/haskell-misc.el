@@ -261,7 +261,7 @@ Returns t if indentation occured."
   "Haskell brother of ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (interactive)
-  (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-from-any-column?))
+  (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-from-any-column? t))
 
 ;;;###autoload
 (defun haskell-up-sexp ()
