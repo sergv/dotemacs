@@ -6448,6 +6448,52 @@ have different input states."
   "  pure (bar x)"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-12
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    _|_"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-13
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    Nothing -> 1"
+  "    Just y  -> z + 1"
+  "    where_|_"
+  "      z = y + 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case x of"
+  "    Nothing -> 1"
+  "    Just y  -> z + 1"
+  "    where"
+  "      _|_"
+  "      z = y + 1"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
