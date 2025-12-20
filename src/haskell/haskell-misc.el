@@ -904,7 +904,8 @@ a single entity."
                        bind-node)))))]
             (haskell--simple-indent-to
              (+ (character-column-at-pos (treesit-node-start enclosing-bind-node))
-                haskell-indent-offset)))
+                haskell-indent-offset))
+            (haskell-misc--indent-line-with-treesitter))
            ((save-excursion
               (skip-to-indentation)
               (looking-at-p "let\\_>"))

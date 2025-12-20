@@ -6454,6 +6454,50 @@ have different input states."
   "  )"
   ""))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-misc-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl' (\ !acc !c -> accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c)"
+  "          _|_initState"
+  "        str"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl' (\ !acc !c -> accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c)"
+  "        _|_initState"
+  "        str"
+  "  pure (bar x)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-misc-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl' (\ !acc !c ->"
+  "                          accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c)"
+  "            _|_initState"
+  "        str"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl' (\ !acc !c ->"
+  "                          accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c)"
+  "        _|_initState"
+  "        str"
+  "  pure (bar x)"
+  ""))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
