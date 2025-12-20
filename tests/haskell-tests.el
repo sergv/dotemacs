@@ -6363,6 +6363,91 @@ have different input states."
   "  pure (bar x)"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-11a
+ ;; :modes
+ ;; (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl'"
+  "        (\\ !acc !c -> _|_accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c)"
+  "        initState"
+  "        str"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl'"
+  "        (\\ !acc !c ->"
+  "          _|_accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c)"
+  "        initState"
+  "        str"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-11b
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl' (\\ !acc !c -> _|_accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c)"
+  "        initState"
+  "        str"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl' (\\ !acc !c ->"
+  "                          _|_accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c)"
+  "        initState"
+  "        str"
+  "  pure (bar x)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-11c
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl'"
+  "        (\\ !acc -> (\\ !c -> _|_accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c))"
+  "        initState"
+  "        str"
+  "  pure (bar x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let final = BS.foldl'"
+  "        (\\ !acc -> (\\ !c ->"
+  "                     _|_accumulateMatch $ bumpPos acc $ unsafeChr $ fromIntegral c))"
+  "        initState"
+  "        str"
+  "  pure (bar x)"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
