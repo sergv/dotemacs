@@ -275,6 +275,7 @@ BUFFER is expected to contain output of ctags command."
         (?m "member")
         (?p "function prototype")
         (?s "structure")
+        (?S "constructor")
         (?t "typedef")
         (?u "union")
         (?v "variable")
