@@ -2,7 +2,7 @@
   inputs = {
 
     nixpkgs = {
-      url = "github:nixos/nixpkgs";
+      url = "nixpkgs";
     };
 
     flake-utils = {
