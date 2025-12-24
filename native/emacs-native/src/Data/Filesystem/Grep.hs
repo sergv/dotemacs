@@ -203,19 +203,19 @@ makeMatches !(AbsDir searchRoot) !fileAbsPath'@(AbsFile fileAbsPath) !ms !ptr !s
             newEntries :: [MatchEntry]
             newEntries =
               [ MatchEntry
-                 { matchAbsPath    = fileAbsPath'
-                 , matchRelPath    = RelFile relPath
-                 , matchLineNum    = msLine
-                 , matchColumnNum  = msCol
-                 -- Emacs counts offsets from 1
-                 , matchOffset     = msPos + 1
-                 -- It's crucial to copy since bytestring contents together with
-                 -- the passed pointer will soon go out of scope since we want
-                 -- to free mmapped file as soon as possible.
-                 , matchLinePrefix = BS.copy prefix
-                 , matchLineStr    = BS.copy matched
-                 , matchLineSuffix = BS.copy suffix
-                 }
+                  { matchAbsPath    = fileAbsPath'
+                  , matchRelPath    = RelFile relPath
+                  , matchLineNum    = msLine
+                  , matchColumnNum  = msCol
+                  -- Emacs counts offsets from 1
+                  , matchOffset     = msPos + 1
+                  -- It's crucial to copy since bytestring contents together with
+                  -- the passed pointer will soon go out of scope since we want
+                  -- to free mmapped file as soon as possible.
+                  , matchLinePrefix = BS.copy prefix
+                  , matchLineStr    = BS.copy matched
+                  , matchLineSuffix = BS.copy suffix
+                  }
               | currMatch <- currentMatches
               , let len              = matchEnd currMatch - matchStart currMatch
                     (before, after)  = C8.splitAt (fromIntegral msPos) str
@@ -236,11 +236,13 @@ takeUtfLineEnd str = BS.takeEnd (min 1000 startIdx) str
   where
     loop :: Int -> TakeEndState -> TakeEndState
     loop 0   !tes = tes
-    loop idx !tes = case feedOneBack (BSU.unsafeIndex str idx) tes of
+    loop idx !tes = case feedOneBack (BSU.unsafeIndex str idx') tes of
       Nothing   -> tes
-      Just tes' -> loop (idx - 1) tes'
+      Just tes' -> loop idx' tes'
+      where
+        !idx' = idx - 1
 
-    TakeEndState startIdx _ = loop (BS.length str - 1) (TakeEndState 0 Start)
+    TakeEndState startIdx _ = loop (BS.length str) (TakeEndState 0 Start)
 
     feedOneBack :: Word8 -> TakeEndState -> Maybe TakeEndState
     feedOneBack !w !orig@TakeEndState{tesIdx, tesState} =
