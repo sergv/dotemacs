@@ -383,6 +383,8 @@
       (js2-warning :inherit ghc-face-warn)
       (js2-function-param :inherit default)
       (js2-external-variable :foreground ,orange)
+      (js2-jsdoc-html-tag-name :foreground ,yellow)
+      (js2-jsdoc-html-tag-delimiter :foreground ,green)
 
       ;; ebuf
       (ebuf-group-1-face :inherit default :bold t)
