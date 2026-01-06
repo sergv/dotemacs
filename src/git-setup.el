@@ -485,7 +485,7 @@ e_x_ec"
     ("e"              git-rebase-edit)
     ("s"              git-rebase-squash)
     ("f"              git-rebase-fixup)
-    ("d"              git-rebase-kill-line)))
+    (("d" ",")        git-rebase-kill-line)))
 
 ;;;###autoload
 (defun git-get-repository-root (path)
