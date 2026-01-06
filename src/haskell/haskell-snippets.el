@@ -37,6 +37,8 @@ ${1:  , ${2:vector >= 0.12}
   -Wno-missing-kind-signatures
   -Wno-missing-role-annotations
   -Wno-missing-poly-kind-signatures${2:
+  -Wno-unused-imports
+  -Wno-unused-packages
   -threaded -rtsopts \"-with-rtsopts=-A32m -s\"}
 -}$(3:
 {- project:
