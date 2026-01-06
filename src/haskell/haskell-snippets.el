@@ -20,6 +20,8 @@ build-depends:
   , directory-ospath-streaming
   , file-io
   , filepath >= 1.5
+  , prettyprinter
+  , prettyprinter-combinators
   , optparse-applicative
   , text
 ${1:  , ${2:vector >= 0.12}
