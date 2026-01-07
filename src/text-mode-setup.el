@@ -14,9 +14,10 @@
   (init-common :use-yasnippet nil
                :use-comment nil
                :use-render-formula nil
-               :use-whitespace nil)
+               :use-whitespace t)
   (setq-local hs-allow-nesting t)
   (setup-indent-size 2)
+  (setq-local tab-width 8)
   (setup-hideshow-yafolding t nil))
 
 ;;;###autoload
