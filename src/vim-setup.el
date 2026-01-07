@@ -483,16 +483,15 @@ Basically swap current point with previous one."
 (vim-emap "latex" #'vim:render-latex)
 
 
+(vim-defcmd vim:untabify (motion nonrepeatable)
+  (untabify (if motion
+                (vim-motion-begin-pos motion)
+              (line-beginning-position))
+            (if motion
+                (vim-motion-end-pos motion)
+              (line-end-position))))
 
-(vim-defcmd vim:remove-tabs (motion nonrepeatable)
-  (remove-tabs (if motion
-                   (vim-motion-begin-pos motion)
-                 (line-beginning-position))
-               (if motion
-                   (vim-motion-end-pos motion)
-                 (line-end-position))))
-
-(vim-emap "no-tabs" #'vim:remove-tabs)
+(vim-emap "no-tabs" #'vim:untabify)
 
 (vim-defcmd vim:indent (nonrepeatable)
   (aif (gethash major-mode *mode-indent-functions-table*)
