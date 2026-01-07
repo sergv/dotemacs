@@ -1098,31 +1098,37 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
 
 (defun dante-get-component-build-dir (cfg package-build-dir)
   (let ((component (dante-config/cabal-component cfg)))
-    (cl-assert (cabal-component-p component))
-    (let ((build-dir (cabal-component/build-dir component)))
-      (concat (aif package-build-dir
-                  it
-                (concat
-                 (aif (dante-config/eproj-root cfg)
-                     (concat (strip-trailing-slash it) "/")
-                   "")
-                 "dist-newstyle"))
-              "/"
-              build-dir))))
+    (cl-assert (or (cabal-component-p component)
+                   (null component)))
+    (when component
+      (let ((build-dir (cabal-component/build-dir component)))
+        (concat (aif package-build-dir
+                    it
+                  (concat
+                   (aif (dante-config/eproj-root cfg)
+                       (concat (strip-trailing-slash it) "/")
+                     "")
+                   "dist-newstyle"))
+                "/"
+                build-dir)))))
 
 (defun dante-get-filename-to-load--hsc2hs (buf)
   "Return filename where cabal would put result of preprocessing BUFFER’s file."
   (with-current-buffer buf
     (or dante-get-filename-to-load
-        (let ((cfg (dante-get-config buf)))
-          (setq-local dante-get-filename-to-load
-                      (concat
-                       (dante-get-component-build-dir cfg (dante-config/build-dir cfg))
-                       "/"
-                       (replace-regexp-in-string "[.]"
-                                                 "/"
-                                                 (treesit-haskell-get-buffer-module-name))
-                       ".hs"))))))
+        (let* ((cfg (dante-get-config buf))
+               (component-build-dir
+                (dante-get-component-build-dir cfg (dante-config/build-dir cfg))))
+          (if component-build-dir
+              (setq-local dante-get-filename-to-load
+                          (concat
+                           component-build-dir
+                           "/"
+                           (replace-regexp-in-string "[.]"
+                                                     "/"
+                                                     (treesit-haskell-get-buffer-module-name))
+                           ".hs"))
+            (error "hsc2hs does not support #! scripts"))))))
 
 (defun dante-canonicalize-path (path)
   "Return a standardized version of PATH.
