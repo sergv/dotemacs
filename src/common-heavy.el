@@ -234,18 +234,6 @@ number of spaces equal to `tab-width'."
         (while (search-backward "\t" start t)
           (replace-match str))))))
 
-;;;###autoload
-(defun remove-tabs (start end)
-  "Replace all tab characters in region between START and END with
-number of spaces equal to `tab-width'."
-  (interactive "r*")
-  (save-match-data
-    (save-excursion
-      (goto-char start)
-      (unless (search-forward "\t" end t)
-        (error "No tabs found"))))
-  (remove-tabs-in-region! start end))
-
 ;;;
 
 ;;;###autoload
