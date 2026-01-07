@@ -91,7 +91,8 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
   ;; in select-mode buffers, so no reason to have it enabled in the fist place.
   (when font-lock-mode
     (font-lock-mode -1))
-  (setq-local mode-line-format
+  (setq-local tab-width 8
+              mode-line-format
               '(" %[%b%] "
                 (:eval (when buffer-read-only
                          "(RO)"))

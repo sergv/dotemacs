@@ -202,7 +202,7 @@ single indentation unit."
 
   (let ((real-offset (or offset 2)))
     (setq-local-if-not-eq vim-shift-width                    real-offset
-                          tab-width                          real-offset
+                          tab-width                          8
                           haskell-indent-offset              real-offset
                           haskell-indentation-layout-offset  real-offset
                           haskell-indentation-starter-offset real-offset
