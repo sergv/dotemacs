@@ -81,7 +81,7 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 
 ;;; mode definition
 
-(define-derived-mode select-mode text-mode "Selection"
+(define-derived-mode select-mode fundamental-mode "Selection"
   "Major mode for queries in auxiliary buffer."
   ;; Fringe line tracking.
   (when (bound-and-true-p linum-mode)
