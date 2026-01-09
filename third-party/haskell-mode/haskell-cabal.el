@@ -232,6 +232,7 @@
     "allow-newer"
     "allow-older"
     "benchmarks"
+    "branch"
     "build-info"
     "build-summary"
     "cabal-lib-version"
