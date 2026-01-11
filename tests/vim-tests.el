@@ -5122,6 +5122,38 @@ _|_bar")
      "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-open-paren-in-export
+    (execute-kbd-macro (kbd "i ( <escape>"))
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( Bar_|_"
+   "  , Baz"
+   "  ) where"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( Bar_|_()"
+   "  , Baz"
+   "  ) where"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-open-paren-in-import
+    (execute-kbd-macro (kbd "i ( <escape>"))
+  (tests-utils--multiline
+   ""
+   "import Foo (Bar_|_, Baz)"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Foo (Bar_|_(), Baz)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-cmd-insert-line-below-1
     (execute-kbd-macro (kbd "o f o o <escape>"))
