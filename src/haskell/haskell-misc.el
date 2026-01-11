@@ -884,7 +884,7 @@ a single entity."
                    ;; Find match node that encloses us that’s still within
                    ;; enclosing let.
                    (let* ((bind-node
-                           (treesit-utils-find-topmost-parent-stop-at-first-limited
+                           (treesit-utils-find-closest-parent-limited
                             curr-node
                             (lambda (node)
                               (string= (treesit-node-type node) "bind"))
