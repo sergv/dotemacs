@@ -644,8 +644,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-open-paren ()
   (interactive)
   (let ((literal-insertion? (haskell-smart-operators--literal-insertion?))
-        (checked-import-list? nil)
-        (inside-import-list? nil))
+        (checked-import-or-export-list? nil)
+        (inside-import-or-export-list? nil))
     (smart-operators--insert-pair ?\(
                                   ?\)
                                   (lambda (before)
@@ -654,19 +654,23 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                              (eq before ?\[)
                                              (eq before ?\\)
                                              (eq before ?@)
-                                             (if checked-import-list?
-                                                 inside-import-list?
-                                               (setf checked-import-list? t
-                                                     inside-import-list? (haskell-smart-operators--in-import-list?))))))
+                                             (if checked-import-or-export-list?
+                                                 inside-import-or-export-list?
+                                               (setf checked-import-or-export-list? t
+                                                     inside-import-or-export-list?
+                                                     (or (haskell-smart-operators--in-import-list?)
+                                                         (haskell-smart-operators--in-export-list?)))))))
                                   (lambda (after)
                                     (not (or literal-insertion?
                                              (eq after ?\))
                                              (eq after ?\])
                                              (eq after ?,)
-                                             (if checked-import-list?
-                                                 inside-import-list?
-                                               (setf checked-import-list? t
-                                                     inside-import-list? (haskell-smart-operators--in-import-list?)))))))))
+                                             (if checked-import-or-export-list?
+                                                 inside-import-or-export-list?
+                                               (setf checked-import-or-export-list? t
+                                                     inside-import-or-export-list?
+                                                     (or (haskell-smart-operators--in-import-list?)
+                                                         (haskell-smart-operators--in-export-list?))))))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-open-bracket ()
