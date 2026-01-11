@@ -57,15 +57,22 @@
       (smart-operators--literal-insertion? disable-comment-check?)))
 
 (defun haskell-smart-operators--treesit--in-import-list? (node)
-  (when node
-    (equal (treesit-node-type node) "import_list")))
+  (string= (treesit-node-type node) "import_list"))
 
 (defun haskell-smart-operators--in-import-list? ()
-  (when-let ((node (treesit-haskell--current-node)))
-    (treesit-utils-find-closest-parent-limited node
-                                               (lambda (x)
-                                                 (haskell-smart-operators--treesit--in-import-list? x))
-                                               5)))
+  (treesit-utils-find-closest-parent-limited
+   (treesit-haskell--current-node)
+   #'haskell-smart-operators--treesit--in-import-list?
+   5))
+
+(defun haskell-smart-operators--treesit--in-export-list? (node)
+  (string= (treesit-node-type node) "exports"))
+
+(defun haskell-smart-operators--in-export-list? ()
+  (treesit-utils-find-closest-parent-limited
+   (treesit-haskell--current-node)
+   #'haskell-smart-operators--treesit--in-export-list?
+   5))
 
 (provide 'haskell-smart-operators-utils)
 
