@@ -62,7 +62,7 @@
 
 (defun haskell-smart-operators--in-import-list? ()
   (when-let ((node (treesit-haskell--current-node)))
-    (treesit-utils-find-topmost-parent-limited node
+    (treesit-utils-find-closest-parent-limited node
                                                (lambda (x)
                                                  (haskell-smart-operators--treesit--in-import-list? x))
                                                5)))
