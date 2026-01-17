@@ -11,10 +11,10 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{github.ref}}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: legacy
 
@@ -25,8 +25,8 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@main
 
-      - name: Generate parser
-        run: nix -L run .#gen-parser
+      - name: Generate parsers
+        run: nix -L run .#gen-parsers
 
       - name: Commit and push to legacy branch
         uses: actions-js/push@v1.5
