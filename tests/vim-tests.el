@@ -40,49 +40,49 @@
   (declare (indent 1))
   `(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
        ,name-prefix
-       ,vim-tests--all-known-modes-and-init
+       ,(-map #'car vim-tests--all-known-modes-and-init)
      ,actions
      ,contentss
      ,expected-value))
 
 (defmacro vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
-    (name-prefix inits actions contentss expected-value)
+    (name-prefix modes actions contentss expected-value)
   (declare (indent 2))
   (cl-assert (symbolp name-prefix))
   (cl-assert (listp contentss))
   (cl-assert (listp actions))
-  (cl-assert (listp inits))
+  (cl-assert (listp modes))
   (cl-assert (--all? (or (symbolp (car it)) (numberp (car it))) contentss))
   (cl-assert (--all? (or (symbolp (car it)) (numberp (car it))) actions))
-  (cl-assert (--all? (symbolp (car it)) inits))
+  (cl-assert (--all? (symbolp it) modes))
   `(progn
      ,@(cl-loop
         for action in actions
         append
         (cl-loop
-         for init-spec in inits
+         for mode in modes
          append
          (cl-loop
           for contents in contentss
           collect
           `(ert-deftest ,(string->symbol (format "%s-%s-%s-%s"
                                                  name-prefix
-                                                 (car init-spec)
+                                                 mode
                                                  (car action)
                                                  (car contents)))
                ()
              (vim-tests--test-fresh-buffer-contents-init
-                 (progn ,@(cdr init-spec))
+                 (progn ,@(cdr (assq mode vim-tests--all-known-modes-and-init)))
                  (progn ,@(cdr action))
                ,(cadr contents)
 
                ,expected-value)))))))
 
-(defmacro vim-tests--test-fresh-buffer-contents-init-all (name inits action contents expected-value)
+(defmacro vim-tests--test-fresh-buffer-contents-init-all (name modes action contents expected-value)
   (declare (indent 3))
   `(tests-utils--test-buffer-contents-for-inits
     :name ,name
-    :inits ,inits
+    :inits ,(--filter (memq (car it) modes) vim-tests--all-known-modes-and-init)
     :action ,action
     :contents ,contents
     :expected-value ,expected-value
@@ -98,7 +98,7 @@
   (cl-assert (cl-every #'symbolp skip-modes))
   `(vim-tests--test-fresh-buffer-contents-init-all
        ,name
-       ,(--remove (memq (car it) skip-modes) tests-utils--modes-and-init)
+       ,(--remove (memq it skip-modes) (-map #'car tests-utils--modes-and-init))
        ,action
      ,contents
      ,expected-value))
@@ -114,7 +114,7 @@
   (cl-assert (cl-every #'symbolp modes))
   `(vim-tests--test-fresh-buffer-contents-init-all
     ,name
-    ,(--filter (memq (car it) modes) vim-tests--all-known-modes-and-init)
+    ,(--filter (memq it modes) (-map #'car vim-tests--all-known-modes-and-init))
     ,action
     ,contents
     ,expected-value))
@@ -132,7 +132,7 @@
   (declare (indent 2))
   `(vim-tests--test-fresh-buffer-contents-init-all
        ,name
-       ,tests-utils--modes-and-init
+       ,(-map #'car tests-utils--modes-and-init)
        ,action
      ,contents
      ,expected-value))
@@ -147,7 +147,7 @@
               (action (cadr entry)))
           `(vim-tests--test-fresh-buffer-contents-init-all
             ,name
-            ,tests-utils--modes-and-init
+            ,(-map #'car tests-utils--modes-and-init)
             ,action
             ,contents
             ,expected-value)))))
@@ -170,13 +170,13 @@
   `(progn
      (vim-tests--test-fresh-buffer-contents-init-all
          ,(string->symbol (format "%s-%s" name name1))
-         ,(--filter (memq (car it) keep-modes) vim-tests--all-known-modes-and-init)
+         ,(--filter (memq it keep-modes) (-map #'car vim-tests--all-known-modes-and-init))
          ,action1
        ,contents
        ,expected1)
      (vim-tests--test-fresh-buffer-contents-init-all
          ,(string->symbol (format "%s-%s" name name2))
-         ,(--filter (memq (car it) keep-modes) vim-tests--all-known-modes-and-init)
+         ,(--filter (memq it keep-modes) (-map #'car vim-tests--all-known-modes-and-init))
          ,action2
        ,contents
        ,expected2)))
@@ -700,8 +700,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-all
     vim-tests/block-insert-2
-    ((emacs-lisp-mode (emacs-lisp-mode))
-     (text-mode (text-mode)))
+    (emacs-lisp-mode text-mode)
     (execute-kbd-macro (kbd "d d C-v h h h I f o o - b a r C-w b a z <escape>"))
   (tests-utils--multiline
    "fo_|_o"
@@ -1897,8 +1896,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -1924,8 +1922,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-number
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -1947,8 +1944,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-after-operator
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -1979,8 +1975,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-before-operator
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -2011,8 +2006,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-qualified-names
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -2038,8 +2032,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-type
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -2060,8 +2053,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-symbol-value
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((as (execute-kbd-macro (kbd ", a s"))))
   ((1 (tests-utils--multiline
        ""
@@ -2091,8 +2083,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-symbol-value-qualified
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((as (execute-kbd-macro (kbd ", a s"))))
   ((1 (tests-utils--multiline
        ""
@@ -2122,8 +2113,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2149,8 +2139,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2181,8 +2170,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-after-operator
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2218,8 +2206,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-before-operator
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2255,8 +2242,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-type
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2282,8 +2268,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-qualified-symbol-value
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((aS (execute-kbd-macro (kbd ", a S"))))
   ((1 (tests-utils--multiline
        ""
@@ -2313,8 +2298,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-qualified-symbol-value-qualified
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((aS (execute-kbd-macro (kbd ", a S"))))
   ((1 (tests-utils--multiline
        ""
@@ -2349,8 +2333,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-quasiquoter
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s")))
    (as (execute-kbd-macro (kbd ", a s")))
@@ -2380,8 +2363,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-qualified-quasiquoter
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s")))
    (as (execute-kbd-macro (kbd ", a s"))))
@@ -2408,8 +2390,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-qualified-quasiquoter-qualified
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S")))
    (aS (execute-kbd-macro (kbd ", a S"))))
@@ -2441,8 +2422,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-operator
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -2458,8 +2438,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-operator-qualified
-    ((haskell-mode (haskell-mode))
-     (haskell-ts-mode (haskell-ts-mode)))
+    (haskell-mode haskell-ts-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -7533,7 +7512,7 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-ts-beginning-of-defun-7e
-    ((haskell-ts-mode (haskell-ts-mode)))
+    (haskell-ts-mode)
   ((beginning-of-defun
     (execute-kbd-macro (kbd "g t"))))
   ((a
