@@ -3,5 +3,6 @@
 /src/parser.c -diff
 /src/grammar.json -diff
 /src/node-types.json -diff
+/hsc/src/parser.c -diff
 /hsc/src/grammar.json -diff
 /hsc/src/node-types.json -diff
