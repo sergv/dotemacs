@@ -30,9 +30,9 @@ for x in native/tree-sitter* native/tree-sitter-haskell/hsc; do
     name="$(basename "$x")"
     name="${name##tree-sitter-}"
     if [[ -f "$x/src/scanner.c" ]]; then
-        "${CC:-cc}" -Os -fPIC "-I$x/src" "$x/src/parser.c" "$x/src/scanner.c" -shared -o "lib/libtree-sitter-$name$shared_ext"
+        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$x/src/parser.c" "$x/src/scanner.c" -shared -o "lib/libtree-sitter-$name$shared_ext"
     elif [[ -f "$x/src/parser.c" ]]; then
-        "${CC:-cc}" -Os -fPIC "-I$x/src" "$x/src/parser.c" -shared -o "lib/libtree-sitter-$name$shared_ext"
+        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$x/src/parser.c" -shared -o "lib/libtree-sitter-$name$shared_ext"
     else
         echo "Invalid treesitter library: '$x'" >&2
     fi
