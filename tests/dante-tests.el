@@ -89,7 +89,7 @@
                     (looking-at-p "Failed, modules loaded: none\\.$"))))
     (accept-process-output proc nil nil t)))
 
-(ert-deftest dante-tests/simple-check-project-1 ()
+(ert-deftest z-dante-tests/simple-check-project-1 ()
   (unless (executable-find "cabal")
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
@@ -134,7 +134,7 @@
        (lambda (ty)
          (should (string= ty "x :: a")))))))
 
-(ert-deftest dante-tests/simple-check-project-2 ()
+(ert-deftest z-dante-tests/simple-check-project-2 ()
   (unless (executable-find "cabal")
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
@@ -201,7 +201,7 @@
         (dante-tests/check-buffer-and-assert-when-done
          (should (null flycheck-current-errors)))))))
 
-(ert-deftest dante-tests/simple-repl-project-1 ()
+(ert-deftest z-dante-tests/simple-repl-project-1 ()
   (unless (executable-find "cabal")
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
@@ -260,7 +260,7 @@
       (dante-repl/wait-for-prompt repl-proc)
       (should (string= (dante-repl-get-last-output) "36\n")))))
 
-(ert-deftest dante-tests/check-hsc-project-1 ()
+(ert-deftest z-dante-tests/check-hsc-project-1 ()
   (unless (executable-find "cabal")
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
@@ -334,7 +334,7 @@
         (dante-tests/check-buffer-and-assert-when-done
          (should (null flycheck-current-errors)))))))
 
-(ert-deftest dante-tests/check-hsc-project-2 ()
+(ert-deftest z-dante-tests/check-hsc-project-2 ()
   (unless (executable-find "cabal")
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
@@ -394,7 +394,7 @@
                         (concat tmp-dir "/simple-check-project-with-hsc/src/Foo.hs")))
        (should (not (null flycheck-current-errors)))))))
 
-(ert-deftest dante-tests/repl-hsc-project-1 ()
+(ert-deftest z-dante-tests/repl-hsc-project-1 ()
   (unless (executable-find "cabal")
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
@@ -442,7 +442,7 @@
       (dante-repl/wait-for-prompt repl-proc)
       (should (string= (dante-repl-get-last-output) "0.0\n")))))
 
-(ert-deftest dante-tests/repl-hsc-project-2 ()
+(ert-deftest z-dante-tests/repl-hsc-project-2 ()
   (unless (executable-find "cabal")
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
@@ -490,7 +490,7 @@
      (dante-repl/wait-for-prompt repl-proc)
      (should (string= (dante-repl-get-last-output) "0.0\n")))))
 
-(ert-deftest dante-tests/repl-hsc-project-3 ()
+(ert-deftest z-dante-tests/repl-hsc-project-3 ()
   ;; todo: unpack simple-check-project-with-hsc.zip and try fixing and reloading to see
   ;; that changes in hsc file are picked up by dante-repl ghci session
   (unless (executable-find "cabal")
