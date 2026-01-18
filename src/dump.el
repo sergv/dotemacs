@@ -126,8 +126,15 @@
     (require 'toml-mode)
     (require 'yasnippet)
 
-    (when (treesit-language-available-p 'haskell t)
-      (require 'haskell-ts-mode))
+    (require 'treesit-setup)
+    (awhen (treesit-language-available-p 'haskell t)
+      (if (car it)
+          (require 'haskell-ts-mode)
+        (error "Language 'haskell not available: %s" (cdr it))))
+    (awhen (treesit-language-available-p 'hsc t)
+      (if (car it)
+          (require 'haskell-hsc-mode)
+        (error "Language 'hsc not available: %s" (cdr it))))
 
     (require 'ebuf)
 
