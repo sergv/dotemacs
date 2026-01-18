@@ -40,7 +40,7 @@
           action
           contents
           expected-value
-          (modes '(haskell-mode haskell-ts-mode))
+          (modes '(haskell-mode haskell-ts-mode haskell-hsc-mode))
           fresh-buffer)
   `(progn
      ,@(cl-loop
@@ -394,7 +394,7 @@ have different input states."
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-align-options-ghc-pragmas-4a
     (pcase major-mode
-      (`haskell-ts-mode
+      ((or `haskell-ts-mode `haskell-hsc-mode)
        (haskell-ts-reindent-at-point))
       (`haskell-mode
        (haskell-reindent-at-point))
@@ -412,7 +412,7 @@ have different input states."
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-align-options-ghc-pragmas-4b
     (pcase major-mode
-      (`haskell-ts-mode
+      ((or `haskell-ts-mode `haskell-hsc-mode)
        (haskell-ts-reindent-at-point))
       (`haskell-mode
        (haskell-reindent-at-point))
@@ -430,7 +430,7 @@ have different input states."
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-align-options-ghc-pragmas-4c
     (pcase major-mode
-      (`haskell-ts-mode
+      ((or `haskell-ts-mode `haskell-hsc-mode)
        (haskell-ts-reindent-at-point))
       (`haskell-mode
        (haskell-reindent-at-point))
@@ -448,7 +448,7 @@ have different input states."
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-align-options-ghc-pragmas-4d
     (pcase major-mode
-      (`haskell-ts-mode
+      ((or `haskell-ts-mode `haskell-hsc-mode)
        (haskell-ts-reindent-at-point))
       (`haskell-mode
        (haskell-reindent-at-point))

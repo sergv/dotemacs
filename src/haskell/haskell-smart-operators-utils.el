@@ -37,7 +37,10 @@
 ;;;###autoload
 (defun haskell-smart-operators--in-string-syntax?-raw (node)
   (or (haskell-smart-operators--treesit--in-string? node)
-      (smart-operators--in-string-syntax?)))
+      (if (bobp)
+          nil
+        (and (eq (syntax-class (syntax-after (1- (point)))) 7)
+             (eq (syntax-class (syntax-after (point))) 7)))))
 
 ;;;###autoload
 (defun haskell-smart-operators--in-string-syntax? ()
