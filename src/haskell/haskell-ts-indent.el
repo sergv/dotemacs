@@ -799,7 +799,8 @@
   (setq-local treesit-simple-indent-presets
               haskell-ts--treesit-simple-indent-presets
               treesit-simple-indent-rules
-              (list (cons 'haskell haskell-ts-indent-rules))))
+              (list (cons 'haskell haskell-ts-indent-rules)
+                    (cons 'hsc haskell-ts-indent-rules))))
 
 (provide 'haskell-ts-indent)
 

@@ -348,7 +348,12 @@ then Bar would be the result."
 ;; 4. We’re within import statement
 (defun haskell-abbrev+--should-insert-pragma? ()
   (let ((is-haskell-ts? (derived-mode-p 'haskell-ts-base-mode)))
-    (or (and (haskell-abbrev+--only-whitespace-till-line-start?)
+    (or (when is-haskell-ts?
+          (and (haskell-abbrev+--within-data-type?)
+               (let ((char-before-abbrev (char-before)))
+                 (whitespace-char? char-before-abbrev))
+               'within-data))
+        (and (haskell-abbrev+--only-whitespace-till-line-start?)
              (if is-haskell-ts?
                  (if-let* ((node (treesit-node-at (point)))
                            (p (treesit-node-parent node)))
@@ -366,12 +371,7 @@ then Bar would be the result."
                    t)
                t))
         (and (haskell-abbrev+--after-instance-keyword?) 'within-instance)
-        (and (haskell-abbrev+--after-import-keyword?) 'within-import)
-        (when is-haskell-ts?
-          (and (haskell-abbrev+--within-data-type?)
-               (let ((char-before-abbrev (char-before)))
-                 (whitespace-char? char-before-abbrev))
-               'within-data)))))
+        (and (haskell-abbrev+--after-import-keyword?) 'within-import))))
 
 (add-to-list 'ivy-re-builders-alist
              '(haskell-abbrev+--insert-pragma . ivy--regex-fuzzy))
