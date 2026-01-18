@@ -651,6 +651,11 @@
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
               0)
 
+             ((and no-node
+                   (parent-is "comment" "haddock"))
+              parent
+              0)
+
              (no-node
               prev-adaptive-prefix
               ,(lambda (_node _parent _bol)
