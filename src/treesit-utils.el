@@ -30,6 +30,13 @@
   (and (<= (treesit-node-start node) p)
        (<= p (treesit-node-end node))))
 
+(defun treesit-haskell--is-inside-node-ex-start? (p node)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (integerp p))
+  (cl-assert (treesit-node-p node))
+  (and (< (treesit-node-start node) p)
+       (<= p (treesit-node-end node))))
+
 (defun treesit-haskell--is-comment-node-type? (typ)
   (declare (pure t) (side-effect-free t))
   (cl-assert (stringp typ))
@@ -46,27 +53,27 @@
 
 (defun treesit-haskell--is-inside-string-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (and (treesit-haskell--is-string-node-type? (treesit-node-type node))
-       (treesit-haskell--is-inside-node? p node)))
+  (and (treesit-haskell--is-inside-node-ex-start? p node)
+       (treesit-haskell--is-string-node-type? (treesit-node-type node))))
 
 (defun treesit-haskell--is-inside-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (and (treesit-haskell--is-comment-node-type? (treesit-node-type node))
-       (treesit-haskell--is-inside-node? p node)))
+  (and (treesit-haskell--is-inside-node-ex-start? p node)
+       (treesit-haskell--is-comment-node-type? (treesit-node-type node))))
 
 (defun treesit-haskell--is-inside-string-or-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
   (let ((typ (treesit-node-type node)))
-    (and (or (treesit-haskell--is-comment-node-type? typ)
-             (treesit-haskell--is-string-node-type? typ))
-         (treesit-haskell--is-inside-node? p node))))
+    (and (treesit-haskell--is-inside-node-ex-start? p node)
+         (or (treesit-haskell--is-comment-node-type? typ)
+             (treesit-haskell--is-string-node-type? typ)))))
 
 (defun treesit-haskell--is-not-inside-string-or-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
   (let ((typ (treesit-node-type node)))
-    (and (not (or (treesit-haskell--is-comment-node-type? typ)
-                  (treesit-haskell--is-string-node-type? typ)))
-         (treesit-haskell--is-inside-node? p node))))
+    (not (and (treesit-haskell--is-inside-node-ex-start? p node)
+              (or (treesit-haskell--is-comment-node-type? typ)
+                  (treesit-haskell--is-string-node-type? typ))))))
 
 (defun treesit-haskell-get-buffer-module-name ()
   (if-let* ((header-candidates (treesit-filter-child
