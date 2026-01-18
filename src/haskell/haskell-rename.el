@@ -6,11 +6,14 @@
 ;; Created: 19 May 2024
 ;; Description:
 
+(require 'haskell-ts-mode)
+
 (require 'treesit)
 (require 'treesit-setup)
 
 (defconst haskell-ts-rename--renameable-identifier-query
-  (treesit-query-compile 'haskell '([(variable) (name) (constructor)] @variable)))
+  (haskell-ts-query-compile
+   '([(variable) (name) (constructor)] @variable)))
 
 (defface haskell-ts-rename-candidate-face
   `((t :box (:line-width
@@ -35,7 +38,7 @@
 ;;;###autoload
 (defun haskell-ts-rename-at-point ()
   (interactive "*")
-  (let ((var-node (treesit-node-at (point) 'haskell)))
+  (let ((var-node (treesit-node-at (point) haskell-ts-buffer-lang)))
     (unless var-node
       (error "No treesitter node at point to rename"))
     (unless (member (treesit-node-type var-node) '("variable" "name" "constructor"))
@@ -103,7 +106,8 @@
         (dolist (scope relevant-scopes)
           (let ((names
                  (treesit-query-capture scope
-                                        haskell-ts-rename--renameable-identifier-query
+                                        (haskell-ts-query-resolve
+                                         haskell-ts-rename--renameable-identifier-query)
                                         nil
                                         nil
                                         t ;; Don’t capture names, we only ask for variables.
