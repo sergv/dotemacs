@@ -37,6 +37,7 @@
 (require 'haskell-ext-tracking)
 (require 'haskell-format)
 (require 'haskell-mode)
+(require 'haskell-ts-mode)
 (require 'haskell-regexen)
 (require 'haskell-smart-operators-mode)
 (require 'haskell-smart-operators-utils)
@@ -63,10 +64,10 @@ of my home config.")
   (comment-util-uncomment-region-simple--impl begin end nil))
 
 (defconst haskell-misc--multiway-if-query
-  (treesit-query-compile 'haskell
-                         '((multi_way_if
-                            :anchor
-                            (match "|" @pipe)))))
+  (haskell-ts-query-compile
+   '((multi_way_if
+      :anchor
+      (match "|" @pipe)))))
 
 (defun haskell-misc--indent-line--fingerprint ()
   (when-let* ((node (treesit-utils-largest-node-starting-at (line-beginning-position)))
@@ -135,7 +136,7 @@ of my home config.")
       (let* ((curr-node (treesit-utils-largest-node-starting-at line-start-pos))
              (multiway-if-pipes
               (treesit-query-capture curr-node
-                                     haskell-misc--multiway-if-query
+                                     (haskell-ts-query-resolve haskell-misc--multiway-if-query)
                                      nil
                                      nil
                                      t ;; Don’t capture names, return list of matched nodes we asked for.
