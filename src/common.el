@@ -239,7 +239,7 @@ combinations"
   (funcall point-inside-string?-impl pos))
 
 (defun point-inside-comment? (&optional pos)
-  "Return non-nil if point is positioned inside a string."
+  "Return non-nil if point is positioned inside a comment."
   (declare (pure nil) (side-effect-free t))
   (funcall point-inside-comment?-impl pos))
 
