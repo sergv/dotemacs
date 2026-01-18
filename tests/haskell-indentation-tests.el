@@ -711,6 +711,60 @@ have different input states."
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-comment-4a
+ :contents
+ (tests-utils--multiline
+  "data ChildrenVisibility ann"
+  "  = -- | Wildcard import/export, e.g. Foo(..)"
+  "    VisibleAllChildren"
+  ""
+  "  -- | Import/export with explicit list of children, e.g. Foo(Bar, Baz), Quux(foo, bar)."
+  "    _|_-- Set is always non-empty."
+  "  | VisibleSpecificChildren"
+  "      -- TODO: to support explicit namespaces change"
+  "    !(Map UnqualifiedSymbolName ann)"
+  "  deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)")
+ :expected-value
+ (tests-utils--multiline
+  "data ChildrenVisibility ann"
+  "  = -- | Wildcard import/export, e.g. Foo(..)"
+  "    VisibleAllChildren"
+  ""
+  "  -- | Import/export with explicit list of children, e.g. Foo(Bar, Baz), Quux(foo, bar)."
+  "  _|_-- Set is always non-empty."
+  "  | VisibleSpecificChildren"
+  "      -- TODO: to support explicit namespaces change"
+  "    !(Map UnqualifiedSymbolName ann)"
+  "  deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-comment-4b
+ :contents
+ (tests-utils--multiline
+  "data ChildrenVisibility ann"
+  "  = -- | Wildcard import/export, e.g. Foo(..)"
+  "    VisibleAllChildren"
+  ""
+  "  -- Import/export with explicit list of children, e.g. Foo(Bar, Baz), Quux(foo, bar)."
+  "    _|_-- Set is always non-empty."
+  "  | VisibleSpecificChildren"
+  "      -- TODO: to support explicit namespaces change"
+  "    !(Map UnqualifiedSymbolName ann)"
+  "  deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)")
+ :expected-value
+ (tests-utils--multiline
+  "data ChildrenVisibility ann"
+  "  = -- | Wildcard import/export, e.g. Foo(..)"
+  "    VisibleAllChildren"
+  ""
+  "  -- Import/export with explicit list of children, e.g. Foo(Bar, Baz), Quux(foo, bar)."
+  "  _|_-- Set is always non-empty."
+  "  | VisibleSpecificChildren"
+  "      -- TODO: to support explicit namespaces change"
+  "    !(Map UnqualifiedSymbolName ann)"
+  "  deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-where-1
  :contents
  (tests-utils--multiline
@@ -5154,7 +5208,7 @@ have different input states."
   "{-# INLINE asLiterateLocL       #-}"
   "{-# INLINE asHaveQQEndL         #-}"
   "-- | Current Alex state the lexer is in. E.g. comments, string, TH quasiquoter"
-  "     -- or vanilla toplevel mode."
+  "-- or vanilla toplevel mode."
   "asCodeL :: Lens' AlexState AlexCode"
   "asCommentDepthL, asQuasiquoterDepthL, asIndentationSizeL :: Lens' AlexState Int16"
   "-- | How many directives deep are we."
@@ -5331,7 +5385,7 @@ have different input states."
   ""
   ""
   "-- Vector mapping absolute offsets off a pointer into how many utf8 characters"
-  "   -- were encoded since the pointer start."
+  "-- were encoded since the pointer start."
   "positionsIndex :: Ptr Word8 -> Int -> U.Vector Int"
   "positionsIndex (Ptr start#) len ="
   "  U.create $ do"
@@ -5512,7 +5566,10 @@ have different input states."
   "    (# c#, n, cs #) ->"
   "      case fixChar c# of"
   "        0##  -> Nothing -- Abort on an unknown character"
-  "        -- '\\n'"
+  ;; Multiple comments unify into one and are indented as a single block.
+  ;; This is correct and expected by me, to avoid this break the comment with
+  ;; whitespace in the middle.
+  "                        -- '\\n'"
   "        10## -> Just (10, input')"
   "          where"
   "            !input' ="
@@ -5735,10 +5792,10 @@ have different input states."
   "invalid# :: Int# -> (# Char#, Int# #)"
   "invalid# nBytes# = (# '\\8'#, nBytes# #)"
   "-- TODO: check whether following note from ghc applies to server's lexer:"
-  "   -- '\\xFFFD' would be the usual replacement character, but"
-  "      -- that's a valid symbol in Haskell, so will result in a"
-  "         -- confusing parse error later on.  Instead we use '\\0' which"
-  "            -- will signal a lexer error immediately."
+  "-- '\\xFFFD' would be the usual replacement character, but"
+  "-- that's a valid symbol in Haskell, so will result in a"
+  "-- confusing parse error later on.  Instead we use '\\0' which"
+  "-- will signal a lexer error immediately."
   ""
   "{-# INLINE readChar1# #-}"
   "readChar1# :: Addr# -> Int# -> (# Char#, Int# #)"
