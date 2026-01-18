@@ -32,65 +32,75 @@
           contents        ;; Buffer text before indent.
           expected-value  ;; Buffer text after indent.
           expected-result ;; Whether the test should fail or succeed.
-          )
-  (let ((mode 'haskell-ts-mode))
-    `(ert-deftest ,name ()
-       :expected-result ,(or expected-result :passed) ;;:failed
-       (tests-utils--test-buffer-contents
-        :action
-        (progn
-          (let ((fallback-indentations (haskell-indentation-find-indentations)))
-            ;; Mostly test that it doesn’t throw an error. Should always
-            ;; produce some entries because it would include treesitter
-            ;; indentation which these tests are expected to always have.
-            (should (not (null fallback-indentations))))
-          (haskell-misc--indent-line-with-treesitter))
-        :contents ,contents
-        :expected-value ,expected-value
-        :initialisation (,mode)
-        :buffer-id
-        ,(string->symbol (format "haskell-indentation-tests-%s" mode))))))
+          (modes '(haskell-ts-mode haskell-hsc-mode)))
+  (cons
+   'progn
+   (loop
+     for mode in modes
+     collect
+     `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+        :expected-result ,(or expected-result :passed) ;;:failed
+        (tests-utils--test-buffer-contents
+         :action
+         (progn
+           ,(when (eq mode 'haskell-ts-mode)
+              `(let ((fallback-indentations (haskell-indentation-find-indentations)))
+                 ;; Mostly test that it doesn’t throw an error. Should always
+                 ;; produce some entries because it would include treesitter
+                 ;; indentation which these tests are expected to always have.
+                 (should (not (null fallback-indentations)))))
+           (haskell-misc--indent-line-with-treesitter))
+         :contents ,contents
+         :expected-value ,expected-value
+         :initialisation (,mode)
+         :buffer-id
+         ,(string->symbol (format "haskell-indentation-tests-%s" mode)))))))
 
 (cl-defmacro haskell-indentation-tests--test-treesitter-region
     (&key name
           contents
-          expected-value)
-  (let ((mode 'haskell-ts-mode))
-    `(ert-deftest ,name ()
-       (tests-utils--test-buffer-contents
-        :action
-        (save-excursion
-          (let ((start nil)
-                (end nil))
-            (goto-char (point-min))
-            (if (re-search-forward "_|_" nil t)
-                (replace-match "")
-              (error "No _|_ marker for point position within contents:\n%s" ,contents))
-            (when (save-excursion
-                    (goto-char (point-min))
-                    (re-search-forward "_|_" nil t))
-              (error "More than one occurrence of _|_ in source"))
-            (setf start (point))
-            (goto-char (point-min))
-            (if (re-search-forward "_||_" nil t)
-                (replace-match "")
-              (error "No _||_ marker for point position within contents:\n%s" ,contents))
-            (when (save-excursion
-                    (goto-char (point-min))
-                    (re-search-forward "_||_" nil t))
-              (error "More than one occurrence of _||_ in source"))
-            (setf end (point))
-            ;; ‘indent-region’ produces incorrect results because
-            ;; of too small ‘treesit--indent-region-batch-size’.
-            ;; Increasing it to cover everything is not possible.
-            (haskell-format-region-with-treesitter-preserving-position! start end)
-            (insert "_|_")))
-        :contents ,contents
-        :expected-value ,expected-value
-        :initialisation (,mode)
-        :suppress-cursor t
-        :buffer-id
-        ,(string->symbol (format "haskell-indentation-tests-%s" mode))))))
+          expected-value
+          modes)
+  (cons
+   'progn
+   (loop
+     for mode in (or modes '(haskell-ts-mode haskell-hsc-mode))
+     collect
+     `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+        (tests-utils--test-buffer-contents
+         :action
+         (save-excursion
+           (let ((start nil)
+                 (end nil))
+             (goto-char (point-min))
+             (if (re-search-forward "_|_" nil t)
+                 (replace-match "")
+               (error "No _|_ marker for point position within contents:\n%s" ,contents))
+             (when (save-excursion
+                     (goto-char (point-min))
+                     (re-search-forward "_|_" nil t))
+               (error "More than one occurrence of _|_ in source"))
+             (setf start (point))
+             (goto-char (point-min))
+             (if (re-search-forward "_||_" nil t)
+                 (replace-match "")
+               (error "No _||_ marker for point position within contents:\n%s" ,contents))
+             (when (save-excursion
+                     (goto-char (point-min))
+                     (re-search-forward "_||_" nil t))
+               (error "More than one occurrence of _||_ in source"))
+             (setf end (point))
+             ;; ‘indent-region’ produces incorrect results because
+             ;; of too small ‘treesit--indent-region-batch-size’.
+             ;; Increasing it to cover everything is not possible.
+             (haskell-format-region-with-treesitter-preserving-position! start end)
+             (insert "_|_")))
+         :contents ,contents
+         :expected-value ,expected-value
+         :initialisation (,mode)
+         :suppress-cursor t
+         :buffer-id
+         ,(string->symbol (format "haskell-indentation-tests-%s" mode)))))))
 
 (cl-defmacro haskell-indentation-tests--make-multiple-input-test-treesitter
     (&key inputs expected-value expected-result)
@@ -4090,6 +4100,7 @@ have different input states."
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-unboxed-tuple-1a
+ :modes (haskell-ts-mode)
  :contents
  (tests-utils--multiline
   ""
@@ -4105,6 +4116,26 @@ have different input states."
   "  (# x"
   "  , 4"
   "  _|_#)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-unboxed-tuple-1a
+ :modes (haskell-hsc-mode)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  (## x"
+  "  , 4"
+  "    _|_##)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  (## x"
+  "  , 4"
+  "  _|_##)"
   ""))
 
 (haskell-indentation-tests--test-treesitter
@@ -4246,6 +4277,8 @@ have different input states."
 
 (haskell-indentation-tests--test-treesitter-region
  :name haskell-indentation-tests--test-treesitter-region-2
+ ;; Hashes are reserved in hsc
+ :modes (haskell-ts-mode)
  :contents
  (tests-utils--multiline
   "_|_module Haskell.Language.LexerSimple.Types"

@@ -17,8 +17,7 @@
 (require 'ert)
 
 (defconst vim-tests--all-known-modes-and-init
-  (append '((haskell-hsc-mode (haskell-hsc-mode))
-            (nix-mode (nix-mode)))
+  (append '((nix-mode (nix-mode)))
           tests-utils--modes-and-init))
 
 (defmacro vim-tests--enable-undo (&rest body)
@@ -268,7 +267,7 @@
    "_|_"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (text-mode haskell-mode haskell-ts-mode)
+    (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/repeat-vim:splice-sexp-killing-backward-1
     (execute-kbd-macro (kbd "j \( d"))
   (tests-utils--multiline
@@ -286,7 +285,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (text-mode haskell-mode haskell-ts-mode)
+    (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/repeat-vim:splice-sexp-killing-backward-2
     (execute-kbd-macro (kbd "j \( d ."))
   (tests-utils--multiline
@@ -304,7 +303,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/repeat-vim:splice-sexp-killing-backward-2
     (execute-kbd-macro (kbd "j \( d"))
   (tests-utils--multiline
@@ -322,7 +321,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/repeat-vim:splice-sexp-killing-backward-3
     (execute-kbd-macro (kbd "j \( d ."))
   (tests-utils--multiline
@@ -967,7 +966,7 @@
      "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/comment-linewise-region-1-haskell
     (execute-kbd-macro (kbd "V h j c c"))
   (tests-utils--multiline
@@ -1570,7 +1569,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (text-mode haskell-mode haskell-ts-mode)
+    (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/paste-cycle-after-2
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> <tab> p p p"))
   (tests-utils--multiline
@@ -1594,7 +1593,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode haskell-mode haskell-ts-mode)
+    (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/paste-cycle-after-2a
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> p p p"))
   (tests-utils--multiline
@@ -1618,7 +1617,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/tab-on-newly-created-empty-line-1
     (progn
       (execute-kbd-macro (kbd "h h h o <escape> <tab>"))
@@ -1647,7 +1646,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (text-mode haskell-mode haskell-ts-mode)
+    (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/paste-cycle-before-1
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> <tab> P P P"))
   (tests-utils--multiline
@@ -1671,7 +1670,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode haskell-mode haskell-ts-mode)
+    (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/paste-cycle-before-1a
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> P P P"))
   (tests-utils--multiline
@@ -1896,7 +1895,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -1922,7 +1921,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-number
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -1944,7 +1943,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-after-operator
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -1975,7 +1974,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-before-operator
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -2006,7 +2005,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-qualified-names
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -2032,7 +2031,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-type
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -2053,7 +2052,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-symbol-value
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((as (execute-kbd-macro (kbd ", a s"))))
   ((1 (tests-utils--multiline
        ""
@@ -2083,7 +2082,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-symbol-value-qualified
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((as (execute-kbd-macro (kbd ", a s"))))
   ((1 (tests-utils--multiline
        ""
@@ -2113,7 +2112,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2139,7 +2138,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2170,7 +2169,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-after-operator
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2206,7 +2205,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-before-operator
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2242,7 +2241,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-type
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -2268,7 +2267,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-qualified-symbol-value
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((aS (execute-kbd-macro (kbd ", a S"))))
   ((1 (tests-utils--multiline
        ""
@@ -2298,7 +2297,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-qualified-symbol-value-qualified
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((aS (execute-kbd-macro (kbd ", a S"))))
   ((1 (tests-utils--multiline
        ""
@@ -2333,7 +2332,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-quasiquoter
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s")))
    (as (execute-kbd-macro (kbd ", a s")))
@@ -2363,7 +2362,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-qualified-quasiquoter
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s")))
    (as (execute-kbd-macro (kbd ", a s"))))
@@ -2390,7 +2389,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-qualified-quasiquoter-qualified
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S")))
    (aS (execute-kbd-macro (kbd ", a S"))))
@@ -2422,7 +2421,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-operator
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
    (s (execute-kbd-macro (kbd ", s"))))
   ((1 (tests-utils--multiline
@@ -2438,7 +2437,7 @@
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-operator-qualified
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
    (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
@@ -3047,7 +3046,7 @@ _|_bar")
      "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-smart-operators-expand-pragma-pair-1
     (execute-kbd-macro (kbd "i { - # S C <return> ok <tab> <escape>"))
   (tests-utils--multiline
@@ -3060,7 +3059,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/paren-insert-1
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline
@@ -3073,7 +3072,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/bracket-insert-1
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline
@@ -3086,7 +3085,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/dquote-insert-1
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline
@@ -3099,7 +3098,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/dquote-insert-2
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline
@@ -3112,7 +3111,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/dquote-insert-3
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline
@@ -3125,7 +3124,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/brace-insert-1-haskell
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline
@@ -3138,7 +3137,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-paren-1-haskell
     (execute-kbd-macro (kbd "i \( C-\) C-\)"))
   (tests-utils--multiline
@@ -3151,7 +3150,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-paren-2-haskell
     (execute-kbd-macro (kbd "v e e \("))
   (tests-utils--multiline
@@ -3164,7 +3163,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-bracket-1-haskell
     (execute-kbd-macro (kbd "i \[ C-\) C-\)"))
   (tests-utils--multiline
@@ -3177,7 +3176,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-bracket-2-haskell
     (execute-kbd-macro (kbd "v e e \["))
   (tests-utils--multiline
@@ -3190,7 +3189,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-brace-1-haskell
     (execute-kbd-macro (kbd "i \{ C-\) C-\)"))
   (tests-utils--multiline
@@ -3203,7 +3202,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-brace-2-haskell
     (execute-kbd-macro (kbd "v e e \{"))
   (tests-utils--multiline
@@ -3216,7 +3215,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-backtick-1-haskell
     (execute-kbd-macro (kbd "i y SPC <escape> w v e `"))
   (tests-utils--multiline
@@ -3229,7 +3228,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-dquotes-1-haskell
     (execute-kbd-macro (kbd "i y SPC <escape> w v e \""))
   (tests-utils--multiline
@@ -3242,7 +3241,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-dquotes-2-haskell
     (execute-kbd-macro (kbd "v E E E \""))
   (tests-utils--multiline
@@ -3255,7 +3254,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-mode-backward-up-indentation-or-sexp-1
     (execute-kbd-macro (kbd "'"))
   (tests-utils--multiline
@@ -3276,7 +3275,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-mode-backward-up-indentation-or-sexp-2
     (execute-kbd-macro (kbd "' '"))
   (tests-utils--multiline
@@ -3297,7 +3296,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-mode-backward-up-indentation-or-sexp-3
     (execute-kbd-macro (kbd "' ' '"))
   (tests-utils--multiline
@@ -3318,7 +3317,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-mode-backward-up-indentation-or-sexp-4
     (execute-kbd-macro (kbd "' ' ' '"))
   (tests-utils--multiline
@@ -3339,7 +3338,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-mode-backward-up-indentation-or-sexp-5
     (execute-kbd-macro (kbd "' ' ' ' '"))
   (tests-utils--multiline
@@ -3360,7 +3359,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-mode-backward-up-indentation-or-sexp-6
     (execute-kbd-macro (kbd "' ' ' ' ' '"))
   (tests-utils--multiline
@@ -3381,7 +3380,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-mode-backward-up-indentation-or-sexp-7
     (progn
       (execute-kbd-macro (kbd "' ' ' ' ' '"))
@@ -3404,7 +3403,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-newline-auto-comment-1
     (execute-kbd-macro (kbd "i <return> o k <escape>"))
   (tests-utils--multiline
@@ -3422,7 +3421,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-newline-auto-comment-2
     (execute-kbd-macro (kbd "i <return> o k <escape>"))
   (tests-utils--multiline
@@ -3440,7 +3439,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-delete-commented-part-1
     (execute-kbd-macro (kbd "j c d"))
   (tests-utils--multiline
@@ -3459,7 +3458,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-delete-commented-part-2
     (execute-kbd-macro (kbd "j c d"))
   (tests-utils--multiline
@@ -3531,7 +3530,7 @@ _|_bar")
      "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-import-1
     (execute-kbd-macro (kbd "i i m SPC"))
   (tests-utils--multiline
@@ -3544,7 +3543,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-import-2
     (execute-kbd-macro (kbd "i i SPC"))
   (tests-utils--multiline
@@ -3557,7 +3556,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-import-3
     (execute-kbd-macro (kbd "i SPC i SPC = i SPC + i <escape>"))
   (tests-utils--multiline
@@ -3570,7 +3569,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-import-4
     (execute-kbd-macro (kbd "i SPC i m SPC = i m SPC + i m <escape>"))
   (tests-utils--multiline
@@ -3583,7 +3582,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-import-5
     (execute-kbd-macro (kbd "i SPC i m p SPC = b a r SPC i m p SPC 1 <escape>"))
   (tests-utils--multiline
@@ -3596,7 +3595,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-import-6
     (execute-kbd-macro (kbd "i i q SPC F o o <tab> <escape>"))
   (tests-utils--multiline
@@ -3609,7 +3608,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-import--no-expansion-if-not-on-first-column-1
     (execute-kbd-macro (kbd "i i q SPC F o o <escape>"))
   (tests-utils--multiline
@@ -3622,7 +3621,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-1
     (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
   (tests-utils--multiline
@@ -3635,7 +3634,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-2a
     (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
   (tests-utils--multiline
@@ -3652,7 +3651,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-2b
     (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
   (tests-utils--multiline
@@ -3671,7 +3670,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-2c
     (execute-kbd-macro (kbd "i # # SPC i n l i n e <return> <tab>"))
   (tests-utils--multiline
@@ -3706,7 +3705,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-2d
     (execute-kbd-macro (kbd "i # # SPC i n l i n e <return> <tab>"))
     (tests-utils--multiline
@@ -3751,7 +3750,7 @@ _|_bar")
      "listContentsRecFold depthLimit foldDir filePred = undefined"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-3
     (execute-kbd-macro (kbd "i # s c c SPC 1 2 3 <tab> <escape>"))
   (tests-utils--multiline
@@ -3766,7 +3765,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-4
     (execute-kbd-macro (kbd "i h p l n SPC"))
   (tests-utils--multiline
@@ -3781,7 +3780,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-5
     (execute-kbd-macro (kbd "i h p l n SPC"))
   (tests-utils--multiline
@@ -3798,7 +3797,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-6
     (execute-kbd-macro (kbd "i p n SPC $"))
   (tests-utils--multiline
@@ -3813,7 +3812,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-7
     (execute-kbd-macro (kbd "i i m p o r t s SPC"))
   (tests-utils--multiline
@@ -3831,7 +3830,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-7a
     (progn
       (haskell-ext-tracking-mode +1)
@@ -3854,7 +3853,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-8
     (execute-kbd-macro (kbd "i # # SPC i n l i n <return> \( + + + <tab> <escape>"))
   (tests-utils--multiline
@@ -3871,7 +3870,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-9
     (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
   (tests-utils--multiline
@@ -3899,7 +3898,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-9a
     (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
   (tests-utils--multiline
@@ -3930,7 +3929,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-10
     (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
   (tests-utils--multiline
@@ -3962,7 +3961,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-11
     (execute-kbd-macro (kbd "i p p i n f o m SPC h e a d e r <return> x <return> y <return> <return>"))
   (tests-utils--multiline
@@ -3990,7 +3989,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-12
     (execute-kbd-macro (kbd "i t r a c e SPC x <return> y <return> <return>"))
   (tests-utils--multiline
@@ -4015,7 +4014,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-13
     (execute-kbd-macro (kbd "i t r a c e m SPC x <return> y <return> <return>"))
   (tests-utils--multiline
@@ -4065,7 +4064,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-14b
     (execute-kbd-macro (kbd "i i n f o m SPC x <return> y <return> <return>"))
   (tests-utils--multiline
@@ -4090,7 +4089,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-1
     (execute-kbd-macro (kbd "i SPC = b a r <escape>"))
   (tests-utils--multiline
@@ -4103,7 +4102,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-2
     (execute-kbd-macro (kbd "i SPC = b a r <escape>"))
   (tests-utils--multiline
@@ -4116,7 +4115,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-1
     (execute-kbd-macro (kbd "i SPC S C C <return> f o o b a r <tab>"))
   (tests-utils--multiline
@@ -4129,7 +4128,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-2
     (execute-kbd-macro (kbd "i SPC unpack <return>"))
   (tests-utils--multiline
@@ -4142,7 +4141,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-3
     (execute-kbd-macro (kbd "i SPC i n line <return> foobar <tab>"))
   (tests-utils--multiline
@@ -4155,7 +4154,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-4
     (execute-kbd-macro (kbd "i SPC language <return> overstr <return> <tab>"))
   (tests-utils--multiline
@@ -4168,7 +4167,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4185,7 +4184,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5a
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4202,7 +4201,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5b
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4219,7 +4218,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5c
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4238,7 +4237,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5d
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4259,7 +4258,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5e
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4278,7 +4277,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5f
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4299,7 +4298,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5g
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4322,7 +4321,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-5h
     (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
@@ -4349,7 +4348,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-6a
     (execute-kbd-macro (kbd "i # # SPC SPC <escape>"))
   (tests-utils--multiline
@@ -4376,7 +4375,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-6b
     (execute-kbd-macro (kbd "i SPC <escape>"))
   (tests-utils--multiline
@@ -4403,7 +4402,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-6c
     (execute-kbd-macro (kbd "i SPC <escape>"))
   (tests-utils--multiline
@@ -4430,7 +4429,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-7a
     (execute-kbd-macro (kbd "i SPC <escape>"))
   (tests-utils--multiline
@@ -4451,7 +4450,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-7b
     (execute-kbd-macro (kbd "i # SPC <escape>"))
   (tests-utils--multiline
@@ -4473,7 +4472,7 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :name
  vim-tests/haskell-abbrev-pragma-7c
  :action
@@ -4503,7 +4502,7 @@ _|_bar")
   ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1
     (execute-kbd-macro (kbd "i SPC <escape>"))
   (tests-utils--multiline
@@ -4520,7 +4519,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1a
     (execute-kbd-macro (kbd "i SPC <escape>"))
   (tests-utils--multiline
@@ -4533,7 +4532,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1b
     (execute-kbd-macro (kbd "i SPC"))
   (tests-utils--multiline
@@ -4548,7 +4547,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-2
     (execute-kbd-macro (kbd "i # # p r e t t y SPC f o o <escape>"))
   (tests-utils--multiline
@@ -4563,7 +4562,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--expands-in-instance-1
     (execute-kbd-macro (kbd "i # # SPC o v e r l a p p i n g <return>"))
   (tests-utils--multiline
@@ -4578,7 +4577,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--expands-in-data-1a
     (execute-kbd-macro (kbd "i SPC"))
   (tests-utils--multiline
@@ -4622,7 +4621,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--expands-in-data-1b
     (execute-kbd-macro (kbd "i SPC"))
   (tests-utils--multiline
@@ -4645,7 +4644,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--expands-in-import-1a
     (execute-kbd-macro (kbd "i SPC"))
   (tests-utils--multiline
@@ -4658,7 +4657,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--expands-in-import-1b
     (execute-kbd-macro (kbd "i SPC"))
   (tests-utils--multiline
@@ -4671,7 +4670,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--expands-in-import-1c
     (execute-kbd-macro (kbd "i SPC"))
   (tests-utils--multiline
@@ -4684,7 +4683,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-insert-quote-1
     (execute-kbd-macro (kbd "i '"))
   (tests-utils--multiline
@@ -4699,7 +4698,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-insert-quote-2
     (execute-kbd-macro (kbd "i '"))
   (tests-utils--multiline
@@ -4714,7 +4713,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-insert-quote-3
     (execute-kbd-macro (kbd "i '"))
   (tests-utils--multiline
@@ -4729,7 +4728,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-insert-quote-4
     (execute-kbd-macro (kbd "i '"))
   (tests-utils--multiline
@@ -4746,7 +4745,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-insert-quote-5
     (execute-kbd-macro (kbd "i ' f o o ' SPC b a r <escape>"))
   (tests-utils--multiline
@@ -4763,7 +4762,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-insert-paren-1
     (execute-kbd-macro (kbd "i \( x , y \) - > z <escape>"))
   (tests-utils--multiline
@@ -4776,7 +4775,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-insert-paren-2
     (execute-kbd-macro (kbd "i \( \\ \( x , y <escape>"))
   (tests-utils--multiline
@@ -4789,7 +4788,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-end-1
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -4806,7 +4805,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-end-2
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -4825,7 +4824,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-end-3
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -4873,7 +4872,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-end-3b
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -4898,7 +4897,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-end-4
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -4952,7 +4951,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-start-1b
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -5004,7 +5003,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-start-2b
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -5029,7 +5028,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-end-position-saving-1
     (execute-kbd-macro (kbd "g h M"))
   (tests-utils--multiline
@@ -5046,7 +5045,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-move-to-topmost-start-position-saving-1
     (execute-kbd-macro (kbd "g t M"))
   (tests-utils--multiline
@@ -5101,7 +5100,7 @@ _|_bar")
      "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-open-paren-in-export
     (execute-kbd-macro (kbd "i ( <escape>"))
   (tests-utils--multiline
@@ -5120,7 +5119,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-open-paren-in-import
     (execute-kbd-macro (kbd "i ( <escape>"))
   (tests-utils--multiline
@@ -5133,7 +5132,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-below-1
     (execute-kbd-macro (kbd "o f o o <escape>"))
   (tests-utils--multiline
@@ -5149,7 +5148,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-below-2
     (execute-kbd-macro (kbd "o f o o <escape>"))
   (tests-utils--multiline
@@ -5165,7 +5164,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-below-3
     (execute-kbd-macro (kbd "o f o o <escape>"))
   (tests-utils--multiline
@@ -5181,7 +5180,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-below-4
     (execute-kbd-macro (kbd "o f o o <escape>"))
   (tests-utils--multiline
@@ -5197,7 +5196,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-below-5
     (execute-kbd-macro (kbd "o f o o <escape>"))
   (tests-utils--multiline
@@ -5213,7 +5212,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-above-1
     (execute-kbd-macro (kbd "O f o o <escape>"))
   (tests-utils--multiline
@@ -5229,7 +5228,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-above-2
     (execute-kbd-macro (kbd "O f o o <escape>"))
   (tests-utils--multiline
@@ -5245,7 +5244,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-above-3
     (execute-kbd-macro (kbd "O f o o <escape>"))
   (tests-utils--multiline
@@ -5261,7 +5260,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-above-4
     (execute-kbd-macro (kbd "O f o o <escape>"))
   (tests-utils--multiline
@@ -5277,7 +5276,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-cmd-insert-line-above-5
     (execute-kbd-macro (kbd "O f o o <escape>"))
   (tests-utils--multiline
@@ -5293,7 +5292,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-uncomment-region-1
     (execute-kbd-macro (kbd "j c u"))
   (tests-utils--multiline
@@ -5316,7 +5315,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-uncomment-region-2
     (execute-kbd-macro (kbd "j c u"))
   (tests-utils--multiline
@@ -5339,7 +5338,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-uncomment-selected-region-1
     (execute-kbd-macro (kbd "h V h h j c u"))
   (tests-utils--multiline
@@ -5360,7 +5359,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-uncomment-selected-region-2
     (execute-kbd-macro (kbd "h V h h j c u"))
   (tests-utils--multiline
@@ -5381,56 +5380,56 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-1
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo (_|_) bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-1a
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo (_|_) bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-1b
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo (_|_) bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-1c
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline "" "foo _|_ bar" "")
   (tests-utils--multiline "" "foo (_|_) bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode emacs-lisp-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-2
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo [_|_] bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode emacs-lisp-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-2a
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo [_|_] bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode emacs-lisp-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-2b
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo [_|_] bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode emacs-lisp-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-2c
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline "" "foo _|_ bar" "")
@@ -5465,84 +5464,84 @@ _|_bar")
   (tests-utils--multiline "" "foo {_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-3
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo {_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-3a
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo {_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-3b
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo {_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-3c
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo _|_ bar" "")
   (tests-utils--multiline "" "foo {_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode emacs-lisp-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-4
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo \"_|_\" bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode emacs-lisp-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-4a
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo \"_|_\" bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode emacs-lisp-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-4b
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo \"_|_\" bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode emacs-lisp-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-4c
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline "" "foo _|_ bar" "")
   (tests-utils--multiline "" "foo \"_|_\" bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-5
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo (_|_) bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-5a
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo (_|_) bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-5b
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo (_|_) bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/pseudoparedit-5c
     (execute-kbd-macro (kbd "i \("))
   (tests-utils--multiline "" "foo _|_ bar" "")
@@ -6165,7 +6164,7 @@ _|_bar")
   (tests-utils--multiline "" "foo # {const_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-1
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6178,7 +6177,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-2
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6195,7 +6194,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-3
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6208,7 +6207,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-4
     (execute-kbd-macro (kbd "* u"))
   (tests-utils--multiline
@@ -6221,7 +6220,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-5
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6238,7 +6237,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-6
     (execute-kbd-macro (kbd "#"))
   (tests-utils--multiline
@@ -6255,7 +6254,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-7
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6268,7 +6267,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-8
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6285,7 +6284,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-9
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6304,7 +6303,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-9a
     (execute-kbd-macro (kbd "* u"))
   (tests-utils--multiline
@@ -6323,7 +6322,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-10
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6344,7 +6343,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-10a
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6371,7 +6370,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-10b
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6392,7 +6391,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-10c
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6419,7 +6418,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-10d
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6440,7 +6439,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-10e
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6461,7 +6460,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--search-for-haskell-symbol-at-point-11
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
@@ -6482,7 +6481,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-pragma-1
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6495,7 +6494,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-pragma-2
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6520,7 +6519,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-char-1
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6533,7 +6532,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-string-1
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6546,7 +6545,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-multiline-string-1
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6561,7 +6560,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-multiline-string-2
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6576,7 +6575,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-comment-1
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6589,7 +6588,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-comment-2
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6604,7 +6603,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-comment-3
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6617,7 +6616,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-comment-4
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6630,7 +6629,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-comment-5
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6649,7 +6648,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-quasiquote-1
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6662,7 +6661,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell--motion-jump-item-quoting-quasiquote-2
     (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
@@ -6675,7 +6674,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-1
     (execute-kbd-macro (kbd "C-r y z <return>"))
   (tests-utils--multiline
@@ -6694,7 +6693,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-1a
     (execute-kbd-macro (kbd "C-r y z <return>"))
   (tests-utils--multiline
@@ -6713,7 +6712,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-2
     (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
   (tests-utils--multiline
@@ -6732,7 +6731,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-2a
     (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
   (tests-utils--multiline
@@ -6751,7 +6750,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-3
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6770,7 +6769,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-3a
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6789,7 +6788,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-4
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6810,7 +6809,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-4a
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6831,7 +6830,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-5
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6852,7 +6851,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-5a
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6873,7 +6872,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-6
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6894,7 +6893,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-7
     (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
   (tests-utils--multiline
@@ -6915,7 +6914,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-7a
     (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
   (tests-utils--multiline
@@ -6936,7 +6935,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-7b
     (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
   (tests-utils--multiline
@@ -6957,7 +6956,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-8
     (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
   (tests-utils--multiline
@@ -6978,7 +6977,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-8a
     (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
   (tests-utils--multiline
@@ -6999,7 +6998,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-8b
     (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
   (tests-utils--multiline
@@ -7020,7 +7019,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-9
     (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
   (tests-utils--multiline
@@ -7041,7 +7040,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-9a
     (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
   (tests-utils--multiline
@@ -7062,7 +7061,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-9b
     (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
   (tests-utils--multiline
@@ -7083,7 +7082,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-1
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7104,7 +7103,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-2
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7121,7 +7120,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-3
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7144,7 +7143,7 @@ _|_bar")
    "    baz (quux x)"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-3a
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7167,7 +7166,7 @@ _|_bar")
    "    baz (quux x)"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-4
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7178,7 +7177,7 @@ _|_bar")
    "foo = bar"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-5
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7189,7 +7188,7 @@ _|_bar")
    "x `bar` y = foo"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-5a
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7202,7 +7201,7 @@ _|_bar")
    "x `bar` y = foo"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-5b
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7217,7 +7216,7 @@ _|_bar")
    "bar x y = quux"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-6a
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7240,7 +7239,7 @@ _|_bar")
    "    baz (quux x)"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-6b
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7263,7 +7262,7 @@ _|_bar")
    "    baz (quux x)"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-6c
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7290,7 +7289,7 @@ _|_bar")
    "    baz (quux x)"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-6d
     (execute-kbd-macro (kbd "g t g h"))
   (tests-utils--multiline
@@ -7317,7 +7316,7 @@ _|_bar")
    "    baz (quux x)_|_"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-6e
     (execute-kbd-macro (kbd "g t g h g t"))
   (tests-utils--multiline
@@ -7344,7 +7343,7 @@ _|_bar")
    "    baz (quux x)"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-6f
     (execute-kbd-macro (kbd "g t g h g t"))
   (tests-utils--multiline
@@ -7373,7 +7372,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-6g
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7404,7 +7403,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-7
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7425,7 +7424,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-7a
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7444,7 +7443,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-7b
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7461,7 +7460,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-7c
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7482,7 +7481,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-7d
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
@@ -7512,7 +7511,7 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-ts-beginning-of-defun-7e
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
   ((beginning-of-defun
     (execute-kbd-macro (kbd "g t"))))
   ((a
@@ -7642,7 +7641,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-end-of-defun-1
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -7663,7 +7662,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-end-of-defun-1a
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -7682,7 +7681,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-end-of-defun-1b
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -7699,7 +7698,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-pair-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-and-end-of-defun-1
     (tests-utils--multiline
      "quux :: Int -> Int"
@@ -7746,7 +7745,7 @@ _|_bar")
     "foo x = x + x_|_")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-pair-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-and-end-of-defun-2
     (tests-utils--multiline
      "data Foo"
@@ -7796,7 +7795,7 @@ _|_bar")
     "foo x = x + x_|_")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-pair-only
-    (haskell-ts-mode)
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-and-end-of-defun-3
     (tests-utils--multiline
      "foo :: Int -> Int"
@@ -7847,7 +7846,7 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :name
  vim-tests/haskell-ts-insert-bang-1a
  :action
