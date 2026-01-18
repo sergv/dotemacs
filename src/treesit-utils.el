@@ -14,7 +14,7 @@
     (treesit-node-at pos
                      ;; Hoping the parser will get reused, should be safe for
                      ;; haskell-ts-mode and its derivatives.
-                     (treesit-parser-create 'haskell))))
+                     (treesit-parser-create haskell-ts-buffer-lang))))
 
 (defun treesit-haskell--is-multiline-string? (node)
   (declare (pure nil) (side-effect-free t))
@@ -77,7 +77,7 @@
 
 (defun treesit-haskell-get-buffer-module-name ()
   (if-let* ((header-candidates (treesit-filter-child
-                                (treesit-buffer-root-node 'haskell)
+                                (treesit-buffer-root-node haskell-ts-buffer-lang)
                                 (lambda (node)
                                   (string= "header" (treesit-node-type node))))))
       (treesit-node-text-no-properties-unsafe (treesit-node-child-by-field-name (car header-candidates) "module"))

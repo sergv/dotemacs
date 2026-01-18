@@ -89,156 +89,211 @@
                t))
       t)))
 
+
+(defvar-local haskell-ts-buffer-lang nil
+  "Treesitter language for current buffer.")
+
+(defconst haskell-ts-known-languages
+  '(haskell hsc))
+
+;; Collect any haskell treesitter-based values so that they can be uniformly used
+;; in both vanilla and hsc dialects.
+(defstruct haskell-ts-lang-selection
+  ;; Result of compiling query for regular Haskell grammar.
+  vanilla
+  ;; Result of compiling query for regular HSC grammar.
+  hsc)
+
+(defun haskell-ts-query-compile (query)
+  (cons 'haskell-ts-compiled-query
+        (make-haskell-ts-lang-selection
+         :vanilla (treesit-query-compile 'haskell query)
+         :hsc (treesit-query-compile 'hsc query))))
+
+(defun haskell-ts-query-resolve (compiled)
+  (cl-assert (consp compiled))
+  (cl-assert (eq (car compiled) 'haskell-ts-compiled-query))
+  (haskell-ts-lang-selection-resolve (cdr compiled)))
+
+(defun haskell-ts-lang-selection-resolve (compiled)
+  (pcase haskell-ts-buffer-lang
+    (`haskell
+     (haskell-ts-lang-selection-vanilla compiled))
+    (`hsc
+     (haskell-ts-lang-selection-hsc compiled))
+    (other
+     (error "Invalid haskell-ts-buffer-lang: %s" haskell-ts-buffer-lang))))
+
 (defconst haskell-ts-font-lock-rules
-  (--mapcat
-   (cons :language
-         (cons 'haskell
-               (cons :feature
-                     (cons (car it)
-                           (cons :override
-                                 (cons nil
-                                       (list (cdr it))))))))
-   '((everyone
+  (let*
+      ((mk-rule
+        (lambda (lang x)
+          (cons :language
+                (cons lang
+                      (cons :feature
+                            (cons 'everyone
+                                  (cons :override
+                                        (cons nil
+                                              (list x)))))))))
+       (rules
+        '(
+          ;; comment
+          ((comment) @haskell-ts-comment-face)
 
-      ;; comment
-      ((comment) @haskell-ts-comment-face)
+          ((haddock) @haskell-ts-haddock-face)
 
-      ((haddock) @haskell-ts-haddock-face)
+          ;; constant
+          ([(integer) (float)] @haskell-ts-constant-face)
 
-      ;; constant
-      ([(integer) (float)] @haskell-ts-constant-face)
+          (quasiquote "|" @haskell-ts-quasiquote-pipe-face)
 
-      (quasiquote "|" @haskell-ts-quasiquote-pipe-face)
+          ;; string
+          ([(char) (string) (quasiquote_body)] @haskell-ts-string-face)
 
-      ;; string
-      ([(char) (string) (quasiquote_body)] @haskell-ts-string-face)
+          ;; preprocessor
+          ([(pragma) (cpp)] @haskell-ts-pragma-face)
 
-      ;; preprocessor
-      ([(pragma) (cpp)] @haskell-ts-pragma-face)
+          ;; keyword
+          (lambda_cases
+           "\\"
+           ("cases" @haskell-ts-keyword-face))
 
-      ;; keyword
-      (lambda_cases
-       "\\"
-       ("cases" @haskell-ts-keyword-face))
+          (default_signature
+           ("default" @haskell-ts-keyword-face))
 
-      (default_signature
-       ("default" @haskell-ts-keyword-face))
+          (pattern_synonym
+           ("pattern" @haskell-ts-keyword-face))
 
-      (pattern_synonym
-       ("pattern" @haskell-ts-keyword-face))
+          (namespace
+           ("pattern" @haskell-ts-keyword-face))
 
-      (namespace
-       ("pattern" @haskell-ts-keyword-face))
+          ((variable) @haskell-ts-keyword-face
+           (:equal "_" @haskell-ts-keyword-face))
 
-      ((variable) @haskell-ts-keyword-face
-       (:equal "_" @haskell-ts-keyword-face))
+          ([
+            "forall"
+            "where"
+            "let"
+            "in"
+            "class"
+            "instance"
+            "data"
+            "newtype"
+            "family"
+            "type"
+            "as"
+            "hiding"
+            "deriving"
+            "via"
+            "stock"
+            "anyclass"
+            "do"
+            "mdo"
+            "rec"
+            "infix"
+            "infixl"
+            "infixr"
 
-      ([
-        "forall"
-        "where"
-        "let"
-        "in"
-        "class"
-        "instance"
-        "data"
-        "newtype"
-        "family"
-        "type"
-        "as"
-        "hiding"
-        "deriving"
-        "via"
-        "stock"
-        "anyclass"
-        "do"
-        "mdo"
-        "rec"
-        "infix"
-        "infixl"
-        "infixr"
+            "if"
+            "then"
+            "else"
+            "case"
+            "of"
 
-        "if"
-        "then"
-        "else"
-        "case"
-        "of"
+            "import"
+            "qualified"
+            "module"
+            "foreign"
+            (wildcard "_")
+            ]
+           @haskell-ts-keyword-face)
 
-        "import"
-        "qualified"
-        "module"
-        "foreign"
-        (wildcard "_")
-        ]
-       @haskell-ts-keyword-face)
+          ;; operator
+          ([
+            (operator)
+            (qualified (operator))
+            (all_names)
+            "="
+            "|"
+            "::"
+            "=>"
+            "->"
+            "<-"
+            "\\"
+            "@"
+            ]
+           @haskell-ts-operator-face)
 
-      ;; operator
-      ([
-        (operator)
-        (qualified (operator))
-        (all_names)
-        "="
-        "|"
-        "::"
-        "=>"
-        "->"
-        "<-"
-        "\\"
-        "@"
-        ]
-       @haskell-ts-operator-face)
+          (forall "." @haskell-ts-keyword-face)
 
-      (forall "." @haskell-ts-keyword-face)
+          ;; (unboxed_tuple "(#" @haskell-ts-keyword-face)
+          ;; (unboxed_tuple "#)" @haskell-ts-keyword-face)
 
-      ;; (unboxed_tuple "(#" @haskell-ts-keyword-face)
-      ;; (unboxed_tuple "#)" @haskell-ts-keyword-face)
+          ((foreign_import
+            [(calling_convention)
+             (safety)]
+            @haskell-ts-keyword-face))
 
-      ((foreign_import
-        [(calling_convention)
-         (safety)]
-        @haskell-ts-keyword-face))
+          ((infix_id
+            "`"
+            [(name)
+             (qualified (name))
+             (variable)
+             (qualified (variable))
+             (constructor)
+             (qualified (constructor))]
+            "`")
+           @haskell-ts-operator-face)
 
-      ((infix_id
-        "`"
-        [(name)
-         (qualified (name))
-         (variable)
-         (qualified (variable))
-         (constructor)
-         (qualified (constructor))]
-        "`")
-       @haskell-ts-operator-face)
+          ;; module-name
+          ;; Competes with (module)
+          ;; ((qualified (variable)) @default)
 
-      ;; module-name
-      ;; Competes with (module)
-      ;; ((qualified (variable)) @default)
+          (import (module) @haskell-ts-type-face)
+          (header (module) @haskell-ts-type-face)
+          (module_export (module) @haskell-ts-type-face)
 
-      (import (module) @haskell-ts-type-face)
-      (header (module) @haskell-ts-type-face)
-      (module_export (module) @haskell-ts-type-face)
+          ;; type
+          ;; ((signature name: (variable) @haskell-ts-type-face))
 
-      ;; type
-      ;; ((signature name: (variable) @haskell-ts-type-face))
+          ;; Handles all types
+          (((name) @haskell-ts-type-face)
+           (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-type-face))
+          (((qualified (module) (name)) @haskell-ts-type-face)
+           (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-type-face))
 
-      ;; Handles all types
-      (((name) @haskell-ts-type-face)
-       (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-type-face))
-      (((qualified (module) (name)) @haskell-ts-type-face)
-       (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-type-face))
+          ;; constructor
+          (((constructor) @haskell-ts-constructor-face)
+           (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-constructor-face))
+          ((qualified (module) @haskell-ts-type-face
+                      [(constructor) (constructor_operator)] @haskell-ts-constructor-face)
+           (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-constructor-face))
 
-      ;; constructor
-      (((constructor) @haskell-ts-constructor-face)
-       (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-constructor-face))
-      ((qualified (module) @haskell-ts-type-face
-                  [(constructor) (constructor_operator)] @haskell-ts-constructor-face)
-       (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-constructor-face))
+          ([(unit) (list "[" !element "]") (constructor_operator)] @haskell-ts-constructor-face)
 
-      ([(unit) (list "[" !element "]") (constructor_operator)] @haskell-ts-constructor-face)
+          ;; strictness
+          ([(strict_field "!") (strict "!")] @haskell-ts-mode--fontify-bang)
 
-      ;; strictness
-      ([(strict_field "!") (strict "!")] @haskell-ts-mode--fontify-bang)
+          ;; laziness
+          ([(lazy_field) (irrefutable "~")] @haskell-ts-mode--fontify-tilde)))
 
-      ;; laziness
-      ([(lazy_field) (irrefutable "~")] @haskell-ts-mode--fontify-tilde)))))
+       (hsc-rules
+        '(
+          (hsc
+           (hsc_directive_name)
+           @haskell-ts-mode--fontify-hsc-directive-name))))
+    (make-haskell-ts-lang-selection
+     :vanilla
+     (funcall mk-rule 'haskell rules)
+     :hsc
+     (funcall mk-rule 'hsc (append hsc-rules rules)))))
+
+(defun haskell-ts-mode--fontify-hsc-directive-name (node override start end &rest _)
+  (let ((s (treesit-node-start node))
+        (e (treesit-node-end node)))
+    (if (eq (char-before s) ?#)
+        (put-text-property (1- s) e 'face 'haskell-ts-keyword-face)
+      (put-text-property s e 'face 'haskell-ts-keyword-face))))
 
 (defun haskell-ts-mode--fontify-bang (node override start end &rest _)
   (haskell-ts-mode--fontify-first-char ?! node))
@@ -257,24 +312,24 @@
       (put-text-property p (1+ p) 'face 'haskell-ts-strictness-face))))
 
 (defconst haskell-ts-syntax-propertize--query
-  (treesit-query-compile 'haskell
-                         '(
-                           ;; Need strings because multiline strings may not
-                           ;; be handled correctly be Emacs.
-                           ((string) @str-like)
-                           ((char) @str-like)
-                           (quasiquote
-                            ;; start bracket not needed as we’re leaving them as is
-                            ;; and make pipes carry quoting syntax so that parens matching
-                            ;; will still work
-                            ;; "[" @qq-start-bracket
-                            "|" @qq-start-pipe
-                            "|]" @qq-end
-                            )
-                           ;; ((comment) @comment)
-                           ;; ((haddock) @comment)
-                           ((operator) @operator
-                            (:match "^--" @operator)))))
+  (haskell-ts-query-compile
+   '(
+     ;; Need strings because multiline strings may not
+     ;; be handled correctly be Emacs.
+     ((string) @str-like)
+     ((char) @str-like)
+     (quasiquote
+      ;; start bracket not needed as we’re leaving them as is
+      ;; and make pipes carry quoting syntax so that parens matching
+      ;; will still work
+      ;; "[" @qq-start-bracket
+      "|" @qq-start-pipe
+      "|]" @qq-end
+      )
+     ;; ((comment) @comment)
+     ;; ((haddock) @comment)
+     ((operator) @operator
+      (:match "^--" @operator)))))
 
 (defun haskell-ts-syntax-propertize (begin end)
   "Basically finds all operators (e.g. -->) that start with comment delimiter, -- that should
@@ -292,8 +347,8 @@ but when paired then it’s like a string."
 
         (let ((beg-bol (line-beginning-position)))
           (dolist (entry
-                   (treesit-query-capture (treesit-buffer-root-node 'haskell)
-                                          haskell-ts-syntax-propertize--query
+                   (treesit-query-capture (treesit-buffer-root-node haskell-ts-buffer-lang)
+                                          (haskell-ts-query-resolve haskell-ts-syntax-propertize--query)
                                           beg-bol
                                           end-eol
                                           nil ;; want capture names
@@ -1040,17 +1095,6 @@ HasCallStack
               treesit-font-lock-feature-list
               '((everyone)))
 
-  (let ((res (treesit-language-available-p 'haskell t)))
-    (unless (car res)
-      (error "Haskell treesitter not available: %s" (cdr res))))
-
-  ;; Associate parser with current buffer.
-  (treesit-parser-create 'haskell (current-buffer))
-
-  ;; Font locking
-  (setq-local treesit-font-lock-settings
-              (apply #'treesit-font-lock-rules haskell-ts-font-lock-rules))
-
   ;; Indentation
   (haskell-ts-indent-setup)
 
@@ -1064,12 +1108,24 @@ HasCallStack
               point-inside-string?-impl                #'point-inside-string?--ts-haskell
               point-inside-comment?-impl               #'point-inside-comment?--ts-haskell
               point-inside-string-or-comment?-impl     #'point-inside-string-or-comment?--ts-haskell
-              point-not-inside-string-or-comment?-impl #'point-not-inside-string-or-comment?--ts-haskell)
-
-  (treesit-major-mode-setup))
+              point-not-inside-string-or-comment?-impl #'point-not-inside-string-or-comment?--ts-haskell))
 
 (define-derived-mode haskell-ts-mode haskell-ts-base-mode "Haskell[ts]"
-  "Major mode for Haskell that uses tree-sitter.")
+  "Major mode for Haskell that uses tree-sitter."
+  (let ((res (treesit-language-available-p 'haskell t)))
+    (unless (car res)
+      (error "Haskell treesitter not available: %s" (cdr res))))
+
+  (setq-local haskell-ts-buffer-lang 'haskell)
+
+  ;; Font locking
+  (setq-local treesit-font-lock-settings
+              (apply #'treesit-font-lock-rules (haskell-ts-lang-selection-resolve haskell-ts-font-lock-rules)))
+
+  ;; Associate parser with current buffer.
+  (treesit-parser-create 'haskell (current-buffer))
+
+  (treesit-major-mode-setup))
 
 (provide 'haskell-ts-mode)
 

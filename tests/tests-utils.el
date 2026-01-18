@@ -161,6 +161,7 @@ Ensures a final newline is inserted."
   '((text-mode (text-mode))
     (haskell-mode (haskell-mode))
     (haskell-ts-mode (haskell-ts-mode))
+    (haskell-hsc-mode (haskell-hsc-mode))
     (emacs-lisp-mode (emacs-lisp-mode))
     (rust-mode (rust-mode))
     (c-mode (c-mode))
