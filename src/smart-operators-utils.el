@@ -55,29 +55,14 @@ that next 2 characters are AFTER1 and AFTER2."
 (defun smart-operators--in-string-syntax? ()
   (if (bobp)
       nil
-    (and (eq (syntax-class (syntax-after (1- (point)))) 7)
-         (eq (syntax-class (syntax-after (point))) 7))))
+    (point-inside-string? (point))))
 
 ;;;###autoload
 (defun smart-operators--in-string-or-comment? (&optional disable-comment-check?)
   "Are we in string or comment?"
-  (if (smart-operators--in-string-syntax?)
-      t
-    (let* ((state (parse-partial-sexp (line-beginning-position)
-                                      (point)))
-           (inside-string? (elt state 3))
-           (inside-comment? (if disable-comment-check?
-                                nil
-                              (elt state 4))))
-      (or inside-string?
-          inside-comment?
-          (and (eq 'font-lock-string-face
-                   (get-text-property (point) 'face))
-               (if (and (char-equal (char-after) ?\")
-                        (/= (point-min) (point)))
-                   (eq 'font-lock-string-face
-                       (get-text-property (- (point) 1) 'face))
-                 t))))))
+  (if disable-comment-check?
+      (point-inside-string? (point))
+    (point-inside-string-or-comment? (point))))
 
 ;;;###autoload
 (defun smart-operators--literal-insertion? (&optional disable-comment-check?)
