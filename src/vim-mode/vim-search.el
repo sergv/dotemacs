@@ -290,8 +290,9 @@ name `name' to `new-regex'."
 
 (defun vim-hl-do-update-highlight (&optional buffer)
   "Timer function, updating the highlights."
-  (with-current-buffer buffer
-    (vim-hl-update-highlights))
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (vim-hl-update-highlights)))
   (setq vim-hl-update-timer nil))
 
 (defun vim-hl-update-highlights-scroll (_win _begin)
