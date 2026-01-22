@@ -60,7 +60,9 @@
                         (or (null grand-parent-t)
                             (when-let ((gp (treesit-node-parent parent))
                                        (gpt (treesit-node-type gp)))
-                              (string= grand-parent-t gpt)))))))
+                              (if (stringp grand-parent-t)
+                                  (string= grand-parent-t gpt)
+                                (member gpt grand-parent-t))))))))
          (cons 'parent-is (lambda (&rest types)
                             (lambda (_n parent &rest _)
                               (member (treesit-node-type parent) types))))
@@ -519,6 +521,10 @@
               0)
 
              ((n-p-gp '("comment" "haddock") '("declarations" "haskell") nil) prev-sibling 0)
+
+             ((n-p-gp nil "prefix" "data_constructor")
+              grand-parent
+              haskell-indent-offset)
 
              ((node-is "cpp") column-0 0)
 
