@@ -2595,6 +2595,73 @@ have different input states."
   "  deriving (Eq)"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-5a
+ :contents
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar"
+  "       _|_Foo Foo"
+  "  deriving (Eq)")
+ :expected-value
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar"
+  "      _|_Foo Foo"
+  "  deriving (Eq)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-5b
+ :contents
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar"
+  "       _|_-- comment"
+  "             Foo Foo"
+  "  deriving (Eq)")
+ :expected-value
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar"
+  "      _|_-- comment"
+  "             Foo Foo"
+  "  deriving (Eq)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-5c
+ :contents
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar"
+  "       _|_-- | comment"
+  "             Foo Foo"
+  "  deriving (Eq)")
+ :expected-value
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar"
+  "      _|_-- | comment"
+  "             Foo Foo"
+  "  deriving (Eq)"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-gadt-1
  :contents
  (tests-utils--multiline
