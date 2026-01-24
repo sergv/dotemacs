@@ -1461,6 +1461,7 @@ appropriate buffer name on this basis."
       (cd (dante-config/project-root cfg))
       (fundamental-mode) ;; this has several effects, including resetting the local variables
       (buffer-disable-undo)
+      (hl-line-mode 1)
       ;; Important to transfer all variables confnigured by ‘dante--make-config’
       ;; to this new buffer so that functions like ‘dante-buffer-name’ will pick them up
       ;; instead of trying to initialize method once again from within GHCI buffer, which
