@@ -1164,6 +1164,7 @@ Error is given as MSG and reported between POS and END."
                 (--map (list (list (car it)) (cdr it) t)
                        '(("Prettyprinter.Internal" . "Prettyprinter")
                          ("Data.Bit.Internal" . "Data.Bit")
+                         ("Data.Semigroup.Internal" . "Data.Semigroup")
                          ("GHC.Internal.Conc.Sync" . "Control.Concurrent")
                          ("GHC.Internal.Control.Monad" . "Control.Monad")
                          ("GHC.Internal.Control.Monad.IO.Class" . "Control.Monad.IO.Class")
@@ -1184,8 +1185,7 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Stack" . "GHC.Stack")
                          ("GHC.Internal.System.Exit" . "System.Exit")
                          ("GHC.Internal.Text.Read" . "Text.Read")
-                         ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
-                         ("Data.Semigroup.Internal" . "Data.Semigroup"))))))))))
+                         ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce"))))))))))
 
 (defun attrap-haskell-import--fix-module-name (identifier mod-name)
   "Returns cons: (NEW-MODULE-NAME IS-AUTHORITATIVE?). If any of the results are authoritative
