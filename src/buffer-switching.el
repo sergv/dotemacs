@@ -19,34 +19,44 @@
              '(switch-to-buffer-with-completion . ivy--regex-fuzzy))
 
 ;;;###autoload
-(defun switch-to-buffer-with-completion ()
+(defun switch-to-buffer-with-completion (include-all-buffers?)
   "Switch to another buffer, query user for a buffer to switch to.."
-  (interactive)
+  (interactive "P")
   (let* ((this-command 'switch-to-buffer-with-completion)
-         (buffers-with-files (-filter #'buffer-file-name (buffer-list)))
+         (ivy-use-ignore (not include-all-buffers?))
+         (buffers (if include-all-buffers?
+                      (buffer-list)
+                    (-filter (lambda (buf)
+                               (not (--any (string-match-p it (buffer-name buf)) ivy-ignore-buffers)))
+                             (visible-buffers))))
+         (buffers-with-files (-filter #'buffer-file-name buffers))
+         (buffer-names
+          (--map (cons (buffer-name it) it)
+                 buffers))
          (buffer-files
           (--map (cons (buffer-file-name it) it)
                  (if ivy-use-ignore
                      (-filter (lambda (buf)
                                 (not (--any (string-match-p it (buffer-name buf)) ivy-ignore-buffers)))
                               buffers-with-files)
-                   buffers-with-files))))
-    (ivy-read "Switch to buffer: "
+                   buffers-with-files)))
+         (all-candidates (append buffer-names buffer-files)))
+    (ivy-read (if include-all-buffers? "Switch to buffer (no filter): " "Switch to buffer (only visible): ")
               (lambda (string predicate flag)
-                (append (internal-complete-buffer string predicate flag)
-                        (cond
-                          ((eq flag t)
-                           (all-completions string buffer-files predicate))
-                          ((eq flag nil)
-                           (try-completion string buffer-files predicate))
-                          (t
-                           (test-completion string buffer-files predicate)))))
+                (cond
+                  ((eq flag t)
+                   (all-completions string all-candidates predicate))
+                  ((eq flag nil)
+                   (try-completion string all-candidates predicate))
+                  (t
+                   (test-completion string all-candidates predicate))))
               :matcher #'ivy--switch-buffer-matcher
               :preselect (buffer-name (other-buffer (current-buffer)))
               :action (lambda (str)
-                        (aif (assoc str buffer-files)
-                            (switch-to-buffer-create-if-missing (cdr it))
-                          (switch-to-buffer-create-if-missing str)))
+                        (switch-to-buffer-create-if-missing
+                         (aif (assoc str all-candidates)
+                             (cdr it)
+                           str)))
               :keymap ivy-switch-buffer-map
               :caller 'switch-to-buffer-with-completion)))
 
