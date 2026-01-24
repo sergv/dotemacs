@@ -282,6 +282,8 @@ targets and components about current buffer’s ghci session."
             "-fprint-potential-instances"
             "-fdefer-typed-holes"))
 
+         (cabal-exe "cabal")
+
          (get-check-build-dir (lambda (proj-root build-dir)
                                 (cl-assert (stringp proj-root))
                                 (cl-assert (file-directory-p proj-root))
@@ -370,7 +372,7 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore target))
-                  (nix-call-via-flakes `("cabal" "repl" ,buffer-file-name ,@flags) flake-root))))
+                  (nix-call-via-flakes `(,cabal-exe "repl" ,buffer-file-name ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'nix-flakes-build
@@ -381,7 +383,7 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (cl-assert (stringp target))
-                  (nix-call-via-flakes `("cabal" "repl" ,target ,@flags) flake-root))))
+                  (nix-call-via-flakes `(,cabal-exe "repl" ,target ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'build-script
@@ -393,7 +395,7 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore flake-root target))
-                  `("cabal" "repl" ,buffer-file-name ,@flags))))
+                  `(,cabal-exe "repl" ,buffer-file-name ,@flags))))
 
       (funcall mk-dante-method
                :name 'build
@@ -405,7 +407,7 @@ targets and components about current buffer’s ghci session."
                 (lambda (&key flake-root flags target)
                   (declare (ignore flake-root))
                   (cl-assert (stringp target))
-                  `("cabal" "repl" ,target ,@flags))))
+                  `(,cabal-exe "repl" ,target ,@flags))))
 
       (funcall mk-dante-method
                :name 'bare-ghci
