@@ -240,8 +240,8 @@ and indent them as singe line."
         "-fdiagnostics-color=always"
         "-fno-diagnostics-show-caret"
         "-Wwarn=missing-home-modules"
+        "-Wwarn=inconsistent-flags"
         "-ferror-spans"
-        "-O0"
         "-fdefer-typed-holes")
 
       ;; dante-debug '(inputs outputs responses command-line)
