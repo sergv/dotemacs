@@ -308,7 +308,9 @@ targets and components about current buffer’s ghci session."
                 (let ((result
                        (funcall template
                                 :flake-root (dante-config/flake-root cfg)
-                                :flags (list "--builddir"
+                                :flags (list "--disable-profiling"
+                                             "--disable-library-profiling"
+                                             "--builddir"
                                              (dante-config/build-dir cfg))
                                 :target (dante-config/cabal-target cfg))))
                   (cl-assert (-all? #'stringp result)
@@ -321,14 +323,18 @@ targets and components about current buffer’s ghci session."
                 (let ((load-all-mods
                        (funcall template
                                 :flake-root (dante-config/flake-root cfg)
-                                :flags (append (list "--builddir"
+                                :flags (append (list "--disable-profiling"
+                                                     "--disable-library-profiling"
+                                                     "--builddir"
                                                      (dante-config/repl-dir cfg))
                                                repl-options)
                                 :target (dante-config/cabal-target cfg)))
                       (load-no-mods
                        (funcall template
                                 :flake-root (dante-config/flake-root cfg)
-                                :flags (append (list "--builddir"
+                                :flags (append (list "--disable-profiling"
+                                                     "--disable-library-profiling"
+                                                     "--builddir"
                                                      (dante-config/repl-dir cfg))
                                                (cons "--repl-no-load" repl-options))
                                 :target (dante-config/cabal-target cfg))))
@@ -352,7 +358,9 @@ targets and components about current buffer’s ghci session."
                   (let ((result
                          (funcall template
                                   :flake-root (dante-config/flake-root cfg)
-                                  :flags (append (list "--builddir" build-dir)
+                                  :flags (append (list "--disable-profiling"
+                                                       "--disable-library-profiling")
+                                                 (list "--builddir" build-dir)
                                                  (list "--repl-no-load" "--with-repl=echo"))
                                   :target (dante-config/cabal-target cfg))))
                     (cl-assert (-all? #'stringp result)
@@ -763,14 +771,13 @@ and over."
         (setq dante-temp-fingerprint fingerprint)
         (setq dante-interpreted interpret)
         (puthash (dante-local-name fname) src-fname dante-original-buffer-map)
-        ;; GHCi will interpret the buffer if both -fbyte-code and :l * are used.
+        ;; GHCi will interpret the buffer if both ‘-fbyte-code’ and ‘:l *’ are used.
         (lcr-call dante-async-call (if interpret ":set -fbyte-code" ":set -fobject-code"))
         (with-current-buffer ghci-buf
           (setq-local dante-status 'loading)
           (dante-async-write (if same-target
                                  ":r!"
-                               (concat ":l! "
-                                       (if interpret "*" "")
+                               (concat ":l! *"
                                        (dante-local-name fname))))
           (cl-destructuring-bind (_status err-messages _loaded-modules)
               (lcr-call dante-load-loop ghci-buf "" err-fn)
