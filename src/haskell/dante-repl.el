@@ -241,17 +241,20 @@ Specifies filename that should be loaded instead of current buffer’s file.")
 (lcr-def dante-repl-get-file-to-load--hsc2hs (buf)
   (with-current-buffer buf
     (let* ((cfg (dante-get-config))
-           (package-build-dir (dante-config/repl-dir cfg)))
-      (lcr-call dante--preprocess-project-if-needed cfg package-build-dir)
-      (or dante-repl--file-name-to-load-instead
-          (setq-local dante-repl--file-name-to-load-instead
-                      (concat
-                       (dante-get-component-build-dir cfg package-build-dir)
-                       "/"
-                       (replace-regexp-in-string "[.]"
-                                                 "/"
-                                                 (treesit-haskell-get-buffer-module-name))
-                       ".hs"))))))
+           (component-build-dir (dante-get-component-build-dir cfg t)))
+      (if component-build-dir
+          (progn
+            (lcr-call dante--preprocess-project-if-needed cfg t)
+            (or dante-repl--file-name-to-load-instead
+                (setq-local dante-repl--file-name-to-load-instead
+                            (concat
+                             component-build-dir
+                             "/"
+                             (replace-regexp-in-string "[.]"
+                                                       "/"
+                                                       (treesit-haskell-get-buffer-module-name))
+                             ".hs"))))
+        (error "Cannot locate cabal component for hsc file in buffer %s. #! scripts are not supported with hsc" buf)))))
 
 (defun dante-repl-load-file--send-load-command (repl-buf-name repl-buf file-to-load)
   (let ((cmd (concat ":load \"*" file-to-load "\"")))
