@@ -1361,6 +1361,11 @@ value section should have if it is to be properly indented."
             (:conc-name dante-configuration-result/))
   ;; String
   (target nil :read-only t)
+  ;; String that together with ‘cabal-component/build-dir’ and global build root produces
+  ;; build directory whene component should reside.
+  ;; E.g.
+  ;; build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-0.1
+  (cabal-build-root nil :read-only t)
   ;; nil or value of type ‘cabal-component’
   (component nil :read-only t))
 
@@ -1385,12 +1390,16 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                 (if-let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory fname))))
                     (let ((component nil)
                           (pkg-name nil)
+                          (found-cabal-build-root nil)
                           (tmp cabal-files))
+
                       (while (and (not component)
                                   tmp)
                         (let ((cabal-file (car tmp)))
                           (when-let ((config (flycheck-haskell-get-configuration cabal-file proj)))
-                            (let-alist-static config (package-name components)
+
+                            (let-alist-static config (package-name components cabal-build-root)
+
                               (let* ((cabal-components (--map (parse-cabal-component cabal-file it) components))
                                      (result
                                       (haskell-misc--configure-dante--find-cabal-component-for-file
@@ -1398,19 +1407,26 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                                        fname))
                                      (candidate-component (car result))
                                      (warnings (cadr result)))
+
                                 (when candidate-component
                                   (setf component candidate-component
-                                        pkg-name (car package-name))
+                                        pkg-name (car package-name)
+                                        found-cabal-build-root cabal-build-root)
                                   (cl-assert (stringp pkg-name) nil
                                              "Expected package name to be a string but got %s" pkg-name))
                                 (setf all-warnings (nconc warnings all-warnings))))))
 
                         (setf tmp (cdr tmp)))
+
                       (if component
                           (make-dante-configuration-result
-                           :target (concat pkg-name ":"
-                                           (cabal-component-get-cabal-target component))
-                           :component component)
+                           :target
+                           (concat pkg-name ":"
+                                   (cabal-component-get-cabal-target component))
+                           :cabal-build-root
+                           (car found-cabal-build-root)
+                           :component
+                           component)
                         (error "Couldn’t determine cabal component for %s from cabal file%s%s"
                                (file-name-nondirectory fname)
                                (if (null (cdr cabal-files))
