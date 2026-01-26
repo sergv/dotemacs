@@ -1002,8 +1002,7 @@ Save buffer if it has assigned file and this file exists on disk."
   "Make buffer file executable if it's a shell script."
   (unless (file-executable-p buffer-file-name)
     (when (save-excursion
-            (save-restriction
-              (widen)
+            (with-no-narrowing
               (goto-char (point-min))
               ;; first alternative - unix shell shebang
               ;; second alternative - emacs "shebang"

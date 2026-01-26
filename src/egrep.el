@@ -259,8 +259,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
       (maphash
        (lambda (file-name entries)
          (for-buffer-with-file file-name
-           (save-restriction
-             (widen)
+           (with-no-narrowing
              (dolist (entry entries)
                (let ((match-entry (car entry))
                      (orig-str (cadr entry)))
