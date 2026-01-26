@@ -520,8 +520,7 @@ but when paired then it’s like a string."
 
 Classes and data declarations are atomic entities and their
 indented block will be their bounds without any extra processing."
-  (save-restriction
-    (widen)
+  (with-no-narrowing
     (when-let ((node
                 (let* ((current-node (treesit-node-at pos))
                        (n-typ (treesit-node-type current-node)))
