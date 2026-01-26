@@ -94,9 +94,8 @@ See also `indent-relative-maybe'."
        (with-inhibited-modification-hooks
         (with-inhibited-redisplay
           (with-ignored-invisibility
-            (save-restriction
+            (with-no-narrowing
               (save-excursion
-                (widen)
                 (forward-line -1)
                 (beginning-of-line)
                 (while (and (not (bobp))

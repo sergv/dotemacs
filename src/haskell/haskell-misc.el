@@ -1037,9 +1037,8 @@ value section should have if it is to be properly indented."
   (cl-assert (stringp mod-name))
   (cl-assert (or (null identifier) (stringp identifier)))
   (save-match-data
-    (save-restriction
+    (with-no-narrowing
       (save-excursion
-        (widen)
         (haskell-navigate-imports)
         (let ((start (point))
               (positions nil)
@@ -1289,9 +1288,8 @@ value section should have if it is to be properly indented."
   "Add IDENTIFIER to the end of the module’s export list."
   (cl-assert (stringp identifier))
   (save-match-data
-    (save-restriction
+    (with-no-narrowing
       (save-excursion
-        (widen)
         (goto-char (point-min))
         (rx-let ((ws (any ?\n ?\r ?\s ?\t))
                  (module-name (+ (any "_." alphanumeric))))
@@ -1650,7 +1648,7 @@ with dante."
 
 ;;;###autoload
 (defun haskell-misc--ensure-language-pragma (pragma)
-  (save-restriction
+  (with-no-narrowing
     (save-excursion
       (save-match-data
         (goto-char (point-min))
