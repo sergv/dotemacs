@@ -193,10 +193,23 @@ targets and components about current buffer’s ghci session."
   ;; Value of type ‘cabal-component’ struct or nil. Nil is for e.g. cabal script buffers with #!
   (cabal-component nil :read-only t)
 
-  ;; Cabal build directory for checking session, e.g. /tmp/dist/dante-xxxxx
+  ;; Cabal build directory for checking session.
+  ;;
+  ;; String that together with ‘dante-config/build-package-subdir’ and
+  ;; ‘cabal-component/build-dir’ produces build directory whene
+  ;; component should reside.
+  ;;
+  ;; E.g.
+  ;; /tmp/dist/dante/dante-16ca6f3ab925563e08232c0d57ad2b6dab717fa0/
   (build-dir nil :read-only t)
 
-  ;; Cabal build directory for the dante-repl session, e.g. /tmp/dist/dante-repl-xxxxx
+  ;; Part under ‘dante-config/build-dir’ that specifies where cabal’s ‘build’ directory
+  ;; is to be found.
+  ;; E.g.
+  ;; build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-with-hsc-0.1
+  (build-package-subdir nil :read-only t)
+
+  ;; Cabal build directory for the dante-repl session, e.g. /tmp/dist/dante/dante-repl-xxxxx
   (repl-dir nil :read-only t)
 
   ;; Value of type ‘dante-method’
@@ -251,15 +264,15 @@ targets and components about current buffer’s ghci session."
   ;; May be nil for cases when we don’t need preprocessing.
   (make-preprocess-command-line nil :read-only t))
 
-(defun dante--get-build-dir (name proj-root root)
+(defun dante--get-build-dir (name proj-root build-dir)
   (cl-assert (stringp name))
   (cl-assert (or (null proj-root)
                  (and (stringp proj-root)
                       (file-directory-p proj-root))))
-  (cl-assert (stringp root))
-  (cl-assert (or (not (file-exists-p root)) (file-directory-p root)))
-  (if root
-      (concat root
+  (cl-assert (stringp build-dir))
+  (cl-assert (or (not (file-exists-p build-dir)) (file-directory-p build-dir)))
+  (if build-dir
+      (concat build-dir
               "/"
               name
               (awhen proj-root
@@ -354,18 +367,20 @@ targets and components about current buffer’s ghci session."
               get-repl-build-dir
               :make-preprocess-command-line
               (unless disable-preprocess
-                (lambda (cfg build-dir)
-                  (cl-assert (stringp build-dir))
+                (lambda (cfg is-repl?)
                   (let ((result
                          (funcall template
                                   :flake-root (dante-config/flake-root cfg)
-                                  :flags (list "--disable-profiling"
-                                               "--disable-library-profiling"
-                                               "--disable-optimization"
-                                               "--builddir"
-                                               build-dir
-                                               "--repl-no-load"
-                                               "--with-repl=echo")
+                                  :flags (append (if is-repl?
+                                                     (list "--builddir"
+                                                           (dante-config/repl-dir cfg))
+                                                   (list "--disable-optimization"
+                                                         "--builddir"
+                                                         (dante-config/build-dir cfg)))
+                                                 (list "--disable-profiling"
+                                                       "--disable-library-profiling"
+                                                       "--repl-no-load"
+                                                       "--with-repl=echo"))
                                   :target (dante-config/cabal-target cfg))))
                     (cl-assert (-all? #'stringp result)
                                nil
@@ -460,39 +475,38 @@ Consider setting this variable as a directory variable."
                   (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
                          (proj-root (awhen proj
                                       (f-full (eproj-project/root it)))))
-                    (when-let ((root (if-let ((find-root-pred (dante-method/find-root-pred method)))
-                                         (locate-dominating-file default-directory
-                                                                 (lambda (dir)
-                                                                   (and (if proj-root
-                                                                            ;; If there’s a project then don’t ascend past it.
-                                                                            (string-prefix-p proj-root
-                                                                                             (f-full dir))
-                                                                          t)
-                                                                        (funcall find-root-pred dir))))
-                                       default-directory)))
-                      (setf root (expand-file-name root))
+                    (when-let ((proj-root (if-let ((find-root-pred (dante-method/find-root-pred method)))
+                                              (locate-dominating-file default-directory
+                                                                      (lambda (dir)
+                                                                        (and (if proj-root
+                                                                                 ;; If there’s a project then don’t ascend past it.
+                                                                                 (string-prefix-p proj-root
+                                                                                                  (f-full dir))
+                                                                               t)
+                                                                             (funcall find-root-pred dir))))
+                                            default-directory)))
+                      (setf proj-root (expand-file-name proj-root))
                       (let ((flake-root
                              (when (dante-nix-available? (current-buffer))
                                (cond
-                                 ((file-exists-p (concat root "/flake.nix"))
-                                  root)
+                                 ((file-exists-p (concat proj-root "/flake.nix"))
+                                  proj-root)
                                  (proj
                                   (let ((eproj-root (eproj-project/root proj)))
                                     (when (file-exists-p (concat eproj-root "/flake.nix"))
                                       eproj-root)))
                                  (t
                                   nil))))
-                            (build-dir
-                             (eproj-query/fold-build-dir
-                              proj
-                              ;; if not defined
-                              (lambda ()
-                                (fold-platform-os-type "/tmp/dist/dante" "dist-newstyle/dante"))
-                              ;; if defined
-                              #'identity)))
-
-                        (cl-assert (stringp root))
-                        (cl-assert (file-directory-p root))
+                            (global-build-dir
+                             (concat (eproj-query/fold-build-dir
+                                      proj
+                                      ;; if not defined
+                                      (lambda ()
+                                        (fold-platform-os-type "/tmp/dist/dante" "dist-newstyle/dante"))
+                                      ;; if defined
+                                      #'identity))))
+                        (cl-assert (stringp proj-root))
+                        (cl-assert (file-directory-p proj-root))
                         (cl-assert (or (null proj-root)
                                        (and (stringp proj-root)
                                             (file-directory-p proj-root))))
@@ -502,17 +516,20 @@ Consider setting this variable as a directory variable."
                         (cl-assert (dante-method-p method))
                         (cl-assert (or (null cabal-cfg)
                                        (dante-configuration-result-p cabal-cfg)))
+                        (cl-assert (stringp (dante-configuration-result/cabal-build-root cabal-cfg)))
                         (setf result
                               (make-dante-config
-                               :project-root root
+                               :project-root proj-root
                                :eproj-root proj-root
                                :flake-root flake-root
                                :cabal-target (and cabal-cfg
                                                   (dante-configuration-result/target cabal-cfg))
                                :cabal-component (and cabal-cfg
                                                      (dante-configuration-result/component cabal-cfg))
-                               :build-dir (funcall (dante-method/get-check-build-dir method) root build-dir)
-                               :repl-dir (funcall (dante-method/get-repl-build-dir method) root build-dir)
+                               :build-dir
+                               (funcall (dante-method/get-check-build-dir method) proj-root global-build-dir)
+                               :build-package-subdir (dante-configuration-result/cabal-build-root cabal-cfg)
+                               :repl-dir (funcall (dante-method/get-repl-build-dir method) proj-root global-build-dir)
                                :method method)))))))))))
       (if result
           result
@@ -971,9 +988,7 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
   (let ((fname (dante-get-filename-to-load--default-impl buf))
         (cfg (dante-get-config)))
 
-    (lcr-call dante--preprocess-project-if-needed
-              cfg
-              (dante-config/build-dir cfg))
+    (lcr-call dante--preprocess-project-if-needed cfg nil)
 
     ;; Take care not to overwrite original buffer needlessly if we’re
     ;; calling this function from a remote buffer or base buffer will be
@@ -985,55 +1000,54 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
           (write-region nil nil fname nil 0))))
     fname))
 
-(lcr-def dante--preprocess-project-if-needed (cfg package-build-dir)
+(lcr-def dante--preprocess-project-if-needed (cfg is-repl?)
   (when (dante-method/make-preprocess-command-line (dante-config/method cfg))
-    (let* ((src-dirs (let* ((component
-                             (dante-config/cabal-component cfg))
-                            (cabal-file-dir
-                             (strip-trailing-slash
-                              (file-name-directory
-                               (cabal-component/cabal-file component)))))
-                       (--map (concat cabal-file-dir "/" it)
-                              (cabal-component/source-dirs component))))
+    (let ((src-dirs (let* ((component
+                            (dante-config/cabal-component cfg))
+                           (cabal-file-dir
+                            (strip-trailing-slash
+                             (file-name-directory
+                              (cabal-component/cabal-file component)))))
+                      (--map (concat cabal-file-dir "/" it)
+                             (cabal-component/source-dirs component))))
 
-           (component-build-dir (dante-get-component-build-dir cfg package-build-dir))
+          (component-build-dir (dante-get-component-build-dir cfg is-repl?)))
+      (when component-build-dir
+        (let* ((needs-preprocessing? (null (file-directory-p component-build-dir)))
+               (already-preprocessed-files (unless needs-preprocessing?
+                                             (find-rec* :root component-build-dir
+                                                        :globs-to-find '("*.hs")
+                                                        :relative-paths t)))
+               (already-preprocessed-trie
+                (let ((tr (make-empty-trie)))
+                  (dolist (x already-preprocessed-files)
+                    (trie-insert! (reverse (file-name-sans-extension x)) x tr))
+                  tr))
+               (sources (find-rec-multi* :roots src-dirs
+                                         :globs-to-find (eval-when-compile
+                                                          (--map (concat "*." it)
+                                                                 +haskell-preprocessing-extensions+)))))
 
-           (needs-preprocessing? (null (file-directory-p component-build-dir)))
-           (already-preprocessed-files (unless needs-preprocessing?
-                                         (find-rec* :root component-build-dir
-                                                    :globs-to-find '("*.hs")
-                                                    :relative-paths t)))
-           (already-preprocessed-trie
-            (let ((tr (make-empty-trie)))
-              (dolist (x already-preprocessed-files)
-                (trie-insert! (reverse (file-name-sans-extension x)) x tr))
-              tr))
-           (sources (find-rec-multi* :roots src-dirs
-                                     :globs-to-find (eval-when-compile
-                                                      (--map (concat "*." it)
-                                                             +haskell-preprocessing-extensions+)))))
+          (unless needs-preprocessing?
+            (setf needs-preprocessing?
+                  (catch 'found
+                    (dolist (src sources)
+                      (when-let ((preprocessed (trie-matches-string-suffix? already-preprocessed-trie
+                                                                            (file-name-sans-extension src))))
+                        (when (dante--is-file-newer-than? src (concat component-build-dir "/" preprocessed))
+                          (throw 'found t))))
+                    nil)))
+          (when needs-preprocessing?
+            (lcr-call dante--preprocess-current-project! cfg is-repl?)))
+        ;; (error "No build directory for component, cannot preprocess current project.")
+        ))))
 
-      (unless needs-preprocessing?
-        (setf needs-preprocessing?
-              (catch 'found
-                (dolist (src sources)
-                  (when-let ((preprocessed (trie-matches-string-suffix? already-preprocessed-trie
-                                                                        (file-name-sans-extension src))))
-                    (when (dante--is-file-newer-than? src (concat component-build-dir "/" preprocessed))
-                      (throw 'found t))))
-                nil)))
-
-      (when needs-preprocessing?
-        (lcr-call dante--preprocess-current-project!
-                  cfg
-                  package-build-dir)))))
-
-(lcr-def dante--preprocess-current-project! (cfg build-dir)
+(lcr-def dante--preprocess-current-project! (cfg is-repl?)
   (cl-assert (dante-method/make-preprocess-command-line (dante-config/method cfg)))
   (let* ((default-directory (dante-config/project-root cfg))
          (cmdline (funcall (dante-method/make-preprocess-command-line (dante-config/method cfg))
                            cfg
-                           build-dir)))
+                           is-repl?)))
     (with-fresh-buffer-no-switch tmp-buf (get-buffer-create " *dante-cabal-preprocessing*")
       (let ((exit-code (lcr-call lcr-call-process-async
                                  (list
@@ -1053,9 +1067,9 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
 
 (lcr-def dante-check--get-file-to-load--hsc2hs (current-file buf)
   "Prepare to load into GHCi a file that requires preprocessing."
-  (let ((preprocessed-file (dante-get-filename-to-load--hsc2hs buf))
+  (let (;; (preprocessed-file (dante-get-filename-to-load--hsc2hs buf))
         (cfg (dante-get-config)))
-    (lcr-call dante--preprocess-project-if-needed cfg (dante-config/build-dir cfg))
+    (lcr-call dante--preprocess-project-if-needed cfg nil)
     ;; Only check current buffer’s file if it’s stale, faster but
     ;; may miss some situations where we should run preprocessing.
     ;; (when (or (not (file-exists-p preprocessed-file))
@@ -1063,7 +1077,9 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
     ;;   (lcr-call dante--preprocess-current-project!
     ;;             cfg
     ;;             (dante-config/build-dir cfg)))
-    preprocessed-file))
+    (dante-get-filename-to-load--hsc2hs buf)
+    ;; preprocessed-file
+    ))
 
 (defun dante--is-file-newer-than? (file-to-test file-to-test-against)
   (let ((to-test-modtime (nth 5 (file-attributes file-to-test)))
@@ -1109,38 +1125,62 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
         (setq dante-get-filename-to-load
               (dante-tramp-make-tramp-temp-file buf)))))
 
-(defun dante-get-component-build-dir (cfg package-build-dir)
+(defun dante-get-component-build-dir (cfg is-repl?)
+  "Get full build directory to component specified in the configuration CFG.
+E.g.
+/tmp/dist/dante/dante-233ed377513e0d49b904b94c75fa53a52976c9a3/build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-with-hsc-0.1/noopt
+"
+  (cl-assert (dante-config-p cfg))
   (let ((component (dante-config/cabal-component cfg)))
     (cl-assert (or (cabal-component-p component)
                    (null component)))
     (when component
-      (let ((build-dir (cabal-component/build-dir component)))
-        (concat (aif package-build-dir
-                    it
-                  (concat
-                   (aif (dante-config/eproj-root cfg)
-                       (concat (strip-trailing-slash it) "/")
-                     "")
-                   "dist-newstyle"))
-                "/"
-                build-dir)))))
+      (let* ((build-dir
+              (concat
+               (aif (if is-repl?
+                        (dante-config/repl-dir cfg)
+                      (dante-config/build-dir cfg))
+                   it
+                 (concat
+                  (aif (dante-config/eproj-root cfg)
+                      (concat (strip-trailing-slash it) "/")
+                    "")
+                  "dist-newstyle"))
+               "/"
+               (dante-config/build-package-subdir cfg))))
+        ;; NB cannot rely on existence of returned directory here because we may get called
+        ;; before directory is created.
 
+        (if is-repl?
+            (concat build-dir
+                    "/"
+                    (cabal-component/build-dir component))
+          (concat build-dir
+                  "/noopt/"
+                  (cabal-component/build-dir component)))))))
+
+;; E.g /tmp/dist/dante/dante-233ed377513e0d49b904b94c75fa53a52976c9a3/build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-with-hsc-0.1/build/Bar/Baz.hs
 (defun dante-get-filename-to-load--hsc2hs (buf)
   "Return filename where cabal would put result of preprocessing BUFFER’s file."
   (with-current-buffer buf
     (or dante-get-filename-to-load
         (let* ((cfg (dante-get-config buf))
-               (component-build-dir
-                (dante-get-component-build-dir cfg (dante-config/build-dir cfg))))
+               (component-build-dir (dante-get-component-build-dir cfg nil)))
           (if component-build-dir
-              (setq-local dante-get-filename-to-load
-                          (concat
-                           component-build-dir
-                           "/"
-                           (replace-regexp-in-string "[.]"
-                                                     "/"
-                                                     (treesit-haskell-get-buffer-module-name))
-                           ".hs"))
+              (let ((candidate
+                     (concat
+                      component-build-dir
+                      "/"
+                      (replace-regexp-in-string "[.]"
+                                                "/"
+                                                (treesit-haskell-get-buffer-module-name))
+                      ".hs")))
+                (if (file-exists-p candidate)
+                    (setq-local dante-get-filename-to-load
+                                candidate)
+                  (error "Unable to locate filename to load for hsc buffer %s. Expected this to exist: %s"
+                         buf
+                         candidate)))
             (error "hsc2hs does not support #! scripts"))))))
 
 (defun dante-canonicalize-path (path)
