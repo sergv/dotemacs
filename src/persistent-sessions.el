@@ -501,8 +501,7 @@ entries."
                          ;; they’re mirroring their bases.
                          (sessions/store-string
                           (if (buffer-narrowed-p)
-                              (save-restriction
-                                (widen)
+                              (with-no-narrowing
                                 (buffer-substring (point-min) (point-max)))
                             (buffer-substring (point-min) (point-max)))
                           drop-properties?))

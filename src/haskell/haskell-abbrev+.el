@@ -38,8 +38,7 @@
 
 (defmacro haskell-abbrev+--is-function-available (function-name module-name)
   `(save-excursion
-     (save-restriction
-       (widen)
+     (with-no-narrowing
        (save-match-data
          (goto-char (point-min))
          (re-search-forward
@@ -58,9 +57,8 @@
   (unless (haskell-abbrev+--is-function-available nil
                                                   (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
                                                       (seq symbol-start "Debug.Trace" (or eol (seq symbol-end (* any) "qualified")))))
-    (save-restriction
-      (save-excursion
-        (widen)
+    (save-excursion
+      (with-no-narrowing
         (let ((have-imports? (haskell-abbrev+--have-imports?)))
           (haskell-navigate-imports)
           (insert (if (haskell-ext-tracking-have-import-qualified-post?)
@@ -74,9 +72,8 @@
                                                   (or (seq "qualified" (* any) symbol-start "Prettyprinter.Combinators" symbol-end)
                                                       (seq symbol-start "Prettyprinter.Combinators" (or eol (seq symbol-end (* any) "qualified")))))
     (save-match-data
-      (save-restriction
-        (save-excursion
-          (widen)
+      (save-excursion
+        (with-no-narrowing
           (if (save-excursion
                 (goto-char (point-min))
                 (re-search-forward (rx "import" (* any) (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
