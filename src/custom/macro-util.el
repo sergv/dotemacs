@@ -642,6 +642,12 @@ return nil otherwise."
   `(let ((inhibit-field-text-motion t))
      ,@body))
 
+(defmacro with-no-narrowing (&rest body)
+  (declare (indent 0))
+  `(save-restriction
+     (widen)
+     ,@body))
+
 (cl-defmacro with-marker ((marker-var marker-init) &rest body)
   "Run BODY with MARKER-VAR variable initialized to a marker value
 produced by MARKER-INIT and remove marker after BODY finishes."
@@ -668,6 +674,7 @@ produced by MARKER-INIT and remove marker after BODY finishes."
          (overlay-put (car ov) 'invisible (cdr ov))))))
 
 (defmacro with-ignored-invisibility (&rest body)
+  (declare (indent 0))
   `(let ((buffer-invisibility-spec nil))
      ,@body))
 
