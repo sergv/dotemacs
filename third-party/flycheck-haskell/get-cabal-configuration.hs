@@ -437,11 +437,15 @@ serializePackageDescription pkgDesc projectDir =
     , cons (sym "should-include-version-header") [not ghcIncludesVersionMacro]
     , cons (sym "package-name") [packageName]
     , cons (sym "components") components
+    , cons (sym "cabal-build-root") [buildRoot]
     ]
   where
     packageName = C8.pack $ unPackageName' $ pkgName $ package pkgDesc
 
-    components = getComponents (cabalDistDir (package pkgDesc)) packageName pkgDesc
+    -- E.g. build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-0.1/build
+    buildRoot = cabalDistDir (package pkgDesc)
+
+    components = getComponents packageName pkgDesc
 
     buildInfo :: [BuildInfo]
     buildInfo = allBuildInfo pkgDesc
@@ -500,8 +504,8 @@ data Component = Component
   , cBuildDir   :: !UnixFilepath
   }
 
-mkComponent :: UnixFilepath -> ComponentType -> C8.ByteString -> Maybe C8.ByteString -> [ModuleName] -> [UnixFilepath] -> Component
-mkComponent distDir cType cName cModulePath cModules cSourceDirs =
+mkComponent :: ComponentType -> C8.ByteString -> Maybe C8.ByteString -> [ModuleName] -> [UnixFilepath] -> Component
+mkComponent cType cName cModulePath cModules cSourceDirs =
   Component
     { cType
     , cName
@@ -513,8 +517,7 @@ mkComponent distDir cType cName cModulePath cModules cSourceDirs =
   where
     buildDir :: UnixFilepath
     buildDir =
-      distDir `joinPaths`
-        mkUnixFilepath "build"
+      mkUnixFilepathBS "build"
     componentBuildDir :: UnixFilepath
     componentBuildDir =
       buildDir `joinPaths`
@@ -528,33 +531,46 @@ mkComponent distDir cType cName cModulePath cModules cSourceDirs =
         _                 -> componentBuildDir
 
 instance ToSexp Component where
-  toSexp Component{cType, cName, cModulePath, cModules, cSourceDirs, cBuildDir} =
-    SList [toSexp cType, toSexp cName, toSexp cModulePath, toSexp cModules, toSexp cSourceDirs, toSexp cBuildDir]
+  toSexp
+    (Component
+      (typ        :: ComponentType)
+      (name       :: C8.ByteString)
+      (modulePath :: Maybe C8.ByteString)
+      (modules    :: [ModuleName])
+      (sourceDirs :: [UnixFilepath])
+      (buildDir   :: UnixFilepath))
+    = SList
+        [ toSexp typ
+        , toSexp name
+        , toSexp modulePath
+        , toSexp modules
+        , toSexp sourceDirs
+        , toSexp buildDir
+        ]
 
 -- | Gather files and modules that constitute each component.
 getComponents
-  :: UnixFilepath
-  -> C8.ByteString
+  :: C8.ByteString
   -> PackageDescription
   -> [Component]
-getComponents distDir packageName pkgDescr =
-  [ mkComponent distDir (CTLibrary libName'') name Nothing (exposedModules lib ++ libSignatures lib ++ biMods bi) (hsSourceDirs' bi)
+getComponents packageName pkgDescr =
+  [ mkComponent (CTLibrary libName'') name Nothing (exposedModules lib ++ libSignatures lib ++ biMods bi) (hsSourceDirs' bi)
   | lib <- allLibraries' pkgDescr
   , let bi        = libBuildInfo lib
         libName'' = libName' lib
         name      = maybe packageName C8.pack libName''
   ] ++
 #if defined(Cabal20OrLater)
-  [ mkComponent distDir CTForeignLibrary (C8.pack (foreignLibName' flib)) Nothing (biMods bi) (hsSourceDirs' bi)
+  [ mkComponent CTForeignLibrary (C8.pack (foreignLibName' flib)) Nothing (biMods bi) (hsSourceDirs' bi)
   | flib <- foreignLibs pkgDescr
   , let bi = foreignLibBuildInfo flib
   ] ++
 #endif
-  [ mkComponent distDir CTExecutable (C8.pack (exeName' exe)) (Just (getSymbolicPath' (modulePath exe))) (biMods bi) (hsSourceDirs' bi)
+  [ mkComponent CTExecutable (C8.pack (exeName' exe)) (Just (getSymbolicPath' (modulePath exe))) (biMods bi) (hsSourceDirs' bi)
   | exe <- executables pkgDescr
   , let bi = buildInfo exe
   ] ++
-  [ mkComponent distDir CTTestSuite (C8.pack (testName' tst)) exeFile (maybeToList extraMod ++ biMods bi) (hsSourceDirs' bi)
+  [ mkComponent CTTestSuite (C8.pack (testName' tst)) exeFile (maybeToList extraMod ++ biMods bi) (hsSourceDirs' bi)
   | tst <- testSuites pkgDescr
   , let bi = testBuildInfo tst
   , let (exeFile, extraMod) = case testInterface tst of
@@ -564,7 +580,7 @@ getComponents distDir packageName pkgDescr =
   ]
 #if defined(Cabal114OrMore)
   ++
-  [ mkComponent distDir CTBenchmark (C8.pack (benchmarkName' tst)) exeFile (biMods bi) (hsSourceDirs' bi)
+  [ mkComponent CTBenchmark (C8.pack (benchmarkName' tst)) exeFile (biMods bi) (hsSourceDirs' bi)
   | tst <- benchmarks pkgDescr
   , let bi = benchmarkBuildInfo tst
   , let exeFile = case benchmarkInterface tst of
