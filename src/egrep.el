@@ -259,22 +259,24 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
       (maphash
        (lambda (file-name entries)
          (for-buffer-with-file file-name
-           (dolist (entry entries)
-             (let ((match-entry (car entry))
-                   (orig-str (cadr entry)))
-               (cl-assert (stringp orig-str))
-               (goto-char (- (byte-to-position (egrep-match-offset match-entry))
-                             (length (egrep-match-matched-prefix match-entry))))
-               (let ((current-str
-                      (buffer-substring-no-properties (point)
-                                                      (+ (point)
-                                                         (length orig-str)))))
-                 (unless (string= orig-str current-str)
-                   (error "Cannot apply changes in file %s at line %s: grep looked at too old version.\nExpected contents:\n%s\nCurrent contents:\n%s\n"
-                          (egrep-match-short-file-name match-entry)
-                          (egrep-match-line match-entry)
-                          orig-str
-                          current-str)))))))
+           (save-restriction
+             (widen)
+             (dolist (entry entries)
+               (let ((match-entry (car entry))
+                     (orig-str (cadr entry)))
+                 (cl-assert (stringp orig-str))
+                 (goto-char (- (byte-to-position (egrep-match-offset match-entry))
+                               (length (egrep-match-matched-prefix match-entry))))
+                 (let ((current-str
+                        (buffer-substring-no-properties (point)
+                                                        (+ (point)
+                                                           (length orig-str)))))
+                   (unless (string= orig-str current-str)
+                     (error "Cannot apply changes in file %s at line %s: grep looked at too old version.\nExpected contents:\n%s\nCurrent contents:\n%s\n"
+                            (egrep-match-short-file-name match-entry)
+                            (egrep-match-line match-entry)
+                            orig-str
+                            current-str))))))))
        ordered-changed-entries)
       ;; Apply the changes.
       (maphash
