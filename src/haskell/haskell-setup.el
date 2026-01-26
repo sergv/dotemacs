@@ -525,7 +525,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
     ("DEL"         haskell-backspace-with-block-dedent)
     ("<backspace>" haskell-backspace-with-block-dedent)
 
-    ("C-u"         haskell-insert-undefined)
+    ("M-u"         haskell-insert-undefined)
     ("C-h"         flycheck-enhancements-next-error-with-wraparound)
     ("C-t"         flycheck-enhancements-previous-error-with-wraparound)
     ("M-h"         compilation-navigation-next-error-other-window)
