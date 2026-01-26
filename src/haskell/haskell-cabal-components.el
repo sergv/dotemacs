@@ -16,13 +16,13 @@
 
 (cl-defstruct (cabal-component
                (:conc-name cabal-component/))
-  cabal-file
-  type
-  name
-  main-file
-  module-list
-  source-dirs
-  build-dir)
+  (cabal-file  nil :read-only t)
+  (type        nil :read-only t)
+  (name        nil :read-only t)
+  (main-file   nil :read-only t)
+  (module-list nil :read-only t)
+  (source-dirs nil :read-only t)
+  (build-dir   nil :read-only t))
 
 (defun cabal-component-get-cabal-target (component)
   (concat (cabal-component/type component) ":" (cabal-component/name component)))
