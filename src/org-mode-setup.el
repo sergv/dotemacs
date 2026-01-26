@@ -165,8 +165,7 @@
 ;;          (org-remove-inline-images)
 ;;          (if (fboundp 'clear-image-cache) (clear-image-cache)))
 ;;        (save-excursion
-;;          (save-restriction
-;;            (widen)
+;;          (with-no-narrowing
 ;;            (setq beg (or beg (point-min)) end (or end (point-max)))
 ;;            (goto-char beg)
 ;;            (let ((re (concat "\\(?:#+[+ ]*INLINE:[ \t]*\\(.*\\)[ \t]*\n[ \t]*\\(?:#.*\n[ \t]*\\)*\\)?\\[\\[\\(\\(file:\\)\\|\\([./~]\\)\\)\\([^\]\n]+?"
