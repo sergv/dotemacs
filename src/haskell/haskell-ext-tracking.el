@@ -30,10 +30,9 @@
 (defvar haskell-ext-tracking-known-exts--store (haskell-ext-tracking-known-exts--default))
 
 (defun haskell-ext-tracking--update! ()
-  (save-restriction
+  (with-no-narrowing
     (save-excursion
       (save-match-data
-        (widen)
         (goto-char (point-min))
         (let ((end
                (let ((case-fold-search nil))
