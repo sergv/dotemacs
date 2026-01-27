@@ -191,10 +191,29 @@
           (list
            (list #'cadr #'equal)
            (list #'car #'equal)))))
-    (nested-hash-tables/add! '(foo bar baz)
-                             tables)
-    (nested-hash-tables/add! '(quux bar baz)
-                             tables)
+    (nested-hash-tables/add! '(foo bar baz) tables)
+    (nested-hash-tables/add! '(quux bar baz) tables)
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(bar bar bar) tables)
+      nil))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(bar bar bar) tables 'undefined)
+      'undefined))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(foo bar baz) tables)
+      '(foo bar baz)))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(quux bar baz) tables)
+      '(quux bar baz)))
+
     (should
      (equal
       (nested-hash-tables->alist tables)
@@ -208,10 +227,29 @@
            (list #'cadr #'equal)
            (list #'car #'equal)
            (list #'identity #'equal)))))
-    (nested-hash-tables/add! '(foo bar baz)
-                             tables)
-    (nested-hash-tables/add! '(quux bar baz)
-                             tables)
+    (nested-hash-tables/add! '(foo bar baz) tables)
+    (nested-hash-tables/add! '(quux bar baz) tables)
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(bar bar bar) tables)
+      nil))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(bar bar bar) tables 'undefined)
+      'undefined))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(foo bar baz) tables)
+      '(foo bar baz)))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(quux bar baz) tables)
+      '(quux bar baz)))
+
     (should
      (equal
       (nested-hash-tables->alist tables)
