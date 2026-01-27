@@ -8976,7 +8976,7 @@ have different input states."
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-1
-    (haskell-misc--add-new-import "Foo" nil nil nil)
+    (haskell-misc--add-new-import "Foo" nil nil nil nil)
   (tests-utils--multiline
    ""
    "import Bar"
@@ -8993,7 +8993,7 @@ have different input states."
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-2
-    (haskell-misc--add-new-import "Foo" "quux" nil nil)
+    (haskell-misc--add-new-import "Foo" "quux" nil nil nil)
   (tests-utils--multiline
    ""
    "import Bar"
@@ -9010,7 +9010,7 @@ have different input states."
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-3
-    (haskell-misc--add-new-import "Data.Foo" "quux" nil nil)
+    (haskell-misc--add-new-import "Data.Foo" "quux" nil nil nil)
   (tests-utils--multiline
    ""
    "import Control.Applicative"
@@ -9033,7 +9033,7 @@ have different input states."
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-4
-    (haskell-misc--add-new-import "Data.Foo" "quux" nil nil)
+    (haskell-misc--add-new-import "Data.Foo" "quux" nil nil nil)
   (tests-utils--multiline
    ""
    "import System.IO"
@@ -9060,7 +9060,7 @@ have different input states."
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-5
-    (haskell-misc--add-new-import "Data.Foo" "quux" nil nil)
+    (haskell-misc--add-new-import "Data.Foo" "quux" nil nil nil)
   (tests-utils--multiline
    ""
    "import System.IO"
@@ -9095,7 +9095,7 @@ have different input states."
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-5a
-    (haskell-misc--add-new-import "Data.Foo" "Quux" nil "Frobnicator")
+    (haskell-misc--add-new-import "Data.Foo" "Quux" nil "Frobnicator" nil)
   (tests-utils--multiline
    ""
    "import System.IO"
@@ -9130,7 +9130,7 @@ have different input states."
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-6
-    (haskell-misc--add-new-import "Data.Foo" "quux" t nil)
+    (haskell-misc--add-new-import "Data.Foo" "quux" t nil nil)
   (tests-utils--multiline
    ""
    "import System.IO"
@@ -9158,6 +9158,41 @@ have different input states."
    ""
    "import Data.AAA.ProjectSpecific qualified as PS"
    "import Data.Foo (quux)"
+   "import Project.Decombobulate"
+   ""
+   "foo x = x_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-misc--add-new-import-7
+    (haskell-misc--add-new-import "Data.Foo" "Quux" t nil t)
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.List qualified as L"
+   "import Data.Map qualified as M"
+   ""
+   "import Data.AAA.ProjectSpecific qualified as PS"
+   "import Project.Decombobulate"
+   ""
+   "foo x = x_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.List qualified as L"
+   "import Data.Map qualified as M"
+   ""
+   "import Data.AAA.ProjectSpecific qualified as PS"
+   "import Data.Foo (Quux(..))"
    "import Project.Decombobulate"
    ""
    "foo x = x_|_"
