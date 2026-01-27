@@ -62,6 +62,7 @@
 (require 'eproj)
 (require 'haskell-misc)
 (require 'haskell-regexen)
+(require 'nested-hash-tables)
 (require 's)
 (require 'vim-motions)
 
@@ -1006,6 +1007,13 @@ Error is given as MSG and reported between POS and END."
   (new-name nil :read-only t)
   (is-authoritative? nil :read-only t))
 
+(defconst attrap--haskell-names-to-import-with-wildcards
+  (eval-when-compile
+    (alist->nested-hash-tables
+     (list (cons #'car #'equal)
+           (cons #'cadr #'equal))
+     '((("GHC.Generics" "Generically" ?t) . t)))))
+
 (defconst attrap--module-name-fixes
   (eval-when-compile
     (alist->hash-table-with
@@ -1276,7 +1284,7 @@ then all non-authoritative results from that collection should be ignored."
 
          (entry
           (pcase (length module-names)
-            (0 (error "No candidates modules defining ‘%s’ found" identifier))
+            (0 (error "No candidate modules defining ‘%s’ found" identifier))
             (1 (car module-names))
             (_ (assoc (completing-read "Choose module: "
                                        module-names
@@ -1289,11 +1297,16 @@ then all non-authoritative results from that collection should be ignored."
          (mod-name (car entry))
          (candidate-entry (cdr entry))
          (tag (cl-second candidate-entry))
-         (import-from-current-project? (eq proj (cl-third candidate-entry))))
+         (import-from-current-project? (eq proj (cl-third candidate-entry)))
+         (parent (attrap-haskell-import--resolve-tag-parent-name tag)))
     (haskell-misc--add-new-import mod-name
                                   identifier
                                   import-from-current-project?
-                                  (attrap-haskell-import--resolve-tag-parent-name tag))
+                                  parent
+                                  (unless parent
+                                    (nested-hash-tables/gethash
+                                     (list mod-name identifier (eproj-tag/type tag))
+                                     attrap--haskell-names-to-import-with-wildcards)))
     (notify "Added import of ‘%s’" mod-name)))
 
 (defun attrap-add-operator-parens (name)
