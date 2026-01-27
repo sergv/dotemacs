@@ -17,6 +17,7 @@
 (require 'bimap)
 (require 'bisect)
 (require 'interval-with-margins)
+(require 'nested-hash-tables)
 (require 'sorted-set)
 (require 'trie)
 
@@ -849,6 +850,78 @@
                    (list (i 1 10))))
     (should (equal (interval-with-margins-merge-overlapping! (copy-list (list (i 1 5) (i 7 10 2))))
                    (list (i 1 10))))))
+
+(ert-deftest datastructures-tests/nested-hash-tables-1 ()
+  (let ((tables
+         (mk-nested-hash-tables
+          (list
+           (list #'cadr #'equal)
+           (list #'car #'equal)))))
+    (nested-hash-tables/add! '(foo bar baz) tables)
+    (nested-hash-tables/add! '(quux bar baz) tables)
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(bar bar bar) tables)
+      nil))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(bar bar bar) tables 'undefined)
+      'undefined))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(foo bar baz) tables)
+      '(foo bar baz)))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(quux bar baz) tables)
+      '(quux bar baz)))
+
+    (should
+     (equal
+      (nested-hash-tables->alist tables)
+      '((quux quux bar baz)
+        (foo  foo bar baz))))))
+
+(ert-deftest datastructures-tests/nested-hash-tables-2 ()
+  (let ((tables
+         (mk-nested-hash-tables
+          (list
+           (list #'cadr #'equal)
+           (list #'car #'equal)
+           (list #'identity #'equal)))))
+    (nested-hash-tables/add! '(foo bar baz) tables)
+    (nested-hash-tables/add! '(quux bar baz) tables)
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(bar bar bar) tables)
+      nil))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(bar bar bar) tables 'undefined)
+      'undefined))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(foo bar baz) tables)
+      '(foo bar baz)))
+
+    (should
+     (equal
+      (nested-hash-tables/gethash '(quux bar baz) tables)
+      '(quux bar baz)))
+
+    (should
+     (equal
+      (nested-hash-tables->alist tables)
+      '(((quux bar baz) quux bar baz)
+        ((foo bar baz)  foo bar baz))))))
+
 
 (provide 'datastructures-tests)
 
