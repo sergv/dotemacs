@@ -694,24 +694,43 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
    :field-specs field-specs))
 
 ;;;###autoload
+(defun nested-hash-tables/gethash (key hash-tables &optional def)
+  (let ((table (nested-hash-tables/data hash-tables))
+        (result def))
+    (cl-loop
+     for spec-entry on (nested-hash-tables/field-specs hash-tables)
+     while table
+     do
+     (let* ((spec (car spec-entry))
+            (get-key (car spec))
+            (next-spec (cdr spec-entry))
+            (current-level-key (funcall get-key key)))
+       (if next-spec
+           (setf table
+                 (gethash current-level-key table))
+         (setf result
+               (gethash current-level-key table def)))))
+    result))
+
+;;;###autoload
 (defun nested-hash-tables/add-kv! (key value hash-tables)
   (let ((table (nested-hash-tables/data hash-tables)))
     (cl-loop
-      for spec-entry on (nested-hash-tables/field-specs hash-tables)
-      do
-      (let* ((spec (car spec-entry))
-             (get-key (car spec))
-             (next-spec (cdr spec-entry))
-             (current-level-key (funcall get-key key))
-             (next-value
-              (if next-spec
-                  (or (gethash current-level-key table)
-                      (make-hash-table :test (cadr spec)))
-                value)))
-        (puthash current-level-key
-                 next-value
-                 table)
-        (setf table next-value))))
+     for spec-entry on (nested-hash-tables/field-specs hash-tables)
+     do
+     (let* ((spec (car spec-entry))
+            (get-key (car spec))
+            (next-spec (cdr spec-entry))
+            (current-level-key (funcall get-key key))
+            (next-value
+             (if next-spec
+                 (or (gethash current-level-key table)
+                     (make-hash-table :test (cadr spec)))
+               value)))
+       (puthash current-level-key
+                next-value
+                table)
+       (setf table next-value))))
   hash-tables)
 
 ;;;###autoload
