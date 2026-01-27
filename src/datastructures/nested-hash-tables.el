@@ -85,6 +85,12 @@
       (maphash (funcall handle-data 1)
                (nested-hash-tables/data hash-tables)))))
 
+(defun alist->nested-hash-tables (field-specs xs)
+  (let ((tables (mk-nested-hash-tables field-specs)))
+    (dolist (x xs)
+      (nested-hash-tables/add-kv! (car x) (cdr x) tables))
+    tables))
+
 (defun nested-hash-tables->alist (hash-tables)
   (let ((result nil))
     (nested-hash-tables/maphash (lambda (k v)
