@@ -855,8 +855,8 @@
   (let ((tables
          (mk-nested-hash-tables
           (list
-           (list #'cadr #'equal)
-           (list #'car #'equal)))))
+           (cons #'cadr #'equal)
+           (cons #'car #'equal)))))
     (nested-hash-tables/add! '(foo bar baz) tables)
     (nested-hash-tables/add! '(quux bar baz) tables)
 
@@ -890,9 +890,9 @@
   (let ((tables
          (mk-nested-hash-tables
           (list
-           (list #'cadr #'equal)
-           (list #'car #'equal)
-           (list #'identity #'equal)))))
+           (cons #'cadr #'equal)
+           (cons #'car #'equal)
+           (cons #'identity #'equal)))))
     (nested-hash-tables/add! '(foo bar baz) tables)
     (nested-hash-tables/add! '(quux bar baz) tables)
 

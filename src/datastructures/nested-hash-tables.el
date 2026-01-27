@@ -21,13 +21,14 @@
 
 (defun mk-nested-hash-tables (field-specs)
   (cl-assert (and field-specs
+                  (not (null field-specs))
                   (listp field-specs)
-                  (--all? (and (listp it)
+                  (--all? (and (consp it)
                                (functionp (car it))
-                               (functionp (cadr it)))
+                               (functionp (cdr it)))
                           field-specs)))
   (make--nested-hash-tables
-   :data (make-hash-table :test (cadr (car field-specs)))
+   :data (make-hash-table :test (cdar field-specs))
    :field-specs field-specs))
 
 (defun nested-hash-tables/gethash (key hash-tables &optional def)
@@ -60,7 +61,7 @@
             (next-value
              (if next-spec
                  (or (gethash current-level-key table)
-                     (make-hash-table :test (cadr spec)))
+                     (make-hash-table :test (cdr spec)))
                value)))
        (puthash current-level-key
                 next-value
