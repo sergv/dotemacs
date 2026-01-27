@@ -1182,6 +1182,7 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Data.Functor.Identity" . "Data.Functor.Identity")
                          ("GHC.Internal.Data.Ord" . "Data.Ord")
                          ("GHC.Internal.Data.Proxy" . "Data.Proxy")
+                         ("GHC.Internal.Data.Semigroup.Internal" . "Data.Semigroup")
                          ("GHC.Internal.Data.Traversable" . "Data.Traversable")
                          ("GHC.Internal.Data.Typeable" . "Data.Typeable")
                          ("GHC.Internal.Foreign.Marshal.Alloc" . "Foreign.Marshal.Alloc")
