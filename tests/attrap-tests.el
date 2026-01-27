@@ -1245,6 +1245,112 @@
     (":||:" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-import-generically-from-base-gets-wildcard-5a
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-76037]"
+  "    Not in scope: type constructor or class ‘Generically’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  ""
+  "data Foo = Foo"
+  "  { fooField :: Any"
+  "  }"
+  "  deriving (Eq, Ord, Show, Generic)"
+  "  deriving (Semigroup, Monoid) via _|_Generically FooField"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  "import GHC.Generics (Generically(..))"
+  ""
+  "data Foo = Foo"
+  "  { fooField :: Any"
+  "  }"
+  "  deriving (Eq, Ord, Show, Generic)"
+  "  deriving (Semigroup, Monoid) via _|_Generically FooField"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("Generically" "/tmp/GHC/Generics.hs" 100 ?t nil))))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-import-generically-from-nonbase-no-wildcard-5b
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-76037]"
+  "    Not in scope: type constructor or class ‘Generically’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  ""
+  "data Foo = Foo"
+  "  { fooField :: Any"
+  "  }"
+  "  deriving (Eq, Ord, Show, Generic)"
+  "  deriving (Semigroup, Monoid) via _|_Generically FooField"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  "import Foo.Bar (Generically)"
+  ""
+  "data Foo = Foo"
+  "  { fooField :: Any"
+  "  }"
+  "  deriving (Eq, Ord, Show, Generic)"
+  "  deriving (Semigroup, Monoid) via _|_Generically FooField"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("Generically" "/tmp/Foo/Bar.hs" 100 ?t nil))))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-import-generically-from-nonbase-no-wildcard-5c
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-76037]"
+  "    Not in scope: type constructor or class ‘Generically’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  ""
+  "data Foo = Foo"
+  "  { fooField :: Any"
+  "  }"
+  "  deriving (Eq, Ord, Show, Generic)"
+  "  deriving (Semigroup, Monoid) via _|_Generically FooField"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  "import Foo.Bar (Generically)"
+  ""
+  "data Foo = Foo"
+  "  { fooField :: Any"
+  "  }"
+  "  deriving (Eq, Ord, Show, Generic)"
+  "  deriving (Semigroup, Monoid) via _|_Generically FooField"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("Generically" "/tmp/Foo/Bar.hs" 100 ?t nil)
+    ("Generically" "/tmp/GHC/Generics.hs" 100 ?C nil))))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-to-import-import-list-1
  :error-message
  (tests-utils--multiline

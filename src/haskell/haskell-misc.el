@@ -1032,7 +1032,7 @@ value section should have if it is to be properly indented."
                     'end-of-line
                     'haskell-cabal-sort-lines-key-fun)))))))
 
-(defun haskell-misc--add-new-import (mod-name identifier is-name-from-current-project? parent-name)
+(defun haskell-misc--add-new-import (mod-name identifier is-name-from-current-project? parent-name add-wildcard?)
   "Go to the imports section and add MOD-NAME import."
   (cl-assert (stringp mod-name))
   (cl-assert (or (null identifier) (stringp identifier)))
@@ -1082,7 +1082,9 @@ value section should have if it is to be properly indented."
                         propertized-ident)
                       (if parent-name
                           ")"
-                        "")
+                        (if add-wildcard?
+                            "(..)"
+                          ""))
                       ")")))
           (insert-char ?\n)
           (when add-at-end
