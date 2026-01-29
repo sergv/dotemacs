@@ -38,7 +38,17 @@ module Main (main) where
 
 #if defined(GHC_INCLUDES_VERSION_MACRO)
 
-# if MIN_VERSION_Cabal(3, 14, 0)
+# if MIN_VERSION_Cabal(3, 16, 0)
+#  define Cabal316OrLater 1
+#  define Cabal314OrLater 1
+#  define Cabal38OrLater 1
+#  define Cabal36OrLater 1
+#  define Cabal32OrLater 1
+#  define Cabal30OrLater 1
+#  define Cabal24OrLater 1
+#  define Cabal22OrLater 1
+#  define Cabal20OrLater 1
+# elif MIN_VERSION_Cabal(3, 14, 0)
 #  define Cabal314OrLater 1
 #  define Cabal38OrLater 1
 #  define Cabal36OrLater 1
@@ -150,7 +160,6 @@ import Distribution.PackageDescription (library)
 #endif
 
 
-import qualified Control.Applicative as A
 import Control.Monad (when)
 #if defined(Cabal22OrLater)
 import qualified Data.ByteString as BS
@@ -201,6 +210,10 @@ import Data.Version (Version)
 
 #if defined(Cabal114OrMore)
 import Distribution.PackageDescription (BenchmarkInterface(..))
+#endif
+
+#if defined(Cabal316OrLater)
+import Distribution.Types.DependencySatisfaction (DependencySatisfaction(..))
 #endif
 
 #if defined(Cabal20OrLater)
@@ -626,7 +639,7 @@ getCabalConfiguration configFile = do
     case configFile of
       CabalFile path -> readGenericPkgDescr path
   case getConcretePackageDescription genericDesc of
-    Left e        -> die' $ "Issue with package configuration\n" ++ show e
+    Left e        -> die' $ "Issue with package configuration\n" ++ e
     Right pkgDesc -> pure $ serializePackageDescription pkgDesc projectDir
   where
     projectDir :: FilePath
@@ -687,17 +700,37 @@ parsePkgDescr _fileName cabalFileContents =
     ParseOk _warnings x  -> Right x
 #endif
 
+bimapEither :: (a -> b) -> (c -> d) -> Either a c -> Either b d
+bimapEither f g x = case x of
+  Left  y -> Left (f y)
+  Right z -> Right (g z)
+
 getConcretePackageDescription
   :: GenericPackageDescription
-  -> Either [Dependency] PackageDescription
+  -> Either String PackageDescription
 getConcretePackageDescription genericDesc = do
-#if defined(Cabal22OrLater)
+#if defined(Cabal316OrLater)
   let enabled :: ComponentRequestedSpec
       enabled = ComponentRequestedSpec
         { testsRequested    = True
         , benchmarksRequested = True
         }
-  fst A.<$> finalizePD
+  bimapEither show fst $ finalizePD
+    (mkFlagAssignment []) -- Flag assignment
+    enabled               -- Enable all components
+    (const Satisfied)     -- Whether given dependency is available
+    buildPlatform
+    buildCompilerId
+    []                    -- Additional constraints
+    genericDesc
+#endif
+#if !defined(Cabal316OrLater) && defined(Cabal22OrLater)
+  let enabled :: ComponentRequestedSpec
+      enabled = ComponentRequestedSpec
+        { testsRequested    = True
+        , benchmarksRequested = True
+        }
+  bimapEither show fst $ finalizePD
     (mkFlagAssignment []) -- Flag assignment
     enabled               -- Enable all components
     (const True)          -- Whether given dependency is available
@@ -713,7 +746,7 @@ getConcretePackageDescription genericDesc = do
         { testsRequested    = True
         , benchmarksRequested = True
         }
-  fst A.<$> finalizePD
+  bimapEither show fst $ finalizePD
     []           -- Flag assignment
     enabled      -- Enable all components
     (const True) -- Whether given dependency is available
@@ -740,7 +773,7 @@ getConcretePackageDescription genericDesc = do
          { condTestSuites = flaggedTests
          , condBenchmarks = flaggedBenchmarks
          }
-   fst A.<$> finalizePackageDescription
+   bimapEither show fst $ finalizePackageDescription
      []
      (const True)
      buildPlatform
@@ -757,7 +790,7 @@ getConcretePackageDescription genericDesc = do
          genericDesc
          { condTestSuites = flaggedTests
          }
-   fst A.<$> finalizePackageDescription
+   bimapEither show fst $ finalizePackageDescription
      []
      (const True)
      buildPlatform
