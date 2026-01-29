@@ -213,6 +213,8 @@ adjusted as \"@@ -10,6 +10,7 @@\" and \"@@ -18,6 +19,7 @@\"."
              (magit-apply--adjust-hunk-new-start
               (magit-diff-hunk-region-patch hunk args))))))
 
+(defvar magit-enable-zero-context-diffs? nil)
+
 (defun magit-apply-patch (section:s args patch)
   (let* ((files (if (atom section:s)
                     (list (oref section:s value))
@@ -223,8 +225,9 @@ adjusted as \"@@ -10,6 +10,7 @@\" and \"@@ -18,6 +19,7 @@\"."
                     "apply"))
          (context (magit-diff-get-context))
          (ignore-context (magit-diff-ignore-any-space-p)))
-    (unless (magit-diff-context-p)
-      (user-error "Not enough context to apply patch.  Increase the context"))
+    (unless magit-enable-zero-context-diffs?
+      (unless (magit-diff-context-p)
+        (user-error "Not enough context to apply patch.  Increase the context")))
     (when (and magit-wip-before-change-mode (not magit-inhibit-refresh))
       (magit-wip-commit-before-change files (concat " before " command)))
     (with-temp-buffer
@@ -233,6 +236,8 @@ adjusted as \"@@ -10,6 +10,7 @@\" and \"@@ -18,6 +19,7 @@\"."
         (magit-run-git-with-input
          "apply" args "-p0"
          (if ignore-context "-C0" (format "-C%s" context))
+         (when magit-enable-zero-context-diffs?
+           "--unidiff-zero")
          "--ignore-space-change" "-")))
     (unless magit-inhibit-refresh
       (when magit-wip-after-apply-mode
