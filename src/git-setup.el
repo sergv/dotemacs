@@ -13,6 +13,8 @@
   (require 'set-up-platform)
   (require 'macro-util))
 
+(defvar magit-enable-zero-context-diffs?)
+
 (require 'align-util)
 (require 'common)
 (require 'common-heavy)
@@ -31,7 +33,8 @@
 (el-patch-feature magit)
 
 (setf magit-completing-read-function 'ivy-completing-read
-      magit-branch-read-upstream-first 'fallback)
+      magit-branch-read-upstream-first 'fallback
+      magit-enable-zero-context-diffs? t)
 
 (dolist (x '(magit-reset-soft magit-reset-hard magit-reset-head magit-reset magit-reset-index))
   (push (cons x nil) ivy-sort-functions-alist))
