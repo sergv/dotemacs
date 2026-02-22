@@ -16,7 +16,7 @@ maintainer:
   Sergey Vinokurov <serg.foo@gmail.com>
 stability: stable
 tested-with:
-  GHC == 8.2.2, GHC == 8.4.3, GHC == 8.6.5
+  GHC == 9.12.2,  GHC == 9.14.1
 
 build-type:
   Simple
@@ -42,6 +42,14 @@ flag standalone-foreign-lib
     Build foreign library in a standalone mode so that it doesn't depend on lots of dynamic libraries for each Haskell package.
   default:
     False
+  manual:
+    True
+
+flag build-foreign-lib
+  description:
+    Build foreign library
+  default:
+    True
   manual:
     True
 
@@ -152,8 +160,14 @@ library
 
 foreign-library emacs-native
   import: ghc-options
+  if flag(build-foreign-lib)
+    buildable: True
+  else
+    buildable: False
   if flag(standalone-foreign-lib) || flag(profiling)
     options: standalone
+    if impl(ghc >= 9.14)
+      ld-options: -uinit_ghc_hs_iface
   type:
     native-shared
   if !os(Windows) && !os(darwin)
