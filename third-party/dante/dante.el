@@ -207,6 +207,8 @@ targets and components about current buffer’s ghci session."
   ;; is to be found.
   ;; E.g.
   ;; build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-with-hsc-0.1
+  ;;
+  ;; May be nil, e.g. in #! buffers.
   (build-package-subdir nil :read-only t)
 
   ;; Cabal build directory for the dante-repl session, e.g. /tmp/dist/dante/dante-repl-xxxxx
@@ -457,7 +459,6 @@ Consider setting this variable as a directory variable."
 (defun dante--make-config ()
   "Initialize the method used to run GHCi according to ‘dante-methods’."
   (let ((cabal-cfg (haskell-misc-configure-dante)))
-    ;; (haskell-misc--configure-dante-if-needed!)
     (when (and cabal-cfg
                (not (stringp (dante-configuration-result/target cabal-cfg))))
       (error "dante target not configured"))
@@ -516,7 +517,8 @@ Consider setting this variable as a directory variable."
                         (cl-assert (dante-method-p method))
                         (cl-assert (or (null cabal-cfg)
                                        (dante-configuration-result-p cabal-cfg)))
-                        (cl-assert (stringp (dante-configuration-result/cabal-build-root cabal-cfg)))
+                        (cl-assert (or (null cabal-cfg)
+                                       (stringp (dante-configuration-result/cabal-build-root cabal-cfg))))
                         (setf result
                               (make-dante-config
                                :project-root proj-root
@@ -528,7 +530,8 @@ Consider setting this variable as a directory variable."
                                                      (dante-configuration-result/component cabal-cfg))
                                :build-dir
                                (funcall (dante-method/get-check-build-dir method) proj-root global-build-dir)
-                               :build-package-subdir (dante-configuration-result/cabal-build-root cabal-cfg)
+                               :build-package-subdir (and cabal-cfg
+                                                          (dante-configuration-result/cabal-build-root cabal-cfg))
                                :repl-dir (funcall (dante-method/get-repl-build-dir method) proj-root global-build-dir)
                                :method method)))))))))))
       (if result
@@ -1146,8 +1149,8 @@ E.g.
                       (concat (strip-trailing-slash it) "/")
                     "")
                   "dist-newstyle"))
-               "/"
-               (dante-config/build-package-subdir cfg))))
+               (awhen (dante-config/build-package-subdir cfg)
+                 (concat "/" it)))))
         ;; NB cannot rely on existence of returned directory here because we may get called
         ;; before directory is created.
 
