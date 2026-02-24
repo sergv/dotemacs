@@ -236,6 +236,13 @@ otherwise results will be incorrect.")
                    (seq (char ?s ?S)))))
       eos))
 
+(defconst haskell-regexen/source-pragma-re
+  (rx (eval haskell-regexen/pragma-start)
+      (* (any ?\s ?\t ?\n ?\r))
+      (seq (char ?s ?S) (char ?o ?O) (char ?u ?U) (char ?r ?R) (char ?c ?C) (char ?e ?E))
+      (* (any ?\s ?\t ?\n ?\r))
+      (eval haskell-regexen/pragma-end)))
+
 (defconst haskell-regexen/scc-pragma-name
   (rx bos
       (char ?s ?S)
