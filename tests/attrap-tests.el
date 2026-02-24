@@ -2369,6 +2369,67 @@
   "  Quux :: Quux _|_'Bar"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unused-source-pragma-1a
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-88907] [-Wunused-imports]"
+  "    {-# SOURCE #-} unnecessary in import of  ‘Foo.Bar’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import {-# SOURCE #-} _|_Foo.Bar (Baz, Quux(..))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import _|_Foo.Bar (Baz, Quux(..))"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unused-source-pragma-1b
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-88907] [-Wunused-imports]"
+  "    {-# SOURCE #-} unnecessary in import of  ‘Foo.Bar’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import {-# source #-} _|_Foo.Bar (Baz, Quux(..))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import _|_Foo.Bar (Baz, Quux(..))"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unused-source-pragma-2
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-88907] [-Wunused-imports]"
+  "    {-# SOURCE #-} unnecessary in import of  ‘Foo.Bar’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import"
+  "  {-# SoUrCe #-}"
+  "  _|_Foo.Bar (Baz, Quux(..))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import"
+  "  _|_Foo.Bar (Baz, Quux(..))"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:

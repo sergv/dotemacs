@@ -724,12 +724,17 @@ indented block will be their bounds without any extra processing."
          (error "Node at point is neither string nor quasiquote: %s"
                 node))))))
 
+(defun haskell-ts-import-node-covering (pos)
+  "Return ‘import’ node that contains POS or nil."
+  (cl-assert (numberp pos))
+  (treesit-utils-find-topmost-parent
+   (treesit-node-at pos)
+   (lambda (x) (string= "import" (treesit-node-type x)))))
+
 (defun haskell-ts-remove-from-import-statement-at (pos names)
   (cl-assert (listp names))
   (cl-assert (-all? #'stringp names))
-  (let ((import-node (treesit-utils-find-topmost-parent
-                      (treesit-node-at pos)
-                      (lambda (x) (string= "import" (treesit-node-type x))))))
+  (let ((import-node (haskell-ts-import-node-covering pos)))
     (unless (treesit-node-p import-node)
       (error "Cannot find import node at point"))
 
