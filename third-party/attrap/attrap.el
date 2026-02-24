@@ -951,9 +951,31 @@ Error is given as MSG and reported between POS and END."
                     "Unticked promoted constructor:" spaces1 (group-n 1 (+ (not ?\s))) ".")
                 normalized-msg)
            (attrap-one-option "add tick"
+             (goto-char pos)
+             (insert-char ?')))
+
+         (when (string-match
+                (rx (ghc-warning "88907" "unused-imports")
+                    (+ ws)
+                    "{-# SOURCE #-} unnecessary in import of")
+                msg)
+           (attrap-one-option "remove SOURCE pragma"
              (save-match-data
-               (goto-char pos)
-               (insert-char ?')))))))))
+               (if (derived-mode-p 'haskell-ts-base-mode)
+                   (let ((import-node (haskell-ts-import-node-covering pos)))
+                     (unless (treesit-node-p import-node)
+                       (error "Cannot find import node around position %s" pos))
+                     (goto-char (treesit-node-start import-node)))
+                 (progn
+                   (goto-char pos)
+                   (goto-char (line-beginning-position))))
+               (let ((limit pos))
+                 (if (re-search-forward haskell-regexen/source-pragma-re limit t)
+                     (progn
+                       (goto-char (match-end 0))
+                       (skip-whitespace-forward)
+                       (delete-region (match-beginning 0) (point)))
+                   (error "Failed to find SOURCE pragma")))))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
