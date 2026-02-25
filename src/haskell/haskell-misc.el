@@ -1005,7 +1005,10 @@ value section should have if it is to be properly indented."
   (save-match-data
     (save-excursion
       (haskell-cabal-beginning-of-subsection)
-      (when (looking-at "\\(?:\\([ \t]*\\)\\(\\w*\\):\\)[ \t]*")
+      (when (looking-at (rx (group (* (char ?\s ?\t)))
+                            (group (* (or (syntax word) ?-)))
+                            ":"
+                            (* (char ?\s ?\t))))
         (list :name (match-string-no-properties 2)
               :beginning (match-end 0)
               :end (save-match-data (haskell-cabal-subsection-end))
