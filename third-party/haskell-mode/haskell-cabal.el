@@ -61,7 +61,8 @@
 (defconst haskell-cabal-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\n ">" st)
-    (modify-syntax-entry ?- "w" st)
+    (modify-syntax-entry ?- "_" st)
+    (modify-syntax-entry ?. "_" st)
     (modify-syntax-entry ?: "." st)
     (modify-syntax-entry ?\{ "\(\}" st)
     (modify-syntax-entry ?\} "\)\{" st)
@@ -640,7 +641,12 @@ OTHER-WINDOW use `find-file-other-window'."
 )
 
 (defconst haskell-cabal-section-header-regexp "^[[:alnum:]]" )
-(defconst haskell-cabal-subsection-header-regexp "^[ \t]*[[:alnum:]]\\w*:")
+(defconst haskell-cabal-subsection-header-regexp
+  (rx bol
+      (* (char ?\s ?\t))
+      (any alnum)
+      (* (or (syntax word) ?-))
+      ":"))
 (defconst haskell-cabal-comment-regexp "^[ \t]*--")
 (defconst haskell-cabal-empty-regexp "^[ \t]*$")
 (defconst haskell-cabal-conditional-regexp "^[ \t]*\\(\\if\\|else\\|}\\)")
@@ -733,7 +739,12 @@ OTHER-WINDOW use `find-file-other-window'."
   (save-excursion
     (haskell-cabal-beginning-of-section)
     (when (and (haskell-cabal-section-header-p)
-               (looking-at "^\\(\\w+\\)[ \t]*\\(.*\\)$"))
+               (looking-at
+                (rx bol
+                    (group-n 1 (+ (or (syntax word) ?-)))
+                    (* (char ?\s ?\t))
+                    (group-n 2 (* not-newline))
+                    eol)))
       (list :name (match-string-no-properties 1)
             :value (match-string-no-properties 2)
             :beginning (match-beginning 0)
@@ -744,16 +755,27 @@ OTHER-WINDOW use `find-file-other-window'."
   "Get the name and bounds of of the current subsection"
   (save-excursion
     (haskell-cabal-beginning-of-subsection)
-    (when (looking-at "\\([ \t]*\\(\\w*\\):\\)[ \t]*")
+    (when (looking-at (rx (group-n 1
+                            (* (char ?\s ?\t))
+                            (group-n 2 (* (or (syntax word) ?-)))
+                            ":")
+                          (* (char ?\s ?\t))))
       (list :name (match-string-no-properties 2)
             :beginning (match-end 0)
             :end (save-match-data (haskell-cabal-subsection-end))
-            :data-start-column (save-excursion (goto-char (match-end 0))
-                                               (current-column-fixed-uncached))
-            :data-indent-column (save-excursion (goto-char (match-end 0))
-                                                (when (looking-at "\n  +\\(\\w*\\)") (goto-char (match-beginning 1)))
-                                                (current-column-fixed-uncached)
-                                                )))))
+            :data-start-column
+            (save-excursion
+              (goto-char (match-end 0))
+              (current-column-fixed-uncached))
+            :data-indent-column
+            (save-excursion
+              (goto-char (match-end 0))
+              (when (looking-at
+                     (rx ?\n
+                         (>= 2 ?\s)
+                         (group-n 1 (* (or (syntax word) ?-)))))
+                (goto-char (match-beginning 1)))
+              (current-column-fixed-uncached))))))
 
 
 (defun haskell-cabal-section-name (section)
