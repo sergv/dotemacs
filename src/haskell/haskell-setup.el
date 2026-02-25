@@ -765,7 +765,6 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
   (haskell-setup-folding)
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (haskell-compilation-commands-install! proj))
-  (modify-syntax-entry ?. "_")
   (setup-indent-size 2)
   (setq-local yas-indent-line 'fixed
               indent-line-function
