@@ -5577,7 +5577,7 @@ have different input states."
    ""
    "foo ::"
    "  Int ->"
-   "    _|_ Int"
+   "    _|_Int"
    ""
    "bar2 :: a -> x"
    "bar2 x = x"
@@ -6492,6 +6492,78 @@ have different input states."
   "    where"
   "      _|_"
   "      z = y + 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-14a
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = x ## _|_y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = x ##"
+  "  _|_y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-14b
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = x ##_|_ y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = x ##"
+  "  _|_y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-14c
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y ="
+  "  x ## _|_y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y ="
+  "  x ##"
+  "    _|_y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-14d
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y ="
+  "  x ##_|_ y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y ="
+  "  x ##"
+  "    _|_y"
   ""))
 
 (haskell-tests--test-buffer-contents
