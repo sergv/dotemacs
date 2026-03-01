@@ -297,8 +297,9 @@ The body is code that performs the fix."
   `(let ((saved-match-data (match-data)))
      (cons (attrap--format-option-description ,description)
            (lambda ()
-             (set-match-data saved-match-data 'evaporate)
-             ,@body))))
+             (save-match-data
+               (set-match-data saved-match-data 'evaporate)
+               ,@body)))))
 
 (defun attrap--format-option-description (descr)
   (cond
@@ -724,32 +725,31 @@ Error is given as MSG and reported between POS and END."
                     "The " (? "qualified ") "import of " (identifier 1) " is redundant")
                 msg)
            (attrap-one-option "delete module import"
-             (save-match-data
-               (save-excursion
-                 (beginning-of-line)
-                 (delete-region
-                  (point)
-                  (progn
-                    (unless (looking-at haskell-regexen/pre-post-qualified-import-line)
-                      (error "Import statement not found"))
-                    (goto-char (if-let ((import-list-start (match-beginning 11)))
-                                   import-list-start
-                                 (match-end 0)))
-                    (skip-chars-forward "\t ")
-                    (let ((sexp-end
-                           (save-excursion
-                             (skip-chars-forward "\r\n\t ")
-                             (when (eq (char-after) ?\() ; skip the import list if any
-                               (forward-sexp)
-                               (skip-chars-forward "\t ")
-                               (point)))))
-                      (when sexp-end
-                        (goto-char sexp-end)))
-                    (when (eq (char-after) ?\r)
-                      (forward-char 1))
-                    (when (eq (char-after) ?\n)
-                      (forward-char 1))
-                    (point)))))))
+             (save-excursion
+               (beginning-of-line)
+               (delete-region
+                (point)
+                (progn
+                  (unless (looking-at haskell-regexen/pre-post-qualified-import-line)
+                    (error "Import statement not found"))
+                  (goto-char (if-let ((import-list-start (match-beginning 11)))
+                                 import-list-start
+                               (match-end 0)))
+                  (skip-chars-forward "\t ")
+                  (let ((sexp-end
+                         (save-excursion
+                           (skip-chars-forward "\r\n\t ")
+                           (when (eq (char-after) ?\() ; skip the import list if any
+                             (forward-sexp)
+                             (skip-chars-forward "\t ")
+                             (point)))))
+                    (when sexp-end
+                      (goto-char sexp-end)))
+                  (when (eq (char-after) ?\r)
+                    (forward-char 1))
+                  (when (eq (char-after) ?\n)
+                    (forward-char 1))
+                  (point))))))
          (when (string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
            (let ((wildcard  (match-string-no-properties 1 msg))
                  (type-expr (match-string-no-properties 2 msg)))
@@ -939,10 +939,9 @@ Error is given as MSG and reported between POS and END."
            (let ((old (match-string-no-properties 1 msg))
                  (new (match-string-no-properties 2 msg)))
              (attrap-one-option (list 'rename-module-to new)
-               (save-match-data
-                 (goto-char pos)
-                 (search-forward old)
-                 (replace-match new)))))
+               (goto-char pos)
+               (search-forward old)
+               (replace-match new))))
          ;; warning: [GHC-49957] [-Wunticked-promoted-constructors]
          ;;     Unticked promoted constructor: Bar.
          ;;     Suggested fix: Use 'Bar instead of Bar.
@@ -961,22 +960,21 @@ Error is given as MSG and reported between POS and END."
                     "{-# SOURCE #-} unnecessary in import of")
                 msg)
            (attrap-one-option 'remove-source-pragma
-             (save-match-data
-               (if (derived-mode-p 'haskell-ts-base-mode)
-                   (let ((import-node (haskell-ts-import-node-covering pos)))
-                     (unless (treesit-node-p import-node)
-                       (error "Cannot find import node around position %s" pos))
-                     (goto-char (treesit-node-start import-node)))
-                 (progn
-                   (goto-char pos)
-                   (goto-char (line-beginning-position))))
-               (let ((limit pos))
-                 (if (re-search-forward haskell-regexen/source-pragma-re limit t)
-                     (progn
-                       (goto-char (match-end 0))
-                       (skip-whitespace-forward)
-                       (delete-region (match-beginning 0) (point)))
-                   (error "Failed to find SOURCE pragma")))))))))))
+             (if (derived-mode-p 'haskell-ts-base-mode)
+                 (let ((import-node (haskell-ts-import-node-covering pos)))
+                   (unless (treesit-node-p import-node)
+                     (error "Cannot find import node around position %s" pos))
+                   (goto-char (treesit-node-start import-node)))
+               (progn
+                 (goto-char pos)
+                 (goto-char (line-beginning-position))))
+             (let ((limit pos))
+               (if (re-search-forward haskell-regexen/source-pragma-re limit t)
+                   (progn
+                     (goto-char (match-end 0))
+                     (skip-whitespace-forward)
+                     (delete-region (match-beginning 0) (point)))
+                 (error "Failed to find SOURCE pragma"))))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
