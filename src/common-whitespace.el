@@ -65,6 +65,19 @@
       (cl-decf j))
     (substring str 0 (1+ j))))
 
+(defun delete-spaces-forward ()
+  "Delete whitespaces forward until non-whitespace
+character found"
+  (interactive "*")
+  (let ((start (point)))
+    (while (and (not (eobp))
+                (let ((c (char-after)))
+                  (or (eq c ?\s)
+                      (eq c ?\t)))
+                (not (get-char-property (1+ (point)) 'read-only)))
+      (forward-char 1))
+    (delete-region start (point))))
+
 (defun delete-whitespace-forward ()
   "Delete whitespaces forward until non-whitespace
 character found"

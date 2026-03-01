@@ -918,7 +918,13 @@ a single entity."
                (insert-char ?\s
                             (+ 4
                                (if prev-char-is-equals? haskell-indent-offset 0)))))
-            ((haskell-indent--after-indent-increasing-token?)
+            ((or (haskell-indent--after-indent-increasing-token?)
+                 (save-excursion
+                   (skip-chars-backward " \t")
+                   ;; Check that there’s non-zero number of operator characters preceded by whitespace.
+                   (and (<= (skip-chars-backward haskell-smart-operators--operator-chars-str) -1)
+                        (<= (skip-chars-backward " \t") -1))))
+             (delete-spaces-forward)
              (haskell--simple-indent-newline-indent))
             (t
              (haskell--simple-indent-newline-same-col))))))))
