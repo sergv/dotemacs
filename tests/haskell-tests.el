@@ -6566,6 +6566,177 @@ have different input states."
   "    _|_y"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15a
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar _|_x y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_x y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15b
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar_|_ x y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_x y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15c
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar _|_(x + 1) y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_(x + 1) y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15d
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar_|_ (x + 1) y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_(x + 1) y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15e
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar_|_(x + 1) y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_(x + 1) y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15f
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar _|_[x + 1] y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_[x + 1] y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15g
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar _|_(x + 1, 2) y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_(x + 1, 2) y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15h
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar _|_(# x + 1, 2 #) y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_(# x + 1, 2 #) y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-15i
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar Foo _|_{ y = 1 }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar Foo"
+  "  _|_{ y = 1 }"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)

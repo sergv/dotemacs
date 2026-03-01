@@ -923,7 +923,27 @@ a single entity."
                    (skip-chars-backward " \t")
                    ;; Check that there’s non-zero number of operator characters preceded by whitespace.
                    (and (<= (skip-chars-backward haskell-smart-operators--operator-chars-str) -1)
-                        (<= (skip-chars-backward " \t") -1))))
+                        (<= (skip-chars-backward " \t") -1)))
+                 (when (derived-mode-p 'haskell-ts-base-mode)
+                   (when-let* ((node (treesit-node-at
+                                      (advance-pos-over-whitespace (point))))
+                               (parent (treesit-node-parent node)))
+                     (let* ((argument-parethesized? (member (treesit-node-type node) '("(" "[" "{")))
+                            (arg-node (if argument-parethesized?
+                                          (let ((parent-type (treesit-node-type parent)))
+                                            (if (string= parent-type "(#")
+                                                (when-let ((grandparent (treesit-node-parent parent)))
+                                                  (when (string= (treesit-node-type grandparent) "unboxed_tuple")
+                                                    grandparent))
+                                              (and (member parent-type '("parens" "list" "tuple" "record"))
+                                                   parent)))
+                                        node))
+                            (apply-node (and arg-node
+                                             (treesit-node-parent arg-node))))
+                       (and apply-node
+                            (string= (treesit-node-type apply-node) "apply")
+                            (not (= (point) (treesit-node-end apply-node)))
+                            (string= (treesit-node-field-name arg-node) "argument"))))))
              (delete-spaces-forward)
              (haskell--simple-indent-newline-indent))
             (t
