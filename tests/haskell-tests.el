@@ -6569,7 +6569,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15a
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6588,7 +6588,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15b
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6607,7 +6607,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15c
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6626,7 +6626,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15d
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6645,7 +6645,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15e
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6664,7 +6664,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15f
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6683,7 +6683,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15g
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6702,7 +6702,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15h
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6721,7 +6721,7 @@ have different input states."
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15i
-  :modes
+ :modes
  (haskell-ts-mode)
  :action
  (haskell-newline-with-signature-expansion)
@@ -6735,6 +6735,46 @@ have different input states."
   ""
   "foo x y = bar Foo"
   "  _|_{ y = 1 }"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-16a
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar _|_x y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_x y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-16b
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  x _|_y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  x"
+  "  _|_y"
   ""))
 
 (haskell-tests--test-buffer-contents
