@@ -781,7 +781,7 @@
    "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (rust-mode)
+    (rust-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/block-insert-newline-1
     (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <return> <escape>"))
   (tests-utils--multiline
@@ -1823,7 +1823,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (c-mode)
+    (c-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/insert-linewise-region-newline-1
     (execute-kbd-macro (kbd "V h I x y z <return> <escape>"))
   (tests-utils--multiline
