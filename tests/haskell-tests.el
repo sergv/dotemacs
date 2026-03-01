@@ -6737,6 +6737,46 @@ have different input states."
   "  _|_{ y = 1 }"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-16a
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar _|_x y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  _|_x y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-16b
+  :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  x _|_y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x y = bar"
+  "  x"
+  "  _|_y"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
