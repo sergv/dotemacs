@@ -945,7 +945,11 @@ a single entity."
                             (not (= (point) (treesit-node-end apply-node)))
                             (string= (treesit-node-field-name arg-node) "argument"))))))
              (delete-spaces-forward)
-             (haskell--simple-indent-newline-indent))
+             (haskell--simple-indent-newline-indent)
+             (when (and (derived-mode-p 'haskell-ts-base-mode)
+                        (when-let* ((after (char-after)))
+                          (not (whitespace-char? after))))
+               (haskell-misc--indent-line-with-treesitter)))
             (t
              (haskell--simple-indent-newline-same-col))))))))
 
