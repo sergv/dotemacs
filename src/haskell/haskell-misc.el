@@ -157,7 +157,7 @@ of my home config.")
     indent-res))
 
 (defun haskell-misc--indent-line-with-treesitter-or-fallback (fallback)
-  "Try to indent with treesiter if we can, otherwise fallback to haskell-indentation.el"
+  "Try to indent with treesiter if we can, otherwise call FALLBACK."
   (cl-assert (functionp fallback))
   (if treesit-simple-indent-rules
       (unless (haskell-misc--indent-line-with-treesitter)
