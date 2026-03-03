@@ -48,6 +48,8 @@
     ;; (load-library "start")
     ;; (message "Loading start.el... OK")
 
+    (require 'start-common)
+
     (require 'set-up-platform)
     (when-windows
      (require 'windows-setup))
@@ -56,6 +58,7 @@
     (load-library "set-up-tmp-paths")
 
     (require 'base-emacs-fixes)
+    (require 'base-emacs-opt)
 
     (require 'foreign-setup)
 
