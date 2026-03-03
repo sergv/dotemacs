@@ -195,6 +195,20 @@
     (require 'keys)
     (require 'vim-setup)
 
+    (require 'doc-view-setup)
+    (require 'company-bbdb)
+    (require 'company-capf)
+    (require 'company-clang)
+    (require 'company-cmake)
+    (require 'company-dabbrev)
+    (require 'company-dabbrev-code)
+    (require 'company-etags)
+    (require 'company-files)
+    (require 'company-gtags)
+    (require 'company-keywords)
+    (require 'company-oddmuse)
+    (require 'company-semantic)
+
     (when-windows
      (require 'fakecygpty-setup))
 
