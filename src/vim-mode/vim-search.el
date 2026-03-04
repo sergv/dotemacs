@@ -467,6 +467,7 @@ pattern and replace matches with REPLACEMENT.
     (let ((case-fold-search (eq 'insensitive (vim-pattern-case-fold pattern)))
           (case-replace nil))
       (with-marker (last-line-pos-marker (copy-marker last-line-pos))
+        (vim-save-position)
         (unwind-protect
             (cond
               ((vim-pattern-whole-line pattern)
