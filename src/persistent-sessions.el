@@ -55,7 +55,8 @@ SPECIAL-VARIABLES - local variables that may require special treatment when rest
 INDIRECT-BASE     - if this buffer is indirect then here is the
                     abbreviated filename (for regular file-visiting buffers) or
                     buffer name (for temporary buffers) of its base buffer
-NARROWING-BOUNDS  - nil or cons pair of region bounds this buffer was narrowed to
+NARROWING-BOUNDS  - nil or cons pair of markers denoting region bounds this buffer was narrowed to.
+                    Markers must point to the base buffer of the narrowed one.
 BUF-NAME          - buffer-name
 "
   (list buf-file
@@ -479,6 +480,9 @@ entries."
                        (sessions/store-string (abbreviate-file-name it)))
                      (when (and (buffer-narrowed-p)
                                 persistent-narrow-to-region--bounds)
+                       (cl-assert (consp persistent-narrow-to-region--bounds))
+                       (cl-assert (markerp (car persistent-narrow-to-region--bounds)))
+                       (cl-assert (markerp (cdr persistent-narrow-to-region--bounds)))
                        (sessions/store-value persistent-narrow-to-region--bounds))
                      (sessions/store-string (buffer-name buf) t))))
                 (--filter (and (not (null (buffer-file-name it)))
