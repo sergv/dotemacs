@@ -1228,7 +1228,8 @@ groups in the result is *not specified*."
   (with-region-bounds start end
     (when (vim-visual-mode-p)
       (vim:visual-mode-exit--impl))
-    (let ((end-fixed (min end (point-max))))
+    (let ((start-m (copy-marker start))
+          (end-fixed-m (copy-marker (min end (point-max)))))
       (if create-new-buf?
           (progn
             (let* ((orig-buf (current-buffer))
@@ -1237,10 +1238,10 @@ groups in the result is *not specified*."
                                                   t)))
               (with-current-buffer new-buf
                 (narrow-to-region-indirect-setup-indirect-buffer)
-                (persistent-narrow-to-region start end-fixed))
+                (persistent-narrow-to-region start-m end-fixed-m))
               (switch-to-buffer new-buf)))
 
-        (persistent-narrow-to-region start end-fixed)))))
+        (persistent-narrow-to-region start-m end-fixed-m)))))
 
 (defun narrow-to-region-indirect--find-new-buf-name (orig-buf)
   (generate-new-buffer-name (concat (buffer-name orig-buf)
