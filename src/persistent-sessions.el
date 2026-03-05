@@ -584,9 +584,14 @@ entries."
           (lambda (point mode vars special-vars indirect-base narrowing-bounds buffer-name)
             (with-current-buffer
                 (if indirect-base
-                    (make-indirect-buffer (current-buffer)
-                                          (sessions/versioned/restore-string version buffer-name)
-                                          t)
+                    (let ((buf-name (sessions/versioned/restore-string version buffer-name)))
+                      (awhen (get-buffer buf-name)
+                        ;; Must remove indirect buffer if it already exists
+                        ;; (e.g. because we already tried and failed to restore session and
+                        ;; now are trying for the second time), otherwise ‘make-indirect-buffer’
+                        ;; will error out.
+                        (remove-buffer t buf-name))
+                      (make-indirect-buffer (current-buffer) buf-name t))
                   (current-buffer))
 
               (when indirect-base
