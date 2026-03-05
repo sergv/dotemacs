@@ -24,10 +24,14 @@ can allows value to be decoded back fully.)"
      (sessions/store-ring lisp-value))
     ((sessions/proper-listp lisp-value)
      (sessions/store-proper-list lisp-value))
+    ((consp lisp-value)
+     (sessions/store-cons-pair lisp-value))
     ((vectorp lisp-value)
      (sessions/store-vector lisp-value))
     ((hash-table-p lisp-value)
      (sessions/store-hash-table lisp-value))
+    ((markerp lisp-value)
+     (sessions/store-marker lisp-value))
     (t
      (list 'literal-data
            lisp-value))))
@@ -45,10 +49,14 @@ can allows value to be decoded back fully.)"
      (sessions/versioned/restore-ring version encoded-data))
     ('proper-list
      (sessions/versioned/restore-proper-list version encoded-data))
+    ('cons-pair
+     (sessions/versioned/restore-cons-pair version encoded-data))
     ('vector
      (sessions/versioned/restore-vector version encoded-data))
     ('hash-table
      (sessions/versioned/restore-hash-table version encoded-data))
+    ('marker
+     (sessions/versioned/restore-marker version encoded-data))
     ('literal-data
      (cadr encoded-data))
     (_
@@ -66,7 +74,7 @@ can allows value to be decoded back fully.)"
 
 (defun sessions/store-proper-list (lisp-list)
   (sessions/assert-with-args (sessions/proper-listp lisp-list)
-                             "sessions/store-list: cannot store improper list: %s"
+                             "sessions/store-proper-list: cannot store improper list: %s"
                              lisp-list)
   (list 'proper-list
         (-map #'sessions/store-value lisp-list)))
@@ -79,6 +87,25 @@ can allows value to be decoded back fully.)"
                              (car encoded-data))
   (-map (lambda (x) (sessions/versioned/restore-value version x))
         (cadr encoded-data)))
+
+;;;; Store/restore cons pair
+
+(defun sessions/store-cons-pair (x)
+  (sessions/assert-with-args (consp x)
+                             "sessions/store-cons-pair: cannot store cons pair: %s"
+                             x)
+  (list 'cons-pair
+        (sessions/store-value (car x))
+        (sessions/store-value (cdr x))))
+
+(defun sessions/versioned/restore-cons-pair (version encoded-data)
+  (sessions/assert-with-args (and (listp encoded-data)
+                                  encoded-data
+                                  (eq (car encoded-data) 'cons-pair))
+                             "Invalid tag of encoded cons spair: %s"
+                             (car encoded-data))
+  (cons (sessions/versioned/restore-value version (cl-second encoded-data))
+        (sessions/versioned/restore-value version (cl-third encoded-data))))
 
 ;;;; Store/restore vectors
 
@@ -123,6 +150,32 @@ can allows value to be decoded back fully.)"
                           (lambda (x) (sessions/versioned/restore-value version (cdr x)))
                           kv-alist
                           test)))
+
+;;;; Store/restore markers
+
+(defun sessions/store-marker (m)
+  (sessions/assert-with-args (markerp m)
+                             "sessions/store-marker"
+                             m)
+  (list 'marker
+        (buffer-name (marker-buffer m))
+        (marker-position m)
+        (marker-insertion-type m)))
+
+(defun sessions/versioned/restore-marker (version encoded-data)
+  (sessions/assert (and (listp encoded-data)
+                        encoded-data
+                        (eq (car encoded-data) 'marker))
+                   "Invalid tag of encoded marker")
+  (let ((m (make-marker))
+        (buf-name (cl-second encoded-data))
+        (pos (cl-third encoded-data))
+        (insertion-type (cl-fourth encoded-data)))
+    (cl-assert (stringp buf-name))
+    (cl-assert (numberp pos))
+    (set-marker m pos (get-buffer buf-name))
+    (set-marker-insertion-type m insertion-type)
+    m))
 
 ;;;; Store/restore rings
 
