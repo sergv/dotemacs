@@ -150,6 +150,39 @@ pairs."
                       x
                       y)))))))
 
+(ert-deftest persistent-sessions-tests/store-and-restore-cons-of-markers ()
+  (with-temp-buffer
+    (insert "foo")
+    (let ((buf1 (current-buffer))
+          (m1 (copy-marker (point-max))))
+      (with-temp-buffer
+        (insert "decombobulate")
+        (let ((buf2 (current-buffer))
+              (m2 (copy-marker (point-max))))
+          (set-marker-insertion-type m1 t)
+          (set-marker-insertion-type m2 nil)
+          (let ((test-value (cons m1 m2)))
+            (let ((restored-value
+                   (sessions/versioned/restore-value
+                    nil
+                    (sessions/store-value test-value))))
+
+              (should (consp restored-value))
+              (should (markerp (car restored-value)))
+              (should (markerp (cdr restored-value)))
+
+              (should (eq (marker-buffer (car restored-value)) buf1))
+              (should (eq (marker-buffer (cdr restored-value)) buf2))
+
+              (should (eq (marker-position (car restored-value)) (marker-position m1)))
+              (should (eq (marker-position (cdr restored-value)) (marker-position m2)))
+
+              (should (eq (marker-insertion-type (car restored-value)) t))
+              (should (eq (marker-insertion-type (cdr restored-value)) nil))
+
+              (should (equal (prin1-to-string test-value)
+                             (prin1-to-string restored-value))))))))))
+
 ;; (progn
 ;;   (ert "persistent-sessions-tests/.*")
 ;;   ;; (ert #'persistent-sessions-tests/sessions/get-all-text-properties-in-string-2)
