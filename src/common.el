@@ -1639,6 +1639,10 @@ NB Will not get invalidated on ‘widen’ so it’s only valid when
 (defun persistent-narrow-to-region (start end)
   "Like ‘narrow-to-region’ but records that buffer was narrowed so that
 persistent store may restore the narrowing state when session is loaded."
+  (cl-assert (markerp start))
+  (cl-assert (markerp end))
+  (cl-assert (not (null (marker-buffer start))))
+  (cl-assert (not (null (marker-buffer end))))
   (narrow-to-region start end)
   (setq-local persistent-narrow-to-region--bounds (cons start end)))
 
