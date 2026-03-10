@@ -65,6 +65,11 @@ that next 2 characters are AFTER1 and AFTER2."
     (point-inside-string-or-comment? (point))))
 
 ;;;###autoload
+(defun smart-operators--in-comment? ()
+  "Are we in string or comment?"
+  (point-inside-comment? (point)))
+
+;;;###autoload
 (defun smart-operators--literal-insertion? (&optional disable-comment-check?)
   "Should a node have literal insertion?"
   (or (smart-operators--in-string-or-comment? disable-comment-check?)
