@@ -8382,6 +8382,20 @@ have different input states."
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--open-paren-6
+    (haskell-smart-operators-open-paren)
+  (tests-utils--multiline
+   ""
+   "type family Map f (xs :: [k]) :: [k'] where"
+   "  Map f '_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "type family Map f (xs :: [k]) :: [k'] where"
+   "  Map f '(_|_)"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--open-bracket-1
     (haskell-smart-operators-open-bracket)
   (tests-utils--multiline
@@ -8427,6 +8441,20 @@ have different input states."
   (tests-utils--multiline
    ""
    "foo x xs = foo (Median3or5 \"foo[_|_]bar\")"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--open-bracket-5
+    (haskell-smart-operators-open-bracket)
+  (tests-utils--multiline
+   ""
+   "type family Map f (xs :: [k]) :: [k'] where"
+   "  Map f '_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "type family Map f (xs :: [k]) :: [k'] where"
+   "  Map f '[_|_]"
    ""))
 
 (haskell-tests--test-buffer-contents
