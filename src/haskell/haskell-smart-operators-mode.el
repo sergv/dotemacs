@@ -111,6 +111,11 @@ stick it to the previous operator on line."
                                  (eq before ?\()))
                        (if magic-hash?
                            (not (eq after ?,))
+                         t)
+                       (if (and (eq char ?!)
+                                (eq before ?#)
+                                (eq (1- before-pt) (point-min)))
+                           nil
                          t))
               (when (or (not after) ;; at end of buffer
                         ;; If the next thing is lambda then we don’t want to merge
