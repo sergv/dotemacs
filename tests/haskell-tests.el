@@ -2664,6 +2664,22 @@ have different input states."
    "data Foo = Foo { bar :: !_|_Int }"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators-exclamation-mark-9
+    (haskell-smart-operators-exclamation-mark)
+  (tests-utils--multiline
+   "#_|_"
+   ""
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   "#!_|_"
+   ""
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1a
