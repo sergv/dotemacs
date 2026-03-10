@@ -328,11 +328,11 @@
       )
      ;; ((comment) @comment)
      ;; ((haddock) @comment)
-     ((operator) @operator
-      (:match "^--" @operator)))))
+     ([(operator) (constructor_operator)] @operator
+      (:match "--" @operator)))))
 
 (defun haskell-ts-syntax-propertize (begin end)
-  "Basically finds all operators (e.g. -->) that start with comment delimiter, -- that should
+  "Basically finds all operators (e.g. -->) that contain comment delimiter, -- that should
 not be treated as comment start.
 
 Also fix syntax of character quote delimiters because quote is a valid part of symbols as well
