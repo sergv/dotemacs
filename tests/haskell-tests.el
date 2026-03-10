@@ -131,8 +131,9 @@ have different input states."
                                            (error "No :subname in entries")))))
            :action ,(or (plist-get entry :action)
                         (error "No :action in entries"))
-           :expected-value ,(or (plist-get entry :expected-value)
-                                (error "No :expected-value in entries"))
+           :expected-value ,(if (plist-member entry :expected-value)
+                                (plist-get entry :expected-value)
+                              (error "No :expected-value in entries"))
            :contents ,contents
            :modes ,modes))))
 
