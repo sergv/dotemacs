@@ -148,7 +148,7 @@ have different input states."
   (declare (indent 1))
   `(progn
      ,@(cl-loop
-        for mode in (or modes '(haskell-mode haskell-ts-mode))
+        for mode in (or modes '(haskell-mode haskell-ts-mode haskell-hsc-mode))
         collect
         `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
            (tests-utils--with-temp-buffer
