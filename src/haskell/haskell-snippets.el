@@ -39,15 +39,22 @@ ${1:  , ${2:vector >= 0.12}
   -Wno-missing-kind-signatures
   -Wno-missing-role-annotations
   -Wno-missing-poly-kind-signatures${2:
-  -Wno-unused-imports
   -Wno-unused-packages
   -threaded -rtsopts \"-with-rtsopts=-A32m -s\"}
 -}$(3:
 {- project:
+constraints:
+  , binary installed
+  , containers installed
+  , ghc-bignum installed
+  , template-haskell installed
+  , prettyprinter-combinators -enummapset
 allow-newer:
   , *:base
 -})
-")
+$(4:
+{-# OPTIONS_GHC -Wno-unused-imports   #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-})")
 
 (defconst haskell-snippets--cabal-run-header-snippet
   (concat
