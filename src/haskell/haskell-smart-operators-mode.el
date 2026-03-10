@@ -654,6 +654,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                              (eq before ?\[)
                                              (eq before ?\\)
                                              (eq before ?@)
+                                             (eq before ?')
                                              (if checked-import-or-export-list?
                                                  inside-import-or-export-list?
                                                (setf checked-import-or-export-list? t
@@ -683,7 +684,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                              (eq before ?\()
                                              (eq before ?\[)
                                              (eq before ?\\)
-                                             (eq before ?@))))
+                                             (eq before ?@)
+                                             (eq before ?'))))
                                   (lambda (after)
                                     (not (or literal-insertion?
                                              (eq after ?\))
