@@ -21,6 +21,7 @@
 (require 'haskell-regexen)
 (require 'haskell-smart-operators-mode)
 (require 'haskell-sort-imports)
+(require 'paredit)
 
 (require 'common)
 (require 'ert)
@@ -10763,6 +10764,41 @@ have different input states."
   "  \"\"\""
   "")
  :modes (haskell-ts-mode))
+
+(haskell-tests--make-multiple-test-result-tests
+    haskell-tests/paredit-in-comment-p-1
+  :entries
+  ((:subname
+    a
+    :action (paredit-in-comment-p)
+    :expected-value nil))
+  :contents
+  (tests-utils--multiline
+   ""
+   "applyRule"
+   "  :: as :--> _|_bs"
+   "  -> HMap Label Identity"
+   "  -> HMap Label Identity"
+   "applyRule = undefined"
+   ""))
+
+(haskell-tests--make-multiple-test-result-tests
+    haskell-tests/paredit-in-comment-p-2
+  :entries
+  ((:subname
+    a
+    :action (paredit-in-comment-p)
+    :expected-value nil))
+  :contents
+  (tests-utils--multiline
+   ""
+   "advancedOilProcessing :: '[CrudeOil] :--> '[PetroleumGas, _|_LightOil, HeavyOil]"
+   "advancedOilProcessing = Recipe"
+   "  { input       = CrudeOil 100 :- Nil"
+   "  , output      = PetroleumGas 30 :- LightOil 70 :- HeavyOil 20 :- Nil"
+   "  , moduleSlots = 3"
+   "  }"
+   ""))
 
 (provide 'haskell-tests)
 
