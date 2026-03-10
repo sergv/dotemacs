@@ -747,8 +747,9 @@ If such a comment exists, delete the comment (including all leading
   (save-excursion
     (paredit-skip-trailing-whitespace (point-at-eol))
     (and (paredit-comment-start-at? (point) t)
-         (not (or (paredit-in-string-p)
-                  (paredit-in-char-p)))
+         (not (let ((state (paredit-current-parse-state)))
+                (or (paredit-in-string-p state)
+                    (paredit-in-char-p state))))
          (let* ((start                  ;Move to before the semicolon.
                  (progn (backward-char) (point)))
                 (comment
