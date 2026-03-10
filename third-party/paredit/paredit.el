@@ -3144,7 +3144,8 @@ If no parse state is supplied, compute one from the beginning of the
   defun to the point."
   ;; 4. nil if outside a comment, t if inside a non-nestable comment,
   ;;    else an integer (the current comment nesting)
-  (if (nth 4 (or state (paredit-current-parse-state)))
+  (if (or (smart-operators--in-comment?)
+          (nth 4 (or state (paredit-current-parse-state))))
       t
     nil))
 
