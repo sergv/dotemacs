@@ -1387,9 +1387,8 @@ value section should have if it is to be properly indented."
              ;;   , base
              ;;   , containers ^>= 0.6
              ;; -}
-             (when-let ((fname (buffer-file-name buf)))
-               (and (looking-at-p "^#!.*cabal")
-                    (re-search-forward "^{-[ \t]*cabal:" nil t))))))
+             (and (looking-at-p "^#!.*cabal")
+                  (re-search-forward haskell-regexen/cabal-script-metadata-start nil t)))))
        t))
 
 (defstruct (dante-configuration-result
