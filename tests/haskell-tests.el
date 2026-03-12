@@ -1838,8 +1838,6 @@ have different input states."
  haskell-tests/haskell-smart-operators--magic-hash-0
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-magic-hash?))
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -1852,15 +1850,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = (bar#_|_, baz)"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-1
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-magic-hash?))
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -1873,15 +1870,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = foo#_|_ +# bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-2
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-magic-hash?))
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -1894,15 +1890,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = foo#_|_ +# bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-3
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-magic-hash?))
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -1915,15 +1910,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = foo# _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-4
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-magic-hash?))
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -1936,15 +1930,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = foo ## _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-5
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -1957,16 +1950,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = foo# # _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-6
  :action
- (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
-   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
  :contents
  (tests-utils--multiline
   "{-# LANGUAGE MagicHash #-}"
@@ -1977,16 +1968,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 1# _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-6a
  :action
- (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
-   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
  :contents
  (tests-utils--multiline
   "{-# LANGUAGE MagicHash #-}"
@@ -1997,16 +1986,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 123.45# _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-6b
  :action
- (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
-   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
  :contents
  (tests-utils--multiline
   "{-# LANGUAGE MagicHash #-}"
@@ -2017,15 +2004,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 123.45e-2# _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-7
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -2038,15 +2024,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 1## _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-7a
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -2059,15 +2044,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 123.45## _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-7b
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
  :contents
@@ -2080,15 +2064,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 123.45e-2## _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-8
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
@@ -2102,15 +2085,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 1## # _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-8a
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
@@ -2124,15 +2106,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 123.45## # _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-8b
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
@@ -2146,15 +2127,14 @@ have different input states."
   "{-# LANGUAGE MagicHash #-}"
   "foo x xs = 123.45e-11## # _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-and-equals-space-1
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (haskell-smart-operators-hash)
    (should (haskell-ext-tracking-have-magic-hash?))
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
@@ -2172,15 +2152,14 @@ have different input states."
   "  where"
   "    ptr# = _|_"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--magic-hash-and-equals-space-2
  :action
  (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-magic-hash?))
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
  :contents
@@ -2197,16 +2176,14 @@ have different input states."
   "  where"
   "    ptr# = _|_"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--dot-1
  :action
- (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
-   (haskell-smart-operators-dot))
+ (haskell-smart-operators-dot)
  :contents
  (tests-utils--multiline
   ""
@@ -2217,16 +2194,14 @@ have different input states."
   ""
   "foo x xs = foo .+. _|_bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--dot-2
  :action
- (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
-   (haskell-smart-operators-dot))
+ (haskell-smart-operators-dot)
  :contents
  (tests-utils--multiline
   ""
@@ -2237,16 +2212,14 @@ have different input states."
   ""
   "foo x xs = foo .+._|_ bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators--dot-3
  :action
- (progn
-   (haskell-smart-operators-mode +1)
-   (haskell-ext-tracking-mode +1)
-   (haskell-smart-operators-dot))
+ (haskell-smart-operators-dot)
  :contents
  (tests-utils--multiline
   ""
@@ -2257,7 +2230,8 @@ have different input states."
   ""
   "foo x xs = foo <._|_> bar"
   "")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-1
@@ -7195,7 +7169,6 @@ have different input states."
  haskell-tests/haskell-qualify-import-1
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7208,14 +7181,14 @@ have different input states."
   "import Data.List"
   "import qualified Data.Ord_|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-1a
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7230,14 +7203,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord_|_ qualified"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-2
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7250,14 +7223,14 @@ have different input states."
   "import Data.List"
   "import qualified Data.Ord_|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-2a
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7272,14 +7245,14 @@ have different input states."
   "import Data.List"
   "import      Data.Ord_|_ qualified"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-3
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7292,14 +7265,14 @@ have different input states."
   "import Data.List"
   "import qualified \"foo\"     Data.Ord_|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-3a
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7314,14 +7287,14 @@ have different input states."
   "import Data.List"
   "import \"foo\"     Data.Ord_|_ qualified"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-4
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7334,14 +7307,14 @@ have different input states."
   "import Data.List"
   "import   Data.Ord_|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-4a
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7356,14 +7329,14 @@ have different input states."
   "import Data.List"
   "import   Data.Ord_|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-4b
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7378,14 +7351,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord_|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-4c
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7400,14 +7373,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord   _|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-4d
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import)
    (haskell-qualify-import))
@@ -7423,14 +7396,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord qualified   _|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-5
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7443,14 +7416,14 @@ have different input states."
   "import Data.List"
   "import  \"foo\"  Data.Ord_|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-5a
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7465,14 +7438,14 @@ have different input states."
   "import Data.List"
   "import  \"foo\"    Data.Ord_|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-5b
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7487,14 +7460,14 @@ have different input states."
   "import Data.List"
   "import  \"foo\"  Data.Ord   _|_"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-6
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7507,14 +7480,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord as Ord (Down_|_)"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-6a
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import)
    (haskell-qualify-import))
@@ -7528,14 +7501,14 @@ have different input states."
   "import Data.List"
   "import qualified Data.Ord as Ord (Down_|_)"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-6b
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7550,14 +7523,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord as Ord (Down_|_)"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-6c
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import)
    (haskell-qualify-import))
@@ -7573,14 +7546,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord qualified as Ord (Down_|_)"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-6d
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import)
    (haskell-qualify-import)
@@ -7597,14 +7570,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord as Ord (Down_|_)"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-6e
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import)
    (haskell-qualify-import))
@@ -7620,14 +7593,14 @@ have different input states."
   "import Data.List"
   "import Data.Ord qualified as Ord (Down_|_)"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-7
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7640,14 +7613,14 @@ have different input states."
   "import Data.List"
   "import {-# SOURCE #-} Data.Ord as Ord (Down_|_)"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-qualify-import-7a
  :action
  (progn
-   (haskell-ext-tracking-mode +1)
    (should-not (haskell-ext-tracking-have-import-qualified-post?))
    (haskell-qualify-import))
  :contents
@@ -7660,7 +7633,8 @@ have different input states."
   "import Data.List"
   "import {-# SOURCE #-} qualified Data.Ord as Ord (Down_|_)"
   "import Data.Set (Set)")
- :fresh-buffer t)
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents*
  :name
