@@ -1,3 +1,44 @@
+#!/usr/bin/env -S cabal run
+{- cabal:
+default-language:
+  GHC2024
+build-depends:
+  , Cabal
+  , Cabal-syntax
+  , base
+  , bytestring
+  , containers
+  , directory
+  , filepath >= 1.5
+  , optparse-applicative
+  , parsec
+  , text
+ghc-options:
+  -Weverything
+  -Wno-all-missed-specialisations
+  -Wno-implicit-prelude
+  -Wno-missed-specialisations
+  -Wno-missing-import-lists
+  -Wno-missing-local-signatures
+  -Wno-safe
+  -Wno-unsafe
+  -Wno-missing-deriving-strategies
+  -Wno-missing-safe-haskell-mode
+  -Wno-missing-kind-signatures
+  -Wno-missing-role-annotations
+  -Wno-missing-poly-kind-signatures
+  -Wno-unused-packages
+  -threaded -rtsopts "-with-rtsopts=-A32m -s"
+-}
+{- project:
+constraints:
+  , binary installed
+  , containers installed
+  , ghc-bignum installed
+  , template-haskell installed
+  , prettyprinter-combinators -enummapset
+-}
+
 -- Copyright (C) 2016-2022 Sergey Vinokurov <serg.foo@gmail.com>
 -- Copyright (C) 2014-2016 Sebastian Wiesner <swiesner@lunaryorn.com>
 -- Copyright (C) 2016-2018 Danny Navarro <j@dannynavarro.net>
@@ -38,6 +79,13 @@ module Main (main) where
 
 #if defined(GHC_INCLUDES_VERSION_MACRO)
 
+# if MIN_VERSION_Cabal_syntax(3, 7, 0)
+#  define HAVE_CABAL_SYNTAX 1
+# endif
+
+# if MIN_VERSION_Cabal_syntax(3, 17, 0)
+#  define CABAL_SYNTAX_317_OR_LATER 1
+# endif
 # if MIN_VERSION_Cabal(3, 16, 0)
 #  define Cabal316OrLater 1
 #  define Cabal314OrLater 1
@@ -145,6 +193,8 @@ import qualified Data.ByteString.Lazy.Builder as BS.Builder
 import qualified Data.ByteString.Lazy.Char8 as CL8
 #endif
 
+import Data.Foldable (Foldable, toList)
+
 import Distribution.ModuleName (ModuleName)
 import qualified Distribution.ModuleName as ModuleName
 import Distribution.PackageDescription ()
@@ -175,9 +225,6 @@ import Data.Maybe (maybeToList)
 #if __GLASGOW_HASKELL__ < 710
 import Data.Monoid
 #endif
-#if defined(Cabal32OrLater)
-import Data.List.NonEmpty (toList)
-#endif
 import Data.Set (Set)
 import qualified Data.Set as S
 #if defined(Cabal118OrLess)
@@ -202,7 +249,7 @@ import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath (dropFileName, normalise, isPathSeparator, dropTrailingPathSeparator)
 import System.Info (compilerVersion)
-import System.IO (Handle, hPutStrLn, stderr, stdout)
+import System.IO (Handle, hPutStrLn, stderr, stdout, stdin)
 
 #if __GLASGOW_HASKELL__ >= 710 && !defined(Cabal20OrLater) && !defined(Cabal22OrLater)
 import Data.Version (Version)
@@ -281,6 +328,35 @@ import Distribution.Utils.Path (getSymbolicPath)
 
 #if defined(Cabal20OrLater)
 import Distribution.Types.Library (signatures)
+#endif
+
+#if defined(HAVE_CABAL_SYNTAX)
+import Distribution.CabalSpecVersion
+  ( cabalSpecLatest
+  )
+import Distribution.FieldGrammar
+  ( parseFieldGrammar
+  , takeFields
+  )
+import Distribution.Fields
+  ( ParseResult
+  , parseFatalFailure
+  , readFields
+  )
+import Distribution.PackageDescription.FieldGrammar
+  ( executableFieldGrammar
+  )
+import Distribution.Parsec
+  ( Position (..)
+  )
+import qualified Text.Parsec as P
+
+#if defined(CABAL_SYNTAX_317_OR_LATER)
+import Distribution.Fields.ParseResult
+  ( withSource
+  )
+#endif
+
 #endif
 
 import Data.Int
@@ -440,6 +516,18 @@ cabalDistDir packageId =
       mkUnixFilepath ("ghc-" ++ Data.Version.showVersion System.Info.fullCompilerVersion) `joinPaths`
         mkUnixFilepath (display packageId)
 
+exePackageDescription :: Executable -> Sexp
+exePackageDescription exe =
+  SList
+    [ cons (sym "extensions") exts
+    , cons (sym "languages") langs
+    ]
+  where
+    bi = buildInfo exe
+    exts :: [Extension]
+    exts = collectUsedExtensions $ Identity bi
+    langs = allLanguages bi
+
 serializePackageDescription :: PackageDescription -> FilePath -> Sexp
 serializePackageDescription pkgDesc projectDir =
   SList
@@ -470,11 +558,7 @@ serializePackageDescription pkgDesc projectDir =
     sourceDirs = ordNub (getSourceDirectories buildInfo projectDir')
 
     exts :: [Extension]
-#if MIN_VERSION_Cabal(1, 22, 0)
-    exts = ordNub (concatMap usedExtensions buildInfo)
-#else
-    exts = nub (concatMap usedExtensions buildInfo)
-#endif
+    exts = collectUsedExtensions buildInfo
 
     langs :: [Language]
     langs = nub (concatMap allLanguages buildInfo)
@@ -516,6 +600,17 @@ data Component = Component
   , cSourceDirs :: ![UnixFilepath]
   , cBuildDir   :: !UnixFilepath
   }
+
+collectUsedExtensions :: Foldable f => f BuildInfo -> [Extension]
+collectUsedExtensions =
+#if MIN_VERSION_Cabal(1, 22, 0)
+  ordNub .
+#endif
+#if !MIN_VERSION_Cabal(1, 22, 0)
+  nub .
+#endif
+    concatMap usedExtensions .
+      toList
 
 mkComponent :: ComponentType -> C8.ByteString -> Maybe C8.ByteString -> [ModuleName] -> [UnixFilepath] -> Component
 mkComponent cType cName cModulePath cModules cSourceDirs =
@@ -633,17 +728,60 @@ libSignatures =
   const []
 #endif
 
-getCabalConfiguration :: ConfigurationFile -> IO Sexp
+getCabalConfiguration :: Input -> IO Sexp
 getCabalConfiguration configFile = do
-  genericDesc <-
-    case configFile of
-      CabalFile path -> readGenericPkgDescr path
-  case getConcretePackageDescription genericDesc of
-    Left e        -> die' $ "Issue with package configuration\n" ++ e
-    Right pkgDesc -> pure $ serializePackageDescription pkgDesc projectDir
-  where
-    projectDir :: FilePath
-    projectDir = dropTrailingPathSeparator $ dropFileName $ configFilePath configFile
+  case configFile of
+    CabalFile path -> do
+      genericDesc <- readGenericPkgDescr path
+      case getConcretePackageDescription genericDesc of
+        Left e        -> die' $ "Issue with package configuration\n" ++ e
+        Right pkgDesc -> pure $ serializePackageDescription pkgDesc projectDir
+      where
+        projectDir :: FilePath
+        projectDir = dropTrailingPathSeparator $ dropFileName path
+    ScriptMetadataFromSTDIN -> do
+#if defined(HAVE_CABAL_SYNTAX)
+      metadata <- BS.hGetContents stdin
+      let dummyFilename :: FilePath
+          dummyFilename = "script block"
+          (_warnings, result) =
+            runParseResult $
+#if defined(CABAL_SYNTAX_317_OR_LATER)
+              withSource (PCabalFile (dummyFilename, metadata)) $
+#endif
+                parseScriptBlock metadata
+      case result of
+        Left (_, errors) -> do
+          die' $ "Failed to parse cabal file:" ++ unlines
+            (map
+#if defined(CABAL_SYNTAX_317_OR_LATER)
+              showPErrorWithSource
+#endif
+#if !defined(CABAL_SYNTAX_317_OR_LATER)
+              (showPError dummyFilename)
+#endif
+              (toList errors))
+        Right exe -> pure $ exePackageDescription exe
+#endif
+#if !defined(HAVE_CABAL_SYNTAX)
+      die' $
+        "Parsing script metadata is not supported with this version of GHC: " ++
+          __GLASGOW_HASKELL_FULL_VERSION__
+#endif
+
+#if defined(HAVE_CABAL_SYNTAX)
+-- parseScriptBlock :: BS.ByteString -> ParseResult src Executable
+parseScriptBlock :: BS.ByteString -> ParseResult Executable
+parseScriptBlock str =
+  case readFields str of
+    Right fs -> do
+      let (fields, _) = takeFields fs
+      parseFieldGrammar cabalSpecLatest fields (executableFieldGrammar "script")
+    Left perr -> parseFatalFailure pos (show perr)
+      where
+        ppos = P.errorPos perr
+        pos = Position (P.sourceLine ppos) (P.sourceColumn ppos)
+#endif
 
 readGenericPkgDescr :: FilePath -> IO GenericPackageDescription
 readGenericPkgDescr path = do
@@ -911,24 +1049,24 @@ die' msg = do
 
 #if !defined(HAVE_DATA_FUNCTOR_IDENTITY)
 newtype Identity a = Identity { runIdentity :: a }
+
+instance Foldable Identity where
+  foldMap f (Identity x) = f x
 #endif
 
-newtype ConfigurationFile = CabalFile FilePath
-
-configFilePath :: ConfigurationFile -> FilePath
-configFilePath (CabalFile path) = path
+data Input = CabalFile FilePath | ScriptMetadataFromSTDIN
 
 data Config f = Config
-  { cfgInputFile :: f ConfigurationFile
+  { cfgInput :: f Input
   }
 
 reifyConfig :: Config Maybe -> IO (Config Identity)
-reifyConfig Config{cfgInputFile} = do
-  cfgInputFile' <- case cfgInputFile of
+reifyConfig Config{cfgInput} = do
+  cfgInputFile' <- case cfgInput of
     Nothing   -> die' "Input file not specified. Use --cabal-file to specify one."
     Just path -> pure path
   pure Config
-    { cfgInputFile = Identity cfgInputFile'
+    { cfgInput = Identity cfgInputFile'
     }
 
 optionDescr :: [OptDescr (Config Maybe -> Config Maybe)]
@@ -936,19 +1074,24 @@ optionDescr =
   [ Option
       []
       ["cabal-file"]
-      (ReqArg (\path cfg -> cfg { cfgInputFile = Just (CabalFile path) }) "FILE")
+      (ReqArg (\path cfg -> cfg { cfgInput = Just (CabalFile path) }) "FILE")
       "Cabal file to process"
+  , Option
+      []
+      ["parse-script-metadata-from-stdin"]
+      (NoArg (\cfg -> cfg { cfgInput = Just ScriptMetadataFromSTDIN }))
+      "Metadata of #! (taken from between {- cabal:...-}) passed on stdin"
   ]
 
 defaultConfig :: Config Maybe
 defaultConfig = Config
-  { cfgInputFile = Nothing
+  { cfgInput = Nothing
   }
 
 main' :: Config Identity -> IO ()
-main' Config{cfgInputFile} =
+main' Config{cfgInput} =
   hPutBuilder stdout . renderSexp =<<
-    getCabalConfiguration (runIdentity cfgInputFile)
+    getCabalConfiguration (runIdentity cfgInput)
 
 main :: IO ()
 main = do
