@@ -42,7 +42,8 @@
           contents
           expected-value
           (modes '(haskell-mode haskell-ts-mode haskell-hsc-mode))
-          fresh-buffer)
+          fresh-buffer
+          initialise-after-content)
   `(progn
      ,@(cl-loop
         for mode in modes
@@ -52,7 +53,13 @@
             :action ,action
             :contents ,contents
             :expected-value ,expected-value
-            :initialisation (,mode)
+            :initialisation ,(if (and fresh-buffer
+                                      initialise-after-content)
+                                 nil
+                               `(,mode))
+            :post-content-initialisation ,(when (and fresh-buffer
+                                                     initialise-after-content)
+                                            `(,mode))
             :buffer-id ,(if fresh-buffer nil (string->symbol (format "haskell-tests-%s" mode))))))))
 
 (defmacro haskell-tests--test-buffer-contents (name action contents expected-value)
@@ -7654,6 +7661,74 @@ have different input states."
   "import {-# SOURCE #-} qualified Data.Ord as Ord (Down_|_)"
   "import Data.Set (Set)")
  :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-8
+ :action
+ (progn
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "#!/usr/bin/env -S cabal run"
+  "{- cabal:"
+  "default-language:"
+  "  GHC2024"
+  "build-depends:"
+  "  , base"
+  "  , containers"
+  "  , text"
+  "ghc-options:"
+  "  -Weverything"
+  "-}"
+  "{- project:"
+  "constraints:"
+  "  , binary installed"
+  "  , containers installed"
+  "  , ghc-bignum installed"
+  "  , template-haskell installed"
+  "  , prettyprinter-combinators -enummapset"
+  "-}"
+  ""
+  "{-# OPTIONS_GHC -Wno-unused-imports   #-}"
+  "{-# OPTIONS_GHC -Wno-unused-top-binds #-}"
+  ""
+  "import Data.List"
+  "import Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "#!/usr/bin/env -S cabal run"
+  "{- cabal:"
+  "default-language:"
+  "  GHC2024"
+  "build-depends:"
+  "  , base"
+  "  , containers"
+  "  , text"
+  "ghc-options:"
+  "  -Weverything"
+  "-}"
+  "{- project:"
+  "constraints:"
+  "  , binary installed"
+  "  , containers installed"
+  "  , ghc-bignum installed"
+  "  , template-haskell installed"
+  "  , prettyprinter-combinators -enummapset"
+  "-}"
+  ""
+  "{-# OPTIONS_GHC -Wno-unused-imports   #-}"
+  "{-# OPTIONS_GHC -Wno-unused-top-binds #-}"
+  ""
+  "import Data.List"
+  "import Data.Ord qualified as Ord (Down_|_)"
+  "import Data.Set (Set)"
+  "")
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-back-up-indent-level-1
