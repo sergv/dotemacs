@@ -84,10 +84,11 @@ within that region."
   )
 
 (cl-defstruct haskell-import-list
-  start-str ;; ( with surrounding space
-  sep       ;; , with surrounding space
-  end-str   ;; ) with surrounding space
-  entries   ;; list of stings
+  start-str   ;; ( with surrounding space
+  sep         ;; , with surrounding space
+  end-str     ;; ) with surrounding space
+  entries     ;; list of stings
+  longest-sep ;; Longest , together with surrounding space seen in this import list.
   )
 
 (defun haskell-sort-imports--longest-str (x y)
@@ -119,6 +120,9 @@ within that region."
          :start-str (haskell-import-list-start-str base)
          :sep       sep
          :end-str   (haskell-import-list-end-str base)
+         :longest-sep
+         (haskell-sort-imports--longest-str (haskell-import-list-longest-sep xs)
+                                            (haskell-import-list-longest-sep ys))
          :entries   (if xs-entries
                         (if ys-entries
                             (append xs-entries (cons sep ys-entries))
@@ -164,10 +168,11 @@ within that region."
           (funcall k
                    t ;; TODO
                    (make-haskell-import-list
-                    :start-str (haskell-import-list-start-str with-hiding)
-                    :sep       (haskell-import-list-sep with-hiding)
-                    :end-str   (haskell-import-list-end-str with-hiding)
-                    :entries   (nreverse filtered-entries))
+                    :start-str   (haskell-import-list-start-str with-hiding)
+                    :sep         (haskell-import-list-sep with-hiding)
+                    :end-str     (haskell-import-list-end-str with-hiding)
+                    :entries     (nreverse filtered-entries)
+                    :longest-sep (haskell-import-list-longest-sep with-hiding))
                    (haskell-import-str-before-import-list with-hiding-import)))
       ;; If regular is missing (i.e. wildcard) then hiding gets subsumed.
       (funcall k nil nil (haskell-import-str-before-import-list regular-import)))))
@@ -217,6 +222,7 @@ entities. Entities must be valid Haskell import/export names. E.g.
 
           (let ((open-end (point))
                 (first-sep nil)
+                (longest-sep nil)
                 (entries nil)
 
                 (continue t)
@@ -245,15 +251,21 @@ entities. Entities must be valid Haskell import/export names. E.g.
                      (let ((sep (buffer-substring ws-before-end (point))))
                        (push sep entries)
                        (unless first-sep
-                         (setf first-sep sep))))
+                         (setf first-sep sep))
+                       (if longest-sep
+                           (when (< (length longest-sep)
+                                    (length sep))
+                             (setf longest-sep sep))
+                         (setf longest-sep sep))))
                     (41 ;; ?)
                      (setf continue nil
                            result
                            (make-haskell-import-list
-                            :start-str (buffer-substring open-start open-end)
-                            :sep       first-sep
-                            :end-str   (buffer-substring (if entries ws-before-end (point)) (point-max))
-                            :entries   (nreverse entries))))))))
+                            :start-str   (buffer-substring open-start open-end)
+                            :sep         first-sep
+                            :longest-sep longest-sep
+                            :end-str     (buffer-substring (if entries ws-before-end (point)) (point-max))
+                            :entries     (nreverse entries))))))))
 
             result))))))
 
