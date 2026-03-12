@@ -420,9 +420,21 @@ value is a list which is appended to the result of
   (cl-assert (numberp col))
   (goto-char (point-min))
   (forward-line (1- line))
-  (move-to-column (1- col))
-  (skip-chars-backward " \t")
-  (unless (looking-back "\(" (- (point) 2)) (insert-char ?,) (insert-char ?\s))
+  (move-to-column col)
+  (let ((import-list-end (point)))
+    (forward-sexp -1)
+    (let* ((import-list-start (point))
+           (import-list
+            (haskell-sort-imports--parse-import-list-in-buffer import-list-start
+                                                               import-list-end)))
+      (goto-char (1- import-list-end))
+      (skip-chars-backward " \t\n\r")
+      (unless (looking-back "\(" (- (point) 2))
+        (aif (haskell-import-list-longest-sep import-list)
+            (insert it)
+          (progn
+            (insert-char ?,)
+            (insert-char ?\s))))))
   (if parent
       (insert (attrap-add-operator-parens parent) "(" (attrap-add-operator-parens missing) ")")
     (insert (attrap-add-operator-parens missing)))
@@ -805,7 +817,14 @@ Error is given as MSG and reported between POS and END."
                   (error "Unhandled class case: %s" class-name))))))
          (--map (attrap-insert-language-pragma it)
                 (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))
-
+         ;; warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]
+         ;;  Variable not in scope: hPutStrLn :: t0 -> String -> IO a0
+         ;;  Suggested fixes:
+         ;;    • Perhaps use one of these:
+         ;;        ‘BS.hPutStr’ (imported from Data.ByteString),
+         ;;        ‘putStrLn’ (imported from Prelude)
+         ;;    • Add ‘hPutStrLn’ to the import list in the import of ‘System.IO’
+         ;;      (at /tmp/tmp/Test2.hs:(5,1)-(8,3)).
          (when (string-match
                 (rx (or (seq (ghc-warning "88464" "deferred-out-of-scope-variables") (+ ws)
                              (or "Variable"
