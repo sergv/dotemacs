@@ -440,6 +440,9 @@ This regexps is for newer ghc (8.10+-ish).")
         (seq (group-n 3 (+? (not ?:))))
         eos)))
 
+(defconst haskell-regexen/cabal-script-metadata-start
+  "^{-[ \t]*cabal:")
+
 (provide 'haskell-regexen)
 
 ;; Local Variables:

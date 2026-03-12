@@ -21,7 +21,13 @@
 (defvar test-utils--temp-buffers nil
   "Alist from buffer-id (symbol) to actual buffer.")
 
-(cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation post-content-initialisation buffer-id suppress-cursor)
+(cl-defmacro tests-utils--with-temp-buffer
+    (&key action
+          contents
+          initialisation
+          post-content-initialisation
+          buffer-id
+          suppress-cursor)
   (declare (indent nil))
   `(save-match-data
      (let ((buf ,@(when buffer-id

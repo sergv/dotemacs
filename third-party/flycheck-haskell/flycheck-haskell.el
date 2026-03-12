@@ -53,6 +53,7 @@
 
 (require 'seq)
 (require 'haskell-cabal)
+(require 'haskell-regexen)
 (require 'flycheck)
 (require 'dash)
 (require 'set-up-paths)
@@ -141,9 +142,10 @@ Take the base command from `flycheck-haskell-runghc-command'."
    (when proj
      (eproj-project/root proj))))
 
-(defun flycheck-haskell--read-configuration-with-helper (args proj)
+(defun flycheck-haskell--read-configuration-with-helper (args proj start end)
   (let ((env process-environment)
-        (path exec-path))
+        (path exec-path)
+        (source-buf (current-buffer)))
     (with-temp-buffer
       ;; Copy the entire environment just in case there's something we need.
       (setq-local process-environment env)
@@ -153,11 +155,27 @@ Take the base command from `flycheck-haskell-runghc-command'."
               (if flycheck-haskell--compiled-haskell-helper
                   (cons flycheck-haskell--compiled-haskell-helper args)
                 (flycheck-haskell-runghc-command proj (cons flycheck-haskell-helper args))))
-             (retcode (apply #'call-process (car cmd) nil (current-buffer) nil (cdr cmd))))
+             (dest-buf (current-buffer))
+             (retcode (if start
+                          (with-current-buffer source-buf
+                            (apply #'call-process-region
+                                   start
+                                   end
+                                   (car cmd)
+                                   nil
+                                   dest-buf
+                                   nil
+                                   (cdr cmd)))
+                        (apply #'call-process
+                               (car cmd)
+                               nil
+                               dest-buf
+                               nil
+                               (cdr cmd)))))
         (if (zerop retcode)
             (progn
               (goto-char (point-min))
-              (read (current-buffer)))
+              (read dest-buf))
           (progn
             (goto-char (point-max))
             (delete-whitespace-backward)
@@ -169,7 +187,28 @@ Take the base command from `flycheck-haskell-runghc-command'."
 (defun flycheck-haskell-read-cabal-configuration (cabal-file proj)
   "Read the Cabal configuration from CABAL-FILE."
   (let ((args (list "--cabal-file" (expand-file-name cabal-file))))
-    (flycheck-haskell--read-configuration-with-helper args proj)))
+    (flycheck-haskell--read-configuration-with-helper args proj nil nil)))
+
+(defun flycheck-haskell-parse-script-configuration (buf proj)
+  "Read the confiration of Haskell #! script stored inside {- cabal:...-}."
+  (save-match-data
+    (save-excursion
+      (goto-char (point-min))
+      (unless (re-search-forward haskell-regexen/cabal-script-metadata-start nil t)
+        (error "Malformed Haskell script buffer: unable to find {- cabal: section"))
+      (goto-char (match-beginning 0))
+      (forward-line 1)
+      (let ((start (point)))
+        (goto-char (match-beginning 0))
+        (forward-comment 1)
+        (goto-char (line-beginning-position))
+        (forward-char -1)
+        (let ((end (point)))
+          (flycheck-haskell--read-configuration-with-helper
+           (list "--parse-script-metadata-from-stdin")
+           proj
+           start
+           end))))))
 
 
 ;;; Cabal configuration caching
@@ -220,9 +259,17 @@ Return the configuration."
   (or (flycheck-haskell-get-cached-configuration config-file)
       (flycheck-haskell-read-and-cache-configuration config-file proj)))
 
+(defvar flycheck-haskell--script-cache-configuration nil)
+
 (defun flycheck-haskell-get-configuration-for-buf (buf proj)
-  (when-let ((config-file (flycheck-haskell--find-config-file buf)))
-    (flycheck-haskell-get-configuration config-file proj)))
+  (if (haskell-misc-cabal-script-buf? buf)
+      (or (buffer-local-value 'flycheck-haskell--script-cache-configuration
+                              buf)
+          (with-current-buffer buf
+            (setq-local flycheck-haskell--script-cache-configuration
+                        (flycheck-haskell-parse-script-configuration buf proj))))
+    (when-let ((config-file (flycheck-haskell--find-config-file buf)))
+      (flycheck-haskell-get-configuration config-file proj))))
 
 
 ;;; Buffer setup
