@@ -1542,6 +1542,219 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-list-6
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-76037]"
+  "    Not in scope:"
+  "      type constructor or class ‘Decombobulate’"
+  "    Suggested fix:"
+  "      Add ‘Decombobulate’ to the import list"
+  "      in the import of ‘Foobar’"
+  "      (at /foo/bar/baz/Quux.hs:2:1-28).")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Foobar (Bar(..), Baz)"
+  ""
+  "test :: _|_Decombobulate a => FooType a -> IO ()"
+  "test (Foo x) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Foobar (Bar(..), Baz, Decombobulate)"
+  ""
+  "test :: _|_Decombobulate a => FooType a -> IO ()"
+  "test (Foo x) = undefined"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-list-7a
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+  "    Variable not in scope: hPutStrLn :: t0 -> String -> IO a0"
+  "    Suggested fixes:"
+  "      • Perhaps use one of these:"
+  "          ‘BS.hPutStr’ (imported from Data.ByteString),"
+  "          ‘putStrLn’ (imported from Prelude)"
+  "      • Add ‘hPutStrLn’ to the import list in the import of ‘System.IO’"
+  "        (at /tmp/tmp/Test2.hs:5:1-19).")
+ :action
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘System.IO’"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Data.ByteString (ByteString)"
+  "import Data.ByteString qualified as BS"
+  "import System.IO ()"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Data.ByteString (ByteString)"
+  "import Data.ByteString qualified as BS"
+  "import System.IO (hPutStrLn)"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-list-7b
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+  "    Variable not in scope: hPutStrLn :: t0 -> String -> IO a0"
+  "    Suggested fixes:"
+  "      • Perhaps use one of these:"
+  "          ‘BS.hPutStr’ (imported from Data.ByteString),"
+  "          ‘putStrLn’ (imported from Prelude)"
+  "      • Add ‘hPutStrLn’ to the import list in the import of ‘System.IO’"
+  "        (at /tmp/tmp/Test2.hs:5:1-25).")
+ :action
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘System.IO’"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Data.ByteString (ByteString)"
+  "import Data.ByteString qualified as BS"
+  "import System.IO (stdout)"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Data.ByteString (ByteString)"
+  "import Data.ByteString qualified as BS"
+  "import System.IO (stdout, hPutStrLn)"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-list-7c
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+  "    Variable not in scope: hPutStrLn :: t0 -> String -> IO a0"
+  "    Suggested fixes:"
+  "      • Perhaps use one of these:"
+  "          ‘BS.hPutStr’ (imported from Data.ByteString),"
+  "          ‘putStrLn’ (imported from Prelude)"
+  "      • Add ‘hPutStrLn’ to the import list in the import of ‘System.IO’"
+  "        (at /tmp/tmp/Test2.hs:(5,1)-(7,3)).")
+ :action
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘System.IO’"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Data.ByteString (ByteString)"
+  "import Data.ByteString qualified as BS"
+  "import System.IO"
+  "  ( stdout"
+  "  )"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Data.ByteString (ByteString)"
+  "import Data.ByteString qualified as BS"
+  "import System.IO"
+  "  ( stdout, hPutStrLn"
+  "  )"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-list-7d
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+  "    Variable not in scope: hPutStrLn :: t0 -> String -> IO a0"
+  "    Suggested fixes:"
+  "      • Perhaps use one of these:"
+  "          ‘BS.hPutStr’ (imported from Data.ByteString),"
+  "          ‘putStrLn’ (imported from Prelude)"
+  "      • Add ‘hPutStrLn’ to the import list in the import of ‘System.IO’"
+  "        (at /tmp/tmp/Test2.hs:(5,1)-(8,3)).")
+ :action
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘System.IO’"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Data.ByteString (ByteString)"
+  "import Data.ByteString qualified as BS"
+  "import System.IO"
+  "  ( stdout"
+  "  , putStrLn"
+  "  )"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Data.ByteString (ByteString)"
+  "import Data.ByteString qualified as BS"
+  "import System.IO"
+  "  ( stdout"
+  "  , putStrLn"
+  "  , hPutStrLn"
+  "  )"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-extension-1a
  :error-message
  (tests-utils--multiline
