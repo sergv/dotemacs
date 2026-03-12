@@ -49,10 +49,10 @@ constraints:
   , ghc-bignum installed
   , template-haskell installed
   , prettyprinter-combinators -enummapset
-allow-newer:
+${4:allow-newer:
   , *:base
--})
-$(4:
+}-})
+$(5:
 {-# OPTIONS_GHC -Wno-unused-imports   #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-})")
 
