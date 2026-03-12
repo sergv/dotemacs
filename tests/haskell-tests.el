@@ -9254,6 +9254,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "("
                   :sep nil
+                  :longest-sep nil
                   :end-str ")"
                   :entries '()))))
 
@@ -9262,6 +9263,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "(    "
                   :sep nil
+                  :longest-sep nil
                   :end-str ")"
                   :entries '()))))
 
@@ -9270,6 +9272,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "("
                   :sep nil
+                  :longest-sep nil
                   :end-str ")"
                   :entries '("foo")))))
 
@@ -9278,6 +9281,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "( "
                   :sep nil
+                  :longest-sep nil
                   :end-str " )"
                   :entries '("foo")))))
 
@@ -9286,6 +9290,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "("
                   :sep ", "
+                  :longest-sep ", "
                   :end-str ")"
                   :entries '("foo" ", " "bar")))))
 
@@ -9294,6 +9299,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "  (  "
                   :sep ", "
+                  :longest-sep ", "
                   :end-str "  )  "
                   :entries '("foo" ", " "bar")))))
 
@@ -9302,6 +9308,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "  (  "
                   :sep ", "
+                  :longest-sep ", "
                   :end-str ")  "
                   :entries '("foo" ", " "bar" ", " "pattern Foo" ", " "(:+:)" ", " "Foo(quux, frobnicator, ..)")))))
 
@@ -9311,6 +9318,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "("
                   :sep ", "
+                  :longest-sep ", "
                   :end-str " ) "
                   :entries '("bar" ", " "baz" ", " "Żółć (..)")))))
 
@@ -9325,6 +9333,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "\n  ( "
                   :sep "\n  , "
+                  :longest-sep "\n  , "
                   :end-str "\n  )"
                   :entries '("foo" "\n  , " "bar" "\n  , " "baz")))))
 
@@ -9340,6 +9349,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str "\n  ( "
                   :sep "\n  , "
+                  :longest-sep "  \n  , "
                   :end-str "\n  )"
                   :entries '("foo" "\n  , " "pattern Bar" "\n ,   " "Decombobulator (..)" "  \n  , " "baz")))))
 
@@ -9349,6 +9359,7 @@ have different input states."
                  (make-haskell-import-list
                   :start-str " ("
                   :sep nil
+                  :longest-sep nil
                   :end-str ")"
                   :entries '("(/\\)")))))
 
