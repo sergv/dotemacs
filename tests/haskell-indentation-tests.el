@@ -35,7 +35,7 @@
           (modes '(haskell-ts-mode haskell-hsc-mode)))
   (cons
    'progn
-   (loop
+   (cl-loop
      for mode in modes
      collect
      `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
@@ -63,7 +63,7 @@
           modes)
   (cons
    'progn
-   (loop
+   (cl-loop
      for mode in (or modes '(haskell-ts-mode haskell-hsc-mode))
      collect
      `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
