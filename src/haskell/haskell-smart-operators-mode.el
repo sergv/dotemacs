@@ -53,7 +53,7 @@
            ;; Check that there was at least one space.
            (not (eq p p0))
            (eq (char-after p) ?|))
-      p0)))
+      p)))
 
 (defvar haskell-quasiquoter-name-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
@@ -108,7 +108,8 @@ stick it to the previous operator on line."
             (when (and insert-space-after
                        (not (and (eq char ?\\)
                                  (not at-beginning-of-buffer?)
-                                 (eq before ?\()))
+                                 (eq before 40 ;; open paren, done this way because character syntax confuses font lock
+                                     )))
                        (if magic-hash?
                            (not (eq after ?,))
                          t)
@@ -121,6 +122,10 @@ stick it to the previous operator on line."
                         ;; If the next thing is lambda then we don’t want to merge
                         ;; with its "\".
                         (eq after ?\\)
+                        (and (eq char ?|)
+                             (eq after ?=)
+                             (awhen (haskell-smart-operators--on-a-line-with-guard?)
+                               (not (eq it (point)))))
                         (and (not (or (haskell-smart-operators--is-whitespace-char? after)
                                       ;; Don’t insert space before backtick.
                                       (eq after ?\`)
@@ -193,7 +198,7 @@ stick it to the previous operator on line."
                       ;; After | that is a potential guard.
                       (when (eq prev-char ?|)
                         (awhen (haskell-smart-operators--on-a-line-with-guard?)
-                          (equal it (- pt 1))))
+                          (eq it (- pt 1))))
                       ;; Insert space between us and previous # if the char before # is
                       ;; not a space itself, which means that # ends identifier name.
                       (when (eq prev-char ?#)
@@ -275,7 +280,9 @@ stick it to the previous operator on line."
                                     (memq (char-syntax char-before-spaces) '(?w ?_))))
                            (if (eq char-before-spaces ?|)
                                ;; Check that it's not a guard.
-                               (not (haskell-smart-operators--on-a-line-with-guard?))
+                               (if-let* ((guard-pt (haskell-smart-operators--on-a-line-with-guard?)))
+                                   (not (eq guard-pt (- pt-before-ws 1)))
+                                 t)
                              t))))))
              (when delete-whitespace?
                (setf whitespace-deleted?
