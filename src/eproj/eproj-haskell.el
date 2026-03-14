@@ -309,7 +309,7 @@ runtime but rather will be silently relied on)."
 
     ;; Make sure current directory is removed so that we won’t have infinite loop here.
     (--remove (or (string= root it)
-                  (string= root (eproj-get-initial-project-root it)))
+                  (string= root (eproj-get-initial-project-root it nil)))
               (--map (if (file-regular-p it) (file-name-directory it) it)
                      (--map (eproj-normalise-file-name-expand-cached it root)
                             (eproj-haskell--parse-cabal-projects (current-buffer)))))))
@@ -332,8 +332,11 @@ spaces if they’re quoted with double quotes, e.g. \"foobar\"."
   (cl-assert (stringp str))
   (delete ?\" str))
 
+(defun eproj-haskell-is-self-contained-buffer? (buf)
+  (haskell-misc-cabal-script-buf? buf))
+
 ;;;###autoload
-(defun eproj--infer-haskell-project (root)
+(defun eproj--infer-haskell-project (root is-self-contained-file?)
   (let ((cabal-proj-file (concat root "/cabal.project"))
         (cabal-proj-local-file (concat root "/cabal.project.local")))
     (cond
@@ -372,6 +375,8 @@ spaces if they’re quoted with double quotes, e.g. \"foobar\"."
                                 (seq "stack" (* any) "." (or "yml" "yaml")))
                             eos)
                         t)
+       '((languages haskell-mode)))
+      ((memq is-self-contained-file? '(haskell-mode haskell-hsc-mode haskell-ts-mode))
        '((languages haskell-mode)))
       (t
        nil))))
