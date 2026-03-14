@@ -96,22 +96,13 @@
        (switch-to-buffer (get-buffer-create buffer-name) t)))))
 
 ;;;###autoload
-(defun switch-to-buffer-or-file-in-current-project (&optional include-all-buffers?)
-  "Like `switch-to-buffer' but includes files from eproj project assigned to
-current buffer."
-  (interactive "P")
-  (if-let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
-      (eproj-switch-to-file-or-buffer proj nil include-all-buffers?)
-    (error "No project for current buffer: %s" (current-buffer))))
-
-;;;###autoload
 (defun switch-to-buffer-or-file-in-current-or-related-projects (&optional include-all-buffers?)
   "Like `switch-to-buffer' but includes files from eproj project assigned to
 current buffer."
   (interactive "P")
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (if proj
-        (eproj-switch-to-file-or-buffer proj t include-all-buffers?)
+        (eproj-switch-to-file-or-buffer proj include-all-buffers?)
       (error "No project for current buffer: %s" (current-buffer)))))
 
 ;;;###autoload (autoload 'hydra-switching/body "buffer-switching" nil t)
@@ -120,10 +111,8 @@ current buffer."
 Switch to:
 _b_uffer
 _f_ile
-buffer/file in _c_urrent project
-buffer/file in current or _r_elated projects"
-  ("c" switch-to-buffer-or-file-in-current-project)
-  ("r" switch-to-buffer-or-file-in-current-or-related-projects)
+buffer/file in _c_urrent or related projects"
+  ("c" switch-to-buffer-or-file-in-current-or-related-projects)
   ("b" switch-to-buffer-with-completion)
   ("f" counsel-find-file))
 
