@@ -1583,17 +1583,15 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
              '(eproj-switch-to-file-or-buffer . ivy--regex-fuzzy-filenames))
 
 ;;;###autoload
-(defun eproj-switch-to-file-or-buffer (proj include-related-projects? include-all-buffers?)
+(defun eproj-switch-to-file-or-buffer (proj include-all-buffers?)
   (let ((root (eproj-project/root proj))
         (this-command 'eproj-switch-to-file-or-buffer))
     (unless proj
       (error "No project for current buffer"))
-    (let* ((all-related-projects
-            (if include-related-projects?
-                (eproj-get-all-related-projects proj)
-              (list proj)))
+    (let* ((navigation-projects
+            (eproj-get-all-related-projects proj))
            (related-roots (let ((tbl (make-hash-table :test #'equal)))
-                            (dolist (pr all-related-projects)
+                            (dolist (pr navigation-projects)
                               (puthash (eproj-project/root pr) t tbl))
                             tbl))
            ;; List of (<display-name> . <absolute-file-name>).
@@ -1632,7 +1630,7 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
       (let ((eproj-file (concat root "/.eproj-info")))
         (when (file-exists-p eproj-file)
           (funcall add-file eproj-file nil)))
-      (dolist (related-proj all-related-projects)
+      (dolist (related-proj navigation-projects)
         (eproj-with-all-project-files-for-navigation related-proj add-file)
         (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
           (when (file-exists-p eproj-file)
