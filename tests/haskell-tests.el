@@ -1822,7 +1822,7 @@ have different input states."
    "  | otherwise   = []"))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--guard-2
+    haskell-tests/haskell-smart-operators--guard-2a
     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
   (tests-utils--multiline
    "foo x xs"
@@ -1830,8 +1830,74 @@ have different input states."
    "  | otherwise   = []")
   (tests-utils--multiline
    "foo x xs"
-   "  | x `elem` xs ||_|_= xs"
+   "  | x `elem` xs || _|_= xs"
    "  | otherwise   = []"))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--guard-2b
+    (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+  (tests-utils--multiline
+   "foo x xs"
+   "  | x `elem` xs _|_= xs"
+   "  | otherwise   = []")
+  (tests-utils--multiline
+   "foo x xs"
+   "  | x `elem` xs | _|_= xs"
+   "  | otherwise   = []"))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--guard-2c
+    (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+  (tests-utils--multiline
+   "foo x xs"
+   "  | x `elem` xs | _|_= xs"
+   "  | otherwise   = []")
+  (tests-utils--multiline
+   "foo x xs"
+   "  | x `elem` xs || _|_= xs"
+   "  | otherwise   = []"))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--guard-3a
+ :action
+ (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+ :contents
+ (tests-utils--multiline
+  "foo x xs"
+  "  | x `elem` xs_|_"
+  "  = xs"
+  "  | otherwise"
+  "  = []")
+ :expected-value
+ (tests-utils--multiline
+  "foo x xs"
+  "  | x `elem` xs | _|_"
+  "  = xs"
+  "  | otherwise"
+  "  = []"))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--guard-3b
+ :action
+ (progn
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?|))
+ :contents
+ (tests-utils--multiline
+  "foo x xs"
+  "  | x `elem` xs_|_"
+  "  = xs"
+  "  | otherwise"
+  "  = []")
+ :expected-value
+ (tests-utils--multiline
+  "foo x xs"
+  "  | x `elem` xs || _|_"
+  "  = xs"
+  "  | otherwise"
+  "  = []"))
 
 (haskell-tests--test-buffer-contents*
  :name
