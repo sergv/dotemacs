@@ -1063,19 +1063,19 @@ variable or symbol 'unresolved.")
 Set to project that corresponds to buffer containing this variable or
 symbol 'unresolved.")
 
-(defun eproj-get-project-for-buf (buffer)
+(defun eproj-get-project-for-buf (buf)
   "Get project for BUFFER. Throw error if there's no project for it."
-  (eproj-get-project-for-path (eproj--get-buffer-directory buffer)))
+  (eproj-get-project-for-path (eproj--get-buffer-directory buf)))
 
 ;;;###autoload
-(defun eproj-sha1-of-project-root-for-buf (buffer)
-  (awhen (eproj-get-project-for-buf-lax buffer)
+(defun eproj-sha1-of-project-root-for-buf (buf)
+  (awhen (eproj-get-project-for-buf-lax buf)
     (sha1 (eproj-project/root it))))
 
 ;;;###autoload
-(defun eproj-get-project-for-buf-lax (buffer)
+(defun eproj-get-project-for-buf-lax (buf)
   "Get project for BUFFER. Return nil if there's no project for it."
-  (eproj-get-project-for-path-lax (eproj--get-buffer-directory buffer)))
+  (eproj-get-project-for-path-lax (eproj--get-buffer-directory buf)))
 
 ;;;###autoload
 (defun eproj-get-project-for-path-lax (path)
