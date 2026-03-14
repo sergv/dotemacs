@@ -447,10 +447,11 @@ get proper flycheck checker."
 
   ;; Hash table mapping absolute file paths this project manages to
   ;; the same paths relative to project's root. May not be 100%
-  ;; accurate (meaning that it may contain files that are no longer
-  ;; present on disk) and should be used only for user navigation.
-  ;; This field is initialised lazily when file list is first
-  ;; constructed or user does a search.
+  ;; accurate (meaning that it may always reflect current disk state - it
+  ;; may contain files that are no longer present on disk and lack files that are)
+  ;; and therefore should only be used for user navigation.
+  ;; This field is initialised lazily: it starts uninitialized and gets its value
+  ;; when file list is first constructed or user does a search.
   (cached-files-for-navigation nil)
   ;; Similar to ‘cached-files-for-navigation’ field but get’s populated
   ;; with project’s files that are saved. This way new files may end
