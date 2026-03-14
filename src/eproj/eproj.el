@@ -767,7 +767,7 @@ current project."
 `*eproj-projects*'."
   (cl-assert (file-directory-p root))
   (puthash root
-           (eproj-make-project root (eproj--get-info-from-root root t))
+           (eproj-make-project root (eproj--get-info-from-root root t nil))
            *eproj-projects*))
 
 (defun eproj-make-project (root aux-info)
@@ -981,7 +981,7 @@ will be interpreted as NIL by this macro."
   "Is set to initial project root (i.e. string) for buffer containing this
 variable or symbol 'unresolved.")
 
-(defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache path
+(defun-caching eproj-get-initial-project-root (path is-self-contained-file?) eproj-get-initial-project-root/reset-cache path
   "Find closest directory parent of PATH that contains .eproj-info file, cabal.project file, or .git directory."
   (cl-assert (stringp path))
   (let* ((is-directory? (file-directory-p path))
@@ -1014,7 +1014,9 @@ variable or symbol 'unresolved.")
                           (if (and (string= (cadr err) "Opening directory")
                                    (string= (caddr err) "No such file or directory"))
                               nil
-                            (signal (car err) (cdr err)))))))))
+                            (signal (car err) (cdr err)))))))
+                    (and is-self-contained-file?
+                         path-dir)))
       (eproj-normalise-file-name-expand-cached it))))
 
 (defun eproj--locate-dominating-file (dir name)
@@ -1038,11 +1040,11 @@ variable or symbol 'unresolved.")
   (list #'eproj--infer-haskell-project
         #'eproj--infer-rust-project))
 
-(defun eproj--infer-rust-project (root)
+(defun eproj--infer-rust-project (root is-self-contained-file?)
   (when (file-exists-p (concat root "/Cargo.toml"))
     '((languages 'rust-mode))))
 
-(defun eproj--get-info-from-root (root strict)
+(defun eproj--get-info-from-root (root strict is-self-contained-file?)
   "Either read existing .eproj-info file ot try to make up its contents if we can."
   (if-let (eproj-info-file (eproj--get-eproj-info-from-dir root))
       (eproj-read-eproj-info-file root eproj-info-file)
@@ -1050,7 +1052,7 @@ variable or symbol 'unresolved.")
           (result nil))
       (while (and (not result)
                   fs)
-        (setf result (funcall (car fs) root)
+        (setf result (funcall (car fs) root is-self-contained-file?)
               fs (cdr fs)))
       (when (and strict
                  (not result))
@@ -1075,20 +1077,24 @@ symbol 'unresolved.")
 ;;;###autoload
 (defun eproj-get-project-for-buf-lax (buf)
   "Get project for BUFFER. Return nil if there's no project for it."
-  (eproj-get-project-for-path-lax (eproj--get-buffer-directory buf)))
+  (eproj-get-project-for-path-lax
+   (eproj--get-buffer-directory buf)
+   (when (eproj-haskell-is-self-contained-buffer? buf)
+     (buffer-local-value 'major-mode buf))))
 
 ;;;###autoload
-(defun eproj-get-project-for-path-lax (path)
+(defun eproj-get-project-for-path-lax (path is-self-contained-file?)
   "Retrieve project that contains PATH as its part. Similar to
 `eproj-get-project-for-path' but returns nil if there's no
 project for PATH."
+  (cl-assert (symbolp is-self-contained-file?))
   (if-let (proj (gethash path *eproj-projects* nil))
       proj
     (when (file-directory-p path)
-      (if-let (proj-root (eproj-get-initial-project-root path))
+      (if-let (proj-root (eproj-get-initial-project-root path is-self-contained-file?))
           (if-let (proj (gethash proj-root *eproj-projects* nil))
               proj
-            (if-let ((info (eproj--get-info-from-root proj-root nil)))
+            (if-let ((info (eproj--get-info-from-root proj-root nil is-self-contained-file?)))
                 (let ((proj (eproj-make-project proj-root info)))
                   (puthash (eproj-project/root proj)
                            proj
@@ -1109,7 +1115,7 @@ project for PATH."
   ;; those.
   (if-let (proj (gethash path *eproj-projects* nil))
       proj
-    (if-let (proj-root (eproj-get-initial-project-root path))
+    (if-let (proj-root (eproj-get-initial-project-root path nil))
         (if-let (proj (gethash proj-root *eproj-projects* nil))
             proj
           (eproj--make-project-and-register! proj-root))
