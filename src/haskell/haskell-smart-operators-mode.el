@@ -22,6 +22,7 @@
 (require 'haskell-syntax-table)
 (require 'pseudoparedit)
 (require 'smart-operators-utils)
+(require 'typography-setup)
 
 (require 'treesit)
 (require 'treesit-setup)
@@ -627,15 +628,21 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defun haskell-smart-operators-quote ()
   (interactive "*")
-  (if (haskell-smart-operators--literal-insertion?)
-      (insert-char ?\')
-    (let ((prev-char (char-before)))
-      (insert-char ?\')
-      (when (or (not prev-char)
-                (not (or (eq (char-syntax prev-char) ?w)
-                         (eq (char-syntax prev-char) ?_))))
-        (insert-char ?\')
-        (forward-char -1)))))
+  (cond
+    ;; Only string
+    ((haskell-smart-operators--literal-insertion? t)
+     (insert-char ?\'))
+    ;; Either string or comment
+    ((haskell-smart-operators--literal-insertion?)
+     (typography-smart-insert-single-quote))
+    (t
+     (let ((prev-char (char-before)))
+       (insert-char ?\')
+       (when (or (not prev-char)
+                 (not (or (eq (char-syntax prev-char) ?w)
+                          (eq (char-syntax prev-char) ?_))))
+         (insert-char ?\')
+         (forward-char -1))))))
 
 (defvar haskell-smart-operators-mode-map
   (let ((keymap (make-sparse-keymap)))

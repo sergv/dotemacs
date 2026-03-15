@@ -4763,22 +4763,34 @@ _|_bar")
    "  bar (x + 1) y \"'_|_\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-insert-quote-4
-    (execute-kbd-macro (kbd "i '"))
-  (tests-utils--multiline
-   ""
-   "-- _|_"
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "-- '_|_"
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   ""))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-quote-4
+ :action
+ (execute-kbd-macro (kbd "i '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- _|_"
+  "foo x = do"
+  "  bar (x + 1) y \"foo\""
+  "")
+ :expected-value
+ (if (platform-use? 'home)
+     (tests-utils--multiline
+      ""
+      "-- ‘_|_"
+      "foo x = do"
+      "  bar (x + 1) y \"foo\""
+      "")
+   (tests-utils--multiline
+    ""
+    "-- '_|_"
+    "foo x = do"
+    "  bar (x + 1) y \"foo\""
+    "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
@@ -4790,12 +4802,19 @@ _|_bar")
    "foo x = do"
    "  bar (x + 1) y \"foo\""
    "")
-  (tests-utils--multiline
-   ""
-   "-- 'foo' ba_|_r"
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   ""))
+  (if (platform-use? 'home)
+      (tests-utils--multiline
+       ""
+       "-- ‘foo’ ba_|_r"
+       "foo x = do"
+       "  bar (x + 1) y \"foo\""
+       "")
+    (tests-utils--multiline
+     ""
+     "-- 'foo' ba_|_r"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
