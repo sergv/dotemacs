@@ -56,7 +56,8 @@
           (and (<= (treesit-node-start node) p)
                (<= p (treesit-node-end node))
                (or (haskell-smart-operators--treesit--in-string?-sure node)
-                   (haskell-smart-operators--treesit--in-comment?-sure node)))))
+                   (and (not disable-comment-check?)
+                        (haskell-smart-operators--treesit--in-comment?-sure node))))))
       (smart-operators--literal-insertion? disable-comment-check?)))
 
 (defun haskell-smart-operators--treesit--in-import-list? (node)
