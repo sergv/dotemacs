@@ -2557,6 +2557,132 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-5a
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: All IsResource bs"
+  "    In the type signature for:"
+  "         applyRule :: forall (as :: [*]) (bs :: [*])."
+  "                      (All IsResource as, All IsResource bs) =>"
+  "                      (as :--> bs) -> HMap Label Identity -> HMap Label Identity")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  "applyRule"
+  "  :: _|_(All IsResource as, All IsResource bs)"
+  "  => as :--> bs"
+  "  -> HMap Label Identity"
+  "  -> HMap Label Identity"
+  "applyRule recipe bag ="
+  "  foldlHList"
+  "    (\label _resource acc ->"
+  "      -- HM.insertWith (+) label resource $"
+  "        HM.delete label acc)"
+  "    bag"
+  "    (input recipe)")
+ :expected-value
+ (tests-utils--multiline
+  "applyRule"
+  "  :: _|_All IsResource as"
+  "  => as :--> bs"
+  "  -> HMap Label Identity"
+  "  -> HMap Label Identity"
+  "applyRule recipe bag ="
+  "  foldlHList"
+  "    (\label _resource acc ->"
+  "      -- HM.insertWith (+) label resource $"
+  "        HM.delete label acc)"
+  "    bag"
+  "    (input recipe)"))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-5b
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: All IsResource bs"
+  "    In the type signature for:"
+  "         applyRule :: forall (as :: [*]) (bs :: [*])."
+  "                      (All IsResource as, All IsResource bs) =>"
+  "                      (as :--> bs) -> HMap Label Identity -> HMap Label Identity")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  "applyRule"
+  "  :: _|_(All IsResource as, All IsResource bs, Foo)"
+  "  => as :--> bs"
+  "  -> HMap Label Identity"
+  "  -> HMap Label Identity"
+  "applyRule recipe bag ="
+  "  foldlHList"
+  "    (\label _resource acc ->"
+  "      -- HM.insertWith (+) label resource $"
+  "        HM.delete label acc)"
+  "    bag"
+  "    (input recipe)")
+ :expected-value
+ (tests-utils--multiline
+  "applyRule"
+  "  :: _|_(All IsResource as, Foo)"
+  "  => as :--> bs"
+  "  -> HMap Label Identity"
+  "  -> HMap Label Identity"
+  "applyRule recipe bag ="
+  "  foldlHList"
+  "    (\label _resource acc ->"
+  "      -- HM.insertWith (+) label resource $"
+  "        HM.delete label acc)"
+  "    bag"
+  "    (input recipe)"))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-5c
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: All IsResource bs"
+  "    In the type signature for:"
+  "         applyRule :: forall (as :: [*]) (bs :: [*])."
+  "                      (All IsResource as, All IsResource bs) =>"
+  "                      (as :--> bs) -> HMap Label Identity -> HMap Label Identity")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  "applyRule"
+  "  :: _|_(All IsResource as, Foo, All IsResource bs)"
+  "  => as :--> bs"
+  "  -> HMap Label Identity"
+  "  -> HMap Label Identity"
+  "applyRule recipe bag ="
+  "  foldlHList"
+  "    (\label _resource acc ->"
+  "      -- HM.insertWith (+) label resource $"
+  "        HM.delete label acc)"
+  "    bag"
+  "    (input recipe)")
+ :expected-value
+ (tests-utils--multiline
+  "applyRule"
+  "  :: _|_(All IsResource as, Foo)"
+  "  => as :--> bs"
+  "  -> HMap Label Identity"
+  "  -> HMap Label Identity"
+  "applyRule recipe bag ="
+  "  foldlHList"
+  "    (\label _resource acc ->"
+  "      -- HM.insertWith (+) label resource $"
+  "        HM.delete label acc)"
+  "    bag"
+  "    (input recipe)"))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/unticked-promoted-constructor-1
  :error-message
  (tests-utils--multiline
