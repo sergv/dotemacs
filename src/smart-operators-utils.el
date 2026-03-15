@@ -6,6 +6,8 @@
 ;; Created: 29 November 2019
 ;; Description:
 
+(require 'typography-setup)
+
 (defun smart-operators--point-surrounded-by2 (before2 before1 after1 after2)
   "Check if previous 2 characters before point are BEFORE2 and BEFORE1 and
 that next 2 characters are AFTER1 and AFTER2."
@@ -124,7 +126,7 @@ that next 2 characters are AFTER1 and AFTER2."
   (interactive "P")
   (cond
     (literal-insertion?
-     (insert-char ?\"))
+     (typography-smart-insert-double-quote))
     ((eq (char-after) ?\")
      (forward-char))
     (t
