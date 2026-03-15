@@ -98,7 +98,8 @@ Ensures a final newline is inserted."
           post-content-initialisation
           buffer-id
           suppress-cursor
-          collect-actual-contents)
+          collect-actual-contents
+          expected-result)
   (declare (indent nil))
   `(tests-utils--with-temp-buffer
     :initialisation ,initialisation
@@ -174,7 +175,13 @@ Ensures a final newline is inserted."
     (sh-mode (sh-mode))))
 
 (cl-defmacro tests-utils--test-buffer-contents-for-inits
-    (&key name inits action contents expected-value buffer-id)
+    (&key name
+          inits
+          action
+          contents
+          expected-value
+          expected-result ;; Whether the test should fail or succeed.
+          buffer-id)
   (cl-assert (symbolp name) "invalid name: %s" name)
   `(progn
      ,@(cl-loop
@@ -184,6 +191,7 @@ Ensures a final newline is inserted."
               (expr (cdr init)))
           (cl-assert (symbolp subname) nil "Invalid subname: %s" subname)
           `(ert-deftest ,(string->symbol (format "%s//%s" name subname)) ()
+             :expected-result ,(or expected-result :passed)
              (tests-utils--test-buffer-contents
               :action ,action
               :contents ,contents
