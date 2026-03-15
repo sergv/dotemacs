@@ -63,19 +63,21 @@
   (string= (treesit-node-type node) "import_list"))
 
 (defun haskell-smart-operators--in-import-list? ()
-  (treesit-utils-find-closest-parent-limited
-   (treesit-haskell--current-node)
-   #'haskell-smart-operators--treesit--in-import-list?
-   5))
+  (awhen (treesit-haskell--current-node)
+    (treesit-utils-find-closest-parent-limited
+     it
+     #'haskell-smart-operators--treesit--in-import-list?
+     5)))
 
 (defun haskell-smart-operators--treesit--in-export-list? (node)
   (string= (treesit-node-type node) "exports"))
 
 (defun haskell-smart-operators--in-export-list? ()
-  (treesit-utils-find-closest-parent-limited
-   (treesit-haskell--current-node)
-   #'haskell-smart-operators--treesit--in-export-list?
-   5))
+  (awhen (treesit-haskell--current-node)
+    (treesit-utils-find-closest-parent-limited
+     it
+     #'haskell-smart-operators--treesit--in-export-list?
+     5)))
 
 (provide 'haskell-smart-operators-utils)
 
