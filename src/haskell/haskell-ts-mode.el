@@ -484,13 +484,31 @@ but when paired then it’s like a string."
   "Extract operator name from an infix NODE."
   (cl-assert (treesit-node-p node))
   (cl-assert (string= "infix" (treesit-node-type node)))
-  (if-let ((op (treesit-node-child-by-field-name node "operator"))
-           ((string= "infix_id" (treesit-node-type op)))
-           (name (treesit-node-child op 1)))
+  (if-let* ((op (treesit-node-child-by-field-name node "operator")))
+      (cond
+        ((string= "constructor_operator" (treesit-node-type op))
+         op)
+        ((string= "infix_id" (treesit-node-type op))
+         (if-let* ((name (treesit-node-child op 1)))
+             (progn
+               (cl-assert (treesit-node-p name))
+               name)
+           (error "Infix node without name for infix_id: %s" node)))
+        (t
+         (error "Infix node without infix_id or constructor_operator: %s" node)))
+    (error "Infix node without operator: %s" node)))
+
+(defun haskell-ts--infix-children (node)
+  "Extract operator name from an infix NODE."
+  (cl-assert (treesit-node-p node))
+  (cl-assert (string= "infix" (treesit-node-type node)))
+  (if-let* ((left (treesit-node-child-by-field-name node "left_operand"))
+            (right (treesit-node-child-by-field-name node "right_operand")))
       (progn
-        (cl-assert (treesit-node-p name))
-        name)
-    (error "Infix node without infix_id: %s" node)))
+        (cl-assert (treesit-node-p left))
+        (cl-assert (treesit-node-p right))
+        (list left right))
+    (error "Infix node without both left and right children: %s" node)))
 
 (defun haskell-ts--search-non-comment-nodes
     (start search-forward? found-predicate stop-after-first-find?)
@@ -864,21 +882,26 @@ indented block will be their bounds without any extra processing."
   (treesit-query-compile 'haskell
                          '((type_synonym) type: (_) @type)))
 
-(defun haskell-ts--extract-apply-constructor (node)
+(defun haskell-ts--decompose-apply-node (node)
   "Turn apply NODE into list (<constructor> <arg1> <arg2> ... <argN>)."
   (cl-assert (treesit-node-p node))
   (cl-assert (string= (treesit-node-type node) "apply"))
   (let ((continue? t)
-        (result nil))
+        (constructor nil)
+        (children nil))
     (while (and continue?
                 (string= (treesit-node-type node) "apply"))
-      (aif (treesit-node-child-by-field-name node "constructor")
-          (if (string= (treesit-node-type it) "apply")
-              (setf node it)
-            (setf result it
-                  continue? nil))
-        (error "Constructor application has no constructor field: %s" node)))
-    result))
+      (if-let* ((constructor-name
+                 (treesit-node-child-by-field-name node "constructor"))
+                (arg (treesit-node-child-by-field-name node "argument")))
+          (progn
+            (push arg children)
+            (if (string= (treesit-node-type constructor-name) "apply")
+                (setf node constructor-name)
+              (setf constructor constructor-name
+                    continue? nil)))
+        (error "Constructor application has either no constructor or argument field: %s" node)))
+    (cons constructor children)))
 
 (defun haskell-ts-foldr-toplevel-tuples (node f acc)
   "Fold over elements of potentially nested tuples within tuple NODE in
@@ -936,9 +959,12 @@ reverse order, e.g.
           acc))
     acc))
 
-(defun haskell-ts--extract-single-constraint-name (node &optional typ)
+(defun haskell-ts--extract-single-constraint-name-with-children (node &optional typ)
   "Take node representing single class constraint, e.g. \"HasCallStack\", \"Foo a b\", \"a `Foo` b\"
-and extract it’s toplevel constructor name."
+and extract it’s toplevel constructor name plus its children, in effect normalizing it.
+
+Will return list where first element is constrain name and others are children. Composite children
+will become nested lists."
   (unless typ
     (setf typ (treesit-node-type node)))
   (cl-assert (treesit-node-p node))
@@ -946,25 +972,35 @@ and extract it’s toplevel constructor name."
   (cl-assert (member typ '("name" "apply" "infix")) nil
              "Unexpected node type: %s"
              typ)
-  (treesit-node-text-no-properties-unsafe
-   (pcase typ
-     ("name"  node)
-     ("apply" (haskell-ts--extract-apply-constructor node))
-     ("infix" (haskell-ts--infix-name-node node)))))
+  (-map (lambda (x)
+          (let ((typ2 (treesit-node-type x)))
+            (pcase typ2
+              ((or "apply" "infix")
+               (haskell-ts--extract-single-constraint-name-with-children x typ2))
+              (_
+               (treesit-node-text-no-properties-unsafe x)))))
+        (pcase typ
+          ("name"  (list node))
+          ("apply" (haskell-ts--decompose-apply-node node))
+          ("infix" (cons (haskell-ts--infix-name-node node)
+                         (haskell-ts--infix-children node))))))
 
 (defun haskell-ts--extract-tuple-contraints (node)
   (haskell-ts-foldr-toplevel-tuples node
                                    (lambda (x acc)
-                                     (cons (haskell-ts--extract-single-constraint-name x) acc))
+                                     (cons (haskell-ts--extract-single-constraint-name-with-children x) acc))
                                    nil))
 
 (defun haskell-ts-parse-constraint-names (str)
-  "Extract leading constraint classes from STR containing Haskell tuple of constraints like
+  "Extract leading constraint classes and their children from STR
+containing Haskell tuple of constraints like
 
 HasCallStack
 (Foo, Bar)
 (Foo, a `Bar` b)
-(Foo a, Bar a Double (b, c))"
+(Foo a, Bar a Double (b, c))
+
+In effect, normalize contraints."
   (with-temp-buffer
     (insert "type Constraints = " str)
     (let ((results
@@ -983,7 +1019,7 @@ HasCallStack
           ((string= "tuple" typ)
            (haskell-ts--extract-tuple-contraints node))
           (t
-           (list (haskell-ts--extract-single-constraint-name node typ))))))))
+           (list (haskell-ts--extract-single-constraint-name-with-children node typ))))))))
 
 (cl-defstruct (haskell-ts--remove-constraints-state
                (:conc-name haskell-ts--remove-constraints-state/))
@@ -1041,7 +1077,6 @@ HasCallStack
 
 (defun haskell-ts-remove-constraints-from-signature-node (names-to-remove sig)
   (cl-assert (listp names-to-remove))
-  (cl-assert (-all? #'stringp names-to-remove))
   (cl-assert (treesit-node-p sig))
   (let* ((get-state
           (lambda (ctx states)
@@ -1069,7 +1104,7 @@ HasCallStack
            (lambda (ctx x per-ctx-states)
              (let ((state (funcall get-state ctx per-ctx-states)))
                (cl-incf (haskell-ts--remove-constraints-state/total-constraints state))
-               (when (member (haskell-ts--extract-single-constraint-name x)
+               (when (member (haskell-ts--extract-single-constraint-name-with-children x)
                              names-to-remove)
                  (push x (haskell-ts--remove-constraints-state/constrains-to-remove state)))
                (setf (gethash ctx per-ctx-states) state)
