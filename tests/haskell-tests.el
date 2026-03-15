@@ -624,32 +624,35 @@ have different input states."
 
 (ert-deftest haskell-tests/parse-constraint-tuple ()
   (should (equal (haskell-ts-parse-constraint-names "HasCallStack")
-                 '("HasCallStack")))
+                 '(("HasCallStack"))))
 
   (should (equal (haskell-ts-parse-constraint-names "Foo a")
-                 '("Foo")))
+                 '(("Foo" "a"))))
 
   (should (equal (haskell-ts-parse-constraint-names "Foo a b")
-                 '("Foo")))
+                 '(("Foo" "a" "b"))))
 
   (should (equal (haskell-ts-parse-constraint-names "a `Foo` b")
-                 '("Foo")))
+                 '(("Foo" "a" "b"))))
 
   (should (equal (haskell-ts-parse-constraint-names "Bar a `Foo` b")
-                 '("Foo")))
+                 '(("Foo" ("Bar" "a") "b"))))
+
+  (should (equal (haskell-ts-parse-constraint-names "Bar a :+ b")
+                 '((":+" ("Bar" "a") "b"))))
 
   (should (equal (haskell-ts-parse-constraint-names "(Foo a, Bar)")
-                 '("Foo"
-                   "Bar")))
+                 '(("Foo" "a")
+                   ("Bar"))))
 
   (should (equal (haskell-ts-parse-constraint-names "(Foo a, (Bar, Baz))")
-                 '("Foo"
-                   "Bar"
-                   "Baz")))
+                 '(("Foo" "a")
+                   ("Bar")
+                   ("Baz"))))
 
   (should (equal (haskell-ts-parse-constraint-names "(Foo a, Bar a Double (b, c))")
-                 '("Foo"
-                   "Bar"))))
+                 '(("Foo" "a")
+                   ("Bar" "a" "Double" "(b, c)")))))
 
 (ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list! ()
   (dolist (entry '((0 ()        (0))
