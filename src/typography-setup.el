@@ -23,17 +23,29 @@
       electric-quote-string nil
       electric-quote-context-sensitive t)
 
-(defun typography-insert-vanilla-dash (n)
+(defun typography-insert-vanilla-dash (&optional n)
   (interactive "P")
   (insert-char ?- n))
 
-(defun typography-insert-vanilla-quotation-mark (n)
+(defun typography-insert-vanilla-quotation-mark (&optional n)
   (interactive "P")
   (insert-char ?\" n))
 
-(defun typography-insert-vanilla-single-quotation-mark (n)
+(defun typography-insert-vanilla-single-quotation-mark (&optional n)
   (interactive "P")
   (insert-char ?\' n))
+
+(defun typography-smart-insert-double-quote (&optional n)
+  (interactive "P")
+  (if typopunct-mode
+      (typopunct-insert-quotation-mark)
+    (typography-insert-vanilla-quotation-mark n)))
+
+(defun typography-smart-insert-single-quote (&optional n)
+  (interactive "P")
+  (if typopunct-mode
+      (typopunct-insert-single-quotation-mark)
+    (typography-insert-vanilla-single-quotation-mark n)))
 
 ;;;###autoload
 (defun typography-setup ()
