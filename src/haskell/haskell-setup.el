@@ -445,6 +445,9 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
   (turn-on-font-lock)
 
+  (when (platform-use? 'home)
+    (typography-setup))
+
   (setq-local flycheck-enhancements--get-project-root-for-current-buffer
               #'haskell-misc-get-project-root
 
