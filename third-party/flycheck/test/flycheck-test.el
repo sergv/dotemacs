@@ -2688,7 +2688,7 @@ evaluating BODY."
 
 
 ;;; Functions to display errors
-(ert-deftest flycheck-display-error-messages ()
+(ert-deftest flycheck-display-error-messages-test ()
   :tags '(error-display)
   (let ((err (flycheck-error-new-at 10 20 'warning
                                     "This is a Flycheck error."
@@ -5183,6 +5183,7 @@ The manifest path is relative to
 ;; Local Variables:
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
+;; no-byte-compile: t
 ;; End:
 
 ;;; flycheck-test.el ends here
