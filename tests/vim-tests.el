@@ -77,8 +77,9 @@
 
                ,expected-value)))))))
 
-(defmacro vim-tests--test-fresh-buffer-contents-init-all (name modes action contents expected-value)
-  (declare (indent 3))
+(cl-defmacro vim-tests--test-fresh-buffer-contents-init-all
+    (&key name modes action contents expected-value)
+  (declare (indent nil))
   `(tests-utils--test-buffer-contents-for-inits
     :name ,name
     :inits ,(--filter (memq (car it) modes) vim-tests--all-known-modes-and-init)
@@ -96,11 +97,16 @@
   (cl-assert (listp skip-modes))
   (cl-assert (cl-every #'symbolp skip-modes))
   `(vim-tests--test-fresh-buffer-contents-init-all
-       ,name
-       ,(--remove (memq it skip-modes) (-map #'car tests-utils--modes-and-init))
-       ,action
-     ,contents
-     ,expected-value))
+    :name
+    ,name
+    :modes
+    ,(--remove (memq it skip-modes) (-map #'car tests-utils--modes-and-init))
+    :action
+    ,action
+    :contents
+    ,contents
+    :expected-value
+    ,expected-value))
 
 (cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
     (&key modes
@@ -112,10 +118,15 @@
   (cl-assert (listp modes))
   (cl-assert (cl-every #'symbolp modes))
   `(vim-tests--test-fresh-buffer-contents-init-all
+    :name
     ,name
+    :modes
     ,(--filter (memq it modes) (-map #'car vim-tests--all-known-modes-and-init))
+    :action
     ,action
+    :contents
     ,contents
+    :expected-value
     ,expected-value))
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only (keep-modes name action contents expected-value)
@@ -130,11 +141,16 @@
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes (name action contents expected-value)
   (declare (indent 2))
   `(vim-tests--test-fresh-buffer-contents-init-all
-       ,name
-       ,(-map #'car tests-utils--modes-and-init)
-       ,action
-     ,contents
-     ,expected-value))
+    :name
+    ,name
+    :modes
+    ,(-map #'car tests-utils--modes-and-init)
+    :action
+    ,action
+    :contents
+    ,contents
+    :expected-value
+    ,expected-value))
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands (names-and-actions contents expected-value)
   (declare (indent 1))
@@ -145,10 +161,15 @@
         (let ((name (car entry))
               (action (cadr entry)))
           `(vim-tests--test-fresh-buffer-contents-init-all
+            :name
             ,name
+            :modes
             ,(-map #'car tests-utils--modes-and-init)
+            :action
             ,action
+            :contents
             ,contents
+            :expected-value
             ,expected-value)))))
 
 (defmacro vim-tests--test-fresh-buffer-contents (action contents expected-value)
@@ -168,17 +189,27 @@
   (cl-assert (symbolp name2))
   `(progn
      (vim-tests--test-fresh-buffer-contents-init-all
-         ,(string->symbol (format "%s-%s" name name1))
-         ,(--filter (memq it keep-modes) (-map #'car vim-tests--all-known-modes-and-init))
-         ,action1
-       ,contents
-       ,expected1)
+      :name
+      ,(string->symbol (format "%s-%s" name name1))
+      :modes
+      ,(--filter (memq it keep-modes) (-map #'car vim-tests--all-known-modes-and-init))
+      :action
+      ,action1
+      :contents
+      ,contents
+      :expected-value
+      ,expected1)
      (vim-tests--test-fresh-buffer-contents-init-all
-         ,(string->symbol (format "%s-%s" name name2))
-         ,(--filter (memq it keep-modes) (-map #'car vim-tests--all-known-modes-and-init))
-         ,action2
-       ,contents
-       ,expected2)))
+      :name
+      ,(string->symbol (format "%s-%s" name name2))
+      :modes
+      ,(--filter (memq it keep-modes) (-map #'car vim-tests--all-known-modes-and-init))
+      :action
+      ,action2
+      :contents
+      ,contents
+      :expected-value
+      ,expected2)))
 
 (ert-deftest vim-tests/test-vim--parse-substitute-pattern-repl-flags ()
   (should (equal (vim--parse-substitute-pattern-repl-flags "/foo/bar")
@@ -698,23 +729,28 @@
 
 
 (vim-tests--test-fresh-buffer-contents-init-all
-    vim-tests/block-insert-2
-    (emacs-lisp-mode text-mode)
-    (execute-kbd-macro (kbd "d d C-v h h h I f o o - b a r C-w b a z <escape>"))
-  (tests-utils--multiline
-   "fo_|_o"
-   "bar"
-   "baz"
-   "quux"
-   "fizz"
-   "frobnicate")
-  (tests-utils--multiline
-   "foo-ba_|_zfoo"
-   "foo-bazbar"
-   "foo-bazbaz"
-   "foo-bazquux"
-   "fizz"
-   "frobnicate"))
+ :name
+ vim-tests/block-insert-2
+ :modes
+ (emacs-lisp-mode text-mode)
+ :action
+ (execute-kbd-macro (kbd "d d C-v h h h I f o o - b a r C-w b a z <escape>"))
+ :contents
+ (tests-utils--multiline
+  "fo_|_o"
+  "bar"
+  "baz"
+  "quux"
+  "fizz"
+  "frobnicate")
+ :expected-value
+ (tests-utils--multiline
+  "foo-ba_|_zfoo"
+  "foo-bazbar"
+  "foo-bazbaz"
+  "foo-bazquux"
+  "fizz"
+  "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/block-insert-undo-1
