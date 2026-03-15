@@ -10970,6 +10970,84 @@ have different input states."
    "  }"
    ""))
 
+(haskell-tests--make-multiple-test-result-tests
+    haskell-tests/point-inside-comment-1a
+  :entries
+  ((:subname
+    a
+    :action (point-inside-comment? (point))
+    :expected-value t))
+  :contents
+  (tests-utils--multiline
+   "module Test2 where"
+   ""
+   "import Data.ByteString (ByteString)"
+   "import Data.ByteString qualified as BS"
+   "import System.IO"
+   "  ( stdout"
+   "  , putStrLn"
+   "  )"
+   ""
+   "-- _|_Foo"
+   ""
+   "main :: IO ()"
+   "main = do"
+   "  hPutStrLn stderr \"Hello\""
+   "  pure ()"
+   ""))
+
+(haskell-tests--make-multiple-test-result-tests
+    haskell-tests/point-inside-comment-1b
+  :entries
+  ((:subname
+    a
+    :action (point-inside-comment? (point))
+    :expected-value t))
+  :contents
+  (tests-utils--multiline
+   "module Test2 where"
+   ""
+   "import Data.ByteString (ByteString)"
+   "import Data.ByteString qualified as BS"
+   "import System.IO"
+   "  ( stdout"
+   "  , putStrLn"
+   "  )"
+   ""
+   "-- Fo_|_o"
+   ""
+   "main :: IO ()"
+   "main = do"
+   "  hPutStrLn stderr \"Hello\""
+   "  pure ()"
+   ""))
+
+(haskell-tests--make-multiple-test-result-tests
+    haskell-tests/point-inside-comment-1c
+  :entries
+  ((:subname
+    a
+    :action (point-inside-comment? (point))
+    :expected-value t))
+  :contents
+  (tests-utils--multiline
+   "module Test2 where"
+   ""
+   "import Data.ByteString (ByteString)"
+   "import Data.ByteString qualified as BS"
+   "import System.IO"
+   "  ( stdout"
+   "  , putStrLn"
+   "  )"
+   ""
+   "-- Foo_|_"
+   ""
+   "main :: IO ()"
+   "main = do"
+   "  hPutStrLn stderr \"Hello\""
+   "  pure ()"
+   ""))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
