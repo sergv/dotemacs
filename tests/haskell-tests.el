@@ -11051,6 +11051,92 @@ have different input states."
    "  pure ()"
    ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--single-quote-context-1a
+ :action
+ (progn
+   (haskell-smart-operators-quote)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?:))
+ :contents
+ (tests-utils--multiline
+  ""
+  "type family Remove (xs :: k) (ys :: [k]) :: [k] where"
+  "  Remove _         '[] = '[]"
+  "  Remove x (y _|_) ys = Remove xs (Remove x ys)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "type family Remove (xs :: k) (ys :: [k]) :: [k] where"
+  "  Remove _         '[] = '[]"
+  "  Remove x (y ': _|_) ys = Remove xs (Remove x ys)"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--single-quote-context-1b
+ :action
+ (haskell-smart-operators--insert-char-surrounding-with-spaces ?:)
+ :contents
+ (tests-utils--multiline
+  ""
+  "type family Remove (xs :: k) (ys :: [k]) :: [k] where"
+  "  Remove _         '[] = '[]"
+  "  Remove x (y '_|_) ys = Remove xs (Remove x ys)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "type family Remove (xs :: k) (ys :: [k]) :: [k] where"
+  "  Remove _         '[] = '[]"
+  "  Remove x (y ': _|_) ys = Remove xs (Remove x ys)"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--single-quote-context-1c
+ :action
+ (haskell-smart-operators--insert-char-surrounding-with-spaces ?:)
+ :contents
+ (tests-utils--multiline
+  ""
+  "type family Remove (xs :: k) (ys :: [k]) :: [k] where"
+  "  Remove _         '[] = '[]"
+  "  Remove x (y' _|_) ys = Remove xs (Remove x ys)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "type family Remove (xs :: k) (ys :: [k]) :: [k] where"
+  "  Remove _         '[] = '[]"
+  "  Remove x (y' : _|_) ys = Remove xs (Remove x ys)"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--single-quote-context-1d
+ :action
+ (haskell-smart-operators--insert-char-surrounding-with-spaces ?:)
+ :contents
+ (tests-utils--multiline
+  ""
+  "type family Remove (xs :: k) (ys :: [k]) :: [k] where"
+  "  Remove _         '[] = '[]"
+  "  Remove x (y ' _|_) ys = Remove xs (Remove x ys)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "type family Remove (xs :: k) (ys :: [k]) :: [k] where"
+  "  Remove _         '[] = '[]"
+  "  Remove x (y ': _|_) ys = Remove xs (Remove x ys)"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
