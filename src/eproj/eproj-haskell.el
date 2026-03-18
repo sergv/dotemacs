@@ -8,12 +8,14 @@
 
 (eval-when-compile
   (require 'eproj)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'nanothunk))
 
 (require 'common-heavy)
 (require 'dash)
 (require 'eproj-ctags)
 (require 'eproj-tag-index)
+(require 'nanothunk)
 
 (require 'haskell-cabal)
 
@@ -34,7 +36,7 @@
         (with-temp-buffer
           (with-disabled-undo
            (with-inhibited-modification-hooks
-            (dolist (file (eproj-thunk-get-value project-files-thunk))
+            (dolist (file (nanothunk-force project-files-thunk))
               (when (string-match-p ext-re file)
                 (insert file "\n")))
             (unless (= 0
