@@ -127,7 +127,8 @@ value will make this library ignore `package.yaml' file, even if it's present."
   "The helper to dump the Cabal configuration.")
 
 (defconst flycheck-haskell--compiled-haskell-helper
-  (let ((base-name (expand-file-name "get-cabal-configuration" flycheck-haskell-directory)))
+  (let ((base-name (expand-file-name "get-cabal-configuration"
+                                     (concat +emacs-config-path+ "/compiled"))))
     (-find #'file-executable-p
            (--map (concat base-name it)
                   exec-suffixes)))
