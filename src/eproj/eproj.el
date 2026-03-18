@@ -86,7 +86,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'subr-x)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'nanothunk))
 
 (require 'eproj-customization)
 ;; Provide here to resolve load cycles.
@@ -101,6 +102,7 @@
 (require 'eproj-symbnav)
 (require 'eproj-tag-index)
 (require 'ivy)
+(require 'nanothunk)
 
 (require 'cc-autoload)
 (require 'haskell-autoload)
@@ -235,7 +237,7 @@
   (with-temp-buffer
     (eproj/run-ctags-on-files lang-mode
                               (eproj-project/root proj)
-                              (eproj-thunk-get-value project-files-thunk)
+                              (nanothunk-force project-files-thunk)
                               (current-buffer))
     (prog1 (funcall parse-tags-proc (eproj-project/root proj) (current-buffer) nil)
       (erase-buffer))))
@@ -542,17 +544,17 @@ get proper flycheck checker."
          (eproj-project/transient-files-for-navigation proj))
         (if-let (old-tags-thunk (cdr-safe (assq mode (eproj-project/tags proj))))
             (progn
-              (cl-assert (eproj-thunk-p old-tags-thunk))
+              (cl-assert (nanothunk-p old-tags-thunk))
               ;; If tags are still a thunk (i.e. value is *not* ready yet) then
               ;; we should not do anything here - tags will emerge once thunk
               ;; will become forced.
-              (when (eproj-thunk/value-ready? old-tags-thunk)
-                (let ((old-tags (eproj-thunk/value old-tags-thunk))
+              (when (nanothunk-evaluated-p old-tags-thunk)
+                (let ((old-tags (nanothunk-force old-tags-thunk))
                       (new-tags
                        (eproj/load-tags-for-mode
                         proj
                         mode
-                        (eproj-make-evaluated-thunk (list fname))
+                        (nanothunk-make-evaluated (list fname))
                         ;; Ignore tag files since we want to reload tags for a
                         ;; single file and collect tags exactly in the file, not
                         ;; the cached ones!
@@ -633,45 +635,17 @@ cache tags in."
 
 (defun eproj--get-tags (proj)
   "Get tags for project PROJ."
-  (eproj-thunk-get-value (eproj-project/tags proj)))
-
-(cl-defstruct (eproj-thunk
-               (:conc-name eproj-thunk/))
-  value
-  value-ready?
-  computation)
-
-(defun eproj-thunk-get-value (thunk)
-  (unless (eproj-thunk/value-ready? thunk)
-    (setf (eproj-thunk/value thunk) (funcall (eproj-thunk/computation thunk))
-          (eproj-thunk/value-ready? thunk) t
-          ;; Free the closure.
-          (eproj-thunk/computation thunk) nil))
-  (eproj-thunk/value thunk))
-
-(defun eproj-make-evaluated-thunk (value)
-  (make-eproj-thunk
-   :value value
-   :value-ready? t
-   :computation nil))
-
-(defmacro eproj--make-thunk (&rest body)
-  (let ((uninitialised-value '#:uninitialised))
-    `(make-eproj-thunk
-      :value ',uninitialised-value
-      :value-ready? nil
-      :computation (lambda ()
-                     ,@body))))
+  (nanothunk-force (eproj-project/tags proj)))
 
 (defun eproj--prepare-to-load-fresh-tags-lazily-on-demand! (proj)
   "Reload tags for PROJ."
   (let* ((project-files-thunk
-          (eproj--make-thunk
+          (nanothunk-delay
            (eproj--get-all-files proj))))
     (setf (eproj-project/tags proj)
           (-map (lambda (lang-mode)
                   (cons lang-mode
-                        (eproj--make-thunk
+                        (nanothunk-delay
                          (let ((new-tags (eproj/load-tags-for-mode proj
                                                                    lang-mode
                                                                    project-files-thunk
@@ -904,7 +878,7 @@ for project at ROOT directory."
         (insert "number of tags loaded: "
                 (let ((tag-count 0))
                   (dolist (tags-entry (eproj-project/tags proj))
-                    (dolist (entry (eproj-tag-index-entries (eproj-thunk-get-value (cdr tags-entry))))
+                    (dolist (entry (eproj-tag-index-entries (nanothunk-force (cdr tags-entry))))
                       (setf tag-count
                             (+ tag-count (length (cdr entry))))))
                   (number->string tag-count))
@@ -922,7 +896,7 @@ for project at ROOT directory."
         (insert "tags:\n")
         (dolist (tags-entry (eproj-project/tags proj))
           (let ((lang-tags (-sort (lambda (a b) (string< (car a) (car b)))
-                                  (eproj-tag-index-entries (eproj-thunk-get-value (cdr tags-entry))))))
+                                  (eproj-tag-index-entries (nanothunk-force (cdr tags-entry))))))
             (insert "lang: "
                     (pp-to-string (car tags-entry))
                     ", total amount = "
@@ -1524,7 +1498,7 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
          (matched-tags
           (mapcan (lambda (proj)
                     (aif (cdr (assq tag-major-mode (eproj-project/tags proj)))
-                        (let* ((all-tags (eproj-thunk-get-value it))
+                        (let* ((all-tags (nanothunk-force it))
                                ;; Current project is always relevant source of names,
                                ;; don’t lose it.
                                (is-always-relevant?
