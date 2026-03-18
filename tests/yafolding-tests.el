@@ -36,7 +36,7 @@
     :buffer-id #'yafolding-tests--mk-buffer-id))
 
 (yafolding-tests--region-test-for-modes
- :modes (text-mode haskell-mode haskell-ts-mode)
+ :modes (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name yafolding-tests/bounds-1
  :contents
  (tests-utils--multiline
@@ -54,7 +54,7 @@
   ""))
 
 (yafolding-tests--region-test-for-modes
- :modes (text-mode haskell-mode haskell-ts-mode)
+ :modes (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name yafolding-tests/bounds-2aa
  :contents
  (tests-utils--multiline
@@ -74,7 +74,7 @@
   ""))
 
 (yafolding-tests--region-test-for-modes
- :modes (text-mode haskell-mode haskell-ts-mode)
+ :modes (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name yafolding-tests/bounds-2ab
  :contents
  (tests-utils--multiline
@@ -92,7 +92,7 @@
   "    baz z = z + z + zYYY"))
 
 (yafolding-tests--region-test-for-modes
- :modes (text-mode haskell-mode haskell-ts-mode)
+ :modes (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name yafolding-tests/bounds-2ba
  :contents
  (tests-utils--multiline
@@ -114,7 +114,7 @@
   ""))
 
 (yafolding-tests--region-test-for-modes
- :modes (text-mode haskell-mode haskell-ts-mode)
+ :modes (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name yafolding-tests/bounds-2bb
  :contents
  (tests-utils--multiline
@@ -134,7 +134,7 @@
   "    baz z = z + z + zYYY"))
 
 (yafolding-tests--region-test-for-modes
- :modes (text-mode haskell-mode haskell-ts-mode)
+ :modes (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name yafolding-tests/bounds-2ca
  :contents
  (tests-utils--multiline
@@ -156,7 +156,7 @@
   ""))
 
 (yafolding-tests--region-test-for-modes
- :modes (text-mode haskell-mode haskell-ts-mode)
+ :modes (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name yafolding-tests/bounds-2cb
  :contents
  (tests-utils--multiline
