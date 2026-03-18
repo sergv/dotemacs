@@ -349,7 +349,7 @@
   '(("^[ \t]*\\(\\(?:el\\)?if\\)[ \t(]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
     ("^[ \t]*\\(?:}[ \t]*\\)?\\(else\\)[ \t]*\\(?:{\\|$\\)"
      (1 font-lock-keyword-face))
-    ("\\<\\(?:[Tt]rue\\|[Ff]alse\\)\\>"
+    ("\\_<\\(?:[Tt]rue\\|[Ff]alse\\)\\_>"
      (0 font-lock-constant-face))))
 
 (defconst haskell-cabal-font-lock-keywords
