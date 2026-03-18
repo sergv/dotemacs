@@ -170,6 +170,9 @@
          ,@body))))
 
 (defun treesit-utils-find-topmost-parent (node pred)
+  "Find highest parent of NODE that satisfies single-argument predicate PRED.
+
+All parents of the returned node don’t satisfy PRED (if they exist)."
   (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node))
@@ -180,6 +183,7 @@
     result))
 
 (defun treesit-utils-find-topmost-parent-limited (node pred limit)
+  "Like ‘treesit-utils-find-topmost-parent’ but stops after LIMIT number of iterations."
   (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node))
@@ -192,6 +196,7 @@
     result))
 
 (defun treesit-utils-find-closest-parent (node pred)
+  "Find first parent of NODE that satisfies single-argument predicate PRED."
   (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node)
@@ -204,6 +209,7 @@
     result))
 
 (defun treesit-utils-find-closest-parent-limited (node pred limit)
+  "Like ‘treesit-utils-find-closest-parent’ but stops after LIMIT number of iterations."
   (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node)
@@ -217,6 +223,8 @@
     result))
 
 (defun treesit-utils-find-closest-parent-with-count (node pred)
+  "Like ‘treesit-utils-find-closest-parent’ but returns cons pair of found parent, if any,
+and its height, i.e. number of jumps performed."
   (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node)
@@ -231,6 +239,8 @@
     (cons result n)))
 
 (defun treesit-utils-largest-node-starting-at (p &optional lang)
+  "Find biggest node that starts as position P, if it exists. All parents of the returned
+node don’t start at P."
   (let* ((node (treesit-node-at p lang))
          (start (treesit-node-start node))
          (tmp (treesit-node-parent node)))
