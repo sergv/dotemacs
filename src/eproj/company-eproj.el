@@ -7,10 +7,12 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'nanothunk))
 
 (require 'company-mode-setup)
 (require 'eproj)
+(require 'nanothunk)
 
 (defvar company-eproj-ignore-case nil)
 
@@ -36,7 +38,7 @@
          (show-tag-kind-func (aif (gethash effective-major-mode eproj/languages-table)
                                  (eproj-language/show-tag-kind-procedure it)
                                (error "Cannot find language definition for mode %s" effective-major-mode)))
-         (tag-tables (--map (eproj-thunk-get-value (cdr it))
+         (tag-tables (--map (nanothunk-force (cdr it))
                             (-non-nil
                              (--map (assq effective-major-mode (eproj-project/tags it))
                                     all-projs))))
