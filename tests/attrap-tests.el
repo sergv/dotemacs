@@ -15,6 +15,7 @@
 (require 'flycheck)
 (require 'haskell-autoload)
 (require 'haskell-setup)
+(require 'nanothunk)
 (require 's)
 (require 'tests-utils)
 
@@ -33,7 +34,7 @@
                   (length tags)))
     (setf (eproj-project/tags proj)
           (list (cons 'haskell-mode
-                      (eproj--make-thunk
+                      (nanothunk-delay
                        tags-index))))
     proj))
 
