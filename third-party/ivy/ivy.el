@@ -4160,6 +4160,12 @@ N wraps around."
       cands
     (ivy--flx-sort-impl name cands t)))
 
+(defun ivy--flx-sort-filenames-no-match-on-empty (name cands)
+  "Sort according to closeness to string NAME the string list CANDS."
+  (if (string= name "")
+      nil
+    (ivy--flx-sort-impl name cands t)))
+
 (defun ivy--truncate-string (str width)
   "Truncate STR to WIDTH."
   (truncate-string-to-width str width nil nil t))
