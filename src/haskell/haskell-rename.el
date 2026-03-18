@@ -54,7 +54,8 @@
                         "newtype"
                         "bind"
                         "class"
-                        "instance"))))))
+                        "instance"
+                        "type_family"))))))
       (unless closest-scope
         (error "Internal error: failed to find scoping node above variable at point"))
       (let* ((ovs nil)
