@@ -7138,6 +7138,23 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-10
+    (execute-kbd-macro (kbd "C-r C-w F o o <return>"))
+  (tests-utils--multiline
+   ""
+   "type family _|_RemoveFrom (xs :: [k]) (ys :: [k]) :: [k] where"
+   "  RemoveFrom '[]       ys = ys"
+   "  RemoveFrom (x ': xs) ys = RemoveFrom xs (Remove x ys)"
+   "")
+  (tests-utils--multiline
+   ""
+   "type family Foo_|_ (xs :: [k]) (ys :: [k]) :: [k] where"
+   "  Foo '[]       ys = ys"
+   "  Foo (x ': xs) ys = Foo xs (Remove x ys)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-beginning-of-defun-1
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
