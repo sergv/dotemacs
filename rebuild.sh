@@ -21,9 +21,9 @@ if [[ -z "${TMPDIR:-}" ]]; then
 fi
 
 which ghc >/dev/null && \
-   ( cd third-party/flycheck-haskell;
-     ghc -Wall -Werror -O2 -o get-cabal-configuration get-cabal-configuration.hs && \
-         ( [[ -f get-cabal-configuration.exe ]] && strip get-cabal-configuration.exe || strip get-cabal-configuration)
+   ( rm -f compiled/get-cabal-configuration* compiled/*.o compiled/*.hi;
+     ghc -Wall -Werror -O2 -odir compiled/ -hidir compiled/ -o compiled/get-cabal-configuration "$EMACS_ROOT/third-party/flycheck-haskell/get-cabal-configuration.hs" && \
+         ( [[ -f compiled/get-cabal-configuration.exe ]] && strip compiled/get-cabal-configuration.exe || strip compiled/get-cabal-configuration)
    )
 
 bash ./scripts/recompile.sh
