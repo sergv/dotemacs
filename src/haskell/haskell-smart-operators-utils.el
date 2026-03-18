@@ -80,6 +80,17 @@
      #'haskell-smart-operators--treesit--in-export-list?
      5)))
 
+(defun haskell-smart-operators--in-single-quote-context? (node)
+  "Checkis if current point is where single quotes should not be
+automatically duplicated."
+  (not (null (treesit-utils-find-closest-parent
+              node
+              (lambda (x)
+                (let ((typ (treesit-node-type x)))
+                  (or (string= typ "type_family")
+                      (string= typ "signature")
+                      (string= (treesit-node-field-name x) "type"))))))))
+
 (provide 'haskell-smart-operators-utils)
 
 ;; Local Variables:
