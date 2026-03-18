@@ -330,7 +330,7 @@ then Bar would be the result."
 
 (defun haskell-abbrev+--within-data-type? ()
   "Check that we’re within a \"data_type\" node."
-  (and (treesit-utils-find-topmost-parent-stop-at-first
+  (and (treesit-utils-find-closest-parent
         (treesit-haskell--current-node)
         (lambda (x)
           (string= "data_type" (treesit-node-type x))))

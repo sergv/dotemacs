@@ -182,7 +182,7 @@
             limit (- limit 1)))
     result))
 
-(defun treesit-utils-find-topmost-parent-stop-at-first (node pred)
+(defun treesit-utils-find-closest-parent (node pred)
   (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node)
@@ -207,7 +207,7 @@
             limit (- limit 1)))
     result))
 
-(defun treesit-utils-find-topmost-parent-stop-at-first-with-count (node pred)
+(defun treesit-utils-find-closest-parent-with-count (node pred)
   (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node)
