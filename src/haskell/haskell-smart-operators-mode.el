@@ -525,7 +525,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 
            (ts-closest-pattern-name
             (when ts-inside-pattern?
-              (let ((tmp (treesit-utils-find-topmost-parent-stop-at-first
+              (let ((tmp (treesit-utils-find-closest-parent
                           (treesit-node-at p)
                           (lambda (x)
                             (and (treesit-haskell--is-inside-node? p x)
