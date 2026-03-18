@@ -83,7 +83,16 @@ stick it to the previous operator on line."
          (pt (point))
          (prev-char (char-before pt))
          (at-beginning-of-buffer? (null prev-char))
+
+         (prev-prev-char (unless at-beginning-of-buffer?
+                           (char-before (1- pt))))
+         (prev-prev-is-whitespace? (haskell-smart-operators--is-whitespace-char? prev-prev-char))
          (pt-before-ws (point))
+
+         (in-single-quote-context?
+          (nanothunk-delay
+           (haskell-smart-operators--in-single-quote-context?
+            (treesit-node-at pt))))
 
          (pt-preceded-by-two-dashes? nil)
          (handling-haddock-comment?
@@ -155,7 +164,9 @@ stick it to the previous operator on line."
                                            (skip-chars-backward haskell-smart-operators--operator-chars-str)
                                            (char-before))))
                                   (or (null c)
-                                      (haskell-smart-operators--is-whitespace-char? c))))
+                                      (haskell-smart-operators--is-whitespace-char? c)
+                                      (and (eq c ?')
+                                           (nanothunk-force in-single-quote-context?)))))
                                (t t))))
                 (insert-char ?\s))))))
     (cond
@@ -205,10 +216,9 @@ stick it to the previous operator on line."
                       ;; Insert space between us and previous # if the char before # is
                       ;; not a space itself, which means that # ends identifier name.
                       (when (eq prev-char ?#)
-                        (let ((prev-prev-char (char-before (1- pt))))
-                          (not (or (null prev-prev-char)
-                                   (eq prev-prev-char ?\n)
-                                   (haskell-smart-operators--is-whitespace-char? prev-prev-char)))))
+                        (not (or prev-prev-is-whitespace?
+                                 (null prev-prev-char)
+                                 (eq prev-prev-char ?\n))))
                       (and (eq char ?!)
                            (eq prev-char ?\\))
                       (and (not (eq prev-char ?\s))
@@ -230,6 +240,14 @@ stick it to the previous operator on line."
                                           (skip-syntax-backward "w" (line-beginning-position))
                                           (let ((before-far (char-before)))
                                             (eq before-far ?\[)))))))
+                           (if (and (eq prev-char ?')
+                                    prev-prev-is-whitespace?
+                                    (nanothunk-force in-single-quote-context?))
+                               ;; Don’t insert space between ' and operator in type families,
+                               ;; type signatures and other contexts where single quote is
+                               ;; a thing.
+                               nil
+                             t)
                            (not (gethash prev-char haskell-smart-operators--operator-chars)))))
              (progn
                (setq before-pt (point)
@@ -242,7 +260,8 @@ stick it to the previous operator on line."
                   (save-excursion
                     (skip-syntax-backward " ")
                     (let* ((pt-before-ws (point))
-                           (char-before-spaces (char-before pt-before-ws)))
+                           (char-before-spaces (char-before pt-before-ws))
+                           (char-before-char-before-spaces (char-before (1- pt-before-ws))))
                       (and char-before-spaces ;; not at beginning of buffer
                            (if (eq char-before-spaces ?#)
                                (if-let ((char-before-char-before-spaces (char-before (1- pt-before-ws))))
@@ -280,7 +299,10 @@ stick it to the previous operator on line."
                                ;; then make it stick to the previous
                                ;; word as well as to operators.
                                (and magic-hash?
-                                    (memq (char-syntax char-before-spaces) '(?w ?_))))
+                                    (memq (char-syntax char-before-spaces) '(?w ?_)))
+                               (and (eq char-before-spaces ?')
+                                    (haskell-smart-operators--is-whitespace-char? char-before-char-before-spaces)
+                                    (nanothunk-force in-single-quote-context?)))
                            (if (eq char-before-spaces ?|)
                                ;; Check that it's not a guard.
                                (if-let* ((guard-pt (haskell-smart-operators--on-a-line-with-guard?)))
@@ -633,8 +655,11 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-quote ()
   (interactive "*")
   (cond
-    ;; Only string
-    ((haskell-smart-operators--literal-insertion? t)
+    ((or
+      ;; Only string
+      (haskell-smart-operators--literal-insertion? t)
+      (and (derived-mode-p 'haskell-ts-base-mode)
+           (haskell-smart-operators--in-single-quote-context? (treesit-node-at (point)))))
      (insert-char ?\'))
     ;; Either string or comment
     ((haskell-smart-operators--literal-insertion?)
