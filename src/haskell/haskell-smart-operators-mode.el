@@ -13,13 +13,15 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'nanothunk))
 
 (require 'haskell-ext-tracking)
 (require 'haskell-ghc-support)
 (require 'haskell-mode)
 (require 'haskell-smart-operators-utils)
 (require 'haskell-syntax-table)
+(require 'nanothunk)
 (require 'pseudoparedit)
 (require 'smart-operators-utils)
 (require 'typography-setup)
@@ -445,6 +447,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 
               (gethash (char-after) haskell-smart-operators--operator-chars)))
 
+           (p-node (nanothunk-delay (treesit-node-at p)))
+
            (ts-field-node-children
             (when (and (derived-mode-p 'haskell-ts-base-mode)
                        (or
@@ -455,7 +459,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                       preceded-by-operator?)
                                  followed-by-operator?))))
               (awhen (treesit-utils-find-topmost-parent
-                      (treesit-node-at p)
+                      (nanothunk-force p-node)
                       (lambda (x) (string= (treesit-node-type x) "field")))
                 (treesit-node-children it))))
            (ts-field-colon-node nil)
@@ -466,7 +470,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                  preceded-by-operator?))
                        (derived-mode-p 'haskell-ts-base-mode))
               (treesit-utils-find-topmost-parent
-               (treesit-node-at p)
+               (nanothunk-force p-node)
                (lambda (x)
                  (and (string= (treesit-node-type x) "data_constructor")
                       (treesit-haskell--is-inside-node? p x))))))
@@ -474,7 +478,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (ts-enclosing-regular-datatype-pattern-node
             (when inside-regular-constructor?
               (treesit-utils-find-topmost-parent
-               (treesit-node-at p)
+               (nanothunk-force p-node)
                (lambda (x)
                  (and (treesit-haskell--is-inside-node? p x)
                       (let ((parent-type (awhen (treesit-node-parent x)
@@ -491,7 +495,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                  preceded-by-operator?))
                        (derived-mode-p 'haskell-ts-base-mode))
               (treesit-utils-find-topmost-parent
-               (treesit-node-at p)
+               (nanothunk-force p-node)
                (lambda (x)
                  (and (string= (treesit-node-type x) "gadt_constructor")
                       (treesit-haskell--is-inside-node? p x))))))
@@ -499,7 +503,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (gadt-field
             (when inside-gadt-constructor?
               (treesit-utils-find-topmost-parent
-               (treesit-node-at p)
+               (nanothunk-force p-node)
                (lambda (x)
                  (and (awhen (treesit-node-parent x)
                         (string= (treesit-node-type it) "function"))
@@ -513,7 +517,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
               (not
                (null
                 (treesit-utils-find-topmost-parent
-                 (treesit-node-at p)
+                 (nanothunk-force p-node)
                  (lambda (x)
                    (and (treesit-haskell--is-inside-node? p x)
                         (or (string= (treesit-node-type x) "patterns")
@@ -526,7 +530,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (ts-closest-pattern-name
             (when ts-inside-pattern?
               (let ((tmp (treesit-utils-find-closest-parent
-                          (treesit-node-at p)
+                          (nanothunk-force p-node)
                           (lambda (x)
                             (and (treesit-haskell--is-inside-node? p x)
                                  (or (member (treesit-node-field-name x) '("pattern" "name" "argument" "element"))
