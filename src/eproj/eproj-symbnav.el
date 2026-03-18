@@ -9,10 +9,12 @@
 (eval-when-compile
   (require 'cl)
   (require 'subr-x)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'nanothunk))
 
-(require 'select-mode)
 (require 'eproj-customization)
+(require 'nanothunk)
+(require 'select-mode)
 
 ;;; tag/symbol navigation (navigation over homes)
 
@@ -184,7 +186,7 @@ as accepted by `bounds-of-thing-at-point'.")
   "Load (i.e. force) tags if there're not loaded yet."
   (if-let (tags-entry (assq effective-major-mode (eproj-project/tags proj)))
       ;; Force loading now.
-      (eproj-thunk-get-value (cdr tags-entry))
+      (nanothunk-force (cdr tags-entry))
     (progn
       (eproj--make-project-and-register! (eproj-project/root proj))
       (unless (eproj-project/tags proj)
@@ -193,7 +195,7 @@ as accepted by `bounds-of-thing-at-point'.")
                proj))
       (if-let (tags-entry2 (assq effective-major-mode (eproj-project/tags proj)))
           ;; Force loading now.
-          (eproj-thunk-get-value (cdr tags-entry2))
+          (nanothunk-force (cdr tags-entry2))
         (error "No names for mode %s in project %s"
                effective-major-mode
                (eproj-project/root proj))))))
