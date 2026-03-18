@@ -234,7 +234,7 @@ have different input states."
   "  baz           -- b"
   "  decombobulate -- c_|_"
   "")
- :modes (haskell-mode haskell-ts-mode)
+ :modes (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents
@@ -596,7 +596,7 @@ have different input states."
  :name
  haskell-tests/haskell-ts-reindent-at-point-1
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-ts-reindent-at-point)
  :contents
@@ -720,7 +720,7 @@ have different input states."
    "  | Seq a a"
    "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
    "  deriving Pretty via PPGeneric (PatternF a)")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-1b
@@ -738,7 +738,7 @@ have different input states."
    "  | Seq a a"
    "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
    "  deriving Pretty via PPGeneric (PatternF a)")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-1c
@@ -756,7 +756,7 @@ have different input states."
    "  | Seq a a"
    "  deriving (Eq, _|_Ord, Show, Foldable, Traversable, Generic, Generic1)"
    "  deriving Pretty via PPGeneric (PatternF a)")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-1d
@@ -774,7 +774,7 @@ have different input states."
    "  | Seq a a"
    "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
    "  deriving Pretty via PPGeneric (PatternF a)")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-1e
@@ -792,7 +792,7 @@ have different input states."
    "  | Seq a a"
    "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
    "  deriving Pretty via PPGeneric (PatternF a)")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-1f
@@ -810,7 +810,7 @@ have different input states."
    "  | Seq a a"
    "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
    "  deriving Pretty via PPGeneric (PatternF a)")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-2
@@ -828,7 +828,7 @@ have different input states."
    "  | Seq a a"
    "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
    "  deriving Pretty via PPGeneric (PatternF a)")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-3a
@@ -844,7 +844,7 @@ have different input states."
    "  , baz :: Map String Double"
    "  }"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-3b
@@ -860,7 +860,7 @@ have different input states."
    "  , baz :: Map String _|_Double"
    "  }"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-3c
@@ -876,7 +876,7 @@ have different input states."
    "  , _|_baz :: Map String Double"
    "  }"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-3d
@@ -892,7 +892,7 @@ have different input states."
    "  _|_, baz :: Map String Double"
    "  }"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/haskell-abbrev+--within-data-type?-3e
@@ -908,7 +908,7 @@ have different input states."
    "  , baz :: Map String Double"
    "  }"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/forward-haskell-symbol-1
@@ -1422,7 +1422,7 @@ have different input states."
  "x = [foo| 1 + _|_x|]"
  :expected-value
  "x = [foo| 1 + +_|_x|]"
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-9
@@ -1431,7 +1431,7 @@ have different input states."
  "x = [foo| 1 + x|]_|_y"
  :expected-value
  "x = [foo| 1 + x|] + _|_y"
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--inserting-@-avoid-spaces-1
@@ -2747,7 +2747,7 @@ have different input states."
   "  { foo ::_|_ !(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2767,7 +2767,7 @@ have different input states."
   "  { foo :: !(_|_Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2787,7 +2787,7 @@ have different input states."
   "  { foo :: !(_|_Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2807,7 +2807,7 @@ have different input states."
   "  { foo :: !(Set _|_Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2827,7 +2827,7 @@ have different input states."
   "  { foo ::_|_ !(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2847,7 +2847,7 @@ have different input states."
   "  { foo :: !_|_(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2867,7 +2867,7 @@ have different input states."
   "  { foo :: !(Set _|_Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2887,7 +2887,7 @@ have different input states."
   "  { foo :: _|_ !(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2907,7 +2907,7 @@ have different input states."
   "  { foo ::      _|_      !(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2929,7 +2929,7 @@ have different input states."
   "  , bar :: Map Int Double"
   "  , baz :: !_|_"
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2951,7 +2951,7 @@ have different input states."
   "  , bar :: Map Int Double"
   "  , baz ::      !_|_     "
   "  }")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2969,7 +2969,7 @@ have different input states."
   ""
   "data Pattern a = Foo !_|_Int"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -2987,7 +2987,7 @@ have different input states."
   ""
   "data Pattern a = Foo !In_|_t"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3005,7 +3005,7 @@ have different input states."
   ""
   "data Pattern a = Foo !_|_(Bar Int)"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3023,7 +3023,7 @@ have different input states."
   ""
   "data Pattern a = Foo !(Bar In_|_t)"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3041,7 +3041,7 @@ have different input states."
   ""
   "data Pattern a = Foo !(Bar _|_Int) | String `Bar` [a] | a :+: a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3059,7 +3059,7 @@ have different input states."
   ""
   "data Pattern a = Foo !(Bar _|_Int) | String `Bar` [a] | a :+: a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3077,7 +3077,7 @@ have different input states."
   ""
   "data Pattern a = Foo (Bar Int) | !Stri_|_ng `Bar` [a] | a :+: a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3095,7 +3095,7 @@ have different input states."
   ""
   "data Pattern a = Foo (Bar Int) | String `Bar` ![a_|_] | a :+: a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3113,7 +3113,7 @@ have different input states."
   ""
   "data Pattern a = Foo (Bar Int) | String `Bar` [a] | a :+: !(Bar _|_a)"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3139,7 +3139,7 @@ have different input states."
   "    -> !(Ba_|_r a)"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3165,7 +3165,7 @@ have different input states."
   "    -> Bar a"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3191,7 +3191,7 @@ have different input states."
   "    -> Bar a"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3217,7 +3217,7 @@ have different input states."
   "    -> Bar a"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3247,7 +3247,7 @@ have different input states."
   "#endif"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3273,7 +3273,7 @@ have different input states."
   "    !(_|_TU.Iter c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3299,7 +3299,7 @@ have different input states."
   "    !(_|_TU.Iter c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3325,7 +3325,7 @@ have different input states."
   "    !(TU.I_|_ter c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3351,7 +3351,7 @@ have different input states."
   "    !(TU.Iter_|_ c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3377,7 +3377,7 @@ have different input states."
   "    !(TU.I_|_ter c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3403,7 +3403,7 @@ have different input states."
   "    TU.Iter c' !del_|_ta ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3429,7 +3429,7 @@ have different input states."
   "    !(TU.Iter c' !del_|_ta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3455,7 +3455,7 @@ have different input states."
   "        TU.iterArray arr i"
   "  in foo"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3481,7 +3481,7 @@ have different input states."
   "        TU.iterArray arr i"
   "  in foo"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3507,7 +3507,7 @@ have different input states."
   "        TU.iterArray arr i"
   "  in foo"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3527,7 +3527,7 @@ have different input states."
   "foo :: Text -> Pattern"
   "foo !(TI_|_.Text arr off len) = undefined"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3547,7 +3547,7 @@ have different input states."
   "foo :: Text -> Pattern"
   "foo !str@(TI_|_.Text arr off len) = undefined"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3567,7 +3567,7 @@ have different input states."
   "foo :: Text -> Pattern"
   "foo (TI.Text arr off len) (TI.Text arr2 off2 !_|_len2) = undefined"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3587,7 +3587,7 @@ have different input states."
   "foo :: Text -> Pattern"
   "foo (TI.Text arr off len) (TI.Text arr2 off2 !len_|_2) = undefined"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3607,7 +3607,7 @@ have different input states."
   "foo :: Text -> Pattern"
   "foo (TI.Text arr off len) !(TI.Text arr2 off2 len2_|_) = undefined"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3629,7 +3629,7 @@ have different input states."
   "  where"
   "    !en_|_d = last + 1"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3651,7 +3651,7 @@ have different input states."
   "  where"
   "    (start, !en_|_d) = quux 1"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3703,7 +3703,7 @@ have different input states."
   "    quux2"
   "#endif"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
@@ -3755,7 +3755,7 @@ have different input states."
   "    quux2 !_|_"
   "#endif"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents
@@ -5813,7 +5813,7 @@ have different input states."
   "    _|_\"\"\" ==> []"
   "  , baz "
   "  ]")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--outside-string-1
@@ -5930,7 +5930,7 @@ have different input states."
   "    _|_ ==> []"
   "  , baz "
   "  ]")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -5952,7 +5952,7 @@ have different input states."
   "    _|_\"\"\"T.makeInstances [2..6]\"\"\" ==> []"
   "  , baz "
   "  ]")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 
 (haskell-tests--test-buffer-contents
@@ -6053,7 +6053,7 @@ have different input states."
   "    _|_decombobulator\"\"\""
   "  |]"
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--at-beginning-of-buffer-1
@@ -6266,7 +6266,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-8c
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6289,7 +6289,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-9a
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6314,7 +6314,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-9b
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6339,7 +6339,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-9c
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6410,7 +6410,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-10c
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6435,7 +6435,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-11a
  ;; :modes
- ;; (haskell-ts-mode)
+ ;; (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6464,7 +6464,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-11b
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6491,7 +6491,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-11c
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6638,7 +6638,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15a
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6657,7 +6657,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15b
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6676,7 +6676,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15c
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6695,7 +6695,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15d
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6714,7 +6714,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15e
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6733,7 +6733,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15f
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6752,7 +6752,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15g
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6771,7 +6771,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15h
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6790,7 +6790,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-15i
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6809,7 +6809,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-16a
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -6828,7 +6828,7 @@ have different input states."
  :name
  haskell-tests/haskell-newline-with-signature-expansion-indent-16b
  :modes
- (haskell-ts-mode)
+ (haskell-ts-mode haskell-hsc-mode)
  :action
  (haskell-newline-with-signature-expansion)
  :contents
@@ -8512,7 +8512,7 @@ have different input states."
   ""
   "import Foo (Bar(_|_))"
   "")
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents
@@ -10273,7 +10273,7 @@ have different input states."
    "test :: Int -> Bool"
    "test x = todo [foo| bar _|_ baz |] x"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/syntax-propertize-4a
@@ -10288,7 +10288,7 @@ have different input states."
    "test :: Int -> Bool"
    "test x = todo [e| bar _|_ baz |] x"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/syntax-propertize-4b
@@ -10303,7 +10303,7 @@ have different input states."
    "test :: Int -> Bool"
    "test x = todo [t| bar _|_ baz |] x"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/syntax-propertize-4c
@@ -10318,7 +10318,7 @@ have different input states."
    "test :: Int -> Bool"
    "test x = todo [d| bar _|_ baz |] x"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/syntax-propertize-5
@@ -10333,7 +10333,7 @@ have different input states."
    "test :: Int -> Bool"
    "test x = todo [foo| bar $(_|_) baz |] x"
    "")
-  :modes (haskell-ts-mode))
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10355,7 +10355,7 @@ have different input states."
   "  _|_bar"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10377,7 +10377,7 @@ have different input states."
   "  _|_bar\\"
   "  \\\"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10400,7 +10400,7 @@ have different input states."
   "  baz"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10426,7 +10426,7 @@ have different input states."
   "  quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10452,7 +10452,7 @@ have different input states."
   "  _|_quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10474,7 +10474,7 @@ have different input states."
   "  _|_bar"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10496,7 +10496,7 @@ have different input states."
   "  _|_bar"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10522,7 +10522,7 @@ have different input states."
   "  quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10548,7 +10548,7 @@ have different input states."
   "  quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10575,7 +10575,7 @@ have different input states."
   "  quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10602,7 +10602,7 @@ have different input states."
   "  quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10632,7 +10632,7 @@ have different input states."
   "  baz"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10654,7 +10654,7 @@ have different input states."
   "  _|_bar \"baz\" quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10676,7 +10676,7 @@ have different input states."
   "  _|_bar \"\"baz\"\" quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10698,7 +10698,7 @@ have different input states."
   "  _|_bar \\\\\"\"baz\"\" quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10720,7 +10720,7 @@ have different input states."
   "  _|_bar \\\\\"\"baz\"\""
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10742,7 +10742,7 @@ have different input states."
   "  _|_bar \\\"\\\"\\\"baz\\\"\\\"\\\" quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10764,7 +10764,7 @@ have different input states."
   "  _|_bar \\\"\\\"\\\"\\\"baz\\\"\\\"\\\"\\\" quux"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10786,7 +10786,7 @@ have different input states."
   "  _|_bar \"baz\"\\"
   "  \\\"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10808,7 +10808,7 @@ have different input states."
   "  _|_bar \\\\n baz"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10831,7 +10831,7 @@ have different input states."
   "   baz"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10853,7 +10853,7 @@ have different input states."
   "  _|_bar \\\\\\\\n baz"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10876,7 +10876,7 @@ have different input states."
   "   baz"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10900,7 +10900,7 @@ have different input states."
   "    \\\\x\" bar"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -10936,7 +10936,7 @@ have different input states."
   "  And that's it !"
   "  \"\"\""
   "")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--make-multiple-test-result-tests
     haskell-tests/paredit-in-comment-p-1
