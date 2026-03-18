@@ -877,7 +877,7 @@ a single entity."
               (when-let ((curr-node (treesit-haskell--current-node)))
                 (destructuring-bind
                     (enclosing-let-node . let-depth)
-                    (treesit-utils-find-topmost-parent-stop-at-first-with-count
+                    (treesit-utils-find-closest-parent-with-count
                      curr-node
                      (lambda (node)
                        (string= (treesit-node-type node) "let")))
