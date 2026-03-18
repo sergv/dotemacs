@@ -202,7 +202,7 @@ If given, toggle all entries that start at INDENT-LEVEL."
   (interactive)
   (re-search-backward (concat "^.\\{,"
                               (number-to-string (max 0 (- (indentation-size) 1)))
-                              "\\}[^ \t]+")))
+                              "\\}[^ \t\n\r]+")))
 
 (defun yafolding-hide-parent-element ()
   "Hide the parent element."

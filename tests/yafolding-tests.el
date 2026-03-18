@@ -20,7 +20,8 @@
   (cl-assert (symbolp mode) nil "Invalid mode: %s" mode)
   (string->symbol (concat "yafolding-tests-" (symbol->string mode))))
 
-(cl-defmacro yafolding-tests--region-test-for-modes (&key modes name action contents expected-value)
+(cl-defmacro yafolding-tests--region-test-for-modes (&key modes name contents expected-value)
+  (declare (indent nil))
   `(tests-utils--test-buffer-contents-init-only-modes
     :select-modes ,modes
     :name ,name
@@ -31,6 +32,16 @@
         (insert "YYY")
         (goto-char (car bounds))
         (insert "XXX")))
+    :contents ,contents
+    :expected-value ,expected-value
+    :buffer-id #'yafolding-tests--mk-buffer-id))
+
+(cl-defmacro yafolding-tests--test-buffer-contents (&key modes name action contents expected-value)
+  (declare (indent nil))
+  `(tests-utils--test-buffer-contents-init-only-modes
+    :select-modes ,modes
+    :name ,name
+    :action ,action
     :contents ,contents
     :expected-value ,expected-value
     :buffer-id #'yafolding-tests--mk-buffer-id))
@@ -174,6 +185,175 @@
   "    bar y = y + y"
   "    "
   "    baz z = z + z + zYYY"))
+
+(yafolding-tests--test-buffer-contents
+ :modes (text-mode)
+ :name yafolding-tests/yafolding-go-parent-element-1a
+ :action (yafolding-go-parent-element)
+ :contents
+ (tests-utils--multiline
+  ""
+  "executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  build-depends:"
+  "      base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty _|_enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  build-depends:"
+  "      _|_base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  ""))
+
+(yafolding-tests--test-buffer-contents
+ :modes (text-mode)
+ :name yafolding-tests/yafolding-go-parent-element-1b
+ :action (yafolding-go-parent-element)
+ :contents
+ (tests-utils--multiline
+  ""
+  "executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  build-depends:"
+  "      base >= 4.9 && < 5"
+  "        _|_-- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  build-depends:"
+  "      _|_base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  ""))
+
+(yafolding-tests--test-buffer-contents
+ :modes (text-mode)
+ :name yafolding-tests/yafolding-go-parent-element-1c
+ :action (yafolding-go-parent-element)
+ :contents
+ (tests-utils--multiline
+  ""
+  "executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  build-depends:"
+  "      _|_base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  _|_build-depends:"
+  "      base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  ""))
+
+(yafolding-tests--test-buffer-contents
+ :modes (text-mode)
+ :name yafolding-tests/yafolding-go-parent-element-1d
+ :action (yafolding-go-parent-element)
+ :contents
+ (tests-utils--multiline
+  ""
+  "executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  _|_build-depends:"
+  "      base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  build-depends:"
+  "      base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  ""))
+
+(yafolding-tests--test-buffer-contents
+ :modes (text-mode)
+ :name yafolding-tests/yafolding-go-parent-element-1e
+ :action (yafolding-go-parent-element)
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- foo"
+  ""
+  "_|_executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  build-depends:"
+  "      base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_-- foo"
+  ""
+  "executable alex"
+  "  hs-source-dirs: src"
+  "  main-is: Main.hs"
+  ""
+  "  build-depends:"
+  "      base >= 4.9 && < 5"
+  "        -- Data.List.NonEmpty enters `base` at 4.9"
+  "    , array"
+  "    , containers"
+  "    , directory"
+  ""))
 
 (provide 'yafolding-tests)
 
