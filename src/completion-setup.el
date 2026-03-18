@@ -130,6 +130,12 @@
 
 (add-to-list 'ivy-ignore-buffers invisible-buffers-re)
 
+(add-to-list 'ivy-re-builders-alist
+             '(read-file-name-internal . ivy--regex-fuzzy-filenames))
+
+(add-to-list 'ivy-sort-matches-functions-alist
+             '(read-file-name-internal . ivy--flx-sort-filenames))
+
 (awhen (assq 'read-file-name-internal ivy-sort-functions-alist)
   (setcdr it #'ivy-sort-file-function-prioritise-visible-dirs))
 
