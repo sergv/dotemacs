@@ -1558,7 +1558,7 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
 (add-to-list 'ivy-sort-functions-alist
              '(eproj-switch-to-file-or-buffer . nil))
 (add-to-list 'ivy-sort-matches-functions-alist
-             '(eproj-switch-to-file-or-buffer . ivy--flx-sort-filenames))
+             '(eproj-switch-to-file-or-buffer . ivy--flx-sort-filenames-no-match-on-empty))
 (add-to-list 'ivy-re-builders-alist
              '(eproj-switch-to-file-or-buffer . ivy--regex-fuzzy-filenames))
 
