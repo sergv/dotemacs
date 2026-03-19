@@ -40,10 +40,11 @@
     (funcall go path)))
 
 ;;;###autoload
-(cl-defun find-rec (path
+(cl-defun find-rec (root
                     &key
                     (filep (lambda (_) t))
-                    do-not-visitp)
+                    do-not-visitp
+                    relative)
   "Collect files and/or directories under PATH recursively.
 
 Collect files and directories which satisfy FILEP and
@@ -53,9 +54,13 @@ By default, version-control specific directories are omitted, e.g. .git etc.
 All predicates are called with full absolute paths."
   (declare (pure nil) (side-effect-free nil))
   (let* ((accum nil)
-         (record-path (lambda (path) (push path accum))))
+         (record-path
+          (lambda (path)
+            (if relative
+                (push (file-relative-name path root) accum)
+              (push path accum)))))
     (find-rec-do
-     path
+     root
      :filep filep
      :do-not-visitp do-not-visitp
      :file-action record-path)
@@ -142,6 +147,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                                       relative-paths?)
   "A version of `find-rec' that uses ffi to do the search."
   (declare (pure nil) (side-effect-free nil))
+  (cl-assert (file-name-absolute-p root))
   (let ((ignored-files
          (append
           ignored-extensions-globs
@@ -173,6 +179,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (cl-assert (listp ignored-directory-prefixes))
   (cl-assert (listp globs-to-find))
   (cl-assert (-every? #'stringp globs-to-find))
+  (cl-assert (-every? #'file-name-absolute-p roots))
   (funcall (pcase find-rec-backend
              (`native
               #'find-rec-multi--haskell-native-impl)
