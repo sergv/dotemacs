@@ -42,7 +42,7 @@ into
         (source-dirs (car (cddddr entry)))
         (build-dir (cadr (cddddr entry))))
     (cl-assert (stringp cabal-file))
-    (cl-assert (file-regular-p cabal-file))
+    (cl-assert (file-regular-p cabal-file) nil "Unexpected cabal file: ‘%s’" cabal-file)
     (cl-assert (stringp type))
     (cl-assert (stringp name))
     (cl-assert (or (string= type "lib")
