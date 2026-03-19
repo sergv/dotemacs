@@ -34,19 +34,18 @@ under ROOT directory."
    (sort (--map (strip-trailing-slash it) items) #'string<)
    #'string=))
 
-(defun eproj-tests/normalize-file-list (items &optional root)
+(defun eproj-tests/normalize-file-list (items)
   (cl-assert (-all? #'stringp items)
              nil
              "Expected a list of strings but got: %s"
              items)
-  (eproj-tests/sort-file-list
-   (--map (expand-file-name it root) items)))
+  (eproj-tests/sort-file-list items))
 
 (defun eproj-tests/normalize-string-list (items)
   (sort (copy-list items) #'string<))
 
 (defun eproj-tests/paths=? (path-a path-b)
-  (string=? (expand-file-name (strip-trailing-slash path-a))
+  (string= (expand-file-name (strip-trailing-slash path-a))
             (expand-file-name (strip-trailing-slash path-b))))
 
 (defmacro eproj-tests--define-tests (test-name &rest body)
@@ -176,20 +175,20 @@ under ROOT directory."
     (should (equal (eproj-tests/normalize-file-list
                     (eproj--aux-files proj))
                    (eproj-tests/normalize-file-list
-                    (-filter #'file-regular?
-                             (directory-files
-                              (concat eproj-tests/project-with-aux-files
-                                      "/aux-files")
-                              t
-                              directory-files-no-dot-files-regexp)))))
+                    (--map (concat "aux-files/" it)
+                           (directory-files
+                            (concat eproj-tests/project-with-aux-files
+                                    "/aux-files")
+                            nil
+                            directory-files-no-dot-files-regexp)))))
     (let ((navigation-files nil))
 
       (eproj-with-all-project-files-for-navigation proj
-                                                   (lambda (abs-path _)
-                                                     (push abs-path navigation-files)))
+                                                   (lambda (rel-path)
+                                                     (push rel-path navigation-files)))
 
       (should (-all? #'stringp navigation-files))
-      (should (-all? #'file-name-absolute-p navigation-files))
+      (should (--all? (not (file-name-absolute-p it)) navigation-files))
 
       (let ((navigation-files-basenames (-map #'file-name-nondirectory navigation-files)))
         (dolist (file '("README.md"
@@ -260,11 +259,12 @@ under ROOT directory."
 
       (should (equal (eproj-tests/normalize-file-list
                       (find-rec path
-                                :filep (lambda (path) (string-match-p "\\.hs$" path))))
+                                :filep (lambda (path) (string-match-p "\\.hs$" path))
+                                :relative t))
                      (eproj-tests/normalize-file-list (eproj--get-project-files proj))))
 
-      (let ((identity-monad-test-path (concat path "/Foo/Bar/IdentityMonad.hs"))
-            (nonexistent-test-path (concat path "/Foo/Bar/Nonexistent.hs")))
+      (let ((identity-monad-test-path "Foo/Bar/IdentityMonad.hs")
+            (nonexistent-test-path "Foo/Bar/Nonexistent.hs"))
 
         ;; IdentityM is there but not in the tags file. The file should override
         ;; the reality...
@@ -308,7 +308,7 @@ under ROOT directory."
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
     (should (equal (eproj-tests/normalize-file-list
-                    (list (concat path "/Foo/Bar/Test.hs")))
+                    (list "Foo/Bar/Test.hs"))
                    (eproj-tests/normalize-file-list (eproj--get-project-files proj))))))
 
 (eproj-tests--define-tests
@@ -320,10 +320,10 @@ under ROOT directory."
    (should (not (null proj)))
    (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
-   (let ((distribution-test-path (concat path "/Foo/Distribution/Test.hs")))
+   (let ((distribution-test-path "Foo/Distribution/Test.hs"))
      (should (equal (eproj-tests/normalize-file-list
                      (list
-                      (concat path "/Foo/Bar/IdentityMonad.hs")
+                      "Foo/Bar/IdentityMonad.hs"
                       distribution-test-path))
                     (eproj-tests/normalize-file-list (eproj--get-project-files proj))))
      (should (eproj-get-matching-tags proj
@@ -403,20 +403,19 @@ under ROOT directory."
                  "subproj2")))
 
       (should (equal '("src/Bar.hs" "src/Foo.hs")
-                     (--map (file-relative-name it path)
-                            (eproj-tests/normalize-file-list
-                             (eproj--get-project-files proj)))))
+                     (eproj-tests/normalize-file-list
+                      (eproj--get-project-files proj))))
 
       (should (equal '("subproj1/Bar1.hs" "subproj2/src/Quux.hs")
-                     (--map (file-relative-name it path)
-                            (eproj-tests/normalize-file-list
-                             (--mapcat (eproj--get-project-files (eproj-get-project-for-path it))
-                                       (eproj-project/related-projects proj))))))
+                     (eproj-tests/normalize-file-list
+                      (--mapcat (let ((p (eproj-get-project-for-path it)))
+                                  (--map (concat (file-name-nondirectory (eproj-project/root p)) "/" it)
+                                         (eproj--get-project-files p)))
+                                (eproj-project/related-projects proj)))))
 
       (should (equal '("Foo.txt" "src/Bar.txt")
-                     (--map (file-relative-name it path)
-                            (eproj-tests/normalize-file-list
-                             (eproj--aux-files proj))))))))
+                     (eproj-tests/normalize-file-list
+                      (eproj--aux-files proj)))))))
 
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project"
@@ -557,7 +556,7 @@ under ROOT directory."
 
     (let ((actual-navigation-files nil))
       (eproj-with-all-project-files-for-navigation proj
-                                                   (lambda (_abs-path rel-path)
+                                                   (lambda (rel-path)
                                                      (push rel-path actual-navigation-files)))
       (should (equal (eproj-tests/sort-file-list actual-navigation-files)
                      (eproj-tests/sort-file-list expected-navigation-files))))
@@ -573,21 +572,24 @@ under ROOT directory."
          (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
          (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative"))))
 
-    (dolist (name '("foo" "bar" "FooConstructor"))
-      (let ((authoritative-tags (eproj-get-matching-tags authoritative-proj 'haskell-mode name nil)))
-        (should (equal (length authoritative-tags)
-                       1))
-        (should (--all? (member (eproj-tag/file (cadr it))
-                                (list (concat path "/authoritative/src/Foo.hs")))
-                        authoritative-tags)))
+    (dolist (entry '(("foo" . 11)
+                     ("bar" . 14)
+                     ("FooConstructor" . 17)))
+      (let ((name (car entry))
+            (authoritative-line (cdr entry)))
+        (let ((authoritative-tags (eproj-get-matching-tags authoritative-proj 'haskell-mode name nil)))
+          (should (equal (length authoritative-tags) 1))
+          (let ((tag (cadr (car authoritative-tags))))
+            (should (string= (eproj-tag/file tag) "src/Foo.hs"))
+            (should (equal (eproj-tag/line tag) authoritative-line))))
 
-      (let ((non-authoritative-tags (eproj-get-matching-tags non-authoritative-proj 'haskell-mode name nil)))
-        (should (equal (length non-authoritative-tags)
-                       2))
-        (dolist (path (list (concat path "/non-authoritative/src/Foo.hs")
-                            (concat path "/subproj/src/Foo.hs")))
-          (should (--any? (equal (eproj-tag/file (cadr it))
-                                 path)
+        (let ((non-authoritative-tags (eproj-get-matching-tags non-authoritative-proj 'haskell-mode name nil)))
+          (should (equal (length non-authoritative-tags)
+                         2))
+          (should (--all? (not (equal (eproj-tag/line (cadr it))
+                                      authoritative-line))
+                          non-authoritative-tags))
+          (should (--all? (equal (eproj-tag/file (cadr it)) "src/Foo.hs")
                           non-authoritative-tags)))))))
 
 (eproj-tests--define-tests
@@ -604,7 +606,7 @@ under ROOT directory."
         (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
                               (eproj-get-matching-and-related-tags proj mode lang "foo" nil))
                        (list (list "foo"
-                                   (make-eproj-tag (concat path "/Test1.java")
+                                   (make-eproj-tag "Test1.java"
                                                    3
                                                    ?m
                                                    t
@@ -614,7 +616,7 @@ under ROOT directory."
         (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
                               (eproj-get-matching-and-related-tags proj mode lang "bar" nil))
                        (list (list "bar"
-                                   (make-eproj-tag (concat path "/Test2.kt")
+                                   (make-eproj-tag "Test2.kt"
                                                    2
                                                    ?m
                                                    t
@@ -631,14 +633,14 @@ under ROOT directory."
            '("foo/foo1.c"
              "foo/foo2.c")))
       (eproj-with-all-project-files-for-navigation proj
-                                                   (lambda (_abs-path rel-path)
+                                                   (lambda (rel-path)
                                                      (push rel-path actual-navigation-files)))
       (should (equal (eproj-tests/sort-file-list actual-navigation-files)
                      (eproj-tests/sort-file-list expected-navigation-files)))
       (should (equal (eproj-tests/sort-file-list (eproj--get-project-files proj))
-                     (eproj-tests/sort-file-list (--map (concat path "/" it) expected-navigation-files))))
+                     (eproj-tests/sort-file-list expected-navigation-files)))
       (should (equal (eproj-tests/sort-file-list (eproj--get-all-files proj))
-                     (eproj-tests/sort-file-list (--map (concat path "/" it) expected-navigation-files)))))))
+                     (eproj-tests/sort-file-list expected-navigation-files))))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
@@ -646,8 +648,7 @@ under ROOT directory."
     "eproj-tests/eproj/get-ctags-from-buffer"
   (let* ((test-root (fold-platform-os-type "/home/test/whatever"
                                            "c:/home/test/whatever"))
-         (test-filename "foo.bar")
-         (test-filename-abs (expand-file-name test-filename test-root)))
+         (test-filename "foo.bar"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
       "\
@@ -664,19 +665,19 @@ foo3	%s	102	;\"	z
 
      (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
        (should tag1)
-       (should (string=? test-filename-abs (eproj-tag/file tag1)))
+       (should (string= test-filename (eproj-tag/file tag1)))
        (should (= 100 (eproj-tag/line tag1)))
        (should (equal ?x (eproj-tag/type tag1))))
 
      (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
        (should tag2)
-       (should (string=? test-filename-abs (eproj-tag/file tag2)))
+       (should (string= test-filename (eproj-tag/file tag2)))
        (should (= 101 (eproj-tag/line tag2)))
        (should (equal ?y (eproj-tag/type tag2))))
 
      (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
        (should tag3)
-       (should (string=? test-filename-abs (eproj-tag/file tag3)))
+       (should (string= test-filename (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
        (should (equal ?z (eproj-tag/type tag3)))))))
 
@@ -684,12 +685,9 @@ foo3	%s	102	;\"	z
 
 (eproj-tests--define-tests
     "eproj-tests/eproj/get-fast-tags-from-buffer"
-  (unless (cached-executable-find "fast-tags")
-    (ert-skip "fast-tags not available"))
   (let* ((test-root (fold-platform-os-type "/home/test/whatever"
                                            "c:/home/test/whatever"))
-         (test-filename "foo.bar")
-         (test-filename-abs (expand-file-name test-filename test-root)))
+         (test-filename "foo.bar"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
       "\
@@ -706,29 +704,25 @@ foo3	%s	102	;\"	z
 
      (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
        (should tag1)
-       (should (string=? test-filename-abs (eproj-tag/file tag1)))
+       (should (string= test-filename (eproj-tag/file tag1)))
        (should (= 100 (eproj-tag/line tag1)))
        (should (equal ?x (eproj-tag/type tag1))))
 
      (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
        (should tag2)
-       (should (string=? test-filename-abs (eproj-tag/file tag2)))
+       (should (string= test-filename (eproj-tag/file tag2)))
        (should (= 101 (eproj-tag/line tag2)))
        (should (equal ?y (eproj-tag/type tag2))))
 
      (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
        (should tag3)
-       (should (string=? test-filename-abs (eproj-tag/file tag3)))
+       (should (string= test-filename (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
        (should (equal ?z (eproj-tag/type tag3)))))))
 
 (eproj-tests--define-tests
     "eproj-tests/eproj/get-fast-tags-from-buffer/filenames-with-spaces"
-  (unless (cached-executable-find "fast-tags")
-    (ert-skip "fast-tags not available"))
-  (let ((test-filename (fold-platform-os-type
-                        "/home/admin/my projects/test project/hello.c"
-                        "c:/home/admin/my projects/test project/hello.c")))
+  (let ((test-filename "admin/my projects/test project/hello.c"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
       "\
@@ -745,19 +739,19 @@ foo3	%s	102	;\"	z
 
      (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
        (should tag1)
-       (should (string=? test-filename (eproj-tag/file tag1)))
+       (should (string= test-filename (eproj-tag/file tag1)))
        (should (= 100 (eproj-tag/line tag1)))
        (should (equal ?x (eproj-tag/type tag1))))
 
      (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
        (should tag2)
-       (should (string=? test-filename (eproj-tag/file tag2)))
+       (should (string= test-filename (eproj-tag/file tag2)))
        (should (= 101 (eproj-tag/line tag2)))
        (should (equal ?y (eproj-tag/type tag2))))
 
      (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
        (should tag3)
-       (should (string=? test-filename (eproj-tag/file tag3)))
+       (should (string= test-filename (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
        (should (equal ?z (eproj-tag/type tag3)))))))
 
@@ -765,8 +759,7 @@ foo3	%s	102	;\"	z
     "eproj-tests/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags"
   (unless (cached-executable-find "fast-tags")
     (ert-skip "fast-tags not available"))
-  (let ((test-filename (fold-platform-os-type "/home/sergey/Test.hs"
-                                              "c:/home/sergey/Test.hs")))
+  (let ((test-filename "sergey/Test.hs"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
       "\
@@ -783,13 +776,13 @@ test	%s	102	;\"	f
 
      (let ((type-tag (car-safe (eproj-tag-index-get "Identity" tags-index))))
        (should type-tag)
-       (should (string=? test-filename (eproj-tag/file type-tag)))
+       (should (string= test-filename (eproj-tag/file type-tag)))
        (should (= 101 (eproj-tag/line type-tag)))
        (should (equal ?t (eproj-tag/type type-tag))))
 
      (let ((function-tag (car-safe (eproj-tag-index-get "test" tags-index))))
        (should function-tag)
-       (should (string=? test-filename (eproj-tag/file function-tag)))
+       (should (string= test-filename (eproj-tag/file function-tag)))
        (should (= 102 (eproj-tag/line function-tag)))
        (should (equal ?f (eproj-tag/type function-tag)))))))
 

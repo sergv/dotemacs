@@ -156,7 +156,7 @@
 (defun eproj-tag-index-add! (symbol file line type is-public? props index)
   (cl-assert (stringp symbol))
   (cl-assert (or (characterp type) (stringp type) (null type)))
-  (cl-assert (file-name-absolute-p file))
+  (cl-assert (not (file-name-absolute-p file)) nil "Tag file names should not be absolute, but got ‘%s’" file)
   (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
   (cl-assert (or (null props)
                  (and (listp props)
