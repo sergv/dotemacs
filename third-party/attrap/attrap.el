@@ -1260,7 +1260,9 @@ then all non-authoritative results from that collection should be ignored."
           :new-name mod-name
           :is-authoritative? nil)))
     (make-attrap--fixed-mod-name
-     :new-name mod-name
+     :new-name (if (string-prefix-p "GHC.Internal." mod-name)
+                   (strip-string-prefix "GHC.Internal." mod-name)
+                 mod-name)
      :is-authoritative? nil)))
 
 (defvar attrap--import-history nil)
