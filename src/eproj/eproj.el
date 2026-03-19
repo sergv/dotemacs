@@ -16,15 +16,8 @@
 ;; [(aux-files
 ;;   [(tree <tree-root> <glob>*)])]
 ;; [(ignored-files <glob>+)] - ignored filenames, <glob>
-;;                             should match absolute file names. Will be applied
-;;                             to file-list and aux files arguments.
-;;                             Can use ${eproj-root} variable which points to
-;;                             the directory of the .eproj-info file, without
-;;                             trailing slash.
+;;                             should match relative file names.
 ;; [(ignored-dirs <abs-or-rel-dir>*) - list of directories (not globs) to never descend into.
-;;                                     Can use ${eproj-root} variable which points to
-;;                                     the directory of the .eproj-info file, without
-;;                                     trailing slash.
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
 ;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `eproj-switch-to-file-or-buffer'.
 ;;
@@ -430,7 +423,7 @@ get proper flycheck checker."
   (languages             nil :read-only t)
   ;; Stores list of filenames, if specified in aux-info via 'file-list
   (cached-file-list      nil)
-  ;; List of absolute filename globs to ignore in current project.
+  ;; List of relative filename globs to ignore in current project.
   (ignored-files-globs   nil :read-only t)
   ;; List of strings denoting some, either absolute or relative,
   ;; directory paths to not descend into in current project.
@@ -762,13 +755,9 @@ for project at ROOT directory."
                                 root)
                         nil)))
          (ignored-files-globs
-          (eproj--resolve-eproj-root
-           root
-           (eproj-project/query-aux-info-entry aux-info 'ignored-files)))
+          (eproj-project/query-aux-info-entry aux-info 'ignored-files))
          (ignored-dirs
-          (eproj--resolve-eproj-root
-           root
-           (eproj-project/query-aux-info-entry aux-info 'ignored-dirs)))
+          (eproj-project/query-aux-info-entry aux-info 'ignored-dirs))
          (file-list-filename
           (awhen (eproj-project/query-aux-info aux-info 'file-list)
             (let ((fname (eproj--resolve-to-abs-path-cached it root)))
@@ -787,8 +776,13 @@ for project at ROOT directory."
           (eproj-get-related-projects root aux-info))
          (cached-ignored-files-re
           (let ((related-projs-globs
-                 (--map (concat it "/*") related-projects)))
-            (globs-to-regexp (append ignored-files-globs related-projs-globs))))
+                 (--map (concat (strip-string-prefix (concat root "/") it) "/*")
+                        (--filter (string-prefix-p root
+                                                   it
+                                                   ;; ignore case
+                                                   (fold-platform-os-type nil t))
+                                  related-projects))))
+            (globs-to-regexp ignored-files-globs)))
          (no-default-project-for (cdr-safe (assq 'no-default-proj aux-info)))
 
          (authoritative-tag-source-for (cdr-safe (assq 'authoritative-tag-source-for aux-info))))
@@ -1102,11 +1096,9 @@ project for PATH."
   "Filter list of FILES using ignored-files-globs of project PROJ."
   (if-let ((regexp (eproj-project/cached-ignored-files-re proj)))
       (let ((root (eproj-project/root proj)))
-        (cl-delete-if (lambda (x) (or (string-match-p regexp x)
-                                 (if (file-name-absolute-p x)
-                                     nil
-                                   (string-match-p regexp
-                                                   (eproj--resolve-to-abs-path-cached x root)))))
+        (cl-delete-if (lambda (x)
+                        (cl-assert (not (file-name-absolute-p x)))
+                        (string-match-p regexp x))
                       files))
     files))
 
@@ -1120,7 +1112,8 @@ Some files may be passed to function twice."
     (notify "Constructing file navigation list for %s"
             (eproj-project/root proj))
     (eproj--get-all-files proj))
-  (mapc func (eproj--cached-files-for-navigation-files (eproj-project/cached-files-for-navigation proj)))
+  (mapc func (eproj--cached-files-for-navigation-files
+              (eproj-project/cached-files-for-navigation proj)))
   (awhen (eproj-project/transient-files-for-navigation proj)
     (mapc func (eproj--cached-files-for-navigation-files it))))
 
@@ -1139,19 +1132,24 @@ Some files may be passed to function twice."
                       globs))))
     globs))
 
+(defun eproj-project--get-absolute-ignored-files-globs (proj)
+  (let ((root (eproj-project/root proj)))
+    (--map (concat root "/" it)
+           (eproj-project/ignored-files-globs proj))))
+
 (defun eproj--navigation-files (proj)
   "Get language-independent files that are useful to have when
 doing `eproj-switch-to-file-or-buffer'."
-  (let ((files
-         (find-rec*
-          :root (eproj-project/root proj)
-          :globs-to-find (eproj--navigation-globs proj)
-          :ignored-files-globs (eproj-project/ignored-files-globs proj)
-          :ignored-absolute-dirs (append (eproj-project/related-projects proj)
-                                         (eproj-get-absolute-ignored-dirs proj))
-          :ignored-directories +ignored-directories+
-          :ignored-directory-prefixes +ignored-directory-prefixes+
-          :relative-paths t)))
+  (let* ((files
+          (find-rec*
+           :root (eproj-project/root proj)
+           :globs-to-find (eproj--navigation-globs proj)
+           :ignored-files-globs (eproj-project--get-absolute-ignored-files-globs proj)
+           :ignored-absolute-dirs (append (eproj-project/related-projects proj)
+                                          (eproj-get-absolute-ignored-dirs proj))
+           :ignored-directories +ignored-directories+
+           :ignored-directory-prefixes +ignored-directory-prefixes+
+           :relative-paths t)))
     (eproj--filter-ignored-files-from-file-list proj files)))
 
 (defun eproj--parse-newline-separated-entries-in-current-buffer ()
@@ -1245,45 +1243,44 @@ paths."
   ;; list of files does not change and may be cached.
   (if-let (cached-files (eproj-project/cached-file-list proj))
       cached-files
-    (let ((related-projects-roots (eproj-project/related-projects proj)))
-      ;; If there's a file-list then read it and store to cache.
-      (if-let (file-list-filename (eproj-project/file-list-filename proj))
-          (let ((list-of-files (eproj--read-file-list file-list-filename)))
-            (cl-assert (listp list-of-files))
-            (let ((resolved-files
-                   (eproj--filter-ignored-files-from-file-list proj list-of-files)))
-              (cl-assert (--all? (and (stringp it)
-                                      (file-exists-p (concat (eproj-project/root proj) "/" it)))
-                                 resolved-files))
-              (setf (eproj-project/cached-file-list proj) resolved-files)
-              resolved-files))
-        (when-let (globs
-                   (mapcan (lambda (lang)
-                             (cl-assert (and lang (symbolp lang)) nil
-                                        "Expected a symbol for language but got: %s"
-                                        lang)
-                             (aif (gethash lang eproj/languages-table)
-                                 (--map (concat "*." it)
-                                        (eproj-language/extensions it))
-                               (error "Unknown language: %s" lang)))
-                           (eproj-project/languages proj)))
-          (find-rec*
-           :root (eproj-project/root proj)
-           :globs-to-find (mapcan (lambda (lang)
-                                    (cl-assert (and lang (symbolp lang)) nil
-                                               "Expected a symbor for language but got: %s"
-                                               lang)
-                                    (aif (gethash lang eproj/languages-table)
-                                        (--map (concat "*." it)
-                                               (eproj-language/extensions it))
-                                      (error "Unknown language: %s" lang)))
-                                  (eproj-project/languages proj))
-           :ignored-files-globs (eproj-project/ignored-files-globs proj)
-           :ignored-absolute-dirs (append related-projects-roots
-                                          (eproj-get-absolute-ignored-dirs proj))
-           :ignored-directories +ignored-directories+
-           :ignored-directory-prefixes +ignored-directory-prefixes+
-           :relative-paths t))))))
+    ;; If there's a file-list then read it and store to cache.
+    (if-let (file-list-filename (eproj-project/file-list-filename proj))
+        (let ((list-of-files (eproj--read-file-list file-list-filename)))
+          (cl-assert (listp list-of-files))
+          (let ((resolved-files
+                 (eproj--filter-ignored-files-from-file-list proj list-of-files)))
+            (cl-assert (--all? (and (stringp it)
+                                    (file-exists-p (concat (eproj-project/root proj) "/" it)))
+                               resolved-files))
+            (setf (eproj-project/cached-file-list proj) resolved-files)
+            resolved-files))
+      (when-let (globs
+                 (mapcan (lambda (lang)
+                           (cl-assert (and lang (symbolp lang)) nil
+                                      "Expected a symbol for language but got: %s"
+                                      lang)
+                           (aif (gethash lang eproj/languages-table)
+                               (--map (concat "*." it)
+                                      (eproj-language/extensions it))
+                             (error "Unknown language: %s" lang)))
+                         (eproj-project/languages proj)))
+        (find-rec*
+         :root (eproj-project/root proj)
+         :globs-to-find (mapcan (lambda (lang)
+                                  (cl-assert (and lang (symbolp lang)) nil
+                                             "Expected a symbor for language but got: %s"
+                                             lang)
+                                  (aif (gethash lang eproj/languages-table)
+                                      (--map (concat "*." it)
+                                             (eproj-language/extensions it))
+                                    (error "Unknown language: %s" lang)))
+                                (eproj-project/languages proj))
+         :ignored-files-globs (eproj-project--get-absolute-ignored-files-globs proj)
+         :ignored-absolute-dirs (append (eproj-project/related-projects proj)
+                                        (eproj-get-absolute-ignored-dirs proj))
+         :ignored-directories +ignored-directories+
+         :ignored-directory-prefixes +ignored-directory-prefixes+
+         :relative-paths t)))))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
@@ -1314,7 +1311,7 @@ Returns nil if no relevant entry found in AUX-INFO."
                    (let ((raw-files (find-rec*
                                      :root root
                                      :globs-to-find globs
-                                     :ignored-files-globs (eproj-project/ignored-files-globs proj)
+                                     :ignored-files-globs (eproj-project--get-absolute-ignored-files-globs proj)
                                      :ignored-absolute-dirs (eproj-project/related-projects proj)
                                      ;; Allow aux files to look into ignored paths if needed.
                                      :ignored-directories nil
@@ -1419,10 +1416,6 @@ projects into the mix."
                                    (eproj-project/related-projects p))
                              projs)))))
     (hash-table-values visited)))
-
-(defun eproj--resolve-eproj-root (root paths)
-  (cl-assert (stringp root))
-  (--map (replace-regexp-in-string "[$]{eproj-root}" root it) paths))
 
 (defmacro eproj-resolve-to-abs-path (path proj)
   `(if (file-name-absolute-p ,path)
