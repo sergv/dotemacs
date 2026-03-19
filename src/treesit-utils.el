@@ -188,7 +188,7 @@ All parents of the returned node don’t satisfy PRED (if they exist)."
 
 (defun treesit-utils-find-closest-parent (node pred)
   "Find first parent of NODE that satisfies single-argument predicate PRED."
-  (cl-assert (treesit-node-p node))
+  (cl-assert (or (treesit-node-p node) (null node)))
   (let ((result nil)
         (p node)
         (continue? t))
@@ -201,7 +201,7 @@ All parents of the returned node don’t satisfy PRED (if they exist)."
 
 (defun treesit-utils-find-closest-parent-limited (node pred limit)
   "Like ‘treesit-utils-find-closest-parent’ but stops after LIMIT number of iterations."
-  (cl-assert (treesit-node-p node))
+  (cl-assert (or (treesit-node-p node) (null node)))
   (let ((result nil)
         (p node)
         (continue? t))
@@ -216,7 +216,7 @@ All parents of the returned node don’t satisfy PRED (if they exist)."
 (defun treesit-utils-find-closest-parent-with-count (node pred)
   "Like ‘treesit-utils-find-closest-parent’ but returns cons pair of found parent, if any,
 and its height, i.e. number of jumps performed."
-  (cl-assert (treesit-node-p node))
+  (cl-assert (or (treesit-node-p node) (null node)))
   (let ((result nil)
         (p node)
         (continue? t)

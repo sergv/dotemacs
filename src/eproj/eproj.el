@@ -447,11 +447,13 @@ get proper flycheck checker."
   ;; List of glob strings to include into navigation lists
   (extra-navigation-globs nil :read-only t)
 
-  ;; Hash table mapping absolute file paths this project manages to
-  ;; the same paths relative to project's root. May not be 100%
-  ;; accurate (meaning that it may always reflect current disk state - it
-  ;; may contain files that are no longer present on disk and lack files that are)
-  ;; and therefore should only be used for user navigation.
+  ;; List with file paths relative to this project’s root that this project manages.
+  ;;
+  ;; May not be 100% accurate (meaning that it may always reflect
+  ;; current disk state - it may contain files that are no longer
+  ;; present on disk and lack files that are) and therefore should
+  ;; only be used for user navigation.
+  ;;
   ;; This field is initialised lazily: it starts uninitialized and gets its value
   ;; when file list is first constructed or user does a search.
   (cached-files-for-navigation nil)
@@ -499,6 +501,7 @@ get proper flycheck checker."
   (eproj-get-initial-project-root/reset-cache)
   (eproj--resolve-to-abs-path-cached/reset-cache)
   (eproj-normalise-file-name-expand-cached/reset-cache)
+  (eproj-normalise-file-name-cached/reset-cache)
   ;; do not forget to reset cache
   (eproj/reset-buffer-local-cache)
   (when (fboundp #'flycheck-haskell-clear-config-cache)
@@ -537,9 +540,8 @@ get proper flycheck checker."
                  mode))
         (unless (eproj-project/transient-files-for-navigation proj)
           (setf (eproj-project/transient-files-for-navigation proj)
-                (make-hash-table :test #'equal)))
+                (make-eproj--cached-files-for-navigation)))
         (eproj--add-cached-file-for-navigation
-         (eproj-project/root proj)
          fname
          (eproj-project/transient-files-for-navigation proj))
         (if-let (old-tags-thunk (cdr-safe (assq mode (eproj-project/tags proj))))
@@ -1099,20 +1101,28 @@ project for PATH."
 (defun eproj--filter-ignored-files-from-file-list (proj files)
   "Filter list of FILES using ignored-files-globs of project PROJ."
   (if-let ((regexp (eproj-project/cached-ignored-files-re proj)))
-      (cl-delete-if (lambda (x) (string-match-p regexp x)) files)
+      (let ((root (eproj-project/root proj)))
+        (cl-delete-if (lambda (x) (or (string-match-p regexp x)
+                                 (if (file-name-absolute-p x)
+                                     nil
+                                   (string-match-p regexp
+                                                   (eproj--resolve-to-abs-path-cached x root)))))
+                      files))
     files))
 
 (defun eproj-with-all-project-files-for-navigation (proj func)
   "Preapre all files related to project PROJ that user might want to quickly
-jump to. Call FUNC with be called with 2 arguments: absolute path and path relative to the
-current project’s root."
+jump to. Call FUNC with be called with 1 argument: path relative to the
+current project’s root.
+
+Some files may be passed to function twice."
   (unless (eproj-project/cached-files-for-navigation proj)
     (notify "Constructing file navigation list for %s"
             (eproj-project/root proj))
     (eproj--get-all-files proj))
-  (maphash func (eproj-project/cached-files-for-navigation proj))
+  (mapc func (eproj--cached-files-for-navigation-files (eproj-project/cached-files-for-navigation proj)))
   (awhen (eproj-project/transient-files-for-navigation proj)
-    (maphash func it)))
+    (mapc func (eproj--cached-files-for-navigation-files it))))
 
 (defun eproj--navigation-globs (proj)
   "Get globs for files to consider during quick navigation."
@@ -1140,7 +1150,8 @@ doing `eproj-switch-to-file-or-buffer'."
           :ignored-absolute-dirs (append (eproj-project/related-projects proj)
                                          (eproj-get-absolute-ignored-dirs proj))
           :ignored-directories +ignored-directories+
-          :ignored-directory-prefixes +ignored-directory-prefixes+)))
+          :ignored-directory-prefixes +ignored-directory-prefixes+
+          :relative-paths t)))
     (eproj--filter-ignored-files-from-file-list proj files)))
 
 (defun eproj--parse-newline-separated-entries-in-current-buffer ()
@@ -1187,9 +1198,9 @@ doing `eproj-switch-to-file-or-buffer'."
         (proj-root (eproj-project/root proj))
         (should-cache? (eproj-project/create-cache-files proj)))
     (if files-cache
-        (clrhash files-cache)
+        (eproj--reset-cached-files-for-navigation! files-cache)
       (setf (eproj-project/cached-files-for-navigation proj)
-            (setf files-cache (make-hash-table :test #'equal))))
+            (setf files-cache (make-eproj--cached-files-for-navigation))))
 
     (with-temp-buffer
       (let ((extra
@@ -1199,7 +1210,7 @@ doing `eproj-switch-to-file-or-buffer'."
               (eproj/list-of-navigation-files-file-name proj)
               (eproj--navigation-files proj))))
         (dolist (file extra)
-          (eproj--add-cached-file-for-navigation proj-root file files-cache)))
+          (eproj--add-cached-file-for-navigation file files-cache)))
 
       (let ((all-files
              (eproj--with-file-cache
@@ -1210,7 +1221,7 @@ doing `eproj-switch-to-file-or-buffer'."
                     (aux (eproj--aux-files proj)))
                 (nconc aux files)))))
         (dolist (file all-files)
-          (eproj--add-cached-file-for-navigation proj-root file files-cache))
+          (eproj--add-cached-file-for-navigation file files-cache))
         all-files))))
 
 (defun eproj--read-file-list (file)
@@ -1228,7 +1239,7 @@ doing `eproj-switch-to-file-or-buffer'."
     (cdr res)))
 
 (defun eproj--get-project-files (proj)
-  "Retrieve project files for PROJ depending on it's type. Returns absolute
+  "Retrieve project files for PROJ depending on it's type. Returns relative
 paths."
   ;; Cached files are necessarily from file-list and intended for projects whose
   ;; list of files does not change and may be cached.
@@ -1239,14 +1250,10 @@ paths."
       (if-let (file-list-filename (eproj-project/file-list-filename proj))
           (let ((list-of-files (eproj--read-file-list file-list-filename)))
             (cl-assert (listp list-of-files))
-            (let* ((absolute-files
-                    (-map (lambda (filename)
-                            (eproj-resolve-to-abs-path filename proj))
-                          list-of-files))
-                   (resolved-files
-                    (eproj--filter-ignored-files-from-file-list proj absolute-files)))
+            (let ((resolved-files
+                   (eproj--filter-ignored-files-from-file-list proj list-of-files)))
               (cl-assert (--all? (and (stringp it)
-                                      (file-exists-p it))
+                                      (file-exists-p (concat (eproj-project/root proj) "/" it)))
                                  resolved-files))
               (setf (eproj-project/cached-file-list proj) resolved-files)
               resolved-files))
@@ -1275,7 +1282,8 @@ paths."
            :ignored-absolute-dirs (append related-projects-roots
                                           (eproj-get-absolute-ignored-dirs proj))
            :ignored-directories +ignored-directories+
-           :ignored-directory-prefixes +ignored-directory-prefixes+))))))
+           :ignored-directory-prefixes +ignored-directory-prefixes+
+           :relative-paths t))))))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
@@ -1293,10 +1301,12 @@ Returns nil if no relevant entry found in AUX-INFO."
   "Get aux files, mainly for navigation but can also serve as source for tag generation."
   (when-let (aux-files-entry (eproj-project/aux-files-entries proj))
     (let ((project-root (eproj-project/root proj))
-          (aux-trees (make-hash-table :test #'equal)))
+          (aux-trees (make-hash-table :test #'equal))
+          (roots (make-hash-table :test #'equal)))
       (with-temp-buffer
         (cd project-root)
-        (mapc (lambda (entry) (eproj--interpret-aux-files-entry project-root entry aux-trees))
+        (mapc (lambda (entry)
+                (eproj--interpret-aux-files-entry project-root entry aux-trees roots))
               aux-files-entry))
 
       (let ((result nil))
@@ -1308,14 +1318,21 @@ Returns nil if no relevant entry found in AUX-INFO."
                                      :ignored-absolute-dirs (eproj-project/related-projects proj)
                                      ;; Allow aux files to look into ignored paths if needed.
                                      :ignored-directories nil
-                                     :ignored-directory-prefixes nil)))
-                     (setf result
-                           (nconc (eproj--filter-ignored-files-from-file-list proj raw-files)
-                                  result))))
+                                     :ignored-directory-prefixes nil
+                                     :relative-paths t)))
+                     (let ((orig-root (gethash root roots)))
+                       (cl-assert (stringp orig-root))
+                       (setf result
+                             (nconc (eproj--filter-ignored-files-from-file-list
+                                     proj
+                                     (if (string= orig-root ".")
+                                         raw-files
+                                       (--map (concat orig-root "/" it) raw-files)))
+                                    result)))))
                  aux-trees)
         result))))
 
-(defun eproj--interpret-aux-files-entry (project-root item aux-trees)
+(defun eproj--interpret-aux-files-entry (project-root item aux-trees roots)
   (cl-assert (listp item) nil
              "invalid entry under aux-files clause, list expected: %s"
              item)
@@ -1346,6 +1363,9 @@ Returns nil if no relevant entry found in AUX-INFO."
                           nil
                           "Resolved aux tree root is not absolute: %s"
                           resolved-tree-root)
+               (puthash resolved-tree-root
+                        tree-root
+                        roots)
                (puthash resolved-tree-root
                         (append patterns
                                 (gethash resolved-tree-root aux-trees nil))
@@ -1460,6 +1480,16 @@ not exist anywhere."
     (cons path dir)
   (normalise-file-name (expand-file-name path dir)))
 
+(defun-caching-extended
+    eproj-normalise-file-name-cached (path)
+    eproj-normalise-file-name-cached/with-explicit-cache
+    eproj-normalise-file-name-cached/make-cache
+    eproj-normalise-file-name-cached/reset-cache
+    nil
+    nil
+    path
+  (normalise-file-name path))
+
 (defun eproj--get-buffer-directory (buf)
   "Get directory associated with BUFFER, either through visited file
 or `default-directory', if no file is visited."
@@ -1546,12 +1576,16 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
                     result))
               matched-tags))))
 
-(defsubst eproj--add-cached-file-for-navigation (proj-root fname files-cache)
-  (cl-assert (stringp proj-root))
-  (cl-assert (stringp fname))
-  (puthash fname
-           (file-relative-name fname proj-root)
-           files-cache))
+(cl-defstruct eproj--cached-files-for-navigation
+  ;; List of relative file names.
+  files)
+
+(defsubst eproj--reset-cached-files-for-navigation! (files-cache)
+  (setf (eproj--cached-files-for-navigation-files files-cache) nil))
+
+(defsubst eproj--add-cached-file-for-navigation (fname files-cache)
+  (cl-assert (stringp fname) nil "Invalid cached file: ‘%s’" fname)
+  (push fname (eproj--cached-files-for-navigation-files files-cache)))
 
 (defvar eproj-switch-to-file--history nil)
 
@@ -1596,7 +1630,8 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
                             tbl))
            (bufs-to-add (make-hash-table :test #'equal))
            (add-file
-            (lambda (abs-path rel-path)
+            (lambda (rel-path abs-path)
+              (cl-assert (not (null abs-path)))
               (let ((buf (gethash abs-path buffers-cache)))
                 (if (and buf
                          (not (invisible-buffer? buf)))
@@ -1609,12 +1644,16 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
                       (push (cons p abs-path) files))))))))
       (let ((eproj-file (concat root "/.eproj-info")))
         (when (file-exists-p eproj-file)
-          (funcall add-file eproj-file nil)))
+          (funcall add-file ".eproj-info" eproj-file)))
       (dolist (related-proj navigation-projects)
-        (eproj-with-all-project-files-for-navigation related-proj add-file)
-        (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
-          (when (file-exists-p eproj-file)
-            (funcall add-file eproj-file nil))))
+        (let ((related-root (eproj-project/root related-proj)))
+          (eproj-with-all-project-files-for-navigation related-proj
+                                                       (lambda (rel-path)
+                                                         (cl-assert (stringp rel-path))
+                                                         (funcall add-file rel-path (concat related-root "/" rel-path))))
+          (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
+            (when (file-exists-p eproj-file)
+              (funcall add-file nil eproj-file)))))
       (dolist (buf (nreverse (if include-all-buffers?
                                  (buffer-list)
                                (--filter (or (null (buffer-file-name it))
