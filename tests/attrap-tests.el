@@ -931,7 +931,7 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("osstr" "/tmp/Test/Foo/Bar.hs" 100 ?f nil))))
+  '(("osstr" "Test/Foo/Bar.hs" 100 ?f nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-2
@@ -966,7 +966,7 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("WithCallStack" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+  '(("WithCallStack" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-3
@@ -999,8 +999,8 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent "Compose" . ?t)))
-    ("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+  '(("Compose" "Test/Foo/Bar.hs" 100 ?C ((parent "Compose" . ?t)))
+    ("Compose" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-3a
@@ -1033,8 +1033,8 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent "ComposeT" . ?t)))
-    ("ComposeT" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+  '(("Compose" "Test/Foo/Bar.hs" 100 ?C ((parent "ComposeT" . ?t)))
+    ("ComposeT" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-3b
@@ -1067,8 +1067,8 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent "ComposeT" . ?t)))
-    ("ComposeT" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+  '(("Compose" "Test/Foo/Bar.hs" 100 ?C ((parent "ComposeT" . ?t)))
+    ("ComposeT" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-4
@@ -1101,8 +1101,8 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent "Compose" . ?t)))
-    ("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+  '(("Compose" "Test/Foo/Bar.hs" 100 ?C ((parent "Compose" . ?t)))
+    ("Compose" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-4a
@@ -1135,8 +1135,8 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent ":++:" . ?t)))
-    (":++:" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+  '(("Compose" "Test/Foo/Bar.hs" 100 ?C ((parent ":++:" . ?t)))
+    (":++:" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-4aa
@@ -1173,8 +1173,8 @@
     ;; Tags produced by fast-tags may not contain parent annotation
     ;; for patterns. But in case they do then this test ensures that
     ;; everything on the Emacs side will be handled correctly.
-    ("Foo" "/tmp/Test/Foo/Bar.hs" 100 ?p ((parent "Bar" . ?t)))
-    ("Bar" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+    ("Foo" "Test/Foo/Bar.hs" 100 ?p ((parent "Bar" . ?t)))
+    ("Bar" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-4b
@@ -1207,8 +1207,8 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '((":++:" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent "Compose" . ?t)))
-    ("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+  '((":++:" "Test/Foo/Bar.hs" 100 ?C ((parent "Compose" . ?t)))
+    ("Compose" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-4c
@@ -1241,8 +1241,8 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '((":++:" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent ":||:" . ?t)))
-    (":||:" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+  '((":++:" "Test/Foo/Bar.hs" 100 ?C ((parent ":||:" . ?t)))
+    (":||:" "Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-generically-from-base-gets-wildcard-5a
@@ -1277,7 +1277,7 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Generically" "/tmp/GHC/Generics.hs" 100 ?t nil))))
+  '(("Generically" "GHC/Generics.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-generically-from-nonbase-no-wildcard-5b
@@ -1312,7 +1312,7 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Generically" "/tmp/Foo/Bar.hs" 100 ?t nil))))
+  '(("Generically" "Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-generically-from-nonbase-no-wildcard-5c
@@ -1347,8 +1347,8 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Generically" "/tmp/Foo/Bar.hs" 100 ?t nil)
-    ("Generically" "/tmp/GHC/Generics.hs" 100 ?C nil))))
+  '(("Generically" "Foo/Bar.hs" 100 ?t nil)
+    ("Generically" "GHC/Generics.hs" 100 ?C nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-to-import-list-1
@@ -1460,13 +1460,13 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Foo" "/tmp/Foo/Decombobulate.hs" 100 ?C ((parent "FooType" . ?t)))
-    ("FooType" "/tmp/Foo/Decombobulate.hs" 100 ?t nil)
+  '(("Foo" "Foo/Decombobulate.hs" 100 ?C ((parent "FooType" . ?t)))
+    ("FooType" "Foo/Decombobulate.hs" 100 ?t nil)
 
-    ("Foo" "/tmp/Foo/Quux.hs" 100 ?C ((parent "FooType1" . ?t)))
-    ("FooType1" "/tmp/Foo/Quux.hs" 100 ?t nil)
+    ("Foo" "Foo/Quux.hs" 100 ?C ((parent "FooType1" . ?t)))
+    ("FooType1" "Foo/Quux.hs" 100 ?t nil)
 
-    ("FooType" "/tmp/Foo/Frobnicate.hs" 200 ?t nil))))
+    ("FooType" "Foo/Frobnicate.hs" 200 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-to-import-list-4
@@ -1504,13 +1504,13 @@
   "")
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
-  '(("Foo" "/tmp/Foo/Decombobulate.hs" 100 ?C ((parent "FooType" . ?t)))
-    ("FooType" "/tmp/Foo/Decombobulate.hs" 100 ?t nil)
+  '(("Foo" "Foo/Decombobulate.hs" 100 ?C ((parent "FooType" . ?t)))
+    ("FooType" "Foo/Decombobulate.hs" 100 ?t nil)
 
-    ("Foo" "/tmp/Foo/Quux.hs" 100 ?C ((parent "FooType1" . ?t)))
-    ("FooType1" "/tmp/Foo/Quux.hs" 100 ?t nil)
+    ("Foo" "Foo/Quux.hs" 100 ?C ((parent "FooType1" . ?t)))
+    ("FooType1" "Foo/Quux.hs" 100 ?t nil)
 
-    ("FooType" "/tmp/Foo/Frobnicate.hs" 200 ?t nil))))
+    ("FooType" "Foo/Frobnicate.hs" 200 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-to-import-list-5

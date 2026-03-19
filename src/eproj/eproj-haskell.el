@@ -40,16 +40,17 @@
               (when (string-match-p ext-re file)
                 (insert file "\n")))
             (unless (= 0
-                       (apply
-                        #'call-process-region
-                        (point-min)
-                        (point-max)
-                        fast-tags-exe
-                        nil
-                        ;; Discard error output from fast-tags
-                        (list out-buffer nil)
-                        nil
-                        args))
+                       (let ((default-directory (eproj-project/root proj)))
+                         (apply
+                          #'call-process-region
+                          (point-min)
+                          (point-max)
+                          fast-tags-exe
+                          nil
+                          ;; Discard error output from fast-tags
+                          (list out-buffer nil)
+                          nil
+                          args)))
               (error "fast-tags invokation failed: %s"
                      (with-current-buffer out-buffer
                        (buffer-substring-no-properties (point-min) (point-max)))))
@@ -98,7 +99,7 @@ runtime but rather will be silently relied on)."
             (progress-reporter (when eproj-verbose-tag-loading
                                  (let ((total-tags-count (count-lines-fixed (point-min) (point-max))))
                                    (make-standard-progress-reporter total-tags-count "tags"))))
-            (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
+            (file-name-cache (eproj-normalise-file-name-cached/make-cache))
             (sharing-cache (eproj-ctags--make-sharing-cache)))
         (garbage-collect)
         (while (looking-at-p "^!_TAG_")
@@ -108,10 +109,9 @@ runtime but rather will be silently relied on)."
           (when (looking-at eproj-ctags--line-re)
             (let ((symbol (match-string-no-properties 1))
                   (file (eproj-ctags--share
-                         (eproj-normalise-file-name-expand-cached/with-explicit-cache
+                         (eproj-normalise-file-name-cached/with-explicit-cache
                           file-name-cache
-                          (match-string-no-properties 2)
-                          proj-root)
+                          (match-string-no-properties 2))
                          sharing-cache))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
@@ -150,16 +150,15 @@ runtime but rather will be silently relied on)."
                        (if tags-source
                            (error "Failed to parse tags from %s" tags-source)
                          (signal (car err) (cdr err))))))
-              (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
+              (file-name-cache (eproj-normalise-file-name-cached/make-cache))
               (sharing-cache (eproj-ctags--make-sharing-cache)))
           (dolist (entry data)
             (let* ((filename (car entry))
                    (tags (cdr entry))
                    (file (eproj-ctags--share
-                          (eproj-normalise-file-name-expand-cached/with-explicit-cache
+                          (eproj-normalise-file-name-cached/with-explicit-cache
                            file-name-cache
-                           filename
-                           proj-root)
+                           filename)
                           sharing-cache)))
               (dolist (tag tags)
                 (let* ((line (car tag))
