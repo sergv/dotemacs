@@ -8052,6 +8052,24 @@ have different input states."
     (haskell-forward-sexp 6)
     " (foo + ((*) bar $ f baz) - g [quux, fizz, frob] `min_|_` xxx)")))
 
+(haskell-tests--make-multiple-output-test-buffer-contents
+    (tests-utils--multiline
+     ""
+     "insertBagGDP k v (Bag bag) kont = kont2 bag'"
+     "  where"
+     "    kont2 :: forall (ph' :: [Type]). Bag ph' k v -> b"
+     "    kont2 = (\\newBag -> _|_unContains (Proxy @ph') (Proxy @ix) (kont bag'))"
+     "")
+  ((haskell-tests/backward-up-list-1
+    (backward-up-list)
+    (tests-utils--multiline
+     ""
+     "insertBagGDP k v (Bag bag) kont = kont2 bag'"
+     "  where"
+     "    kont2 :: forall (ph' :: [Type]). Bag ph' k v -> b"
+     "    kont2 = _|_(\\newBag -> unContains (Proxy @ph') (Proxy @ix) (kont bag'))"
+     ""))))
+
 (haskell-tests--test-result
     haskell-tests/haskell-format--get-language-extensions-1
   :action (haskell-format--get-language-extensions (current-buffer) t)
@@ -8811,6 +8829,24 @@ have different input states."
   (tests-utils--multiline
    ""
    "foo x xs = _|_baz"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/vim:splice-sexp-killing-backward-8-paren
+    (vim:splice-sexp-killing-backward:wrapper)
+  (tests-utils--multiline
+   ""
+   "foo x xs = ((bar) [|quux|] baz)"
+   "  where"
+   "    kont2 :: forall (ph' :: [Type]). Bag ph' k v -> b"
+   "    kont2 = (\\newBag -> _|_unContains (Proxy @ph') (Proxy @ix) (kont bag'))"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x xs = ((bar) [|quux|] baz)"
+   "  where"
+   "    kont2 :: forall (ph' :: [Type]). Bag ph' k v -> b"
+   "    kont2 = _|_unContains (Proxy @ph') (Proxy @ix) (kont bag')"
    ""))
 
 (haskell-tests--test-buffer-contents
