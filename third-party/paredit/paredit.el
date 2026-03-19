@@ -2350,7 +2350,7 @@ Inside a string, unescape all backslashes, or signal an error if doing
                    (forward-char +1)
                    (paredit-skip-trailing-whitespace limit)
                    (point)))))
-          (let ((end-marker (make-marker)))
+          (with-marker (end-marker (make-marker))
             (save-excursion
               (up-list)
               (delete-char -1 kill-flag)
@@ -2393,8 +2393,8 @@ Inside a string, unescape all backslashes, or signal an error if doing
                  ;; kill that selected region.
                  (let ((end (point)))
                    (paredit-ignore-sexp-errors
-                     (while (not (bobp))
-                       (backward-sexp)))
+                     (backward-up-list)
+                     (forward-char 1))
                    (paredit-hack-kill-region (point) end))
                ;; Move forward until we hit the close paren; then
                ;; kill that selected region.
