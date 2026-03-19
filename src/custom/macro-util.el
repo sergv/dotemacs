@@ -55,6 +55,19 @@
       `(setcdr (comp-hint-cons ,x) ,y)
     `(setcdr ,x ,y)))
 
+(defmacro with-partition (matched-var non-matched-var xs form &rest body)
+  "partition p xs == (filter p xs, filter (not . p) xs))"
+  (declare (indent 4))
+  (cl-assert (symbolp matched-var))
+  (cl-assert (symbolp non-matched-var))
+  `(let ((,matched-var nil)
+         (,non-matched-var nil))
+     (dolist (it ,xs)
+       (if ,form
+           (push it ,matched-var)
+         (push it ,non-matched-var)))
+     ,@body))
+
 ;; TODO: test and use, add -nfilter
 (defmacro --nfilter (form list)
   (let ((res '#:res)
