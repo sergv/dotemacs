@@ -8,6 +8,11 @@
 
 module Foo where
 
+
+
+-- Entries in this file are offset so that we can distinguish actual tags by
+-- their lines.
+
 foo :: Int -> Int
 foo = id
 
