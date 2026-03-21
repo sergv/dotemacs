@@ -1518,6 +1518,7 @@ is non-nil.
 
 Returns list of (tag-name tag-struct tag-project major-mode) lists."
   (let* ((has-authoritative-projects? nil)
+         (curr-root (eproj-project/root current-proj))
          (matched-tags
           (mapcan (lambda (proj)
                     (aif (cdr (assq tag-major-mode (eproj-project/tags proj)))
@@ -1525,7 +1526,7 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
                                ;; Current project is always relevant source of names,
                                ;; don’t lose it.
                                (is-always-relevant?
-                                (string= (eproj-project/root current-proj)
+                                (string= curr-root
                                          (eproj-project/root proj)))
                                (is-authoritative-non-current?
                                 (and (memq tag-major-mode
