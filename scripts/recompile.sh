@@ -87,6 +87,11 @@ if [[ ! -d "$emacs_dir/compiled" && ! -L "$emacs_dir/compiled" ]]; then
     mkdir "$emacs_dir/compiled"
 fi
 
+if [[ ! -d "$emacs_dir/compiled/elc" ]]; then
+    mkdir "$emacs_dir/compiled/elc"
+fi
+
+
 rm -frv "$emacs_dir/eln-cache"
 find -O3 "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
 find -L -O3 "$emacs_dir/compiled" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
@@ -163,6 +168,10 @@ if [[ "$native_comp" = "t" ]]; then
     # get compiled into .eln. When multiple processes do this, race condition may
     # occur and all recompilation fails.
     cfg="$(mktemp "$TMPDIR/config.elXXXXX")"
+
+    if [[ ! -d "$emacs_dir/compiled/eln" ]]; then
+        mkdir "$emacs_dir/compiled/eln"
+    fi
 
     echo "CONFIG = $cfg"
 
