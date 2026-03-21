@@ -54,8 +54,30 @@ fi
 #       $tests \
 #        --eval "(ert $matcher)"
 
+declare -a load_elc
+
+if [[ ${EMACS_SKIP_ELC:-0} == 1 ]]; then
+    load_elc=()
+else
+    load_elc=( "-L" "$EMACS_ROOT/compiled/elc" )
+fi
+
+requires=$(cat <<EOF
+(progn
+  (require 'cl)
+  (require 'cl-lib)
+  (require 'cl-extra)
+  (require 'cl-macs)
+  (require 'cl-seq)
+  (require 'subr-x)
+  (require 'pcase)
+  (require 'rx))
+EOF
+)
+
 "$emacs" -Q --batch \
       -L "$EMACS_ROOT/compiled" \
+      "${load_elc[@]}" \
       -L "$EMACS_ROOT/src" \
       -L "$EMACS_ROOT/src/custom" \
       -L "$EMACS_ROOT/tests" \
@@ -64,8 +86,7 @@ fi
       -L "$EMACS_ROOT/third-party/f.el/test" \
       -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
       -L "$EMACS_ROOT/third-party/poly-mode/tests" \
-      --eval "(progn (require 'cl))" \
-      --eval "(progn (require 'cl-lib))" \
+      --eval "$requires" \
       -l start \
       --eval "(progn $tests)" \
        --eval "(ert-run-tests-batch-and-exit $matcher)"

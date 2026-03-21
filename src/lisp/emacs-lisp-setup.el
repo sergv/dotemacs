@@ -168,7 +168,7 @@ realign _l_et
 (defun elisp-compile-get-elc-destination (path)
   (concat
    +emacs-config-path+
-   "/compiled/"
+   "/compiled/elc/"
    (file-name-sans-extension (file-name-nondirectory path)) ".elc"))
 
 (defun elisp-compile-and-move ()
