@@ -229,14 +229,15 @@ as accepted by `bounds-of-thing-at-point'.")
                     (error "unsupported language %s" effective-major-mode))))
         (if (eproj-language/related-modes lang)
             (let ((composite-tag->string
-                   (lambda (tag-name tag proj mode)
+                   (lambda (tag-name tag proj mode tag-from-current-proj?)
                      (cl-assert (symbolp mode))
                      (if-let* ((lang (gethash mode eproj/languages-table)))
                          (funcall (eproj-language/tag->string-func lang)
                                   tag-name
                                   tag
                                   proj
-                                  mode)
+                                  mode
+                                  tag-from-current-proj?)
                        (error "Invalid tag mode: ‘%s’" mode))))
                   (composite-tag->kind
                    (lambda (tag mode)
@@ -294,7 +295,13 @@ as accepted by `bounds-of-thing-at-point'.")
 ;;;###autoload
 (defun eproj-symbnav/choose-location-to-jump-to
     (identifier
-     tag->string ;; function of 4 arguments, a project, a string tag name, a tag struct, and a symbol for tag major mode or nil, returning string
+     ;; function of 5 arguments returning string:
+     ;; - project that tag came from
+     ;; - string tag name
+     ;; - tag struct
+     ;; - symbol for tag major mode or nil
+     ;; - boolean whether tag came from project that’s currently considered current
+     tag->string
      tag->kind ;; function of 2 arguments that takes a tag and a symbol for tag major mode and returns a string
      current-buffer-file-name
      current-proj ;; may be nil
@@ -347,18 +354,18 @@ as accepted by `bounds-of-thing-at-point'.")
                 (let* ((expanded-tag-file
                         (expand-file-name
                          (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj)))
+                       (tag-from-current-proj? (eq current-proj tag-proj))
                        (tag-name-pretty
                         (when tag-name
                           (cond ((string= current-buffer-file-name
                                           expanded-tag-file)
                                  (propertize tag-name 'face 'font-lock-negation-char-face))
-                                ((string= (eproj-project/root current-proj)
-                                          (eproj-project/root tag-proj))
+                                (tag-from-current-proj?
                                  ;; use italic instead of underscore
                                  (propertize tag-name 'face 'italic))
                                 (t
                                  tag-name)))))
-                  (funcall tag->string tag-proj tag-name-pretty tag mode)))
+                  (funcall tag->string tag-proj tag-name-pretty tag mode tag-from-current-proj?)))
             (lambda (tag-proj tag-name tag mode)
               (let* ((expanded-tag-file
                       (expand-file-name
@@ -370,7 +377,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                (propertize tag-name 'face 'font-lock-negation-char-face))
                               (t
                                tag-name)))))
-                (funcall tag->string tag-proj tag-name-pretty tag mode)))))
+                (funcall tag->string tag-proj tag-name-pretty tag mode nil)))))
          (entry-sort-token #'first-sure)
          (entry-tag-name #'second-sure)
          (entry-tag #'third-sure)

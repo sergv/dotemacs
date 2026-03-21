@@ -250,13 +250,13 @@ BUFFER is expected to contain output of ctags command."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/rust-tag->string (proj tag-name tag mode)
+(defun eproj/rust-tag->string (proj tag-name tag mode tag-from-current-proj?)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           (awhen (eproj/rust-tag-kind tag mode)
             (concat " [" it "]"))
           "\n"
-          (eproj/format-tag-path-and-line proj tag)
+          (eproj/format-tag-path-and-line proj tag tag-from-current-proj?)
           "\n"
           (eproj/extract-tag-line proj tag)
           "\n"))
@@ -290,13 +290,13 @@ BUFFER is expected to contain output of ctags command."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/c-tag->string (proj tag-name tag mode)
+(defun eproj/c-tag->string (proj tag-name tag mode tag-from-current-proj?)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           (awhen (eproj/c-tag-kind tag mode)
             (concat " [" it "]"))
           "\n"
-          (eproj/format-tag-path-and-line proj tag)
+          (eproj/format-tag-path-and-line proj tag tag-from-current-proj?)
           "\n"
           (eproj/extract-tag-line proj tag)
           "\n"))
@@ -323,7 +323,7 @@ BUFFER is expected to contain output of ctags command."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/java-tag->string (proj tag-name tag mode)
+(defun eproj/java-tag->string (proj tag-name tag mode tag-from-current-proj?)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           " ["
@@ -334,7 +334,7 @@ BUFFER is expected to contain output of ctags command."
                     "."
                     tag-name
                     "\n"))
-          (eproj/format-tag-path-and-line proj tag)
+          (eproj/format-tag-path-and-line proj tag tag-from-current-proj?)
           "\n"
           (when (eproj-tag/line tag)
             (concat (eproj/extract-tag-line proj tag)
@@ -362,7 +362,7 @@ BUFFER is expected to contain output of ctags command."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/kotlin-tag->string (proj tag-name tag mode)
+(defun eproj/kotlin-tag->string (proj tag-name tag mode tag-from-current-proj?)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           " ["
@@ -374,7 +374,7 @@ BUFFER is expected to contain output of ctags command."
                     "."
                     tag-name
                     "\n"))
-          (eproj/format-tag-path-and-line proj tag)
+          (eproj/format-tag-path-and-line proj tag tag-from-current-proj?)
           "\n"
           (when (eproj-tag/line tag)
             (concat (eproj/extract-tag-line proj tag)
@@ -388,27 +388,24 @@ BUFFER is expected to contain output of ctags command."
           (format "%s" (eproj-tag/properties tag))))
 
 ;;;###autoload
-(defun eproj/generic-tag->string (proj tag-name tag mode)
+(defun eproj/generic-tag->string (proj tag-name tag mode tag-from-current-proj?)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           "\n"
-          (eproj/format-tag-path-and-line proj tag)
+          (eproj/format-tag-path-and-line proj tag tag-from-current-proj?)
           "\n"
           (eproj/generic-tag-kind tag mode)
           "\n"))
 
 ;;;; Tag presentation utilities
 
-(defun eproj/format-tag-path-and-line (proj tag)
+(defun eproj/format-tag-path-and-line (proj tag tag-from-current-proj?)
+  (cl-assert (not (file-name-absolute-p (eproj-tag/file tag))))
   (let* ((tag-file (eproj-tag/file tag))
          (root (eproj-project/root proj))
          (filename
-          (if (string-prefix-p root
-                               tag-file
-                               (fold-platform-os-type nil t) ;; case insensitivity
-                               )
-              ;; Add 1 to remove leading slash.
-              (substring-no-properties tag-file (1+ (length root)))
+          (if tag-from-current-proj?
+              tag-file
             (abbreviate-file-name
              (eproj-resolve-to-abs-path tag-file proj)))))
     (concat
