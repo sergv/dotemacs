@@ -213,13 +213,13 @@ runtime but rather will be silently relied on)."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/haskell-tag->string (proj tag-name tag mode)
+(defun eproj/haskell-tag->string (proj tag-name tag mode tag-from-current-proj?)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           " ["
           (eproj/haskell-tag-kind tag mode)
           "]\n"
-          (eproj/format-tag-path-and-line proj tag)
+          (eproj/format-tag-path-and-line proj tag tag-from-current-proj?)
           (awhen (eproj-tag/column tag)
             (concat ":" (number->string it)))
           "\n"
