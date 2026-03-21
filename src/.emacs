@@ -29,33 +29,6 @@
 
 (provide 'custom-variables-defined)
 
-(let* ((emacs-root (getenv "EMACS_ROOT"))
-       (default-emacs-dir (expand-file-name "~/.emacs.d"))
-       (emacs-dir
-        (cond
-          (emacs-root
-           (progn
-             (cl-assert (file-directory-p emacs-root))
-             emacs-root))
-          ((file-directory-p default-src-dir)
-           (add-to-list 'load-path default-src-dir))
-          (t
-           (error "EMACS_ROOT not defined")))))
-  (dolist (dir '("/compiled"
-                 "/src"
-                 "/src/custom"))
-    (let ((src-dir (concat emacs-dir dir)))
-      (cl-assert (file-directory-p src-dir))
-      (add-to-list 'load-path src-dir)))
-  ;; (let ((compiled-dir (concat emacs-dir "/compiled")))
-  ;;   (unless (equal (car native-comp-eln-load-path) compiled-dir)
-  ;;     (startup-redirect-eln-cache compiled-dir)))
-  ;; Sometimes there are extra entries, remove them all except the last one.
-  (when (boundp 'native-comp-eln-load-path)
-    (while (cdr native-comp-eln-load-path)
-      (setf native-comp-eln-load-path (cdr native-comp-eln-load-path)))
-    (push (concat emacs-dir "/compiled/") native-comp-eln-load-path)))
-
 ;; Emacs uses following environment variables for configuration:
 ;; 1. EMACS_ROOT - path to .emacs.d directory.
 ;;
@@ -64,6 +37,37 @@
 ;;
 ;; 3. BASHRC_ENV_LOADED - whether ~/.bash_env was already loaded.
 (unless (featurep 'start)
+
+  (let* ((emacs-root (getenv "EMACS_ROOT"))
+         (default-emacs-dir (expand-file-name "~/.emacs.d"))
+         (emacs-dir
+          (cond
+            (emacs-root
+             (progn
+               (cl-assert (file-directory-p emacs-root))
+               emacs-root))
+            ((file-directory-p default-src-dir)
+             (add-to-list 'load-path default-src-dir))
+            (t
+             (error "EMACS_ROOT not defined")))))
+    (dolist (dir '("/compiled"
+                   "/compiled/elc"
+                   "/src"
+                   "/src/custom"))
+      (let ((src-dir (concat emacs-dir dir)))
+        (unless (file-directory-p src-dir)
+          (error "Important source directory does not exist: %s" src-dir))
+        (add-to-list 'load-path src-dir)))
+
+    ;; (let ((compiled-dir (concat emacs-dir "/compiled")))
+    ;;   (unless (equal (car native-comp-eln-load-path) compiled-dir)
+    ;;     (startup-redirect-eln-cache compiled-dir)))
+    ;; Sometimes there are extra entries, remove them all except the last one.
+    (when (boundp 'native-comp-eln-load-path)
+      (while (cdr native-comp-eln-load-path)
+        (setf native-comp-eln-load-path (cdr native-comp-eln-load-path)))
+      (push (concat emacs-dir "/compiled/eln") native-comp-eln-load-path)))
+
   (load-library "start"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
