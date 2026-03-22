@@ -482,6 +482,44 @@
           (setf prev curr
                 curr (treesit-node-parent curr)))))))
 
+(defun haskell-ts-indent--function-indent (node parent bol)
+  (lambda (matched-anchor)
+    (let* ((typ (treesit-matched-anchor-node-type matched-anchor))
+           (parent (treesit-node-parent matched-anchor))
+           (parent-typ (awhen parent
+                         (treesit-matched-anchor-node-type it))))
+      (cond
+        ((string= "::" typ)
+         0)
+        ((and (or (string= "parens" parent-typ)
+                  (string= "tuple" parent-typ))
+              ;; Check that there’s enough space to put ‘->’ back like this
+              ;; (      Foo
+              ;;     -> Bar
+              ;; )
+              (>= (- (treesit-node-start matched-anchor)
+                     (treesit-node-end (haskell-ts-getters--get-opening-paren parent)))
+                  2))
+         -3)
+        (t
+         haskell-indent-offset)))))
+
+(defun haskell-ts-indent--context-arrow-anchor (node parent bol)
+  (cl-assert (string= (treesit-node-type node) "=>"))
+  (cl-assert (string= (treesit-node-type parent) "context"))
+  (let ((node (treesit-node-parent parent))
+        (anchor nil))
+    (setf anchor (if (string= (treesit-node-type node) "forall")
+                     (treesit-node-parent node)
+                   node))
+    (pcase (treesit-node-type anchor)
+      ("signature"
+       (haskell-ts-indent--get-signature-double-colon anchor))
+      ("parens"
+       anchor)
+      (_
+       (error "Unhandled anchor: %s" anchor)))))
+
 (defun haskell-ts-indent--first-guard-or-parent (node parent bol)
   (let ((bind-node parent))
     (cl-assert (member (treesit-node-type bind-node) '("bind" "multi_way_if")))
@@ -769,31 +807,15 @@
 
              ((n-p-gp "->" "function" nil)
               haskell-ts-indent--type-function-anchor
-              ,(lambda (node parent bol)
-                 (lambda (matched-anchor)
-                   (let* ((typ (treesit-matched-anchor-node-type matched-anchor))
-                          (parent (treesit-node-parent matched-anchor))
-                          (parent-typ (awhen parent
-                                        (treesit-matched-anchor-node-type it))))
-                     (cond
-                       ((string= "::" typ)
-                        0)
-                       ((and (or (string= "parens" parent-typ)
-                                 (string= "tuple" parent-typ))
-                             ;; Check that there’s enough space to put ‘->’ back like this
-                             ;; (      Foo
-                             ;;     -> Bar
-                             ;; )
-                             (>= (- (treesit-node-start matched-anchor)
-                                    (treesit-node-end (haskell-ts-getters--get-opening-paren parent)))
-                                 2))
-                        -3)
-                       (t
-                        haskell-indent-offset))))))
+              haskell-ts-indent--function-indent)
 
              ((n-p-gp "|]" "quasiquote" nil)
               parent
               0)
+
+             ((n-p-gp "=>" "context" nil)
+              haskell-ts-indent--context-arrow-anchor
+              haskell-ts-indent--function-indent)
 
              ;; No backup - we would like to default to something else.
              ;; ;; Backup
