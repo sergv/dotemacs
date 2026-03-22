@@ -3600,6 +3600,72 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-8a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall proxy w"
+  "       _|_.  proxy w"
+  "  -> ( forall s"
+  "         .  Foo w Int"
+  "       => Bar w s Int"
+  "       -> ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall proxy w"
+  "  _|_.  proxy w"
+  "  -> ( forall s"
+  "         .  Foo w Int"
+  "       => Bar w s Int"
+  "       -> ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-8b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall proxy w"
+  "  .  proxy w"
+  "  -> ( forall s"
+  "         _|_.  Foo w Int"
+  "       => Bar w s Int"
+  "       -> ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall proxy w"
+  "  .  proxy w"
+  "  -> ( forall s"
+  "       _|_.  Foo w Int"
+  "       => Bar w s Int"
+  "       -> ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-guard-1a
  :contents
  (tests-utils--multiline
