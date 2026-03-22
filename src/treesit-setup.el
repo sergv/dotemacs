@@ -152,7 +152,7 @@ Similar to `treesit-indent', but indent a region instead."
             (when (and anchor offset)
               (let ((col (save-excursion
                            (goto-char anchor)
-                           (+ offset (current-column)))))
+                           (+ offset (el-patch-swap (current-column) (current-column-fixed))))))
                 (indent-line-to col))))
           (forward-line 1))
         (when announce-progress
