@@ -504,6 +504,15 @@
         (t
          haskell-indent-offset)))))
 
+(defun haskell-ts-indent--context-anchor (anchor)
+  (pcase (treesit-node-type anchor)
+    ("signature"
+     (haskell-ts-indent--get-signature-double-colon anchor))
+    ("parens"
+     anchor)
+    (_
+     (error "Unhandled anchor: %s" anchor))))
+
 (defun haskell-ts-indent--context-arrow-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type node) "=>"))
   (cl-assert (string= (treesit-node-type parent) "context"))
@@ -512,13 +521,13 @@
     (setf anchor (if (string= (treesit-node-type node) "forall")
                      (treesit-node-parent node)
                    node))
-    (pcase (treesit-node-type anchor)
-      ("signature"
-       (haskell-ts-indent--get-signature-double-colon anchor))
-      ("parens"
-       anchor)
-      (_
-       (error "Unhandled anchor: %s" anchor)))))
+    (haskell-ts-indent--context-anchor anchor)))
+
+(defun haskell-ts-indent--context-dot-anchor (node parent bol)
+  (cl-assert (string= (treesit-node-type node) "."))
+  (cl-assert (string= (treesit-node-type parent) "forall"))
+  (let ((anchor (treesit-node-parent parent)))
+    (haskell-ts-indent--context-anchor anchor)))
 
 (defun haskell-ts-indent--first-guard-or-parent (node parent bol)
   (let ((bind-node parent))
@@ -815,6 +824,10 @@
 
              ((n-p-gp "=>" "context" nil)
               haskell-ts-indent--context-arrow-anchor
+              haskell-ts-indent--function-indent)
+
+             ((n-p-gp "." "forall" nil)
+              haskell-ts-indent--context-dot-anchor
               haskell-ts-indent--function-indent)
 
              ;; No backup - we would like to default to something else.
