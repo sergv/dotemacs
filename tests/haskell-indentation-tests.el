@@ -3316,6 +3316,290 @@ have different input states."
   "  pure 0"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-5aa
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "          _|_=>"
+  "       Bar a Int ->"
+  "       ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "       _|_=>"
+  "       Bar a Int ->"
+  "       ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-5ab
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (Foo w Int"
+  "          _|_=>"
+  "       Bar a Int ->"
+  "       ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (Foo w Int"
+  "       _|_=>"
+  "       Bar a Int ->"
+  "       ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-5ba
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "       => Bar a Int"
+  "             _|_-> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "       => Bar a Int"
+  "       _|_-> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-5bb
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (Foo w Int"
+  "       => Bar a Int"
+  "             _|_-> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (Foo w Int"
+  "       => Bar a Int"
+  "       _|_-> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-5ca
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "       => Bar a Int -> Int"
+  "             _|_-> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "       => Bar a Int -> Int"
+  "       _|_-> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-5cb
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (Foo w Int"
+  "       => Bar a Int -> Int"
+  "             _|_-> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (Foo w Int"
+  "       => Bar a Int -> Int"
+  "       _|_-> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6aa
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w s. G.Vector w (TestPair Int32 Int32)"
+  "          _|_=> G.Mutable w s (TestPair Int32 Int32)"
+  "  -> ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w s. G.Vector w (TestPair Int32 Int32)"
+  "  _|_=> G.Mutable w s (TestPair Int32 Int32)"
+  "  -> ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6ab
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: G.Vector w (TestPair Int32 Int32)"
+  "          _|_=> G.Mutable w s (TestPair Int32 Int32)"
+  "  -> ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: G.Vector w (TestPair Int32 Int32)"
+  "  _|_=> G.Mutable w s (TestPair Int32 Int32)"
+  "  -> ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6ba
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w s. G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "    _|_-> ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w s. G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "  _|_-> ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6bb
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "    _|_-> ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "  _|_-> ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-7a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w. (forall s. Foo w Int"
+  "                       _|_=> Bar w s Int -> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w. (forall s. Foo w Int"
+  "                 _|_=> Bar w s Int -> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-7b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w. (Foo w Int"
+  "                       _|_=> Bar w s Int -> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w. (Foo w Int"
+  "                 _|_=> Bar w s Int -> ST s ())"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-guard-1a
  :contents
  (tests-utils--multiline
