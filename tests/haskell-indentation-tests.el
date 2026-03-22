@@ -49,7 +49,7 @@
                  ;; produce some entries because it would include treesitter
                  ;; indentation which these tests are expected to always have.
                  (should (not (null fallback-indentations)))))
-           (haskell-misc--indent-line-with-treesitter))
+           (haskell-ts-indent-line))
          :contents ,contents
          :expected-value ,expected-value
          :initialisation (,mode)
