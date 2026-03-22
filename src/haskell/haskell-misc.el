@@ -87,7 +87,7 @@ of my home config.")
                       ;; Indent with treesitter
                       (let* ((target-indent (+ (save-excursion
                                                  (goto-char anchor-pos)
-                                                 (current-column))
+                                                 (current-column-fixed))
                                                offset-num))
                              (is-on-empty-line?
                               (save-excursion
