@@ -26,7 +26,7 @@
                (lambda
                  (&optional node-type parent-type node-field
                             node-index-min node-index-max)
-                 (lambda (node parent &rest _)
+                 (lambda (node parent _)
                    (and (pcase node-type
                           ('nil t)
                           ('null (null node))
@@ -46,7 +46,7 @@
                                 node-index-max))))))
          (cons 'n-p-gp
                (lambda (node-t parent-t grand-parent-t)
-                 (lambda (node parent &rest _)
+                 (lambda (node parent _)
                    (and (or (null node-t)
                             (awhen (treesit-node-type node)
                               (if (stringp node-t)
@@ -64,21 +64,21 @@
                                   (string= grand-parent-t gpt)
                                 (member gpt grand-parent-t))))))))
          (cons 'parent-is (lambda (&rest types)
-                            (lambda (_n parent &rest _)
+                            (lambda (_n parent _)
                               (member (treesit-node-type parent) types))))
 
          (cons 'node-is (lambda (&rest types)
-                          (lambda (node &rest _)
+                          (lambda (node _ _)
                             (awhen (treesit-node-type node)
                               (member it types)))))
          (cons 'field-is (lambda (&rest names)
-                           (lambda (node &rest _)
+                           (lambda (node _ _)
                              (awhen (treesit-node-field-name node)
                                (member it names)))))
 
          (cons 'between-siblings
                (lambda (prev next)
-                 (lambda (node &rest _)
+                 (lambda (node _ _)
                    (when-let ((prev-node (treesit-node-prev-sibling node))
                               (next-node (treesit-node-next-sibling node)))
                      (and (string= (treesit-node-type prev-node) prev)
