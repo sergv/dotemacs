@@ -427,26 +427,50 @@
 (defun haskell-ts-indent--type-function-arrow-anchor (node parent bol)
   (haskell-ts-indent--type-function-anchor--impl node parent bol t t))
 
+(defun haskell-ts-indent--type-function--find-above-forall (node)
+  (treesit-utils-find-closest-parent-until
+   node
+   (lambda (x)
+     (string= (treesit-node-type x) "forall"))
+   (lambda (x)
+     (string= (treesit-node-type x) "signature"))))
+
 (defun haskell-ts-indent--type-function-first-arg-anchor (node parent bol)
-  (haskell-ts-indent--type-function-anchor--impl node parent bol nil t))
+  (if-let* (((string= (treesit-node-type parent) "function"))
+            (arrow (haskell-ts-indent--get-function-arrow parent))
+            ((not (haskell-ts--is-standalone-node? arrow)))
+            (above-forall (haskell-ts-indent--type-function--find-above-forall parent)))
+      above-forall
+    (haskell-ts-indent--type-function-anchor--impl node parent bol nil t)))
 
 (defun haskell-ts-indent--type-function-second-or-later-arg-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
   (let ((grandparent (treesit-node-parent parent)))
     (cl-assert (string= (treesit-node-type grandparent) "function"))
-    (let ((func-arrow (haskell-ts-indent--get-function-arrow grandparent)))
-      (if (haskell-ts--is-standalone-node? func-arrow)
-          func-arrow
-        (haskell-ts-indent--get-function-parameter grandparent)))))
+    (let ((above-arrow (haskell-ts-indent--get-function-arrow grandparent)))
+      (if (haskell-ts--is-standalone-node? above-arrow)
+          above-arrow
+        (let ((above-param (haskell-ts-indent--get-function-parameter grandparent)))
+          (if (haskell-ts--is-standalone-node? above-param)
+              above-param
+            (if-let* ((above-forall (haskell-ts-indent--type-function--find-above-forall grandparent)))
+                above-forall
+              above-param)))))))
 
 (defun haskell-ts-indent--type-function-in-context-first-arg-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
-  (let ((grandparent (treesit-node-parent parent)))
-    (cl-assert (string= (treesit-node-type grandparent) "context"))
-    (let ((ctx-arrow (haskell-ts-indent--get-context-arrow grandparent)))
+  (let ((context (treesit-node-parent parent)))
+    (cl-assert (string= (treesit-node-type context) "context"))
+    (let ((ctx-arrow (haskell-ts-indent--get-context-arrow context)))
       (if (haskell-ts--is-standalone-node? ctx-arrow)
           ctx-arrow
-        (haskell-ts-indent--get-context-context grandparent)))))
+        (let ((ctx-contents (haskell-ts-indent--get-context-context context)))
+          (if (haskell-ts--is-standalone-node? ctx-contents)
+              ctx-contents
+            (if-let* ((forall (treesit-node-parent context))
+                      ((string= "forall" (treesit-node-type forall))))
+                forall
+              ctx-contents)))))))
 
 (defun haskell-ts-indent--type-function-result-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
@@ -493,11 +517,11 @@
 (defun haskell-ts-indent--context-arrow-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type node) "=>"))
   (cl-assert (string= (treesit-node-type parent) "context"))
-  (let ((node (treesit-node-parent parent))
-        (anchor nil))
-    (setf anchor (if (string= (treesit-node-type node) "forall")
-                     (treesit-node-parent node)
-                   node))
+  (let* ((forall (treesit-node-parent parent))
+         (anchor (if (and forall
+                          (string= (treesit-node-type forall) "forall"))
+                     (treesit-node-parent forall)
+                   forall)))
     (haskell-ts-indent--context-anchor anchor)))
 
 (defun haskell-ts-indent--context-dot-anchor (node parent bol)
