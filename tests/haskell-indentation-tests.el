@@ -3819,6 +3819,68 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-11c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     ( forall s."
+  "             _|_Foo w Int ->"
+  "          Bar w s Int ->"
+  "          ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     ( forall s."
+  "       _|_Foo w Int ->"
+  "          Bar w s Int ->"
+  "          ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-11d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     ( forall s."
+  "       Foo w Int ->"
+  "               _|_Bar w s Int ->"
+  "                   ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     ( forall s."
+  "       Foo w Int ->"
+  "         _|_Bar w s Int ->"
+  "                   ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-type-12a
  :contents
  (tests-utils--multiline
@@ -3897,6 +3959,166 @@ have different input states."
   "foo"
   "  ::"
   "     _|_Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-14a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: a ->"
+  "    _|_b -> c"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: a ->"
+  "       _|_b -> c"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-14b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "                _|_a ->"
+  "    b -> c"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "    _|_a ->"
+  "    b -> c"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-14c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "    a ->"
+  "      b ->"
+  "                   _|_c"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "    a ->"
+  "      b ->"
+  "        _|_c"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-14d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: Foo a =>"
+  "         _|_a ->"
+  "       b -> c"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: Foo a =>"
+  "       _|_a ->"
+  "       b -> c"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-14e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ::"
+  "  Foo a =>"
+  "         _|_a ->"
+  "    b -> c"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ::"
+  "  Foo a =>"
+  "    _|_a ->"
+  "    b -> c"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-15
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "    _|_:: Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  _|_:: Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"
+  "foo = undefined"
+  ""))
+
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-16
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "     ("
+  "          Foo w Int =>"
+  "            Bar w s Int ->"
+  "                  _|_ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "     ("
+  "          Foo w Int =>"
+  "            Bar w s Int ->"
+  "              _|_ST s ()"
+  "     )"
+  "  -> Int"
   "  -> Int"
   "foo = undefined"
   ""))
