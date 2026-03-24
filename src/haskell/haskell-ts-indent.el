@@ -399,7 +399,8 @@
       (skip-chars-backward " \t")
       (eq (point) (line-beginning-position)))))
 
-(defun haskell-ts-indent--type-function-anchor--impl (node parent bol consider-spaces-after-open-paren?)
+(defun haskell-ts-indent--type-function-anchor--impl
+    (node parent bol consider-spaces-after-open-paren? consider-context?)
   (let ((prev node)
         (curr parent))
     (catch 'term
@@ -408,20 +409,51 @@
           (awhen (haskell-ts-indent--select-parens-anchor curr-type curr prev consider-spaces-after-open-paren?)
             (throw 'term it))
           (cond
-            ((string= curr-type "context")
+            ((and consider-context?
+                  (string= curr-type "context"))
              (awhen (haskell-ts-indent--get-context-arrow curr)
                (throw 'term it)))
             ((string= curr-type "signature")
              (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
-               (throw 'term double-colon))))
+               (throw 'term (if (haskell-ts--is-standalone-node? double-colon)
+                                double-colon
+                              (haskell-ts-indent--get-signature-name curr))))))
           (setf prev curr
                 curr (treesit-node-parent curr)))))))
 
-(defun haskell-ts-indent--type-function-anchor (node parent bol)
-  (haskell-ts-indent--type-function-anchor--impl node parent bol t))
+(defun haskell-ts-indent--type-function-context-anchor (node parent bol)
+  (haskell-ts-indent--type-function-anchor--impl node parent bol nil nil))
+
+(defun haskell-ts-indent--type-function-arrow-anchor (node parent bol)
+  (haskell-ts-indent--type-function-anchor--impl node parent bol t t))
 
 (defun haskell-ts-indent--type-function-first-arg-anchor (node parent bol)
-  (haskell-ts-indent--type-function-anchor--impl node parent bol nil))
+  (haskell-ts-indent--type-function-anchor--impl node parent bol nil t))
+
+(defun haskell-ts-indent--type-function-second-or-later-arg-anchor (node parent bol)
+  (cl-assert (string= (treesit-node-type parent) "function"))
+  (let ((grandparent (treesit-node-parent parent)))
+    (cl-assert (string= (treesit-node-type grandparent) "function"))
+    (let ((func-arrow (haskell-ts-indent--get-function-arrow grandparent)))
+      (if (haskell-ts--is-standalone-node? func-arrow)
+          func-arrow
+        (haskell-ts-indent--get-function-parameter grandparent)))))
+
+(defun haskell-ts-indent--type-function-in-context-first-arg-anchor (node parent bol)
+  (cl-assert (string= (treesit-node-type parent) "function"))
+  (let ((grandparent (treesit-node-parent parent)))
+    (cl-assert (string= (treesit-node-type grandparent) "context"))
+    (let ((ctx-arrow (haskell-ts-indent--get-context-arrow grandparent)))
+      (if (haskell-ts--is-standalone-node? ctx-arrow)
+          ctx-arrow
+        (haskell-ts-indent--get-context-context grandparent)))))
+
+(defun haskell-ts-indent--type-function-result-anchor (node parent bol)
+  (cl-assert (string= (treesit-node-type parent) "function"))
+  (let ((func-arrow (haskell-ts-indent--get-function-arrow parent)))
+    (if (haskell-ts--is-standalone-node? func-arrow)
+        func-arrow
+      (haskell-ts-indent--get-function-parameter parent))))
 
 (defun haskell-ts-indent--function-indent (_ _ _)
   #'haskell-ts-indent--function-indent-anchor)
@@ -760,7 +792,7 @@
              ((node-is "deriving") parent haskell-indent-offset)
 
              ((n-p-gp "->" "function" nil)
-              haskell-ts-indent--type-function-anchor
+              haskell-ts-indent--type-function-arrow-anchor
               haskell-ts-indent--function-indent)
 
              ((n-p-gp "|]" "quasiquote" nil)
@@ -775,15 +807,86 @@
               haskell-ts-indent--context-dot-anchor
               haskell-ts-indent--function-indent)
 
+             ((n-p-gp "::" "signature" nil)
+              parent
+              haskell-indent-offset)
+
+             ((and (n-p-gp nil "function" "context")
+                   (field-is "parameter"))
+              haskell-ts-indent--type-function-in-context-first-arg-anchor
+              ,(lambda (node parent _)
+                 (lambda (matched-anchor)
+                   (if (string= (treesit-node-type matched-anchor) "=>")
+                       (+ haskell-indent-offset 1)
+                     haskell-indent-offset))))
+
+             ((and (n-p-gp nil "context" '("forall" "parens" "signature"))
+                   (field-is "context"))
+              haskell-ts-indent--type-function-context-anchor
+              ,(lambda (node parent _)
+                 (lambda (matched-anchor)
+                   (let ((ctx-arrow-standalone?
+                          (haskell-ts--is-standalone-node?
+                           (haskell-ts-indent--get-context-arrow parent))))
+                     (cond
+                       ((and (string= (treesit-node-type matched-anchor) "parens")
+                             ctx-arrow-standalone?)
+                        (+ haskell-indent-offset 3))
+                       ((or (string= (treesit-node-type matched-anchor) "::")
+                            ctx-arrow-standalone?)
+                        (+ haskell-indent-offset 1))
+                       (t
+                        haskell-indent-offset))))))
+
+             ;; First argument in a function’s type signature.
              ((or
                ;; First argument when there’s context
-               (n-p-gp nil "context" '("forall" "parens" "signature"))
+               (and (n-p-gp nil "context" '("forall" "parens" "signature"))
+                    (field-is "type"))
                ;; No context, try to catch fist argument of a vanilla
                ;; function
-               (and (n-p-gp nil "function" '("forall" "parens" "signature"))
+               (and (n-p-gp nil "function" '("forall" "parens" "signature" "context"))
                     (field-is "parameter")))
               haskell-ts-indent--type-function-first-arg-anchor
-              3)
+              ,(lambda (node parent _)
+                 (lambda (matched-anchor)
+                   (if-let* ((parent)
+                             ((string= (treesit-node-type parent) "function"))
+                             (arrow (haskell-ts-indent--get-function-arrow parent))
+                             ((not (haskell-ts--is-standalone-node? arrow))))
+                       haskell-indent-offset
+                     (+ haskell-indent-offset 1)))))
+
+             ;; Second or later argument in a function’s type signature.
+             ((or
+               ;; First argument when there’s context
+               ;; (n-p-gp nil "context" '("forall" "parens" "signature"))
+               ;; No context, try to catch fist argument of a vanilla
+               ;; function
+               (and (n-p-gp nil "function" "function")
+                    (field-is "parameter")))
+              haskell-ts-indent--type-function-second-or-later-arg-anchor
+              ,(lambda (node parent _)
+                 (lambda (matched-anchor)
+                   (if (string= (treesit-node-type matched-anchor) "->")
+                       (+ haskell-indent-offset 1)
+                     haskell-indent-offset))))
+
+             ;; todo
+             ;; Last argument in a function’s type signature.
+             ((or
+               ;; First argument when there’s context
+               ;; (n-p-gp nil "context" '("forall" "parens" "signature"))
+               ;; No context, try to catch fist argument of a vanilla
+               ;; function
+               (and (n-p-gp nil "function" '("function" "context"))
+                    (field-is "result")))
+              haskell-ts-indent--type-function-result-anchor
+              ,(lambda (node parent _)
+                 (lambda (matched-anchor)
+                   (if (string= (treesit-node-type matched-anchor) "->")
+                       3
+                     2))))
 
              ;; No backup - we would like to default to something else.
              ;; ;; Backup
@@ -831,7 +934,7 @@
                 smallest-node
                 (lambda (node)
                   (when treesit--indent-verbose
-                   (message "indent-1 loop, node = %s" node))
+                    (message "indent-1 loop, node = %s" node))
                   (and (eq bol (treesit-node-start node))
                        (not (treesit-node-eq node root))
                        (let ((typ (treesit-node-type node)))
@@ -840,7 +943,6 @@
                                   ;; Type is what we don’t want to ascend over, value is ok.
                                   (and (string= typ "function")
                                        (treesit-node-child-by-field-name node "parameter"))))))))))
-
     (let*
         ((parser (if smallest-node
                      (treesit-node-parser smallest-node)
@@ -852,7 +954,19 @@
                      (treesit-node-parent node)
                    (treesit-node-on bol bol))))
       (when treesit--indent-verbose
-        (message "indent-1: node = %s, parent = %s, grand-parent = %s, bol = %s" node parent (treesit-node-parent parent) bol))
+        (message (mapconcat #'identity
+                            '("indent-1:"
+                              "node         = %s"
+                              "parent       = %s"
+                              "grand-parent = %s"
+                              "bol          = %s"
+                              "field-name   = %s")
+                            "\n")
+                 node
+                 parent
+                 (treesit-node-parent parent)
+                 bol
+                 (treesit-node-field-name node)))
       (funcall treesit-indent-function node parent bol))))
 
 (defun haskell-ts-indent-line ()
@@ -860,6 +974,8 @@
                          (line-end-position))
   (when-let ((indent-res
               (pcase-let* ((`(,anchor . ,offset) (haskell-ts-indent-line--indent-1)))
+                (when treesit--indent-verbose
+                  (message "haskell-ts-indent-line: anchor = %s" anchor))
                 (when (and anchor offset)
                   (with-undo-amalgamate
                     (treesit-with-evaluated-anchor-and-offset
