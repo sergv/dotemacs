@@ -508,7 +508,7 @@ and indent when all of the following are true:
   "Return list of indentation positions corresponding to actual cursor position."
   (let ((node (treesit-haskell--current-node))
         (ppss nil))
-    (pcase-let* ((`(,anchor . ,offset) (when node (treesit--indent-1))))
+    (pcase-let* ((`(,anchor . ,offset) (when node (haskell-ts-indent-line--indent-1))))
       (let ((treesit-indent
              (when (and anchor offset)
                (treesit-with-evaluated-anchor-and-offset
