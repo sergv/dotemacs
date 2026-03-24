@@ -15,6 +15,9 @@
 (require 'abbrev+)
 (require 'common)
 
+(defun emacs-lisp-print-info-template--quote-string (str)
+  (replace-regexp-in-string "\"" "\\\\\"" str))
+
 (defun emacs-lisp-print-info-template ()
   (interactive)
   (let ((start
@@ -27,7 +30,7 @@
                                       var-list)))
            (insert ")")))
         (format
-         (lambda (user-input) (insert user-input " = %s"))))
+         (lambda (user-input) (insert (emacs-lisp-print-info-template--quote-string user-input) " = %s"))))
     (insert-info-format-template
      :start start
      :end end
