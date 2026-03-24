@@ -199,6 +199,21 @@ All parents of the returned node don’t satisfy PRED (if they exist)."
       (setf p (treesit-node-parent p)))
     result))
 
+(defun treesit-utils-find-closest-parent-until (node pred stop-pred)
+  "Find first parent of NODE that satisfies single-argument predicate PRED stopping once STOP-PRED
+returns non-nil on the node to be processed."
+  (cl-assert (or (treesit-node-p node) (null node)))
+  (let ((result nil)
+        (p node)
+        (continue? t))
+    (while (and continue? p)
+      (if (funcall pred p)
+        (setf result p
+              continue? nil)
+        (setf p (treesit-node-parent p)
+              continue? (not (funcall stop-pred p)))))
+    result))
+
 (defun treesit-utils-find-closest-parent-limited (node pred limit)
   "Like ‘treesit-utils-find-closest-parent’ but stops after LIMIT number of iterations."
   (cl-assert (or (treesit-node-p node) (null node)))
