@@ -399,6 +399,61 @@
       (skip-chars-backward " \t")
       (eq (point) (line-beginning-position)))))
 
+(defun haskell-ts-indent--get-topmost-function-node (node)
+  (cl-assert (treesit-node-p node))
+  (let ((result nil))
+    (while (and node
+                (not (member (treesit-node-type node) '("function" "context" "forall"))))
+      (setf node (treesit-node-parent node)))
+    ;; Go up only one level to not traverse through nested functions.
+    (dolist (target '("function" "context" "forall"))
+      (when (and node
+                 (string= (treesit-node-type node) target))
+        (setf result node
+              node (treesit-node-parent node))))
+    result))
+
+(defun haskell-ts-indent--function-arrow-anchor (node parent bol)
+  (when-let* ((candidate (haskell-ts-indent--get-topmost-function-node node)))
+    (let ((candidate-type (treesit-node-type candidate)))
+      (cond
+        ((string= candidate-type "context")
+         (haskell-ts-indent--get-context-context candidate))
+        (t
+         candidate)))))
+
+(defun haskell-ts-indent--function-arrow-indent (node parent bol)
+  (lambda (matched-anchor)
+    (if-let* ((anchor-paren-context
+               (when-let* ((p (when-let* ((pp (treesit-node-parent matched-anchor)))
+                                (if (string= (treesit-node-type pp) "context")
+                                    (treesit-node-parent pp)
+                                  pp)))
+                           (p-type (treesit-node-type p))
+                           ((or (string= "parens" p-type)
+                                (string= "tuple" p-type)
+                                (string= "unboxed_tuple" p-type)
+                                (string= "list" p-type))))
+                 p)))
+
+        ;; Check that there’s enough space to put ‘->’ back like this
+        ;; (      Foo
+        ;;     -> Bar
+        ;; )
+        ;;
+        ;; (  Foo
+        ;; -> Bar
+        ;; )
+        (let ((open-paren (haskell-ts-getters--get-opening-generic-paren
+                           anchor-paren-context)))
+          (if (<= 2
+                  (- (treesit-node-start matched-anchor)
+                     (treesit-node-end open-paren)))
+              -3
+            (- (treesit-node-start open-paren)
+               (treesit-node-start matched-anchor))))
+      -3)))
+
 (defun haskell-ts-indent--type-function-anchor--impl
     (node parent bol consider-spaces-after-open-paren? consider-context?)
   (let ((prev node)
@@ -406,8 +461,13 @@
     (catch 'term
       (while curr
         (let ((curr-type (treesit-node-type curr)))
-          (awhen (haskell-ts-indent--select-parens-anchor curr-type curr prev consider-spaces-after-open-paren?)
-            (throw 'term it))
+          (when-let* ((candidate (haskell-ts-indent--select-parens-anchor curr-type curr prev consider-spaces-after-open-paren?))
+                      ;; Never select forall as our anchor
+                      ;; ((not (string= (treesit-node-type candidate) "forall")))
+                      )
+            (throw 'term (if (string= (treesit-node-type candidate) "function")
+                             (treesit-node-parent candidate)
+                           candidate)))
           (cond
             ((and consider-context?
                   (string= curr-type "context"))
@@ -423,9 +483,6 @@
 
 (defun haskell-ts-indent--type-function-context-anchor (node parent bol)
   (haskell-ts-indent--type-function-anchor--impl node parent bol nil nil))
-
-(defun haskell-ts-indent--type-function-arrow-anchor (node parent bol)
-  (haskell-ts-indent--type-function-anchor--impl node parent bol t t))
 
 (defun haskell-ts-indent--type-function--find-above-forall (node)
   (treesit-utils-find-closest-parent-until
@@ -502,6 +559,9 @@
                    (treesit-node-end (haskell-ts-getters--get-opening-paren parent)))
                 2))
        -3)
+      ((or (string= "parens" typ)
+           (string= "tuple" typ))
+       0)
       (t
        haskell-indent-offset))))
 
@@ -517,11 +577,11 @@
 (defun haskell-ts-indent--context-arrow-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type node) "=>"))
   (cl-assert (string= (treesit-node-type parent) "context"))
-  (let* ((forall (treesit-node-parent parent))
-         (anchor (if (and forall
-                          (string= (treesit-node-type forall) "forall"))
-                     (treesit-node-parent forall)
-                   forall)))
+  (let* ((p (treesit-node-parent parent))
+         (anchor (if (and p
+                          (string= (treesit-node-type p) "forall"))
+                     (treesit-node-parent p)
+                   p)))
     (haskell-ts-indent--context-anchor anchor)))
 
 (defun haskell-ts-indent--context-dot-anchor (node parent bol)
@@ -815,17 +875,14 @@
 
              ((node-is "deriving") parent haskell-indent-offset)
 
-             ((n-p-gp "->" "function" nil)
-              haskell-ts-indent--type-function-arrow-anchor
-              haskell-ts-indent--function-indent)
+             ((or (n-p-gp "->" "function" nil)
+                  (n-p-gp "=>" "context" nil))
+              haskell-ts-indent--function-arrow-anchor
+              haskell-ts-indent--function-arrow-indent)
 
              ((n-p-gp "|]" "quasiquote" nil)
               parent
               0)
-
-             ((n-p-gp "=>" "context" nil)
-              haskell-ts-indent--context-arrow-anchor
-              haskell-ts-indent--function-indent)
 
              ((n-p-gp "." "forall" nil)
               haskell-ts-indent--context-dot-anchor
@@ -844,7 +901,7 @@
                        (+ haskell-indent-offset 1)
                      haskell-indent-offset))))
 
-             ((and (n-p-gp nil "context" '("forall" "parens" "signature"))
+             ((and (n-p-gp nil "context" '("forall" "parens" "tuple" "signature"))
                    (field-is "context"))
               haskell-ts-indent--type-function-context-anchor
               ,(lambda (node parent _)
@@ -896,14 +953,13 @@
                        (+ haskell-indent-offset 1)
                      haskell-indent-offset))))
 
-             ;; todo
              ;; Last argument in a function’s type signature.
              ((or
                ;; First argument when there’s context
                ;; (n-p-gp nil "context" '("forall" "parens" "signature"))
                ;; No context, try to catch fist argument of a vanilla
                ;; function
-               (and (n-p-gp nil "function" '("function" "context"))
+               (and (parent-is "function")
                     (field-is "result")))
               haskell-ts-indent--type-function-result-anchor
               ,(lambda (node parent _)
