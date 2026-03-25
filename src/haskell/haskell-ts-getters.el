@@ -30,6 +30,17 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-getters--get-opening-generic-paren (node)
+  (cl-assert (member (treesit-node-type node) '("parens" "tuple" "unboxed_tuple" "list")))
+  (let ((result (treesit-node-child node 0)))
+    (cl-assert (member (treesit-node-type result) '("(" "(#" "[" "{"))
+               nil
+               "Not an generic opening paren: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (defun haskell-ts-getters--get-parens-content (node)
   (cl-assert (string= (treesit-node-type node) "parens"))
   (if (= (treesit-node-child-count node) 3)
