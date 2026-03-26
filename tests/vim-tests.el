@@ -8634,6 +8634,156 @@ _|_bar")
    "xfoofo_|_oy"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/nix-backward-up-indentation-or-sexp-1a
+ :action
+ (nix-backward-up-indentation-or-sexp)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = {"
+  "    nixpkgs-stable = {"
+  "      url _|_= \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = {"
+  "    nixpkgs-stable = {"
+  "      _|_url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/nix-backward-up-indentation-or-sexp-1b
+ :action
+ (nix-backward-up-indentation-or-sexp)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = {"
+  "    nixpkgs-stable = {"
+  "      _|_url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = {"
+  "    nixpkgs-stable = _|_{"
+  "      url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/nix-backward-up-indentation-or-sexp-1c
+ :action
+ (nix-backward-up-indentation-or-sexp)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = {"
+  "    nixpkgs-stable = _|_{"
+  "      url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = {"
+  "    _|_nixpkgs-stable = {"
+  "      url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/nix-backward-up-indentation-or-sexp-1d
+ :action
+ (nix-backward-up-indentation-or-sexp)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = {"
+  "    _|_nixpkgs-stable = {"
+  "      url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = _|_{"
+  "    nixpkgs-stable = {"
+  "      url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/nix-backward-up-indentation-or-sexp-1e
+ :action
+ (nix-backward-up-indentation-or-sexp)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{"
+  "  inputs = _|_{"
+  "    nixpkgs-stable = {"
+  "      url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{"
+  "  _|_inputs = {"
+  "    nixpkgs-stable = {"
+  "      url = \"nixpkgs/nixos-25.11\";"
+  "    };"
+  "  };"
+  "}"
+  ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
