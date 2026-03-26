@@ -1,6 +1,8 @@
 -include ../config.mk
 include ../default.mk
 
+.PHONY: stats
+
 docs: texi info html html-dir pdf
 
 texi:     $(PKG).texi
@@ -9,7 +11,6 @@ html:     $(PKG).html
 html-dir: $(PKG)/index.html
 pdf:      $(PKG).pdf
 
-ORG_ARGS  = --batch -Q $(ORG_LOAD_PATH)
 ORG_EVAL += --eval "(setq indent-tabs-mode nil)"
 ORG_EVAL += --eval "(setq org-src-preserve-indentation nil)"
 ORG_EVAL += --eval "\
@@ -27,7 +28,7 @@ _    := $(shell test "$(REVDESC)" = "$$(cat .revdesc 2> /dev/null)" ||\
 
 %.texi: %.org .orgconfig .revdesc
 	@printf "Generating $@\n"
-	@$(EMACS) $(ORG_ARGS) $< $(ORG_EVAL)
+	@$(EMACS_ORG) $< $(ORG_EVAL)
 
 %.info: %.texi
 	@printf "Generating $@\n"
@@ -37,13 +38,13 @@ dir: $(PKG).info
 	@printf "Generating $@\n"
 	@printf "%s" $^ | xargs -n 1 $(INSTALL_INFO) --dir=$@
 
-HTML_FIXUP_CSS    = '/<link rel="stylesheet" type="text\/css" href="\/assets\/page.css">/a\
-<link rel="icon" href="/assets/magit_alt1.ico">\
-\n<link class="s-css-s--style" rel="stylesheet"           title="Default"               href="/assets/themes/default.css">\
-\n<link class="s-css-s--style" rel="stylesheet alternate" title="Default high contrast" href="/assets/themes/default-high-contrast.css">\
-\n<link class="s-css-s--style" rel="stylesheet alternate" title="Solarized dark xterm"  href="/assets/themes/solarized-dark-xterm.css">\
-\n<link class="s-css-s--style" rel="stylesheet alternate" title="Black on white"        href="/assets/themes/black-on-white.css">\
-\n<script src="/assets/js/simple-css-switch.js"></script>'
+HTML_FIXUP_CSS    = '/<link rel="stylesheet" type="text\/css" href="https:\/\/$(DOMAIN)\/assets\/page.css">/a\
+<link rel="icon" href="https://$(DOMAIN)/assets/magit_alt1.ico">\
+\n<link class="s-css-s--style" rel="stylesheet"           title="Default"               href="https://$(DOMAIN)/assets/themes/default.css">\
+\n<link class="s-css-s--style" rel="stylesheet alternate" title="Default high contrast" href="https://$(DOMAIN)/assets/themes/default-high-contrast.css">\
+\n<link class="s-css-s--style" rel="stylesheet alternate" title="Solarized dark xterm"  href="https://$(DOMAIN)/assets/themes/solarized-dark-xterm.css">\
+\n<link class="s-css-s--style" rel="stylesheet alternate" title="Black on white"        href="https://$(DOMAIN)/assets/themes/black-on-white.css">\
+\n<script src="https://$(DOMAIN)/assets/js/simple-css-switch.js"></script>'
 HTML_FIXUP_ONLOAD = 's/<body lang="en">/<body lang="en" onload="simpleCssSwitch()">/'
 HTML_FIXUP_MENU   = '/<\/body>/i<div id="s-css-s--menu"><\/div>'
 
@@ -64,49 +65,31 @@ HTML_FIXUP_MENU   = '/<\/body>/i<div id="s-css-s--menu"><\/div>'
 	@printf "Generating $@\n"
 	@texi2pdf --clean $< > /dev/null
 
-PUBLISH_PATH   ?= /manual/
-RELEASE_PATH   ?= /manual/$(VERSION)/
-S3_BUCKET      ?= s3://$(DOMAIN)
-PUBLISH_TARGET  = $(S3_BUCKET)$(PUBLISH_PATH)
-RELEASE_TARGET  = $(S3_BUCKET)$(RELEASE_PATH)
-CFRONT_PATHS    = $(PKG).html $(PKG).pdf $(PKG)/*
-
-comma := ,
-empty :=
-space := $(empty) $(empty)
+DOCS_DOMAIN = docs.$(DOMAIN)
+STAT_DOMAIN = stats.$(DOMAIN)
+SNAP_TARGET = $(subst .,_,$(DOCS_DOMAIN)):devel/$(PKG)/
+DOCS_TARGET = $(subst .,_,$(DOCS_DOMAIN)):$(PKG)/
+STAT_TARGET = $(subst .,_,$(STAT_DOMAIN)):$(PKG)/
 
 publish: redo-docs
-	@aws s3 cp $(PKG).html $(PUBLISH_TARGET)
-	@aws s3 cp $(PKG).pdf  $(PUBLISH_TARGET)
-	@aws s3 sync $(PKG)    $(PUBLISH_TARGET)$(PKG)/
-	@printf "Generating CDN invalidation\n"
-	@aws cloudfront create-invalidation --distribution-id $(CFRONT_DIST) --paths \
-	"$(subst $(space),$(comma),$(addprefix $(PUBLISH_PATH),$(CFRONT_PATHS)))" > /dev/null
+	@printf "Publishing snapshot manual...\n"
+	@cp $(PKG).pdf $(PKG)/$(PKG).pdf
+	@$(RCLONE) sync $(RCLONE_ARGS) $(PKG) $(SNAP_TARGET)
 
 release: redo-docs
-	@aws s3 cp $(PKG).html $(RELEASE_TARGET)
-	@aws s3 cp $(PKG).pdf  $(RELEASE_TARGET)
-	@aws s3 sync $(PKG)    $(RELEASE_TARGET)$(PKG)/
-	@aws s3 cp $(PUBLISH_TARGET)dir.html $(RELEASE_TARGET)dir.html
-	@aws s3 cp $(PUBLISH_TARGET)dir/index.html $(RELEASE_TARGET)dir/index.html
-	@printf "Generating CDN invalidation\n"
-	@aws cloudfront create-invalidation --distribution-id $(CFRONT_DIST) --paths \
-	"$(subst $(space),$(comma),$(addprefix $(RELEASE_PATH),$(CFRONT_PATHS)))" > /dev/null
+	@printf "Publishing release manual...\n"
+	@cp $(PKG).pdf $(PKG)/$(PKG).pdf
+	@$(RCLONE) sync $(RCLONE_ARGS) $(PKG) $(DOCS_TARGET)
 
-.PHONY: stats
 stats:
-	@printf "Generating statistics\n"
+	@printf "Generating statistics...\n"
 	@$(GITSTATS) $(GITSTATS_ARGS) $(TOP) $(GITSTATS_DIR)
 
 stats-upload:
 	@printf "Uploading statistics...\n"
-	@aws s3 sync $(GITSTATS_DIR) $(S3_BUCKET)/stats/$(PKG)
-	@printf "Uploaded to $(S3_BUCKET)/stats/$(PKG)\n"
-	@printf "Generating CDN invalidation\n"
-	@aws cloudfront create-invalidation \
-	--distribution-id $(CFRONT_DIST) --paths "/stats/*" > /dev/null
+	@$(RCLONE) sync $(RCLONE_ARGS) stats $(STAT_TARGET)
 
-CLEAN = $(PKG).info dir $(PKG) $(PKG).html $(PKG).pdf
+CLEAN = .revdesc $(PKG).info dir $(PKG) $(PKG).html $(PKG).pdf $(STAT_TARGET)
 
 clean:
 	@printf " Cleaning docs/*...\n"
