@@ -184,8 +184,7 @@ sexps and indentation levels."
 
   (setq-local vim-bounds-of-string-guess-start #'vim--bounds-of-string--guess-via-comint-prompt)
 
-  (with-editor-export-editor)
-  (with-editor-export-git-editor)
+  (with-editor-export-editor '("EDITOR" "GIT_EDITOR"))
 
   (add-hook 'comint-preoutput-filter-functions #'xterm-color-filter nil t)
   (setq-local comint-scroll-to-bottom-on-input t)
