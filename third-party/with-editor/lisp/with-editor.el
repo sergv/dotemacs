@@ -77,6 +77,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'dash))
+
 (require 'cl-lib)
 (require 'compat)
 (require 'server)
@@ -751,14 +754,22 @@ commands to use the current Emacs instance as \"the editor\".
 This works in `shell-mode', `term-mode', `eshell-mode' and
 `vterm'."
   (interactive (list (with-editor-read-envvar)))
+  (cl-assert (or (stringp envvar) (listp envvar)))
   (cond
     ((derived-mode-p 'comint-mode 'term-mode)
      (when-let ((process (get-buffer-process (current-buffer))))
        (goto-char (process-mark process))
        (process-send-string
-        process (format " export %s=%s\n" envvar
-                        (shell-quote-argument with-editor-sleeping-editor)))
-       (while (accept-process-output process 1 nil t))
+        process
+        (let ((quoted-editor (shell-quote-argument with-editor-sleeping-editor)))
+          (if (listp envvar)
+              (concat " export "
+                      (mapconcat (lambda (x) (concat x "=" quoted-editor))
+                                 envvar
+                                 " ")
+                      "\n")
+            (format " export %s=%s\n" envvar quoted-editor))))
+       (while (accept-process-output process 0.1 nil t))
        (if (derived-mode-p 'term-mode)
            (with-editor-set-process-filter process #'with-editor-emulate-terminal)
          (add-hook 'comint-output-filter-functions #'with-editor-output-filter
