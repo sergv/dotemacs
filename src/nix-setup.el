@@ -78,7 +78,7 @@
   "Nix brother of ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (interactive)
-  (indent-backward-up-indentation-or-sexp #'indent-on-blank-line?))
+  (indent-backward-up-indentation-or-sexp #'indent-on-blank-line? t))
 
 (vimmize-motion nix-backward-up-indentation-or-sexp
                 :name vim:nix-backward-up-indentation-or-sexp
