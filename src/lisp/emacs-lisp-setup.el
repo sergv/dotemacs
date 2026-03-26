@@ -10,6 +10,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'dash)
   (require 'macro-util)
   (require 'comment-util))
 
@@ -24,6 +25,19 @@
 (require 'set-up-paths)
 
 ;;; elisp fontification and indentation
+
+;;;###autoload
+(defun elisp-setup--is-safe-lisp-indent-local-overrides? (x)
+  (and (listp x)
+       (--every (and (consp it)
+                     (symbolp (car it))
+                     (numberp (cdr it)))
+                x)))
+
+;;;###autoload
+(put 'lisp-indent-local-overrides
+     'safe-local-variable
+     #'elisp-setup--is-safe-lisp-indent-local-overrides?)
 
 (font-lock-add-keywords
  'emacs-lisp-mode
