@@ -336,7 +336,7 @@ as a fallback if those are not available."
           (when ignored-absolute-dirs
             (concat "\\`\\(?:"
                     (mk-regexp-from-alts ignored-absolute-dirs)
-                    "\\)\\(?:/.*\\)?\\'"))))
+                    "\\)\\(?:/\\)?\\'"))))
     (let ((results
            (find-rec root
                      :filep
