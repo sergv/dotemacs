@@ -1,0 +1,5 @@
+((languages haskell-mode)
+ (aux-files
+  (tree "." "*.hs"))
+ (related "subproject/"
+          "../sideproject"))
