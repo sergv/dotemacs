@@ -777,10 +777,7 @@ for project at ROOT directory."
          (cached-ignored-files-re
           (let ((related-projs-globs
                  (--map (concat (strip-string-prefix (concat root "/") it) "/*")
-                        (--filter (string-prefix-p root
-                                                   it
-                                                   ;; ignore case
-                                                   (fold-platform-os-type nil t))
+                        (--filter (eproj--path-under-p root it)
                                   related-projects))))
             (globs-to-regexp ignored-files-globs)))
          (no-default-project-for (cdr-safe (assq 'no-default-proj aux-info)))
@@ -1582,10 +1579,8 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
 (add-to-list 'ivy-re-builders-alist
              '(eproj-switch-to-file-or-buffer . ivy--regex-fuzzy-filenames))
 
-;;;###autoload
-(defun eproj-switch-to-file-or-buffer (proj include-all-buffers?)
-  (let ((root (eproj-project/root proj))
-        (this-command 'eproj-switch-to-file-or-buffer))
+(defun eproj-switch-to-file-or-buffer--make-navigation-entries (proj initial-buffers include-all-buffers?)
+  (let ((root (eproj-project/root proj)))
     (unless proj
       (error "No project for current buffer"))
     (let* ((navigation-projects
@@ -1597,18 +1592,10 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
            ;; List of (<display-name> . <absolute-file-name>).
            ;; <display-name> will be shown to the user and used for completion.
            ;; <absolute-file-name> will be used to actually locate the file.
-           (files nil)
+           (navigation-entries nil)
            ;; Hash table to filter out duplicates.
            (collected-entries
             (make-hash-table :test #'equal :size 997))
-           (on-item-selected
-            (lambda (selected-entry)
-              (if (stringp selected-entry)
-                  (switch-to-buffer-create-if-missing selected-entry)
-                (let ((target (cdr selected-entry)))
-                  (if (bufferp target)
-                      (switch-to-buffer-create-if-missing target)
-                    (find-file target))))))
            (buffers-cache (let ((tbl (make-hash-table :test #'equal)))
                             (dolist (buf (buffer-list))
                               (awhen (buffer-file-name buf)
@@ -1616,46 +1603,52 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
                             tbl))
            (bufs-to-add (make-hash-table :test #'equal))
            (add-file
-            (lambda (rel-path abs-path)
+            (lambda (rel-path abs-path comes-from-same-hierarchy-as-main-project?)
               (cl-assert (not (null abs-path)))
               (let ((buf (gethash abs-path buffers-cache)))
                 (if (and buf
                          (not (invisible-buffer? buf)))
                     (puthash buf buf bufs-to-add)
-                  (dolist (p (if rel-path
-                                 (list abs-path rel-path)
-                               (list abs-path)))
-                    (unless (gethash p collected-entries nil)
-                      (puthash p t collected-entries)
-                      (push (cons p abs-path) files))))))))
+                  (let ((paths-to-add
+                         (if (and comes-from-same-hierarchy-as-main-project?
+                                  rel-path)
+                             (list abs-path rel-path)
+                           (list abs-path))))
+                    (dolist (p paths-to-add)
+                      (unless (gethash p collected-entries nil)
+                        (puthash p t collected-entries)
+                        (push (cons p abs-path) navigation-entries)))))))))
       (let ((eproj-file (concat root "/.eproj-info")))
         (when (file-exists-p eproj-file)
-          (funcall add-file ".eproj-info" eproj-file)))
+          (funcall add-file ".eproj-info" eproj-file t)))
       (dolist (related-proj navigation-projects)
-        (let ((related-root (eproj-project/root related-proj)))
+        (let* ((related-root (eproj-project/root related-proj))
+               (related-shares-same-hierarchy-as-main-project?
+                (or (eproj--path-under-p root related-root)
+                    (eproj--path-under-p related-root root))))
           (eproj-with-all-project-files-for-navigation related-proj
                                                        (lambda (rel-path)
                                                          (cl-assert (stringp rel-path))
-                                                         (funcall add-file rel-path (concat related-root "/" rel-path))))
+                                                         (funcall add-file
+                                                                  rel-path
+                                                                  (concat related-root "/" rel-path)
+                                                                  related-shares-same-hierarchy-as-main-project?)))
           (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
             (when (file-exists-p eproj-file)
-              (funcall add-file nil eproj-file)))))
+              (funcall add-file nil eproj-file related-shares-same-hierarchy-as-main-project?)))))
       (dolist (buf (nreverse (if include-all-buffers?
-                                 (buffer-list)
+                                 initial-buffers
                                (--filter (or (null (buffer-file-name it))
                                              (gethash it bufs-to-add)
                                              (when-let (pr (eproj-get-project-for-buf-lax it))
                                                (gethash (eproj-project/root pr) related-roots)))
-                                         (visible-buffers)))))
+                                         initial-buffers))))
         (let* ((buffer-abs-file (buffer-file-name buf))
                (names
                 (if buffer-abs-file
                     ;; If buffer is under current project's root, add it under
                     ;; both relative and absolute names.
-                    (if (string-prefix-p root
-                                         buffer-abs-file
-                                         ;; ignore case
-                                         (fold-platform-os-type nil t))
+                    (if (eproj--path-under-p root buffer-abs-file)
                         (list (file-relative-name buffer-abs-file root)
                               buffer-abs-file)
                       (list buffer-abs-file))
@@ -1664,9 +1657,29 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
           (dolist (name names)
             (unless (gethash name collected-entries nil)
               (puthash name t collected-entries)
-              (push (cons name buf) files)))))
+              (push (cons name buf) navigation-entries)))))
+      (cons navigation-entries collected-entries))))
+
+(defun eproj--path-under-p (prefix path)
+  (string-prefix-p prefix
+                   path
+                   ;; ignore case
+                   (fold-platform-os-type nil t)))
+
+;;;###autoload
+(defun eproj-switch-to-file-or-buffer (proj include-all-buffers?)
+  (let ((root (eproj-project/root proj))
+        (this-command 'eproj-switch-to-file-or-buffer)
+        (navigation-result
+         (eproj-switch-to-file-or-buffer--make-navigation-entries proj
+                                                                  (if include-all-buffers?
+                                                                      (buffer-list)
+                                                                    (visible-buffers))
+                                                                  include-all-buffers?)))
+    (let ((navigation-entries (car navigation-result))
+          (collected-entries (cdr navigation-result)))
       (ivy-read "Buffer or file: "
-                files
+                navigation-entries
                 :require-match nil
                 :caller 'eproj-switch-to-file-or-buffer
                 :history 'eproj-switch-to-file--history
@@ -1680,7 +1693,14 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
                                        (t
                                         nil)))
                                  (buffer-name (other-buffer (current-buffer)))))
-                :action on-item-selected))))
+                :action
+                (lambda (selected-entry)
+                  (if (stringp selected-entry)
+                      (switch-to-buffer-create-if-missing selected-entry)
+                    (let ((target (cdr selected-entry)))
+                      (if (bufferp target)
+                          (switch-to-buffer-create-if-missing target)
+                        (find-file target)))))))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.eproj-info\\'" . emacs-lisp-mode))

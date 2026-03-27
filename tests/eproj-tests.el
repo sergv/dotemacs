@@ -125,6 +125,9 @@ under ROOT directory."
 (defconst eproj-tests/project-with-ignored-dirs
   (expand-file-name (concat eproj-tests/project-dir "/project-with-ignored-dirs")))
 
+(defconst eproj-tests/project-with-navigation-file-construction
+  (expand-file-name (concat eproj-tests/project-dir "/navigation-file-construction")))
+
 (eproj-tests--define-tests
     "eproj-tests/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
@@ -641,6 +644,110 @@ under ROOT directory."
                      (eproj-tests/sort-file-list expected-navigation-files)))
       (should (equal (eproj-tests/sort-file-list (eproj--get-all-files proj))
                      (eproj-tests/sort-file-list expected-navigation-files))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/project-with-navigation-file-construction--mainproject"
+  (let* ((root eproj-tests/project-with-navigation-file-construction)
+         (path (concat root "/mainproject"))
+         (proj (eproj-get-project-for-path path)))
+    (should (not (null proj)))
+    (let ((actual-navigation-files nil)
+          (expected-navigation-files
+           '("Mainfile.hs"
+             "mainhelper.txt")))
+      (should (string= (eproj-project/root proj)
+                       path))
+      (eproj-with-all-project-files-for-navigation proj
+                                                   (lambda (rel-path)
+                                                     (push rel-path actual-navigation-files)))
+      (should (equal (eproj-tests/sort-file-list actual-navigation-files)
+                     (eproj-tests/sort-file-list expected-navigation-files)))
+
+      (should (equal (eproj-tests/sort-file-list (eproj--get-project-files proj))
+                     (eproj-tests/sort-file-list '("Mainfile.hs"))))
+
+      (should (equal (eproj-tests/sort-file-list (eproj--get-all-files proj))
+                     (eproj-tests/sort-file-list '("Mainfile.hs"))))
+
+      (let ((navigation-entries (car (eproj-switch-to-file-or-buffer--make-navigation-entries proj nil t)))
+            (expected-navigation
+             (eproj-tests/sort-file-list
+              (append
+               ;; Relative paths are only produced for main project and any related
+               ;; projects above or under it.
+               '(".eproj-info"
+                 "Mainfile.hs"
+                 "mainhelper.txt"
+                 "Subfile.hs"
+                 "subhelper.txt")
+               (--map (concat root "/mainproject/" it)
+                      '(".eproj-info"
+                        "Mainfile.hs"
+                        "mainhelper.txt"))
+               (--map (concat root "/mainproject/subproject/" it)
+                      '(".eproj-info"
+                        "Subfile.hs"
+                        "subhelper.txt"))
+               (--map (concat root "/sideproject/" it)
+                      '(".eproj-info"
+                        "Sidefile.hs"
+                        "sidehelper.txt"))))))
+        (should (-all? #'consp navigation-entries))
+        (should (--all? (file-name-absolute-p (cdr it)) navigation-entries))
+        (should (equal (eproj-tests/sort-file-list (-map #'car navigation-entries))
+                       expected-navigation))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/project-with-navigation-file-construction--subproject"
+  (let* ((root eproj-tests/project-with-navigation-file-construction)
+         (path (concat root "/mainproject/subproject"))
+         (proj (eproj-get-project-for-path path)))
+    (should (not (null proj)))
+    (let ((actual-navigation-files nil)
+          (expected-navigation-files
+           '("Subfile.hs"
+             "subhelper.txt")))
+      (should (string= (eproj-project/root proj)
+                       path))
+      (eproj-with-all-project-files-for-navigation proj
+                                                   (lambda (rel-path)
+                                                     (push rel-path actual-navigation-files)))
+      (should (equal (eproj-tests/sort-file-list actual-navigation-files)
+                     (eproj-tests/sort-file-list expected-navigation-files)))
+
+      (should (equal (eproj-tests/sort-file-list (eproj--get-project-files proj))
+                     (eproj-tests/sort-file-list '("Subfile.hs"))))
+
+      (should (equal (eproj-tests/sort-file-list (eproj--get-all-files proj))
+                     (eproj-tests/sort-file-list '("Subfile.hs"))))
+
+      (let ((navigation-entries (car (eproj-switch-to-file-or-buffer--make-navigation-entries proj nil t)))
+            (expected-navigation
+             (eproj-tests/sort-file-list
+              (append
+               ;; Relative paths are only produced for main project and any related
+               ;; projects above or under it.
+               '(".eproj-info"
+                 "Mainfile.hs"
+                 "mainhelper.txt"
+                 "Subfile.hs"
+                 "subhelper.txt")
+               (--map (concat root "/mainproject/" it)
+                      '(".eproj-info"
+                        "Mainfile.hs"
+                        "mainhelper.txt"))
+               (--map (concat root "/mainproject/subproject/" it)
+                      '(".eproj-info"
+                        "Subfile.hs"
+                        "subhelper.txt"))
+               (--map (concat root "/sideproject/" it)
+                      '(".eproj-info"
+                        "Sidefile.hs"
+                        "sidehelper.txt"))))))
+        (should (-all? #'consp navigation-entries))
+        (should (--all? (file-name-absolute-p (cdr it)) navigation-entries))
+        (should (equal (eproj-tests/sort-file-list (-map #'car navigation-entries))
+                       expected-navigation))))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
