@@ -204,7 +204,8 @@
             "qualified"
             "module"
             "foreign"
-            (wildcard "_")
+            (wildcard)
+            (typed_hole)
             ]
            @haskell-ts-keyword-face)
 
