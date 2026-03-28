@@ -161,8 +161,8 @@ See also `indent-relative-maybe'."
 
 (defun indent-on-blank-line? ()
   "Assumes point is at 0th column."
-  (cl-assert (= 0 (current-column-fixed-uncached)))
   (save-excursion
+    (move-to-column 0)
     (skip-indentation-forward)
     (let ((c (char-after)))
       ;; Check that we’re at line end.
