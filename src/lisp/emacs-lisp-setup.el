@@ -111,13 +111,11 @@ _j_: eval"
 expand _m_acro  _M_: fully expand macro
 
 _e_val
-realign _l_et
 "
   ("m" expand-last-macro)
   ("M" expand-last-macro-all)
 
-  ("e" eval-last-sexp)
-  ("l" realign-let))
+  ("e" eval-last-sexp))
 
 ;;;###autoload
 (defun emacs-lisp-setup ()
