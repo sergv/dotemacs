@@ -490,25 +490,6 @@ URL `http://user42.tuxfamily.org/align-let/index.html'"
                   ;; increase space
                   (insert-char ?\s (- width this-width))))))))))
 
-;;;###autoload
-(defun align-let-keybinding ()
-  "Bind C-c C-a to `align-let' in the current mode keymap.
-This is designed for use from the mode hook of any lisp-like
-language, eg. `emacs-lisp-mode-hook' or `scheme-mode-hook'.
-
-In the current implementation, if you `unload-feature' to remove
-`align-let' the key bindings made here are not removed.  If you
-use the `autoload' recommended in the align-let.el Install
-\(manually or generated) then Emacs automatically re-loads on a
-later `C-c C-a'."
-
-  (define-key (current-local-map) [?\C-c ?\C-a] 'align-let))
-
-;;;###autoload
-;; (custom-add-option 'emacs-lisp-mode-hook 'align-let-keybinding)
-;;;###autoload
-;; (custom-add-option 'scheme-mode-hook     'align-let-keybinding)
-
 ;;-----------------------------------------------------------------------------
 
 ;;;###autoload
