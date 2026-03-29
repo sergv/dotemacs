@@ -65,6 +65,28 @@
 
 (defalign lisp-align-on-comments ";+")
 
+(defun lisp-align-single-let ()
+  "Realign let/setq/setf/etc form at point."
+  (interactive "*")
+  (save-excursion
+    (condition-case nil
+        (progn
+          (align-let)
+          (glisp/backward-up-list)
+          (indent-sexp))
+      (error nil))))
+
+(defun lisp-align-let ()
+  (interactive "*")
+  (if (region-active-p)
+      (with-region-bounds start end
+        (align-let-region start end))
+    (lisp-align-single-let)))
+
+(defun lisp-align-everything ()
+  (interactive "*")
+  (lisp-align-let)
+  (lisp-align-on-comments))
 
 (setq-default lisp-indent-function #'lisp-indent-function)
 (setf lisp-indent-function #'lisp-indent-function)
@@ -390,19 +412,6 @@ nor comment."
   (and (not (eobp))
        (lisp-pos-is-end-of-string? (point))))
 
-;;;; list navigation, realign let
-
-(defun realign-let ()
-  "Realign let/setq/setf/etc form at point."
-  (interactive)
-  (save-excursion
-    (condition-case nil
-        (progn
-          (align-let)
-          (glisp/backward-up-list)
-          (indent-sexp))
-      (error nil))))
-
 ;;;; navigation
 
 (defun glisp/backward-up-list ()
@@ -541,9 +550,12 @@ nor comment."
 (defhydra-ext hydra-lisp-align (:exit t :foreign-keys nil :hint nil)
   "
 _l_et
-_;_: comments"
-  ("l" realign-let)
-  (";" lisp-align-on-comments))
+_;_: comments
+
+_a_ll"
+  ("l" lisp-align-let)
+  (";" lisp-align-on-comments)
+  ("a" lisp-align-everything))
 
 (defhydra-derive hydra-lisp-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
