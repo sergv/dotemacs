@@ -655,6 +655,12 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-quote ()
   (interactive "*")
   (cond
+    ((and (derived-mode-p 'haskell-ts-base-mode)
+          (let ((p (point)))
+            (when-let* ((node (treesit-node-at p)))
+              (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
+                   (treesit-haskell--is-inside-node? p node)))))
+     (insert-char ?\'))
     ((or
       ;; Only string
       (haskell-smart-operators--literal-insertion? t)
