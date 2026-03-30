@@ -444,9 +444,10 @@ and indent when all of the following are true:
           (if (eq (point) point)
               (forward-line -1)
             (beginning-of-line)))
-        (let ((node (treesit-haskell--current-node)))
+        (let* ((p (point))
+               (node (treesit-haskell--node-at p)))
           (if (when node
-                (or (haskell-smart-operators--treesit--in-string?-sure node)
+                (or (haskell-smart-operators--treesit--in-string?-sure p node)
                     (haskell-smart-operators--treesit--in-comment?-sure node)))
               (goto-char (treesit-node-start node))
             (let* ((ps (syntax-ppss))
@@ -506,8 +507,9 @@ and indent when all of the following are true:
 
 (defun haskell-indentation-find-indentations ()
   "Return list of indentation positions corresponding to actual cursor position."
-  (let ((node (treesit-haskell--current-node))
-        (ppss nil))
+  (let* ((p (point))
+         (node (treesit-haskell--node-at p))
+         (ppss nil))
     (pcase-let* ((`(,anchor . ,offset) (when node (haskell-ts-indent-line--indent-1))))
       (let ((treesit-indent
              (when (and anchor offset)
@@ -523,7 +525,7 @@ and indent when all of the following are true:
                (append
                 treesit-indent
                 (cond
-                  ((or (haskell-smart-operators--in-string-syntax?-raw node)
+                  ((or (haskell-smart-operators--in-string-syntax?-raw p node)
                        (nth 3 (syntax-ppss-update! ppss)))
                    (if (save-excursion
                          (and (forward-line -1)
