@@ -37,6 +37,11 @@
   (and (< (treesit-node-start node) p)
        (<= p (treesit-node-end node))))
 
+(defun treesit-haskell--is-pragma-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (string= typ "pragma"))
+
 (defun treesit-haskell--is-comment-node-type? (typ)
   (declare (pure t) (side-effect-free t))
   (cl-assert (stringp typ))

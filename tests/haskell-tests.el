@@ -11183,6 +11183,23 @@ have different input states."
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--single-quote-context-1e
+ :action
+ (haskell-smart-operators-quote)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINABLE bubbleMaximumToIdx_|_ #-}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINABLE bubbleMaximumToIdx'_|_ #-}"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
