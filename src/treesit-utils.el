@@ -42,7 +42,7 @@
   (cl-assert (stringp typ))
   (or (string= typ "comment")
       (string= typ "haddock")
-      (string= typ "pragma")))
+      (treesit-haskell--is-pragma-node-type? typ)))
 
 (defun treesit-haskell--is-string-node-type? (typ)
   (declare (pure t) (side-effect-free t))
@@ -114,7 +114,7 @@
 
 (defun treesit-haskell--is-inside-pragma-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (and (string= "pragma" (treesit-node-type node))
+  (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
        (treesit-haskell--is-inside-node? p node)))
 
 (cl-defstruct treesit-computed-indent

@@ -17,15 +17,14 @@
   (and node
        (string= (treesit-node-type node) "quasiquote_body")))
 
-(defun haskell-smart-operators--treesit--in-string?-sure (node)
+(defun haskell-smart-operators--treesit--in-string?-sure (p node)
   (when (treesit-haskell--is-string-node-type? (treesit-node-type node))
-    (let ((p (point)))
-      (and (< (treesit-node-start node) p)
-           (< p (treesit-node-end node))))))
+    (and (< (treesit-node-start node) p)
+         (< p (treesit-node-end node)))))
 
-(defsubst haskell-smart-operators--treesit--in-string? (node)
+(defsubst haskell-smart-operators--treesit--in-string? (p node)
   (when node
-    (haskell-smart-operators--treesit--in-string?-sure node)))
+    (haskell-smart-operators--treesit--in-string?-sure p node)))
 
 (defun haskell-smart-operators--treesit--in-comment?-sure (node)
   (treesit-haskell--is-comment-node-type? (treesit-node-type node)))
@@ -35,16 +34,17 @@
     (haskell-smart-operators--treesit--in-comment?-sure node)))
 
 ;;;###autoload
-(defun haskell-smart-operators--in-string-syntax?-raw (node)
-  (or (haskell-smart-operators--treesit--in-string? node)
+(defun haskell-smart-operators--in-string-syntax?-raw (p node)
+  (or (haskell-smart-operators--treesit--in-string? p node)
       (if (bobp)
           nil
-        (and (eq (syntax-class (syntax-after (1- (point)))) 7)
-             (eq (syntax-class (syntax-after (point))) 7)))))
+        (and (eq (syntax-class (syntax-after (1- p))) 7)
+             (eq (syntax-class (syntax-after p)) 7)))))
 
 ;;;###autoload
 (defun haskell-smart-operators--in-string-syntax? ()
-  (haskell-smart-operators--in-string-syntax?-raw (treesit-haskell--current-node)))
+  (let ((p (point)))
+    (haskell-smart-operators--in-string-syntax?-raw p (treesit-haskell--node-at p))))
 
 ;;;###autoload
 (defun haskell-smart-operators--literal-insertion? (&optional disable-comment-check?)
@@ -55,7 +55,7 @@
           ;; comment so literal insertion context they entail does not apply.
           (and (<= (treesit-node-start node) p)
                (<= p (treesit-node-end node))
-               (or (haskell-smart-operators--treesit--in-string?-sure node)
+               (or (haskell-smart-operators--treesit--in-string?-sure p node)
                    (and (not disable-comment-check?)
                         (haskell-smart-operators--treesit--in-comment?-sure node))))))
       (smart-operators--literal-insertion? disable-comment-check?)))
