@@ -15,7 +15,7 @@
 
 (defun haskell-smart-operators--treesit--in-quasiquote-body? (node)
   (and node
-       (equal (treesit-node-type node) "quasiquote_body")))
+       (string= (treesit-node-type node) "quasiquote_body")))
 
 (defun haskell-smart-operators--treesit--in-string?-sure (node)
   (when (treesit-haskell--is-string-node-type? (treesit-node-type node))
