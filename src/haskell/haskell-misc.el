@@ -751,7 +751,8 @@ a single entity."
       (when (null expanded-function-name?)
         (goto-char start-pos)
         (let* ((syn nil)
-               (node (treesit-haskell--current-node))
+               (p (point))
+               (node (treesit-haskell--node-at p))
                (multiline-string-start
                 (when (and node
                            (treesit-haskell--is-multiline-string? node))
@@ -764,12 +765,12 @@ a single entity."
                               ;; strings separated by backslashes.
                               nil)
                              ((and (derived-mode-p 'haskell-mode)
-                                   (when-let ((prop (get-char-property (point) 'haskell-mode-quasiquote)))
+                                   (when-let ((prop (get-char-property p 'haskell-mode-quasiquote)))
                                      (not (member prop '("" "t" "e" "d")))))
                               ;; Same reasoning as for [Non-Haskell-QQ].
                               nil)
                              (t
-                              (or (haskell-smart-operators--in-string-syntax?-raw node)
+                              (or (haskell-smart-operators--in-string-syntax?-raw p node)
                                   (nth 3 (syntax-ppss-update! syn)))))))
           (cond-let
             (multiline-string-start
