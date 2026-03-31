@@ -391,9 +391,7 @@ entities. Entities must be valid Haskell import/export names. E.g.
   (cl-assert (haskell-import-p import))
   (if-let (import-list (haskell-import-import-list import))
       (concat (haskell-import-str-before-import-list import)
-              (haskell-import-list-start-str import-list)
-              (apply #'concat (haskell-import-list-entries import-list))
-              (haskell-import-list-end-str import-list))
+              (haskell-sort-imports-format-import-list import-list))
     (haskell-import-str-before-import-list import)))
 
 (defun haskell-sort-imports--group-imports (imports)
@@ -478,6 +476,11 @@ entities. Entities must be valid Haskell import/export names. E.g.
                             (1- (point)))
                           (point-max)))))
       (cons start end))))
+
+(defun haskell-sort-imports-format-import-list (import-list)
+  (concat (haskell-import-list-start-str import-list)
+          (apply #'concat (haskell-import-list-entries import-list))
+          (haskell-import-list-end-str import-list)))
 
 (provide 'haskell-sort-imports)
 
