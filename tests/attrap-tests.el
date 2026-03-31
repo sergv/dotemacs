@@ -2770,6 +2770,33 @@
   "  _|_Foo.Bar (Baz, Quux(..))"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/strict-pattern-1
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-21030] [-Wunbanged-strict-patterns]"
+  "    Pattern bindings containing unlifted types should use"
+  "    an outermost bang pattern:"
+  "      (# result, idx #)"
+  "        = bar")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    _|_(# result, idx #) = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    _|_!(# result, idx #) = bar"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:

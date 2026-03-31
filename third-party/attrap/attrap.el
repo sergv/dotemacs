@@ -993,7 +993,18 @@ Error is given as MSG and reported between POS and END."
                      (goto-char (match-end 0))
                      (skip-whitespace-forward)
                      (delete-region (match-beginning 0) (point)))
-                 (error "Failed to find SOURCE pragma"))))))))))
+                 (error "Failed to find SOURCE pragma")))))
+
+         (when (derived-mode-p 'haskell-ts-base-mode)
+
+           (when (string-match-p
+                  (rx (ghc-warning "21030" "unbanged-strict-patterns")
+                      (+ ws)
+                      "Pattern bindings containing unlifted types should use an outermost bang pattern:")
+                  normalized-msg)
+             (attrap-one-option "insert bang"
+               (goto-char pos)
+               (haskell-smart-operators-exclamation-mark--insert-for-field! nil (treesit-node-at (point)))))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
