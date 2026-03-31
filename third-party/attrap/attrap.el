@@ -254,6 +254,7 @@ Returns list of triples
     "LinearTypes"
     "MonoLocalBinds"
     "MultiParamTypeClasses"
+    "MultiWayIf"
     "NamedFieldPuns"
     "NumericUnderscores"
     "OrPatterns"
