@@ -621,7 +621,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-exclamation-mark--insert-for-field! (preceded-by-double-colon? field-type-node)
   (cl-assert (treesit-node-p field-type-node))
   (unless (member (treesit-node-type field-type-node) '("strict" "strict_field"))
-    (let ((has-parens? (member (treesit-node-type field-type-node) '("parens" "as" "tuple"))))
+    (let ((has-parens? (member (treesit-node-type field-type-node) '("parens" "as" "tuple" "unboxed_tuple"))))
       (with-marker (m (point-marker))
         (set-marker-insertion-type m t)
         (unwind-protect
