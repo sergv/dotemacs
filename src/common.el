@@ -1651,6 +1651,12 @@ persistent store may restore the narrowing state when session is loaded."
         (inhibit-message t))
     (basic-save-buffer)))
 
+(defsubst is-open-paren? (c)
+  (eq c 40))
+
+(defsubst is-close-paren? (c)
+  (eq c 41))
+
 (provide 'common)
 
 ;; Local Variables:
