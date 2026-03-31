@@ -9903,7 +9903,9 @@ have different input states."
    "")
   (tests-utils--multiline
    ""
-   "module Foo where"
+   "module Foo"
+   "  ( foo"
+   "  ) where"
    ""
    "import System.IO"
    ""
@@ -9923,7 +9925,10 @@ have different input states."
    "")
   (tests-utils--multiline
    ""
-   "module Foo (bar, foo) where"
+   "module Foo"
+   "  ( bar"
+   "  , foo"
+   "  ) where"
    ""
    "import System.IO"
    ""
@@ -9951,7 +9956,7 @@ have different input states."
    ""))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell--export-ident-5
+    haskell-tests/haskell--export-ident-5a
     (haskell--export-ident "foo")
   (tests-utils--multiline
    ""
@@ -9969,6 +9974,96 @@ have different input states."
    "module Foo"
    "  ( bar"
    "  , quux"
+   "  , foo"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-5b
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   ""
+   "  , quux"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   ""
+   "  , quux"
+   ""
+   "  , foo"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-5c
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  -- * For tests"
+   "  , quux"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  -- * For tests"
+   "  , quux"
+   "  , foo"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-5d
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  , quux"
+   ""
+   "  , frobnicate"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  , quux"
+   ""
+   "  , frobnicate"
    "  , foo"
    "  ) where"
    ""
@@ -10048,7 +10143,9 @@ have different input states."
    "")
   (tests-utils--multiline
    ""
-   "module Foo (foo) where"
+   "module Foo"
+   "  ( foo"
+   "  ) where"
    ""
    "import System.IO"
    ""
