@@ -839,7 +839,9 @@
  :expected-value
  (tests-utils--multiline
   ""
-  "module Foo (foo) where"
+  "module Foo"
+  "  ( foo"
+  "  ) where"
   ""
   "foo"
   "  :: MonadMask m"
@@ -870,7 +872,9 @@
  :expected-value
  (tests-utils--multiline
   ""
-  "module Foo (foo) where"
+  "module Foo"
+  "  ( foo"
+  "  ) where"
   ""
   "foo"
   "  :: MonadMask m"
@@ -898,7 +902,9 @@
  :expected-value
  (tests-utils--multiline
   ""
-  "module Foo (foo) where"
+  "module Foo"
+  "  ( foo"
+  "  ) where"
   ""
   "_|_foreign import ccall unsafe \"foo.h foo\" foo"
   "  :: Ptr CInt -> CInt -> IO CInt"
