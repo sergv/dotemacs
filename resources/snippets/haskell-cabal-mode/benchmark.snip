@@ -22,3 +22,7 @@ ${3:  other-modules:
     -- -threaded
     -- "-with-rtsopts=-N -A32M"
     -main-is ${2:$(haskell-cabal--yasnippet--main-module-from-main-file yas-text)}
+  -- See discussion in https://hackage-content.haskell.org/package/tasty-bench/docs/Test-Tasty-Bench.html
+  if impl(ghc >= 8.6)
+    ghc-options:
+      -fproc-alignment=64
