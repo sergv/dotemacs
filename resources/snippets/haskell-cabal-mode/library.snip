@@ -7,7 +7,7 @@ library${1: ${2:name}}
   exposed-modules:
     ${3:Foo}
 ${4:  other-modules:
-    ${5:Other.Module}
+    ${5:Bar}
 }${6:  hs-source-dirs:
     src
 }  build-depends:
@@ -17,4 +17,8 @@ ${7:  build-tool-depends:
     ${8:  alex:alex
     , happy:happy
     , hsc2hs:hsc2hs}
+}${9:  mixins:
+    -- Rename Foo -> Bar
+    , ${10:`(haskell-cabal--yasnippet--current-package-name-from-cabal-file)`} hiding ( Foo )
+    , $10 ( Bar as Foo )
 }
