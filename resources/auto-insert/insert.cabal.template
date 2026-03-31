@@ -78,7 +78,7 @@ library
   exposed-modules:
     Foo
   -- other-modules:
-  --   Other.Module
+  --   Bar
   hs-source-dirs:
     src
   build-depends:
@@ -88,6 +88,10 @@ library
     , alex:alex
     , happy:happy
     , hsc2hs:hsc2hs
+  mixins:
+    -- Rename Foo -> Bar
+    , ${filename no ext} hiding ( Foo )
+    , ${filename no ext} ( Bar as Foo )
 
 executable ${filename no ext}
   import: ghc-options
