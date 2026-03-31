@@ -1256,30 +1256,41 @@ value section should have if it is to be properly indented."
                      "module"
                      symbol-end
                      (* ws)
-                     module-name
+                     (group-n 3 module-name)
                      (* ws)
-                     "(")
+                     (or (group-n 1 "(") (group-n 2 "where")))
                  nil
                  t)
-                (let ((start (1- (match-end 0))))
-                  (goto-char start)
-                  (cl-assert (is-open-paren? (char-after)))
-                  (forward-sexp)
-                  (cl-assert (is-close-paren? (char-after (1- (point)))))
-                  (let* ((end (point))
-                         (parsed (haskell-sort-imports--parse-import-list-in-buffer start end)))
-                    (goto-char (1- end))
-                    (skip-chars-backward " \t\n\r")
-                    (pcase (length (haskell-import-list-entries parsed))
-                      (0
-                       (insert identifier))
-                      (1
-                       (insert ", " identifier))
-                      (_
-                       (insert (haskell-import-list-sep parsed) identifier)))
-                    (vim-save-position)))
-              ;; Nothing to do: either no module keyword or no export
-              ;; list - in both cases everything is exported.
+                (if-let* ((paren-end (match-end 1)))
+                    (let ((start (1- paren-end)))
+                      (goto-char start)
+                      (cl-assert (is-open-paren? (char-after)))
+                      (forward-sexp)
+                      (cl-assert (is-close-paren? (char-after (1- (point)))))
+                      (let* ((end (point))
+                             (parsed (haskell-sort-imports--parse-import-list-in-buffer start end)))
+                        (pcase (haskell-import-list-entries parsed)
+                          (`nil
+                           (goto-char start)
+                           (skip-chars-backward " \t\n\r")
+                           (delete-region (point) end)
+                           (insert "\n  ( " identifier "\n  )"))
+                          (`(,prev-entry)
+                           (goto-char start)
+                           (skip-chars-backward " \t\n\r")
+                           (delete-region (point) end)
+                           (insert "\n  ( " prev-entry "\n  , " identifier "\n  )"))
+                          (_
+                           (goto-char (1- end))
+                           (skip-chars-backward " \t\n\r")
+                           (insert (haskell-import-list-sep parsed) identifier)))
+                        (vim-save-position)))
+                  (when-let* (((not (null (match-beginning 2))))
+                              (name-end (match-end 3)))
+                    ;; no paren but have where
+                    (goto-char name-end)
+                    (insert "\n  ( " identifier "\n  )")))
+              ;; Nothing to do: either no module keyword so everything is exported.
               nil)))))))
 
 (defadvice haskell-indentation-indent-line (around
