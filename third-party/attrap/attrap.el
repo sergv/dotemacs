@@ -410,9 +410,11 @@ value is a list which is appended to the result of
         (haskell-align-language-pragmas start)))
     (notify "Added %s" pragma)))
 
-(defmacro attrap-insert-language-pragma (pragma)
+(defmacro attrap-insert-language-pragma (pragma &rest body)
+  (declare (indent 1))
   `(attrap-option (list 'use-extension ,pragma)
-     (attrap-do-insert-language-pragma ,pragma)))
+     (attrap-do-insert-language-pragma ,pragma)
+     ,@body))
 
 (defun attrap-add-to-import--impl (missing parent line col)
   (cl-assert (stringp missing))
@@ -488,7 +490,7 @@ The import ends at LINE and COL in the file."
 ;;   arrow
 ;;   )
 
-(defun attrap-ghc-fixer (msg pos _end)
+(defun attrap-ghc-fixer (msg pos end)
   "An `attrap' fixer for any GHC error or warning.
 Error is given as MSG and reported between POS and END."
   (save-match-data
@@ -778,6 +780,21 @@ Error is given as MSG and reported between POS and END."
                       (goto-char pos)
                       (string-match-p (rx "\\case\\_>") (buffer-substring-no-properties pos (line-end-position)))))
            (list (attrap-insert-language-pragma "LambdaCase")))
+         (when (and (string-match-p
+                     (rx
+                      (or (seq (ghc-error "76037")
+                               ws
+                               "Not in scope: type constructor or class ‘#’")
+                          (seq (ghc-warning "40798" "operator-whitespace")
+                               ws
+                               "The suffix use of a ‘#’ might be repurposed as special syntax by a future language extension. Suggested fix: Add whitespace around ‘#’.")))
+                     normalized-msg)
+                    (save-excursion
+                      (goto-char end)
+                      (skip-chars-backward "#")
+                      (haskell-smart-operators--is-valid-to-preceed-magic-hash? (char-before))))
+           (list (attrap-insert-language-pragma "MagicHash"
+                   (haskell-ext-tracking-enable-magic-hash!))))
          (when (s-matches? (rx (or "Illegal symbol ‘forall’ in type"
                                    (seq "Perhaps you intended to use"
                                         (* anything)
