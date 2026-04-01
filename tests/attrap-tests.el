@@ -2867,6 +2867,37 @@
   "foo _|_x# = x#"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/enable-unboxed-tuples-1
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "  error: [GHC-72516] Parse error in pattern: #x"
+  "   |"
+  "18 |   (# x, s' #) -> (x, s#)"
+  "   |    ^^^")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo where"
+  ""
+  "readArr :: MutableByteArray# s -> Int -> ST s Int64"
+  "readArr mbarr (I# idx) = ST $ \s -> case readInt64Array# mbarr idx s of"
+  "  (_|_# x, s' #) -> (x, s#)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE UnboxedTuples #-}"
+  ""
+  "module Foo where"
+  ""
+  "readArr :: MutableByteArray# s -> Int -> ST s Int64"
+  "readArr mbarr (I# idx) = ST $ \s -> case readInt64Array# mbarr idx s of"
+  "  (_|_# x, s' #) -> (x, s#)"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
