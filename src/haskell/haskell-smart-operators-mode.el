@@ -76,6 +76,10 @@ stick it to the previous operator on line."
   (or (eq c ?\s)
       (eq c ?\t)))
 
+(defun haskell-smart-operators--is-valid-to-preceed-magic-hash? (c)
+  "Check whether MagicHash could be put after character C."
+  (memq (char-syntax c) '(?w ?_)))
+
 (defun haskell-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
   (let* ((disable-smart-operators? current-prefix-arg)
          (line-start-pos (line-beginning-position))
@@ -299,7 +303,7 @@ stick it to the previous operator on line."
                                ;; then make it stick to the previous
                                ;; word as well as to operators.
                                (and magic-hash?
-                                    (memq (char-syntax char-before-spaces) '(?w ?_)))
+                                    (haskell-smart-operators--is-valid-to-preceed-magic-hash? char-before-spaces))
                                (and (eq char-before-spaces ?')
                                     (haskell-smart-operators--is-whitespace-char? char-before-char-before-spaces)
                                     (nanothunk-force in-single-quote-context?)))
