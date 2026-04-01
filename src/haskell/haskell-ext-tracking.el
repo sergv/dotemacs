@@ -29,6 +29,9 @@
 
 (defvar haskell-ext-tracking-known-exts--store (haskell-ext-tracking-known-exts--default))
 
+(defun haskell-ext-tracking-enable-magic-hash! ()
+  (setf (haskell-ext-tracking-known-exts-magic-hash haskell-ext-tracking-known-exts--store) t))
+
 (defun haskell-ext-tracking--update! ()
   (with-no-narrowing
     (save-excursion
@@ -52,7 +55,7 @@
                                     t)
             (cond
               ((match-beginning 1)
-               (setf (haskell-ext-tracking-known-exts-magic-hash haskell-ext-tracking-known-exts--store) t))
+               (haskell-ext-tracking-enable-magic-hash!))
               ((match-beginning 2)
                (setf (haskell-ext-tracking-known-exts-import-qualified-post haskell-ext-tracking-known-exts--store) t)))))))))
 
