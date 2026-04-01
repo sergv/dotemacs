@@ -58,6 +58,7 @@
 
 ;;; Code:
 (require 'common)
+(require 'common-whitespace)
 (require 'dash)
 (require 'eproj)
 (require 'haskell-misc)
@@ -795,6 +796,16 @@ Error is given as MSG and reported between POS and END."
                       (haskell-smart-operators--is-valid-to-preceed-magic-hash? (char-before))))
            (list (attrap-insert-language-pragma "MagicHash"
                    (haskell-ext-tracking-enable-magic-hash!))))
+         (when (and (string-match-p (rx (ghc-error "72516")
+                                        ws
+                                        "Parse error in pattern: #")
+                                    normalized-msg)
+                    (save-excursion
+                      (goto-char end)
+                      (and (eq (char-before) ?#)
+                           (is-open-paren? (char-before (- (point) 1)))
+                           (extended-whitespace-char? (char-before (- (point) 2))))))
+           (list (attrap-insert-language-pragma "UnboxedTuples")))
          (when (s-matches? (rx (or "Illegal symbol ‘forall’ in type"
                                    (seq "Perhaps you intended to use"
                                         (* anything)
