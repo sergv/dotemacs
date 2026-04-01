@@ -9,6 +9,7 @@
 (require 'attrap)
 
 (require 'common)
+(require 'dash)
 (require 'eproj)
 (require 'eproj-tag-index)
 (require 'ert)
@@ -105,14 +106,16 @@
      expected-value
      (modes '(haskell-mode haskell-ts-mode))
      (eproj-project nil))
-  `(attrap-tests--test-buffer-contents-many
-     :name ,name
-     :error-message ,error-message
-     :action ,action
-     :contents ,(list (list nil contents))
-     :expected-value ,expected-value
-     :modes ,modes
-     :eproj-project ,eproj-project))
+  `(if (-all? #'extended-whitespace-char? (string->list ,error-message))
+       (error "Invalid empty error message for test %s" ',name)
+     (attrap-tests--test-buffer-contents-many
+      :name ,name
+      :error-message ,error-message
+      :action ,action
+      :contents ,(list (list nil contents))
+      :expected-value ,expected-value
+      :modes ,modes
+      :eproj-project ,eproj-project)))
 
 (defmacro attrap-tests--wrap-run-attrap (&rest body)
   (declare (indent 0))
