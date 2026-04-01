@@ -2803,6 +2803,67 @@
   "    _|_!(# result, idx #) = bar"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/enable-magic-hash-1
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-76037]"
+  "    Not in scope: type constructor or class ‘#’"
+  "   |"
+  "14 |   :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "   |                                      ^")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo where"
+  ""
+  "{-# INLINE partitionTwoWaysPivotAtEnd #-}"
+  "partitionTwoWaysPivotAtEnd"
+  "  :: Int64 -> Int -> MutableByteArray_|_# s -> ST s (Int64, Int)"
+  "partitionTwoWaysPivotAtEnd !pv !lastIdx !v = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "module Foo where"
+  ""
+  "{-# INLINE partitionTwoWaysPivotAtEnd #-}"
+  "partitionTwoWaysPivotAtEnd"
+  "  :: Int64 -> Int -> MutableByteArray_|_# s -> ST s (Int64, Int)"
+  "partitionTwoWaysPivotAtEnd !pv !lastIdx !v = undefined"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/enable-magic-hash-2
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-40798] [-Woperator-whitespace]"
+  "    The suffix use of a ‘#’ might be repurposed as special syntax"
+  "      by a future language extension."
+  "    Suggested fix: Add whitespace around ‘#’.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo where"
+  ""
+  "foo _|_x# = x#"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "module Foo where"
+  ""
+  "foo _|_x# = x#"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
