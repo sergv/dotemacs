@@ -6928,6 +6928,58 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-5b
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [_|_a] -> [(a, a)]"
+   "-- inconvenient comment 1"
+   "-- inconvenient comment 2"
+   "test = \\x -> do"
+   "  y <- frobnicator"
+   "  pure $ (x :: a) + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall abc. [abc_|_] -> [(abc, abc)]"
+   "-- inconvenient comment 1"
+   "-- inconvenient comment 2"
+   "test = \\x -> do"
+   "  y <- frobnicator"
+   "  pure $ (x :: abc) + y + x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-5c
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [_|_a] -> [(a, a)]"
+   "-- inconvenient comment 1"
+   "#ifdef FOO"
+   "-- nothing yet"
+   "#endif"
+   "-- inconvenient comment 2"
+   "test = \\x -> do"
+   "  y <- frobnicator"
+   "  pure $ (x :: a) + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall abc. [abc_|_] -> [(abc, abc)]"
+   "-- inconvenient comment 1"
+   "#ifdef FOO"
+   "-- nothing yet"
+   "#endif"
+   "-- inconvenient comment 2"
+   "test = \\x -> do"
+   "  y <- frobnicator"
+   "  pure $ (x :: abc) + y + x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-6
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -7151,6 +7203,152 @@ _|_bar")
    "type family Foo_|_ (xs :: [k]) (ys :: [k]) :: [k] where"
    "  Foo '[]       ys = ys"
    "  Foo (x ': xs) ys = Foo xs (Remove x ys)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-11aa
+    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}"
+   "foo :: Int -> Int"
+   "_|_foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE bar #-}"
+   "bar :: Int -> Int"
+   "bar_|_ x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-11ab
+    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+  (tests-utils--multiline
+   ""
+   "baz x = x"
+   ""
+   "{-# INLINE foo #-}"
+   "foo :: Int -> Int"
+   "_|_foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "baz x = x"
+   ""
+   "{-# INLINE bar #-}"
+   "bar :: Int -> Int"
+   "bar_|_ x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-11ba
+    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+  (tests-utils--multiline
+   ""
+   "{-# INLINE _|_foo #-}"
+   "foo :: Int -> Int"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE bar_|_ #-}"
+   "bar :: Int -> Int"
+   "bar x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-11bb
+    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+  (tests-utils--multiline
+   ""
+   "{-# _|_INLINE foo #-}"
+   "foo :: Int -> Int"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE bar_|_ #-}"
+   "bar :: Int -> Int"
+   "bar x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-11c
+    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}"
+   "_|_foo :: Int -> Int"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE bar #-}"
+   "bar_|_ :: Int -> Int"
+   "bar x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-11d
+    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}"
+   "foo :: Int -> Int"
+   "_|_foo 1 = 2"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE bar #-}"
+   "bar :: Int -> Int"
+   "bar_|_ 1 = 2"
+   "bar x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-11e
+    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> Int"
+   "_|_foo 1 = 2"
+   "foo x = x"
+   "{-# INLINE foo #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "bar :: Int -> Int"
+   "bar_|_ 1 = 2"
+   "bar x = x"
+   "{-# INLINE bar #-}"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-ts-rename-at-point-11f
+    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+  (tests-utils--multiline
+   ""
+   "_|_foo :: Int -> Int"
+   "foo 1 = 2"
+   "foo x = x"
+   "{-# INLINE foo #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "bar_|_ :: Int -> Int"
+   "bar 1 = 2"
+   "bar x = x"
+   "{-# INLINE bar #-}"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
@@ -7915,6 +8113,32 @@ _|_bar")
      "  = Foo Int"
      "  | Bar Foo Foo"
      "  deriving (Eq, Ord, Show)_|_")))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-12
+ :action
+ (execute-kbd-macro (kbd "C-r C-w f o o <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "known :: Text -> PathFragment -> Int -> Type -> SearchResult"
+  "known _|_sym file line typ = Known (s sym) file line typ Nothing"
+  ""
+  "known' :: Text -> PathFragment -> Int -> Type -> Maybe ParentTag -> SearchResult"
+  "known' sym file line typ = Known (s sym) file line typ . Just"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "known :: Text -> PathFragment -> Int -> Type -> SearchResult"
+  "known foo_|_ file line typ = Known (s foo) file line typ Nothing"
+  ""
+  "known' :: Text -> PathFragment -> Int -> Type -> Maybe ParentTag -> SearchResult"
+  "known' sym file line typ = Known (s sym) file line typ . Just"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
