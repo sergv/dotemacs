@@ -9,8 +9,11 @@
 (eval-when-compile
   (require 'macro-util))
 
+(rx-define haskell-regexen/varid
+  (regex "\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*"))
+
 (defconst haskell-regexen/varid
-  "\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
+  (rx haskell-regexen/varid))
 
 (defconst haskell-regexen/core/varid
   "[$]?\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#$]*")
@@ -207,8 +210,11 @@ otherwise results will be incorrect.")
           "\\)"
           "\\(?:$\\|[^-!#$%&*+./<=>?@^|~:\\]\\)"))
 
-(defconst haskell-regexen/pragma-start "{-#")
-(defconst haskell-regexen/pragma-end "#-}")
+(rx-define haskell-regexen/pragma-start "{-#")
+(rx-define haskell-regexen/pragma-end "#-}")
+
+(defconst haskell-regexen/pragma-start (rx haskell-regexen/pragma-start))
+(defconst haskell-regexen/pragma-end (rx haskell-regexen/pragma-end))
 
 ;; Generated with
 ;; (dolist (x
@@ -237,11 +243,11 @@ otherwise results will be incorrect.")
       eos))
 
 (defconst haskell-regexen/source-pragma-re
-  (rx (eval haskell-regexen/pragma-start)
+  (rx haskell-regexen/pragma-start
       (* (any ?\s ?\t ?\n ?\r))
       (seq (char ?s ?S) (char ?o ?O) (char ?u ?U) (char ?r ?R) (char ?c ?C) (char ?e ?E))
       (* (any ?\s ?\t ?\n ?\r))
-      (eval haskell-regexen/pragma-end)))
+      haskell-regexen/pragma-end))
 
 (defconst haskell-regexen/scc-pragma-name
   (rx bos
@@ -250,22 +256,21 @@ otherwise results will be incorrect.")
       (char ?c ?C)
       eos))
 
-(defconst haskell-regexen/inline-pragmas
-  (rx bos
-      (? (char ?n ?N)
-         (char ?o ?O))
-      (char ?i ?I)
-      (char ?n ?N)
-      (char ?l ?L)
-      (char ?i ?I)
-      (char ?n ?N)
-      (or
-       (char ?e ?E)
-       (seq (char ?a ?A)
-            (char ?b ?B)
-            (char ?l ?L)
-            (char ?e ?E)))
-      eos))
+(rx-define haskell-regexen/inline-pragmas
+  (seq
+   (? (char ?n ?N)
+      (char ?o ?O))
+   (char ?i ?I)
+   (char ?n ?N)
+   (char ?l ?L)
+   (char ?i ?I)
+   (char ?n ?N)
+   (or
+    (char ?e ?E)
+    (seq (char ?a ?A)
+         (char ?b ?B)
+         (char ?l ?L)
+         (char ?e ?E)))))
 
 (defconst haskell-regexen/language-pragma-name
   (rx bos
@@ -305,6 +310,16 @@ otherwise results will be incorrect.")
       (char ?g ?G)
       (char ?h ?H)
       (char ?c ?C)))
+
+(defconst haskell-regexen/inline-pragmas-complete-pragma
+  (rx haskell-regexen/pragma-start
+      (* (any ?\s ?\t ?\n ?\r))
+      (group-n 1
+        haskell-regexen/inline-pragmas)
+      (+ (any ?\s ?\t ?\n ?\r))
+      (group-n 2 haskell-regexen/varid)
+      (* (any ?\s ?\t ?\n ?\r))
+      haskell-regexen/pragma-end))
 
 (defconst haskell-regexen/function-signature-colons "\\(?:::[^:]\\|∷\\)")
 
