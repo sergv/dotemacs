@@ -2898,6 +2898,41 @@
   "  (_|_# x, s' #) -> (x, s#)"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/remove-bang-1
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-38520] [-Wredundant-bang-patterns]"
+  "    Pattern match has redundant bang"
+  "    In an equation for ‘partitionTwoWaysPivotAtEnd’: partitionTwoWaysPivotAtEnd v = ...")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE partitionTwoWaysPivotAtEnd #-}"
+  "partitionTwoWaysPivotAtEnd"
+  "  :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "partitionTwoWaysPivotAtEnd !pv !lastIdx !_|_v = do"
+  "  go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE partitionTwoWaysPivotAtEnd #-}"
+  "partitionTwoWaysPivotAtEnd"
+  "  :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "partitionTwoWaysPivotAtEnd !pv !lastIdx _|_v = do"
+  "  go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      undefined"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
