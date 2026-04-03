@@ -112,19 +112,28 @@ end."
 (cl-defmacro haskell-tests--make-multiple-input-test-buffer-contents*
     (&key action entries expected-value modes fresh-buffer)
   "Define a set of tests that share final buffer state but
-have different input states."
+have different input states.
+
+Entries should be a list of of elements of the form
+(:name _ :contents _)"
   (declare (indent nil))
   `(progn
      ,@(cl-loop
         for entry in entries
         collect
-        `(haskell-tests--test-buffer-contents*
-          :name ,(cl-first entry)
-          :action ,action
-          :contents ,(cl-second entry)
-          :expected-value ,expected-value
-          ,@(when modes `(:modes ,modes))
-          :fresh-buffer ,fresh-buffer))))
+        (let ((name (plist-get entry :name))
+              (contents (plist-get entry :contents)))
+          (unless name
+            (error "Entry missing :name entry: %s" entry))
+          (unless contents
+            (error "Entry missing :contents entry: %s" entry))
+          `(haskell-tests--test-buffer-contents*
+            :name ,name
+            :action ,action
+            :contents ,contents
+            :expected-value ,expected-value
+            ,@(when modes `(:modes ,modes))
+            :fresh-buffer ,fresh-buffer)))))
 
 (cl-defmacro haskell-tests--make-multiple-test-result-tests (name &key entries contents modes)
   (declare (indent 1))
@@ -186,7 +195,9 @@ have different input states."
    (activate-mark)
    (haskell-align-on-comments))
  :entries
- ((haskell-tests/haskell-align-on-comments-1a
+ ((:name
+   haskell-tests/haskell-align-on-comments-1a
+   :contents
    (tests-utils--multiline
     ""
     "foo = do"
@@ -194,7 +205,9 @@ have different input states."
     "  baz \t\t-- b"
     "  decombobulate -- c"
     ""))
-  (haskell-tests/haskell-align-on-comments-1b
+  (:name
+   haskell-tests/haskell-align-on-comments-1b
+   :contents
    (tests-utils--multiline
     ""
     "foo = do"
@@ -202,7 +215,9 @@ have different input states."
     "  baz -- b"
     "  decombobulate -- c"
     ""))
-  (haskell-tests/haskell-align-on-comments-1c
+  (:name
+   haskell-tests/haskell-align-on-comments-1c
+   :contents
    (tests-utils--multiline
     ""
     "foo = do"
@@ -210,7 +225,9 @@ have different input states."
     "  baz\t\t\t-- b"
     "  decombobulate\t-- c"
     ""))
-  (haskell-tests/haskell-align-on-comments-1d
+  (:name
+   haskell-tests/haskell-align-on-comments-1d
+   :contents
    (tests-utils--multiline
     ""
     "foo = do"
@@ -218,7 +235,9 @@ have different input states."
     "  baz                                    -- b"
     "  decombobulate -- c"
     ""))
-  (haskell-tests/haskell-align-on-comments-1e
+  (:name
+   haskell-tests/haskell-align-on-comments-1e
+   :contents
    (tests-utils--multiline
     ""
     "foo = do"
@@ -5392,7 +5411,9 @@ have different input states."
  :action
  (haskell-newline-with-signature-expansion)
  :entries
- ((haskell-tests/haskell-newline-with-signature-expansion-11a
+ ((:name
+   haskell-tests/haskell-newline-with-signature-expansion-11a
+   :contents
    (tests-utils--multiline
     ""
     "pFoo :: Mega.Parsec Void Text (Foo, Bar)"
@@ -5407,7 +5428,9 @@ have different input states."
     "      ys <- Mega.takeWhileP Nothing isAlphaNum"
     "      fail $ \"Invalid foo: \" ++ show (T.cons y ys)"
     ""))
-  (haskell-tests/haskell-newline-with-signature-expansion-11b
+  (:name
+   haskell-tests/haskell-newline-with-signature-expansion-11b
+   :contents
    (tests-utils--multiline
     ""
     "pFoo :: Mega.Parsec Void Text (Foo, Bar)"
