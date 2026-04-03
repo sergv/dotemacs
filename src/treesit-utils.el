@@ -6,6 +6,9 @@
 ;; Created: 15 June 2024
 ;; Description:
 
+(eval-when-compile
+  (require 'cl))
+
 (defsubst treesit-haskell--current-node ()
   (treesit-haskell--node-at (point)))
 
@@ -87,6 +90,30 @@
                                   (string= "header" (treesit-node-type node))))))
       (treesit-node-text-no-properties-unsafe (treesit-node-child-by-field-name (car header-candidates) "module"))
     "Main"))
+
+(cl-defstruct (treesit-haskell-inline-pragma
+               (:conc-name treesit-haskell-inline-pragma/))
+  pragma
+  function-name
+  function-name-start
+  function-name-end)
+
+(defun treesit-haskell-inline-pragma-name-same-as-node? (pragma node)
+  (buffer-span-text-in-current-buffer= node
+                                       (treesit-haskell-inline-pragma/function-name-start pragma)
+                                       (treesit-haskell-inline-pragma/function-name-end pragma)))
+
+(defun treesit-haskell-parse-inline-pragma (node)
+  (cl-assert (treesit-node-p node))
+  (when (string= (treesit-node-type node) "pragma")
+    (save-excursion
+      (goto-char (treesit-node-start node))
+      (when (looking-at haskell-regexen/inline-pragmas-complete-pragma)
+        (make-treesit-haskell-inline-pragma
+         :pragma (match-string-no-properties 1)
+         :function-name (match-string-no-properties 2)
+         :function-name-start (match-beginning 2)
+         :function-name-end (match-end 2))))))
 
 (defun point-inside-string?--ts-haskell (&optional pos)
   "Return non-nil if point is positioned inside a string."
@@ -282,6 +309,26 @@ overhead if produced structures will only be compared once."
              (treesit-utils--get-ast-node-soup (treesit-node-child node i)))
           (list
            (treesit-utils--get-ast-node-soup (treesit-node-child node i)))))))))
+
+;; (defun treesit-utils-node-texts-in-current-buffer= (x y)
+;;   (cl-assert (treesit-node-p y))
+;;   (cl-assert (eq (treesit-node-buffer y) (current-buffer)))
+;;   (treesit-utils-node-text-in-current-buffer=
+;;    x
+;;    (treesit-node-start y)
+;;    (treesit-node-end y)))
+;;
+;; (defun treesit-utils-node-text-in-current-buffer= (node start end)
+;;   "Check that NODE’s text is the same as text in buffer between START and END."
+;;   (cl-assert (treesit-node-p node))
+;;   (cl-assert (eq (treesit-node-buffer node) (current-buffer)))
+;;   (let ((case-fold-search nil))
+;;     (compare-buffer-substrings nil
+;;                                (treesit-node-start node)
+;;                                (treesit-node-end node)
+;;                                nil
+;;                                start
+;;                                end)))
 
 (provide 'treesit-utils)
 
