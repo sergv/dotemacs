@@ -550,7 +550,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                             (when-let ((parent (treesit-node-parent x)))
                               (and (string= (treesit-node-type parent) "bind")
                                    (awhen (treesit-node-parent parent)
-                                     (string= (treesit-node-type it) "local_binds"))
+                                     (member (treesit-node-type it) '("local_binds" "do")))
                                    (member (treesit-node-field-name x) '("pattern" "name"))))))))))))
 
            (ts-closest-pattern-name

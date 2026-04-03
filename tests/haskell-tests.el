@@ -3799,6 +3799,210 @@ Entries should be a list of of elements of the form
  :modes (haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-8a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    (_|_result, idx) = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    (!_|_result, idx) = bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-8b
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    (result, _|_idx) = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    (result, !_|_idx) = bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-8c
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    !(_|_result, idx) = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    !(!_|_result, idx) = bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-8d
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    _|_(!result, !idx) = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = result"
+  "  where"
+  "    !_|_(!result, !idx) = bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-9aa
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# NOINLINE test #-}"
+  "test :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "test !pv !lastIdx v = go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      !(_|_i', xi) <- goLT i"
+  "      undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# NOINLINE test #-}"
+  "test :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "test !pv !lastIdx v = go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      !(!_|_i', xi) <- goLT i"
+  "      undefined"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-9ab
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# NOINLINE test #-}"
+  "test :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "test !pv !lastIdx v = go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      !(i_|_', xi) <- goLT i"
+  "      undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# NOINLINE test #-}"
+  "test :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "test !pv !lastIdx v = go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      !(!i_|_', xi) <- goLT i"
+  "      undefined"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-9ba
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# NOINLINE test #-}"
+  "test :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "test !pv !lastIdx v = go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      !(i', _|_xi) <- goLT i"
+  "      undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# NOINLINE test #-}"
+  "test :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "test !pv !lastIdx v = go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      !(i', !_|_xi) <- goLT i"
+  "      undefined"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-9bb
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# NOINLINE test #-}"
+  "test :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "test !pv !lastIdx v = go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      !(i', x_|_i) <- goLT i"
+  "      undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# NOINLINE test #-}"
+  "test :: Int64 -> Int -> MutableByteArray# s -> ST s (Int64, Int)"
+  "test !pv !lastIdx v = go 0 lastIdx"
+  "  where"
+  "    go !i !j = do"
+  "      !(i', !x_|_i) <- goLT i"
+  "      undefined"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-backspace-with-block-dedent-1
     (haskell-backspace-with-block-dedent)
