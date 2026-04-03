@@ -2766,8 +2766,7 @@ Entries should be a list of of elements of the form
   "  { foo ::_|_ !(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2786,8 +2785,7 @@ Entries should be a list of of elements of the form
   "  { foo :: !(_|_Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2806,8 +2804,7 @@ Entries should be a list of of elements of the form
   "  { foo :: !(_|_Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2826,8 +2823,7 @@ Entries should be a list of of elements of the form
   "  { foo :: !(Set _|_Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2846,8 +2842,7 @@ Entries should be a list of of elements of the form
   "  { foo ::_|_ !(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2866,8 +2861,7 @@ Entries should be a list of of elements of the form
   "  { foo :: !_|_(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2886,8 +2880,7 @@ Entries should be a list of of elements of the form
   "  { foo :: !(Set _|_Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2906,8 +2899,7 @@ Entries should be a list of of elements of the form
   "  { foo :: _|_ !(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2926,8 +2918,7 @@ Entries should be a list of of elements of the form
   "  { foo ::      _|_      !(Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2948,8 +2939,7 @@ Entries should be a list of of elements of the form
   "  , bar :: Map Int Double"
   "  , baz :: !_|_"
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2970,8 +2960,7 @@ Entries should be a list of of elements of the form
   "  , bar :: Map Int Double"
   "  , baz ::      !_|_     "
   "  }")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -2988,8 +2977,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo !_|_Int"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3006,8 +2994,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo !In_|_t"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3024,8 +3011,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo !_|_(Bar Int)"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3042,8 +3028,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo !(Bar In_|_t)"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3060,8 +3045,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo !(Bar _|_Int) | String `Bar` [a] | a :+: a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3078,8 +3062,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo !(Bar _|_Int) | String `Bar` [a] | a :+: a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3096,8 +3079,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo (Bar Int) | !Stri_|_ng `Bar` [a] | a :+: a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3114,8 +3096,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo (Bar Int) | String `Bar` ![a_|_] | a :+: a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3132,8 +3113,7 @@ Entries should be a list of of elements of the form
   ""
   "data Pattern a = Foo (Bar Int) | String `Bar` [a] | a :+: !(Bar _|_a)"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3158,8 +3138,7 @@ Entries should be a list of of elements of the form
   "    -> !(Ba_|_r a)"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3184,8 +3163,7 @@ Entries should be a list of of elements of the form
   "    -> Bar a"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3210,8 +3188,7 @@ Entries should be a list of of elements of the form
   "    -> Bar a"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3236,8 +3213,7 @@ Entries should be a list of of elements of the form
   "    -> Bar a"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3266,8 +3242,7 @@ Entries should be a list of of elements of the form
   "#endif"
   "    -> Foo a"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3292,8 +3267,7 @@ Entries should be a list of of elements of the form
   "    !(_|_TU.Iter c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3318,8 +3292,7 @@ Entries should be a list of of elements of the form
   "    !(_|_TU.Iter c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3344,8 +3317,7 @@ Entries should be a list of of elements of the form
   "    !(TU.I_|_ter c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3370,8 +3342,7 @@ Entries should be a list of of elements of the form
   "    !(TU.Iter_|_ c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3396,8 +3367,7 @@ Entries should be a list of of elements of the form
   "    !(TU.I_|_ter c' delta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3422,8 +3392,7 @@ Entries should be a list of of elements of the form
   "    TU.Iter c' !del_|_ta ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3448,8 +3417,7 @@ Entries should be a list of of elements of the form
   "    !(TU.Iter c' !del_|_ta) ="
   "      TU.iterArray arr i"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3474,8 +3442,7 @@ Entries should be a list of of elements of the form
   "        TU.iterArray arr i"
   "  in foo"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3500,8 +3467,7 @@ Entries should be a list of of elements of the form
   "        TU.iterArray arr i"
   "  in foo"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3526,8 +3492,7 @@ Entries should be a list of of elements of the form
   "        TU.iterArray arr i"
   "  in foo"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3546,8 +3511,7 @@ Entries should be a list of of elements of the form
   "foo :: Text -> Pattern"
   "foo !(TI_|_.Text arr off len) = undefined"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3566,8 +3530,7 @@ Entries should be a list of of elements of the form
   "foo :: Text -> Pattern"
   "foo !str@(TI_|_.Text arr off len) = undefined"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3586,8 +3549,7 @@ Entries should be a list of of elements of the form
   "foo :: Text -> Pattern"
   "foo (TI.Text arr off len) (TI.Text arr2 off2 !_|_len2) = undefined"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3606,8 +3568,7 @@ Entries should be a list of of elements of the form
   "foo :: Text -> Pattern"
   "foo (TI.Text arr off len) (TI.Text arr2 off2 !len_|_2) = undefined"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3626,8 +3587,7 @@ Entries should be a list of of elements of the form
   "foo :: Text -> Pattern"
   "foo (TI.Text arr off len) !(TI.Text arr2 off2 len2_|_) = undefined"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3648,8 +3608,7 @@ Entries should be a list of of elements of the form
   "  where"
   "    !en_|_d = last + 1"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3670,8 +3629,7 @@ Entries should be a list of of elements of the form
   "  where"
   "    (start, !en_|_d) = quux 1"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3722,8 +3680,7 @@ Entries should be a list of of elements of the form
   "    quux2"
   "#endif"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3774,8 +3731,7 @@ Entries should be a list of of elements of the form
   "    quux2 !_|_"
   "#endif"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3796,8 +3752,7 @@ Entries should be a list of of elements of the form
   "  where"
   "    !_|_(# result, idx #) = bar"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3818,8 +3773,7 @@ Entries should be a list of of elements of the form
   "  where"
   "    (!_|_result, idx) = bar"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3840,8 +3794,7 @@ Entries should be a list of of elements of the form
   "  where"
   "    (result, !_|_idx) = bar"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3862,8 +3815,7 @@ Entries should be a list of of elements of the form
   "  where"
   "    !(!_|_result, idx) = bar"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -3884,8 +3836,7 @@ Entries should be a list of of elements of the form
   "  where"
   "    !_|_(!result, !idx) = bar"
   "")
- :modes (haskell-ts-mode haskell-hsc-mode)
- :fresh-buffer t)
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
  :name
