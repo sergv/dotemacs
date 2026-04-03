@@ -1120,6 +1120,15 @@ trailing newline"
   (buffer-substring (line-beginning-position)
                     (line-end-position)))
 
+(defsubst debug-current-line ()
+  "Return line point is currently on."
+  (concat
+   (buffer-substring-no-properties (line-beginning-position)
+                                   (point))
+   "_|_"
+   (buffer-substring-no-properties (point)
+                                   (line-end-position))))
+
 (defsubst skip-indentation-forward (&optional end-pos)
   "Skip whitespace that looks like indentation, but don't go
 further that END-POS.
