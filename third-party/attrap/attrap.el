@@ -1024,15 +1024,27 @@ Error is given as MSG and reported between POS and END."
                  (error "Failed to find SOURCE pragma")))))
 
          (when (derived-mode-p 'haskell-ts-base-mode)
+           (append
+            (when (string-match-p
+                   (rx (ghc-warning "21030" "unbanged-strict-patterns")
+                       (+ ws)
+                       "Pattern bindings containing unlifted types should use an outermost bang pattern:")
+                   normalized-msg)
+              (attrap-one-option "insert bang"
+                (goto-char pos)
+                (haskell-smart-operators-exclamation-mark--insert-for-field! nil (treesit-node-at (point)))))
 
-           (when (string-match-p
-                  (rx (ghc-warning "21030" "unbanged-strict-patterns")
-                      (+ ws)
-                      "Pattern bindings containing unlifted types should use an outermost bang pattern:")
-                  normalized-msg)
-             (attrap-one-option "insert bang"
-               (goto-char pos)
-               (haskell-smart-operators-exclamation-mark--insert-for-field! nil (treesit-node-at (point)))))))))))
+            (when (string-match-p
+                   (rx (ghc-warning "38520" "redundant-bang-patterns")
+                       (+ ws)
+                       "Pattern match has redundant bang")
+                   normalized-msg)
+              (attrap-one-option "remove bang"
+                (goto-char pos)
+                (let ((c (char-before)))
+                  (if (eq c ?!)
+                      (delete-char -1)
+                    (error "Previous character is not ‘!’: ‘%c’" c))))))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
