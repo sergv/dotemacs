@@ -422,7 +422,7 @@ then Bar would be the result."
            ((string-match-p haskell-regexen/scc-pragma-name pragma)
             (yas-expand-snippet
              (concat "{-# " pragma " \"${1:cost center name}\" #-}\$0")))
-           ((string-match-p haskell-regexen/inline-pragmas pragma)
+           ((string-match-p (rx bos haskell-regexen/inline-pragmas eos) pragma)
             (yas-expand-snippet
              (if-let ((entity (haskell-abbrev+--name-of-following-entity)))
                  (concat "{-# " pragma " ${1:" entity "} #-}$0")
