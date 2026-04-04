@@ -181,6 +181,7 @@
                                (mode . sh-mode)
                                (mode . sh-script-mode)
                                (mode . shell-script-mode)
+                               (mode . bash-ts-mode)
                                (mode . tcl-mode)))
        (git-filter `(or (mode . git-commit-mode)
                         (mode . git-rebase-mode)
