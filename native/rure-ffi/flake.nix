@@ -15,7 +15,7 @@
     flake-utils.lib.eachSystem ["x86_64-linux" "i686-linux"] (system:
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
-        devShell = pkgs.mkShell {
+        devShells.default = pkgs.mkShell {
           nativeBuildInputs = [
             pkgs.rure
             pkgs.rure.dev
