@@ -156,6 +156,7 @@ Intended to be used with comment-util-mode."
               gnuplot-mode
               debsources-mode
               shell-script-mode
+              bash-ts-mode
               awk-mode
               sh-mode
               sh-script-mode
