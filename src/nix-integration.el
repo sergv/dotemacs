@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'configurable-compilation)
+(require 's)
 
 ;;;###autoload
 (defun nix-maybe-call-via-flakes (args &optional proj-dir)
@@ -23,15 +24,20 @@
 (defun nix-call-via-flakes (args &optional proj-dir)
   "If current project has flake.nix then return ‘nix develop
 --command ARGS’, otherwise just return ARGS."
-  (if-let ((nix-exe (cached-executable-find "nix")))
-      (let ((nix-exe-prop (configurable-compilation--unimportant-text nix-exe))
-            (develop-prop (eval-when-compile (configurable-compilation--unimportant-text "develop")))
-            (no-warn-dirty-prop (eval-when-compile (configurable-compilation--unimportant-text "--no-warn-dirty")))
-            (command-prop (eval-when-compile (configurable-compilation--unimportant-text "--command"))))
-        (if proj-dir
-            (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons (configurable-compilation--unimportant-text (expand-file-name proj-dir)) (cons command-prop args)))))
-          (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons command-prop args))))))
-    args))
+  (let ((develop-prop (eval-when-compile (configurable-compilation--unimportant-text "develop")))
+        (command-prop (eval-when-compile (configurable-compilation--unimportant-text "--command"))))
+    (if-let* ((trix-exe (cached-executable-find "trix")))
+        (let ((trix-exe-prop (configurable-compilation--unimportant-text trix-exe)))
+          (if proj-dir
+              (cons trix-exe-prop (cons develop-prop (cons (configurable-compilation--unimportant-text (concat (expand-file-name proj-dir) "#default")) (cons command-prop (list (s-join " " args))))))
+            (cons trix-exe-prop (cons develop-prop (cons command-prop args)))))
+      (if-let* ((nix-exe (cached-executable-find "nix")))
+          (let ((nix-exe-prop (configurable-compilation--unimportant-text nix-exe))
+                (no-warn-dirty-prop (eval-when-compile (configurable-compilation--unimportant-text "--no-warn-dirty"))))
+            (if proj-dir
+                (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons (configurable-compilation--unimportant-text (expand-file-name proj-dir)) (cons command-prop args)))))
+              (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons command-prop args))))))
+        args))))
 
 (provide 'nix-integration)
 
