@@ -110,12 +110,12 @@ See also `s-split'."
 (defun s-join (separator strings)
   "Join all the strings in STRINGS with SEPARATOR in between."
   (declare (pure t) (side-effect-free t))
-  (mapconcat 'identity strings separator))
+  (mapconcat #'identity strings separator))
 
 (defun s-concat (&rest strings)
   "Join all the string arguments into one string."
   (declare (pure t) (side-effect-free t))
-  (apply 'concat strings))
+  (apply #'concat strings))
 
 (defun s-prepend (prefix s)
   "Concatenate PREFIX and S."
