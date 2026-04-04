@@ -121,9 +121,9 @@ same for a set of buffers rather than being different."
               (let ((tmp nil))
                 (s-join " "
                         (if (and full-command-line
-                                 (equal "nix"
-                                        (setf tmp
-                                              (file-name-nondirectory-preserve-text-properties (car full-command-line)))))
+                                 (member (setf tmp
+                                               (file-name-nondirectory-preserve-text-properties (car full-command-line)))
+                                         '("trix" "nix")))
                             (cons (configurable-compilation--unimportant-text tmp) (cdr full-command-line))
                           full-command-line))))
       (setf pretty-cmd
