@@ -69,7 +69,8 @@
 (dolist (mode '(cmake-mode-hook
                 shell-script-mode-hook
                 sh-mode-hook
-                sh-script-mode-hook))
+                sh-script-mode-hook
+                bash-ts-mode-hook))
   (add-hook mode #'shell-script-setup))
 
 ;;;###autoload
