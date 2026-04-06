@@ -1261,7 +1261,19 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
         (funcall cont ghci-buf))
     (dante-start cont)))
 
-(defcustom dante-load-flags '("+c" "-fdiagnostics-color=never" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-ferror-spans" "-Wwarn")
+(defcustom dante-load-flags
+  '("+c"
+    "-fdefer-typed-holes"
+    "-fdiagnostics-color=always"
+    "-ferror-spans"
+    "-fno-diagnostics-show-caret"
+    "-Wwarn=inconsistent-flags"
+    "-Wwarn=missing-home-modules"
+
+    ;; Make dante checker not error out if cabal file contains
+    ;; -Werror. Pass -Wwarn during initialization at runtime to
+    ;; override.
+    "-Wwarn")
   "Flags to set whenever GHCi is started."
   :type (cons 'set (--map (list 'const :tag (concat (car it) ": " (cadr it)) (car it))
                           '(("+c" "Gather type information (necessary for `dante-type-at')")
