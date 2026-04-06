@@ -153,20 +153,6 @@ and indent them as singe line."
           (save-excursion
             (join-line t)))))))
 
-
-
-(setf dante-load-flags
-      '("+c"
-        "-fdiagnostics-color=always"
-        "-fno-diagnostics-show-caret"
-        "-Wwarn=missing-home-modules"
-        "-Wwarn=inconsistent-flags"
-        "-ferror-spans"
-        "-fdefer-typed-holes")
-
-      ;; dante-debug '(inputs outputs responses command-line)
-      )
-
 (setf haskell-indentation-electric-flag t)
 
 ;;; Up level navigation
