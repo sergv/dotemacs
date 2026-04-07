@@ -1142,7 +1142,7 @@ Returns the number of characters skipped."
 further than END-POS.
 
 Return indentation size in number of characters (i.e. tabs count as 1)."
-  (beginning-of-line)
+  (forward-line 0)
   (skip-indentation-forward end-pos))
 
 (defun indentation-size ()
