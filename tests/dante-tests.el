@@ -20,6 +20,9 @@
 (defconst dante-tests-tests/simple-test-project-archive
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project.zip"))
 
+(defconst dante-tests-tests/simple-test-project-name-shadowing-error
+  (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project-name-shadowing-error"))
+
 (defconst dante-tests-tests/simple-repl-test-project
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-repl-project"))
 
@@ -49,23 +52,43 @@
              (kill-buffer ,buf-var)))))))
 
 (defmacro dante-tests/check-buffer-and-assert-when-done (&rest body)
-  `(let* ((checking-done nil)
-          (check-func
-           (lambda ()
-             (setf checking-done t))))
+  (let ((checking-done-var '#:checking-done))
+    `(let* ((,checking-done-var nil)
+            (check-func
+             (lambda ()
+               (setf ,checking-done-var t))))
 
-     (add-hook 'flycheck-after-syntax-check-hook check-func nil t)
+       (add-hook 'flycheck-after-syntax-check-hook check-func nil t)
 
-     (haskell-flycheck-force-run)
-     ;; (flycheck-buffer)
+       (haskell-flycheck-force-run)
+       ;; (flycheck-buffer)
 
-     (while (not checking-done)
-       (sit-for 0.05))
+       (while (not ,checking-done-var)
+         (sit-for 0.05))
 
-     (remove-hook 'flycheck-after-syntax-check-hook check-func t)
+       (remove-hook 'flycheck-after-syntax-check-hook check-func t)
 
-     (progn
-       ,@body)))
+       (progn
+         ,@body))))
+
+(defmacro dante-tests/type-at-point-and-assert-when-done (type-var &rest body)
+  (declare (indent 1))
+  (cl-assert (symbolp type-var))
+  (let ((checking-done-var '#:checking-done)
+        (arg-var '#:fresh-var))
+    `(let ((,checking-done-var nil)
+           (,type-var nil))
+
+       (dante-type-at--with-type-at-point
+        (lambda (,arg-var)
+          (setf ,type-var ,arg-var
+                ,checking-done-var t)))
+
+       (while (not ,checking-done-var)
+         (sit-for 0.05))
+
+       (progn
+         ,@body))))
 
 (defun dante-repl/wait-for-prompt (proc)
   "Spin in a loop until prompt dante-repl prompt shows up befor epoint."
@@ -130,9 +153,9 @@
       (goto-line-dumb 10)
       (move-to-column 4)
 
-      (dante-type-at--with-type-at-point
-       (lambda (ty)
-         (should (string= ty "x :: a")))))))
+      (dante-tests/type-at-point-and-assert-when-done
+          ty
+        (should (string= ty "x :: a"))))))
 
 (ert-deftest z-dante-tests/simple-check-project-2 ()
   (unless (executable-find "cabal")
@@ -178,9 +201,9 @@
         (goto-line-dumb 10)
         (move-to-column 4)
 
-        (dante-type-at--with-type-at-point
-         (lambda (ty)
-           (should (string= ty "x :: a")))))
+        (dante-tests/type-at-point-and-assert-when-done
+            ty
+          (should (string= ty "x :: a"))))
 
       (progn
         (goto-char (point-min))
@@ -200,6 +223,51 @@
 
         (dante-tests/check-buffer-and-assert-when-done
          (should (null flycheck-current-errors)))))))
+
+(ert-deftest z-dante-tests/simple-check-project-3-name-shadowing-error ()
+  (unless (executable-find "cabal")
+    (ert-skip "cabal not available"))
+  (unless (executable-find "ghc")
+    (ert-skip "ghc not available"))
+
+  (dante-tests/with-file
+      (concat dante-tests-tests/simple-test-project-name-shadowing-error "/src/Foo.hs")
+    (should (derived-mode-p 'haskell-ts-base-mode))
+    (should flycheck-mode)
+    (should dante-mode)
+
+    (should (string= (dante-config/cabal-target (dante-get-config))
+                     "emacs-dante-simple-check-test-project-name-shadowing-error:lib:emacs-dante-simple-check-test-project-name-shadowing-error"))
+
+    (delete-directory (dante-config/build-dir (dante-get-config)) t)
+
+    (dante-tests/check-buffer-and-assert-when-done
+     (should (not (null flycheck-current-errors)))
+
+     (let ((err (--find (and (string-suffix-p "Foo.hs" (flycheck-error-filename it) t)
+                             (string-search "GHC-63397" (flycheck-error-message it)))
+                        flycheck-current-errors)))
+       (should (not (null err)))
+       (should (string= (flycheck-error-filename err)
+                        (concat dante-tests-tests/simple-test-project-name-shadowing-error "/src/Foo.hs")))
+       (should (string-search "This binding for ‘x’ shadows the existing binding"
+                              (flycheck-error-message err)))))
+
+    (progn
+      (flycheck-enhancements-next-error-with-wraparound)
+
+      (should (string= (concat dante-tests-tests/simple-test-project-name-shadowing-error "/src/Foo.hs")
+                       (buffer-file-name))))
+
+    (progn
+      (goto-line-dumb 10)
+      (move-to-column 14)
+
+      ;; Test that :type-at still works even when project doesn’t build because of -Werror.
+      ;; Dante must override -Werror with -Wwarn to make this work.
+      (dante-tests/type-at-point-and-assert-when-done
+       ty
+       (should (string= ty "myreplicate :: Int -> [a] -> [[a]]"))))))
 
 (ert-deftest z-dante-tests/simple-repl-project-1 ()
   (unless (executable-find "cabal")
