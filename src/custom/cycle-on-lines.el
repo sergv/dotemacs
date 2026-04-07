@@ -9,57 +9,6 @@
 (eval-when-compile
   (require 'cl))
 
-(defmacro make-cycle-on-lines-in-region
-    (begin end is-forward?
-           &optional forward-func backward-func)
-  "Return function than will
-go to COUNTh next or previous line in range [BEGIN, lines - END) where
-lines is line count in the current buffer. Never leaves point not within
-range [BEGIN, lines - END) if, of course, there's enough lines.
-
-DIRECTION may have value either 'forward or 'backward"
-  (setq forward-func (or forward-func '#'forward-line))
-  (setq backward-func (or backward-func '#'backward-line))
-  `(lambda (count)
-     (let* ((lines-in-buf (count-lines-fixed (point-min) (point-max)))
-            (range-end (- lines-in-buf ,end))
-            (lines-in-region (- lines-in-buf (+ ,begin ,end)))
-            (current (count-lines-fixed (point-min) (point))))
-       (setq count (% count lines-in-region))
-       (cond ((or ;; not in cycling range
-               (< current ,begin)
-               (> current range-end))
-              ,@(if is-forward?
-                    `((goto-char (point-min))
-                      (funcall ,forward-func ,begin))
-                  `((goto-char (point-max))
-                    (funcall ,backward-func ,end))))
-
-             ,(append
-               (list
-                (if is-forward?
-                    `(>= (+ current count) range-end)
-                  `(<= (- current count) ,begin)))
-
-               (if is-forward?
-                   `((cl-incf count (- (- range-end current)))
-
-                     (goto-char (point-min))
-                     (funcall ,forward-func ,begin)
-                     (dotimes (_ count)
-                       (funcall ,forward-func +1)))
-                 `((cl-incf count (- (- current ,begin)))
-
-                   (goto-char (point-max))
-                   (funcall ,backward-func ,(abs end))
-                   (dotimes (_ count)
-                     (funcall ,backward-func -1)))))
-             (t
-              (funcall ,(if is-forward?
-                            forward-func
-                          backward-func)
-                       count))))))
-
 ;;; special definitons for occur
 
 (defun custom-occur-find-match (n is-forward? &optional linewise)
