@@ -89,7 +89,7 @@ that next 2 characters are AFTER1 and AFTER2."
                        (eq before ?\\))
                    (eq after ?\")))))))
 
-(defun smart-operators--on-empty-string? ()
+(defun smart-operators--on-empty-line? ()
   (let ((start (line-beginning-position)))
     (or (= start (line-end-position))
         (save-excursion
