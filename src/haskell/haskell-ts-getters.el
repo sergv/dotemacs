@@ -41,6 +41,17 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-getters--get-quasiquote-opening-bracket (node)
+  (cl-assert (string= (treesit-node-type node) "quasiquote"))
+  (let ((result (treesit-node-child node 0)))
+    (cl-assert (string= "[" (treesit-node-type result))
+               nil
+               "Not an opening bracket %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (defun haskell-ts-getters--get-parens-content (node)
   (cl-assert (string= (treesit-node-type node) "parens"))
   (if (= (treesit-node-child-count node) 3)
