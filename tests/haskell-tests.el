@@ -4402,6 +4402,32 @@ Entries should be a list of of elements of the form
    ""))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-backspace-with-block-dedent-5
+    (haskell-backspace-with-block-dedent)
+  (tests-utils--multiline
+   ""
+   "foo ="
+   "    ( bar"
+   "      , \"\"\""
+   "        _|_  bar ="
+   "            baz +"
+   "              quux"
+   "        \"\"\""
+   "    )"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo ="
+   "    ( bar"
+   "      , \"\"\""
+   "       _|_  bar ="
+   "           baz +"
+   "             quux"
+   "        \"\"\""
+   "    )"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-backspace-with-block-dedent-not-at-indentation-1
     (haskell-backspace-with-block-dedent)
   (tests-utils--multiline
@@ -4843,6 +4869,32 @@ Entries should be a list of of elements of the form
    ""
    "bar :: a -> x"
    "bar x = x"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-space-with-block-indent-3
+    (haskell-space-with-block-indent 2)
+  (tests-utils--multiline
+   ""
+   "foo ="
+   "    ( bar"
+   "      , \"\"\""
+   "        _|_  bar ="
+   "            baz +"
+   "              quux"
+   "        \"\"\""
+   "    )"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo ="
+   "    ( bar"
+   "      , \"\"\""
+   "          _|_  bar ="
+   "              baz +"
+   "                quux"
+   "        \"\"\""
+   "    )"
    ""))
 
 (haskell-tests--test-buffer-contents
