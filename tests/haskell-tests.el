@@ -7045,6 +7045,285 @@ Entries should be a list of of elements of the form
   "  _|_y"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-17a
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        case x of"
+  "          Nothing -> fizz"
+  "          Just (Baz z) ->"
+  "            \\(Quux w) ->"
+  "              Fizz $ _|_filter test w"
+  ""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        case x of"
+  "          Nothing -> fizz"
+  "          Just (Baz z) ->"
+  "            \\(Quux w) ->"
+  "              Fizz $"
+  "                _|_filter test w"
+  ""
+  "  pure ()"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-17b
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        case x of"
+  "          Nothing -> fizz"
+  "          Just (Baz z) ->"
+  "            Fizz $ _|_filter test z"
+  ""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        case x of"
+  "          Nothing -> fizz"
+  "          Just (Baz z) ->"
+  "            Fizz $"
+  "              _|_filter test z"
+  ""
+  "  pure ()"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-17c
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        let xxx = 1"
+  "        in"
+  "          Fizz $ _|_filter test z"
+  ""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        let xxx = 1"
+  "        in"
+  "          Fizz $"
+  "            _|_filter test z"
+  ""
+  "  pure ()"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-17d
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        ( w"
+  "        , Fizz $ _|_filter test z"
+  "        )"
+  ""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        ( w"
+  "        , Fizz $"
+  "            _|_filter test z"
+  "        )"
+  ""
+  "  pure ()"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-17e
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        [ w"
+  "        , Fizz $ _|_filter test z"
+  "        ]"
+  ""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux ="
+  "        [ w"
+  "        , Fizz $"
+  "            _|_filter test z"
+  "        ]"
+  ""
+  "  pure ()"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-17f
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux = Fizz"
+  "        { buzz1 = 1"
+  "        , buzz2 = Fizz $ _|_filter test z"
+  "        }"
+  ""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux = Fizz"
+  "        { buzz1 = 1"
+  "        , buzz2 = Fizz $"
+  "            _|_filter test z"
+  "        }"
+  ""
+  "  pure ()"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-17h
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux = Fizz"
+  "        { buzz1 = 1"
+  "        , buzz2 = _|_Fizz $ filter test z"
+  "        }"
+  ""
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  y <- bar"
+  "  let baz = 1"
+  ""
+  "      quux :: Map Foo Bar"
+  "      quux = Fizz"
+  "        { buzz1 = 1"
+  "        , buzz2 ="
+  "            _|_Fizz $ filter test z"
+  "        }"
+  ""
+  "  pure ()"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
