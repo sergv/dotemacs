@@ -712,9 +712,6 @@
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
               haskell-indent-offset)
 
-             ((node-is "quasiquote") grand-parent haskell-indent-offset)
-             ((parent-is "quasiquote_body") (lambda (_ _ c) c) 0)
-
              ;; ((lambda (node parent bol)
              ;;    (let ((n (treesit-node-prev-sibling node)))
              ;;      (while (string= "comment" (treesit-node-type n))
@@ -762,7 +759,48 @@
 
              ;; Here node is typically nil but we don’t want to match the ‘no-node’ rule below.
              ((parent-is "string")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
+              (lambda (node parent bol-pos)
+                (save-excursion
+                  (goto-char bol-pos)
+                  (cond
+                    ((or (looking-at-p (rx "\"\"\"" eol))
+                         (smart-operators--on-empty-line?)
+                         (and (eq (char-after) ?\\)
+                              (save-excursion
+                                (forward-line 0)
+                                (skip-chars-backward " \t\n\r")
+                                (eq (char-before) ?\\))))
+                     (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
+                      node
+                      parent
+                      bol-pos))
+                    (t
+                     ;; Current beginnig of line is the target position -
+                     ;; the effect of this and 0 offset later is to leave
+                     ;; indentation unchanged.
+                     bol-pos))))
+              (lambda (_ _ _)
+                (lambda (matched-anchor)
+                  (cond
+                    ((numberp matched-anchor)
+                     0)
+                    ((and (treesit-computed-indent-p matched-anchor)
+                          (member (treesit-matched-anchor-node-type matched-anchor) '("string" "literal")))
+                     0)
+                    (t
+                     haskell-indent-offset)))))
+
+             ((parent-is "quasiquote_body")
+              (lambda (_ _ bol-pos)
+                ;; Current beginnig of line is the target position -
+                ;; the effect of this and 0 offset later is to leave
+                ;; indentation unchanged.
+                bol-pos)
+              0)
+
+             ((n-p-gp "|]" "quasiquote" nil)
+              (lambda (_ parent _)
+                (haskell-ts-getters--get-quasiquote-opening-bracket parent))
               0)
 
              ((and no-node
@@ -879,10 +917,6 @@
                   (n-p-gp "=>" "context" nil))
               haskell-ts-indent--function-arrow-anchor
               haskell-ts-indent--function-arrow-indent)
-
-             ((n-p-gp "|]" "quasiquote" nil)
-              parent
-              0)
 
              ((n-p-gp "." "forall" nil)
               haskell-ts-indent--context-dot-anchor
