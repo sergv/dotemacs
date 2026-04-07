@@ -1,0 +1,43 @@
+cabal-version: 3.6
+
+-- Created :  Tuesday,  7 April 2026
+
+name:
+  emacs-dante-simple-check-test-project-name-shadowing-error
+version:
+  0.1
+synopsis:
+  TODO
+description:
+  TODO
+copyright:
+  (c) Sergey Vinokurov 2025
+license:
+  Apache-2.0
+-- license-file:
+--   LICENSE
+author:
+  Sergey Vinokurov
+maintainer:
+  Sergey Vinokurov <serg.foo@gmail.com>
+
+build-type:
+  Simple
+
+common ghc-options
+  default-language:
+    Haskell2010
+
+  ghc-options:
+    -Wall
+    -Wname-shadowing
+    -Werror
+
+library
+  import: ghc-options
+  exposed-modules:
+    Foo
+  hs-source-dirs:
+    src
+  build-depends:
+    , base >= 4.16
