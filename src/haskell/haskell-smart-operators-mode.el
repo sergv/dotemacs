@@ -206,7 +206,7 @@ stick it to the previous operator on line."
              (before nil)
              (after (char-after)))
          ;; Decide whether to insert space before the operator.
-         (if (and (not (smart-operators--on-empty-string?))
+         (if (and (not (smart-operators--on-empty-line?))
                   ;; If inserting hash then we should not add a space
                   ;; if MagicHash is enabled.
                   (if magic-hash?
