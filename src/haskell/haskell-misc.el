@@ -757,7 +757,9 @@ a single entity."
                               nil)
                              (t
                               (or (haskell-smart-operators--in-string-syntax?-raw p node)
-                                  (nth 3 (syntax-ppss-update! syn)))))))
+                                  (nth 3 (syntax-ppss-update! syn))))))
+               (after-indent-increasing-token? (haskell-indent--after-indent-increasing-token?))
+               (is-ts-mode? (derived-mode-p 'haskell-ts-base-mode)))
           (cond-let
             (multiline-string-start
              (let ((string-start-column (save-excursion
@@ -781,42 +783,47 @@ a single entity."
              (insert-char ?\n)
              (insert-char ?\s function-name-column))
             ([enclosing-bind-node
-              (when-let ((curr-node (treesit-haskell--current-node)))
-                (destructuring-bind
-                    (enclosing-let-node . let-depth)
-                    (treesit-utils-find-closest-parent-with-count
-                     curr-node
-                     (lambda (node)
-                       (string= (treesit-node-type node) "let")))
-                  (when enclosing-let-node
-                    ;; Find match node that encloses us that’s still within
-                    ;; enclosing let.
-                    (let* ((bind-node
-                            (treesit-utils-find-closest-parent-limited
-                             curr-node
-                             (lambda (node)
-                               (string= (treesit-node-type node) "bind"))
-                             let-depth))
-                           (match-child
-                            (treesit-node-child-by-field-name bind-node "match")))
-                      (when (and match-child
-                                 ;; Don’t want to indent anything if point is before =
-                                 (treesit-haskell--is-inside-node? (point)
-                                                                   match-child)
-                                 ;; Don’t want special indentation if we’re at
-                                 ;; the very end - then we’ll indent regularly
-                                 ;; for new let entry.
-                                 (not (save-excursion
-                                        (skip-syntax-backward " ")
-                                        (= (point) (treesit-node-end match-child)))))
-                        bind-node)))))]
+              (when is-ts-mode?
+                (when-let ((curr-node (treesit-haskell--current-node)))
+                  (destructuring-bind
+                      (enclosing-let-node . let-depth)
+                      (treesit-utils-find-closest-parent-with-count
+                       curr-node
+                       (lambda (node)
+                         (member (treesit-node-type node) '("let" "case" "lambda"))))
+                    (when (and enclosing-let-node
+                               (string= (treesit-node-type enclosing-let-node) "let"))
+                      ;; Find match node that encloses us that’s still within
+                      ;; enclosing let.
+                      (let* ((bind-node
+                              (treesit-utils-find-closest-parent-limited
+                               curr-node
+                               (lambda (node)
+                                 (string= (treesit-node-type node) "bind"))
+                               let-depth))
+                             (match-child
+                              (treesit-node-child-by-field-name bind-node "match")))
+                        (when (and match-child
+                                   ;; Don’t want to indent anything if point is before =
+                                   (treesit-haskell--is-inside-node? (point)
+                                                                     match-child)
+                                   ;; Don’t want special indentation if we’re at
+                                   ;; the very end - then we’ll indent regularly
+                                   ;; for new let entry.
+                                   (not (save-excursion
+                                          (skip-syntax-backward " ")
+                                          (= (point) (treesit-node-end match-child)))))
+                          bind-node))))))]
              (haskell--simple-indent-to
               (+ (character-column-at-pos (treesit-node-start enclosing-bind-node))
                  haskell-indent-offset))
              (haskell-ts-indent-line))
-            ((save-excursion
-               (skip-to-indentation)
-               (looking-at-p "let\\_>"))
+            ((and (save-excursion
+                    (skip-to-indentation)
+                    (looking-at-p "let\\_>"))
+                  (if is-ts-mode?
+                      (not after-indent-increasing-token?)
+                    t))
              (let ((prev-char-is-equals?
                     (save-excursion
                       (skip-syntax-backward " ")
@@ -825,13 +832,13 @@ a single entity."
                (insert-char ?\s
                             (+ 4
                                (if prev-char-is-equals? haskell-indent-offset 0)))))
-            ((or (haskell-indent--after-indent-increasing-token?)
+            ((or after-indent-increasing-token?
                  (save-excursion
                    (skip-chars-backward " \t")
                    ;; Check that there’s non-zero number of operator characters preceded by whitespace.
                    (and (<= (skip-chars-backward haskell-smart-operators--operator-chars-str) -1)
                         (<= (skip-chars-backward " \t") -1)))
-                 (when (derived-mode-p 'haskell-ts-base-mode)
+                 (when is-ts-mode?
                    (when-let* ((node (treesit-node-at
                                       (advance-pos-over-whitespace (point))))
                                (parent (treesit-node-parent node)))
