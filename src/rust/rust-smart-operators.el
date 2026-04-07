@@ -137,7 +137,7 @@ stick it to the previous operator on line."
                                  (char-before (1- pt)))))
 
               (let ((insert-space-before-char?
-                     (and (not (smart-operators--on-empty-string?))
+                     (and (not (smart-operators--on-empty-line?))
                           (not (memq char '(?\< ?\>)))
                           (if (eq char ?\|)
                               ;; Check if we're preceded by '...( *(move +)?|..._|_'.
