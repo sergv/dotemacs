@@ -7516,6 +7516,93 @@ have different input states."
   "  = bar1 + quux1"
   ""))
 
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region--string-1
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "foo ="
+  "    \"\"\""
+  "    bar ="
+  "      baz +"
+  "        quux"
+  "    \"\"\""
+  "_||_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  ""
+  "foo ="
+  "  \"\"\""
+  "    bar ="
+  "      baz +"
+  "        quux"
+  "  \"\"\""
+  "_|_"
+  ""))
+
+;; Check that we won’t indent inside multiline string
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region--string-2
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "foo ="
+  "  \"\"\""
+  "  bar ="
+  "    baz +"
+  "      quux"
+  "  \"\"\""
+  "_||_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  ""
+  "foo ="
+  "  \"\"\""
+  "  bar ="
+  "    baz +"
+  "      quux"
+  "  \"\"\""
+  "_|_"
+  ""))
+
+;; Check that we won’t indent inside multiline string
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region--string-3
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "foo ="
+  "    ( bar"
+  "     , \"\"\""
+  "       bar ="
+  "         baz +"
+  "           quux"
+  "       \"\"\""
+  "    )"
+  "_||_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  ""
+  "foo ="
+  "  ( bar"
+  "  , \"\"\""
+  "       bar ="
+  "         baz +"
+  "           quux"
+  "    \"\"\""
+  "  )"
+  "_|_"
+  ""))
+
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-string-1a
  :contents
@@ -7546,7 +7633,7 @@ have different input states."
   "  [ bar :-> \"bar\""
   "  , foo :-> \"  {-   foo \\n\\"
   "   _|_\\\\n\\"
-  "    \\-}\""
+  "      \\-}\""
   "  ]")
  :expected-value
  (tests-utils--multiline
@@ -7554,8 +7641,8 @@ have different input states."
   "foo ="
   "  [ bar :-> \"bar\""
   "  , foo :-> \"  {-   foo \\n\\"
-  "    _|_\\\\n\\"
-  "    \\-}\""
+  "      _|_\\\\n\\"
+  "      \\-}\""
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
@@ -7567,8 +7654,8 @@ have different input states."
   "  [ bar :-> \"bar\""
   "  , foo :->"
   "     _|_\"  {-   foo \\n\\"
-  "    \\\\n\\"
-  "    \\-}\""
+  "      \\\\n\\"
+  "      \\-}\""
   "  ]")
  :expected-value
  (tests-utils--multiline
@@ -7577,8 +7664,8 @@ have different input states."
   "  [ bar :-> \"bar\""
   "  , foo :->"
   "      _|_\"  {-   foo \\n\\"
-  "    \\\\n\\"
-  "    \\-}\""
+  "      \\\\n\\"
+  "      \\-}\""
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
@@ -7625,7 +7712,7 @@ have different input states."
   "foo ="
   "  [ \"bar\""
   "  , \"\"\""
-  "    _|_{-   foo"
+  "     _|_{-   foo"
   ""
   "    -}"
   "    \"\"\""
@@ -7657,17 +7744,17 @@ have different input states."
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-string-2d
+ :name haskell-indentation-tests--test-string-2da
  :contents
  (tests-utils--multiline
   "foo :: [String]"
   "foo ="
   "  [ bar :-> \"bar\""
   "  , foo :-> \"\"\""
-  "     _|_{-   foo"
+  "         _|_{-   foo"
   ""
-  "    -}"
-  "    \"\"\""
+  "      -}"
+  "      \"\"\""
   "  ]")
  :expected-value
  (tests-utils--multiline
@@ -7675,10 +7762,35 @@ have different input states."
   "foo ="
   "  [ bar :-> \"bar\""
   "  , foo :-> \"\"\""
-  "    _|_{-   foo"
+  "         _|_{-   foo"
   ""
-  "    -}"
-  "    \"\"\""
+  "      -}"
+  "      \"\"\""
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-string-2db
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ bar :-> \"bar\""
+  "  , foo :-> \"\"\""
+  "      {-   foo"
+  ""
+  "      -}"
+  "               _|_\"\"\""
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ bar :-> \"bar\""
+  "  , foo :-> \"\"\""
+  "      {-   foo"
+  ""
+  "      -}"
+  "      _|_\"\"\""
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
@@ -7700,7 +7812,7 @@ have different input states."
   "foo ="
   "  ( \"bar\""
   "  , \"\"\""
-  "    _|_{-   foo"
+  "     _|_{-   foo"
   ""
   "    -}"
   "    \"\"\""
@@ -7782,6 +7894,200 @@ have different input states."
   "  baz"
   "  |]"
   ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-2a
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , [hereDoc|  {-   foo \\n\\"
+  "   _|_\\\\n\\"
+  "    \\-}|]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , [hereDoc|  {-   foo \\n\\"
+  "   _|_\\\\n\\"
+  "    \\-}|]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-2b
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ bar :-> \"bar\""
+  "  , foo :-> [hereDoc|  {-   foo \\n\\"
+  "   _|_\\\\n\\"
+  "    \\-}|]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ bar :-> \"bar\""
+  "  , foo :-> [hereDoc|  {-   foo \\n\\"
+  "   _|_\\\\n\\"
+  "    \\-}|]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-2c
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ bar :-> \"bar\""
+  "  , foo :->"
+  "     _|_[hereDoc|  {-   foo \\n\\"
+  "    \\\\n\\"
+  "    \\-}|]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ bar :-> \"bar\""
+  "  , foo :->"
+  "      _|_[hereDoc|  {-   foo \\n\\"
+  "    \\\\n\\"
+  "    \\-}|]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-3a
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , [hereDoc|"
+  "    {-   foo"
+  ""
+  "    -}"
+  "     _|_|]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , [hereDoc|"
+  "    {-   foo"
+  ""
+  "    -}"
+  "    _|_|]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-3b
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , [hereDoc|"
+  "     _|_{-   foo"
+  ""
+  "    -}"
+  "    |]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , [hereDoc|"
+  "     _|_{-   foo"
+  ""
+  "    -}"
+  "    |]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-3c
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , [hereDoc|"
+  "    {-   foo"
+  "_|_"
+  "    -}"
+  "    |]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , [hereDoc|"
+  "    {-   foo"
+  "_|_"
+  "    -}"
+  "    |]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-3d
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  ,"
+  "     [hereDoc|"
+  "    {-   foo"
+  ""
+  "    -}"
+  "     _|_|]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  ,"
+  "     [hereDoc|"
+  "    {-   foo"
+  ""
+  "    -}"
+  "     _|_|]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-3f
+ :contents
+ (tests-utils--multiline
+  "foo :: (String, String)"
+  "foo ="
+  "  ( \"bar\""
+  "  ,"
+  "       _|_[hereDoc|"
+  "    {-   foo"
+  ""
+  "    -}"
+  "    |]"
+  "  )")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: (String, String)"
+  "foo ="
+  "  ( \"bar\""
+  "  ,"
+  "    _|_[hereDoc|"
+  "    {-   foo"
+  ""
+  "    -}"
+  "    |]"
+  "  )"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--lambda-1a
