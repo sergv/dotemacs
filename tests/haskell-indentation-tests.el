@@ -2035,7 +2035,7 @@ have different input states."
   "    Right (x, y) ->"
   "      baz quux $"
   "        pure result"
-  "        _|_"
+  "          _|_"
   "  where"
   "    xxx = yyy"))
 
@@ -2535,7 +2535,7 @@ have different input states."
   "data Foo"
   "  = Foo Int"
   "  | Bar Foo Foo"
-  "    _|_"))
+  "      _|_"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-data-2
@@ -2573,7 +2573,7 @@ have different input states."
   "data Foo"
   "  = Foo Int"
   "  | Bar Foo Foo"
-  "    _|_"))
+  "      _|_"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-data-4
@@ -8466,6 +8466,190 @@ have different input states."
   "        _|_initState"
   "        str"
   "  pure (bar x)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "_|_"
+  "  bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  _|_"
+  "  bar"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  ""
+  "  bar"
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  ""
+  "  bar"
+  "  _|_"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-1c
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo a where"
+  "_|_"
+  "  foo :: a -> a"
+  "  bar :: a -> a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo a where"
+  "  _|_"
+  "  foo :: a -> a"
+  "  bar :: a -> a"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-2a
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo a where"
+  "  foo :: a -> a"
+  "_|_"
+  "  bar :: a -> a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo a where"
+  "  foo :: a -> a"
+  "  _|_"
+  "  bar :: a -> a"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-2b
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo a where"
+  "  foo :: a -> a"
+  "  bar :: a -> a"
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo a where"
+  "  foo :: a -> a"
+  "  bar :: a -> a"
+  "  _|_"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-3a
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo"
+  "  = Foo"
+  "_|_"
+  "  | Bar"
+  "      Int"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo"
+  "  = Foo"
+  "      _|_"
+  "  | Bar"
+  "      Int"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-3b
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo"
+  "  = Foo"
+  "  | Bar"
+  "_|_"
+  "      Int"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo"
+  "  = Foo"
+  "  | Bar"
+  "      _|_"
+  "      Int"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-3c
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "  _|_"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-3d
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "_|_"
+  "  deriving (Eq)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "  _|_"
+  "  deriving (Eq)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-no-node-3e
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "  deriving (Eq)"
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "  deriving (Eq)"
+  "  _|_"
   ""))
 
 (provide 'haskell-indentation-tests)
