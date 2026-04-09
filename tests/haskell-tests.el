@@ -11828,6 +11828,138 @@ Entries should be a list of of elements of the form
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/indent-relative-forward-1a
+ :action
+ (let ((vim-shift-width 2))
+   (indent-relative-forward))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "_|_"
+  "  bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  _|_"
+  "  bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/indent-relative-forward-1b
+ :action
+ (let ((vim-shift-width 4))
+   (indent-relative-forward))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "_|_"
+  "    bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "    _|_"
+  "    bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/indent-relative-backward-1a
+ :action
+ (let ((vim-shift-width 2))
+   (indent-relative-backward))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "        _|_"
+  "  bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "    _|_"
+  "  bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/indent-relative-backward-1b
+ :action
+ (let ((vim-shift-width 2))
+   (indent-relative-backward))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "    _|_"
+  "  bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  _|_"
+  "  bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/indent-relative-backward-1c
+ :action
+ (let ((vim-shift-width 2))
+   (indent-relative-backward))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  _|_"
+  "  bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "_|_"
+  "  bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/indent-relative-backward-1d
+ :action
+ (let ((vim-shift-width 4))
+   (indent-relative-backward))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "         _|_"
+  "    bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "    _|_"
+  "    bar"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
