@@ -111,11 +111,13 @@ have different input states."
      ,@(cl-loop
         for entry in inputs
         collect
-        `(haskell-indentation-tests--test-treesitter
-          :name ,(cl-first entry)
-          :contents ,(cl-second entry)
-          :expected-value ,expected-value
-          :expected-result ,expected-result))))
+        (let ((name (plist-get entry :name))
+              (contents (plist-get entry :contents)))
+          `(haskell-indentation-tests--test-treesitter
+            :name ,name
+            :contents ,contents
+            :expected-value ,expected-value
+            :expected-result ,expected-result)))))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-apply-1
@@ -2384,7 +2386,9 @@ have different input states."
 
 (haskell-indentation-tests--make-multiple-input-test-treesitter
  :inputs
- ((haskell-indentation-tests--test-treesitter-infix-10a
+ ((:name
+   haskell-indentation-tests--test-treesitter-infix-10a
+   :contents
    (tests-utils--multiline
     ""
     "foo :: Int -> IO Int"
@@ -2395,31 +2399,35 @@ have different input states."
     "_|_"
     "        Nil <- undefined"
     "  pure 0"
-    "")
-   (haskell-indentation-tests--test-treesitter-infix-10b
-    (tests-utils--multiline
-     ""
-     "foo :: Int -> IO Int"
-     "foo n = do"
-     "  x :|"
-     "    y :|"
-     "      z :|"
-     "      _|_"
-     "        Nil <- undefined"
-     "  pure 0"
-     ""))
-   (haskell-indentation-tests--test-treesitter-infix-10c
-    (tests-utils--multiline
-     ""
-     "foo :: Int -> IO Int"
-     "foo n = do"
-     "  x :|"
-     "    y :|"
-     "      z :|"
-     "                    _|_"
-     "        Nil <- undefined"
-     "  pure 0"
-     ""))))
+    ""))
+  (:name
+   haskell-indentation-tests--test-treesitter-infix-10b
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: Int -> IO Int"
+    "foo n = do"
+    "  x :|"
+    "    y :|"
+    "      z :|"
+    "      _|_"
+    "        Nil <- undefined"
+    "  pure 0"
+    ""))
+  (:name
+   haskell-indentation-tests--test-treesitter-infix-10c
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: Int -> IO Int"
+    "foo n = do"
+    "  x :|"
+    "    y :|"
+    "      z :|"
+    "                    _|_"
+    "        Nil <- undefined"
+    "  pure 0"
+    "")))
  :expected-value
  (tests-utils--multiline
   ""
@@ -2435,7 +2443,9 @@ have different input states."
 
 (haskell-indentation-tests--make-multiple-input-test-treesitter
  :inputs
- ((haskell-indentation-tests--test-treesitter-infix-11a
+ ((:name
+   haskell-indentation-tests--test-treesitter-infix-11a
+   :contents
    (tests-utils--multiline
     ""
     "foo :: Int -> IO Int"
@@ -2448,7 +2458,9 @@ have different input states."
     "        Nil <- undefined"
     "  pure 0"
     ""))
-  (haskell-indentation-tests--test-treesitter-infix-11b
+  (:name
+   haskell-indentation-tests--test-treesitter-infix-11b
+   :contents
    (tests-utils--multiline
     ""
     "foo :: Int -> IO Int"
