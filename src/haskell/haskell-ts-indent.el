@@ -977,7 +977,12 @@
               0)
              ((n-p-gp nil "signature" "foreign_import") grand-parent haskell-indent-offset)
 
-             ((n-p-gp '("," ")" "#)") '("tuple" "unboxed_tuple" "prefix_tuple") nil) parent 0)
+             ((n-p-gp
+               '("," ")" "#)")
+               '("parens" "tuple" "unboxed_tuple" "prefix_tuple")
+               nil)
+              parent
+              0)
 
              ((and (parent-is "tuple" "unboxed_tuple" "prefix_tuple")
                    (field-is "element"))
