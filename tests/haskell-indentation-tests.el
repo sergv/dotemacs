@@ -8455,6 +8455,51 @@ have different input states."
   "  _|_)"
   ""))
 
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-parens-7a
+   :contents
+   (tests-utils--multiline
+    ""
+    "test :: Test"
+    "test ="
+    "  ("
+    "        _|_def"
+    "    )"
+    ""))
+  (:name
+   haskell-indentation-tests--test-treesitter-parens-7b
+   :contents
+   (tests-utils--multiline
+    ""
+    "test :: Test"
+    "test ="
+    "  ("
+    " _|_def"
+    "    )"
+    ""))
+  (:name
+   haskell-indentation-tests--test-treesitter-parens-7c
+   :contents
+   (tests-utils--multiline
+    ""
+    "test :: Test"
+    "test ="
+    "  ("
+    "_|_def"
+    "    )"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: Test"
+  "test ="
+  "  ("
+  "    _|_def"
+  "    )"
+  ""))
+
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-misc-1a
  :contents
