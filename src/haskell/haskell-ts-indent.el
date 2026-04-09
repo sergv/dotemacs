@@ -1080,6 +1080,10 @@
                        3
                      2))))
 
+             ((parent-is "parens")
+              parent
+              haskell-indent-offset)
+
              ;; No backup - we would like to default to something else.
              ;; ;; Backup
              ;; (catch-all parent haskell-indent-offset)
