@@ -66,13 +66,15 @@ to mode and write new contents back to FILENAME."
 (defun indent-relative-forward ()
   "Indent forwards similarly to `indent-relative'."
   (interactive)
-  (indent-relative+ t))
+  (let ((tab-width vim-shift-width))
+    (indent-relative+ t)))
 
 ;;;###autoload
 (defun indent-relative-backward ()
   "Indent backwards similarly to `indent-relative'."
   (interactive)
-  (indent-relative+ nil))
+  (let ((tab-width vim-shift-width))
+    (indent-relative+ nil)))
 
 ;; inspired by indent-relative for v24.3.1
 ;;;###autoload
