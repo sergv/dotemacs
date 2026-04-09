@@ -8425,6 +8425,25 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-parens-6
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: Test"
+  "test ="
+  "  ( def"
+  "    _|_)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: Test"
+  "test ="
+  "  ( def"
+  "  _|_)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-misc-1a
  :contents
  (tests-utils--multiline
