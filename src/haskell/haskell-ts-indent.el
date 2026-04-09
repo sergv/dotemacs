@@ -112,6 +112,39 @@
             not
             list))))
 
+(defun haskell-ts-indent--prev-adaptive-prefix (_n parent bol)
+  (save-match-data
+    (let (comment-start-bol
+          this-line-has-prefix)
+      (save-excursion
+        (goto-char (treesit-node-start parent))
+        (setq comment-start-bol (line-beginning-position))
+
+        (goto-char bol)
+        (setq this-line-has-prefix
+              (and (looking-at adaptive-fill-regexp)
+                   (not (string-match-p
+                         (rx bos (* whitespace) eos)
+                         (match-string 0)))))
+
+        (forward-line -1)
+        (and (>= (point) comment-start-bol)
+             adaptive-fill-regexp
+             (looking-at adaptive-fill-regexp)
+             ;; If previous line is an empty line, don't
+             ;; indent.
+             (not (haskell-on-blank-line?)
+                  ;; (haskell-on-blank-line-from-any-column?)
+                  )
+             ;; Return the anchor.  If the indenting line
+             ;; has a prefix and the previous line also
+             ;; has a prefix, indent to the beginning of
+             ;; prev line's prefix rather than the end of
+             ;; prev line's prefix. (Bug#61314).
+             (or (and this-line-has-prefix
+                      (match-beginning 1))
+                 (match-end 0)))))))
+
 (defun haskell-ts-indent--make-trivial-computed-indent (x)
   (cl-assert (treesit-node-p x))
   (make-treesit-computed-indent :anchor-node x :flags nil))
@@ -809,13 +842,53 @@
               0)
 
              (no-node
-              prev-adaptive-prefix
-              ,(lambda (_node _parent _bol)
-                 (if (save-excursion
-                       (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-from-any-column? nil t)
-                       (looking-at-p "\\_<where\\_>"))
-                     haskell-indent-offset
-                   0)))
+              ,(lambda (node parent bol-pos)
+                 (let ((typ (treesit-node-type parent)))
+                   (cond
+                     ;; If we’re on toplevel
+                     ((string= typ "declarations")
+                      (let ((pos (haskell-ts-indent--prev-adaptive-prefix node parent bol-pos)))
+                        (if-let* ((prev-node (treesit-node-at pos))
+                                  (typ (treesit-node-type prev-node)))
+                            (cond
+                              ((string= typ "data")
+                               (make-treesit-computed-indent
+                                :anchor-node prev-node
+                                :flags '(indent-once)))
+                              ((and (string= typ "deriving")
+                                    (when-let* ((p1 (treesit-node-parent prev-node))
+                                                (p2 (treesit-node-parent p1)))
+                                      (string= (treesit-node-type p2) "data_type")))
+                               (haskell-ts-indent--make-trivial-computed-indent prev-node))
+                              (t
+                               pos))
+                          (haskell-ts-indent--make-trivial-computed-indent parent))))
+                     ((member typ
+                              '("data_constructors"))
+                      (make-treesit-computed-indent
+                       :anchor-node parent
+                       :flags '(indent-once)))
+                     ((member typ
+                              '("class_declarations"))
+                      (haskell-ts-indent--make-trivial-computed-indent parent))
+                     (t
+                      (haskell-ts-indent--prev-adaptive-prefix node parent bol-pos)))))
+              ,(lambda (_node parent bol-pos)
+                 ;; Since there’s no node, bol-pos is our cursor position too.
+                 (lambda (matched-anchor)
+                   (cond
+                     ((treesit-computed-indent-p matched-anchor)
+                      (if (memq 'indent-once (treesit-computed-indent-flags matched-anchor))
+                          haskell-indent-offset
+                        0))
+                     ((or (and (treesit-haskell--is-inside-node? bol-pos parent)
+                               (not (string= (treesit-node-type parent) "declarations")))
+                          (save-excursion
+                            (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-from-any-column? nil t)
+                            (looking-at-p "\\_<where\\_>")))
+                      haskell-indent-offset)
+                     (t
+                      0)))))
 
              ((parent-is "data_constructors") grand-parent haskell-indent-offset)
              ((node-is "gadt_constructors") parent haskell-indent-offset)
