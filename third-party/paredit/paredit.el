@@ -1193,7 +1193,7 @@ If a list begins on the line after the point but ends on a different
     (save-excursion
       (goto-char line-break-marker)
       (set-marker line-break-marker nil)
-      (newline)
+      (insert-char ?\n)
       (paredit-indent-line)
       ;; This step is redundant if we are inside a list, but even if we
       ;; are at the top level, we want at least to indent whatever we
