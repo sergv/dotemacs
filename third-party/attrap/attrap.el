@@ -491,20 +491,98 @@ The import ends at LINE and COL in the file."
 ;;   arrow
 ;;   )
 
+(rx-define attrap-ghc-identifier (n)
+  (seq "‘" (group-n n (* (not "’"))) "’"))
+
+(rx-define attrap-ghc-parens (body)
+  (seq "(" body ")"))
+
+(rx-define attrap-ghc-ws
+  (any ?\n ?\r ?\s ?\t))
+
+(rx-define attrap-ghc-lin-col (l c)
+  (seq "(" (group-n l (* num)) "," (group-n c (* num)) ")"))
+
+(rx-define attrap-ghc-multiline-span (l1 c1 l2 c2)
+  (seq (attrap-ghc-lin-col l1 c1) "-" (attrap-ghc-lin-col l2 c2)))
+
+(rx-define attrap-ghc-monoline-span (l1 c1 l2 c2)
+  (seq (group-n l2 (group-n l1 (* num))) ":" (group-n c1 (* num)) "-" (group-n c2 (* num))))
+
+(rx-define attrap-ghc-any-span (l1 c1 l2 c2)
+  (or (attrap-ghc-monoline-span l1 c1 l2 c2)
+      (attrap-ghc-multiline-span l1 c1 l2 c2)))
+
+(rx-define attrap-ghc-src-loc (l1 c1 l2 c2)
+  (seq (* (not ":")) ":" (attrap-ghc-any-span l1 c1 l2 c2)))
+
+(cl-defstruct attrap-ghc-import-location
+  module ;; string
+  line   ;; number
+  col    ;; number
+  )
+
+(defun attrap-ghc--extract-add-import-list-suggestions (msg normalized-msg)
+  (save-match-data
+    (cond
+      ((string-match
+        (rx (or (seq "Suggested fix:"
+                     (* attrap-ghc-ws) "Add"
+                     (* attrap-ghc-ws) (attrap-ghc-identifier 1)
+                     (* attrap-ghc-ws) "to the import list in the import of"
+                     (* attrap-ghc-ws) (attrap-ghc-identifier 2)
+                     (* attrap-ghc-ws) (attrap-ghc-parens (attrap-ghc-src-loc 3 4 5 6)))
+                (seq "Suggested fixes:" (* attrap-ghc-ws)
+                     (* "•" (+ (not ?•)))
+                     "• Add"
+                     (* attrap-ghc-ws) (attrap-ghc-identifier 1)
+                     (* attrap-ghc-ws) "to the import list in the import of"
+                     (* attrap-ghc-ws) (attrap-ghc-identifier 2)
+                     (* attrap-ghc-ws) (attrap-ghc-parens (attrap-ghc-src-loc 3 4 5 6)))))
+
+        normalized-msg)
+       (list (make-attrap-ghc-import-location
+              :module (match-string-no-properties 2 normalized-msg)
+              :line   (string-to-number (match-string-no-properties 5 normalized-msg))
+              :col    (string-to-number (match-string-no-properties 6 normalized-msg)))))
+      (t
+       (when-let ((filtered
+                   (--drop-while
+                    (not (string-match-p
+                          (rx (or (seq "Add" (* attrap-ghc-ws) (attrap-ghc-identifier 2) (* attrap-ghc-ws) "to one of these import lists:")))
+                          it))
+                    (s-lines msg))))
+         (let* ((start (car filtered))
+                (whitespace (when (string-match (rx bos (group-n 1 (+ attrap-ghc-ws))) start)
+                              (match-string-no-properties 1 start)))
+                (import-re (rx bos
+                               (regex whitespace)
+                               (+ attrap-ghc-ws)
+                               (attrap-ghc-identifier 2)
+                               (* attrap-ghc-ws)
+                               (attrap-ghc-parens (seq (* nonl) (attrap-ghc-src-loc 3 4 5 6))))))
+           (mapcan (lambda (str)
+                     (when (string-match import-re str)
+                       (list (make-attrap-ghc-import-location
+                              :module (match-string-no-properties 2 str)
+                              :line   (string-to-number (match-string-no-properties 5 str))
+                              :col    (string-to-number (match-string-no-properties 6 str))))))
+                   (cdr filtered))))))))
+
 (defun attrap-ghc-fixer (msg pos end)
   "An `attrap' fixer for any GHC error or warning.
 Error is given as MSG and reported between POS and END."
   (save-match-data
     (let ((normalized-msg (s-collapse-whitespace msg)))
-      (rx-let ((parens (body) (seq "(" body ")"))
-               (lin-col (l c) (seq "(" (group-n l (* num)) "," (group-n c (* num)) ")"))
-               (multiline-span (l1 c1 l2 c2) (seq (lin-col l1 c1) "-" (lin-col l2 c2)))
-               (monoline-span (l1 c1 l2 c2) (seq (group-n l2 (group-n l1 (* num))) ":" (group-n c1 (* num)) "-" (group-n c2 (* num))))
-               (any-span (l1 c1 l2 c2) (or (monoline-span l1 c1 l2 c2) (multiline-span l1 c1 l2 c2)))
-               (src-loc (l1 c1 l2 c2) (seq (* (not ":")) ":" (any-span l1 c1 l2 c2)))
+      (rx-let ((parens (body) (attrap-ghc-parens body))
+               (lin-col (l c) (attrap-ghc-lin-col l c))
+               (multiline-span (l1 c1 l2 c2) (attrap-ghc-multiline-span l1 c1 l2 c2))
+               (monoline-span (l1 c1 l2 c2) (attrap-ghc-monoline-span l1 c1 l2 c2))
+               (any-span (l1 c1 l2 c2) (attrap-ghc-any-span l1 c1 l2 c2))
+               (src-loc (l1 c1 l2 c2) (attrap-ghc-src-loc l1 c1 l2 c2))
                (module-name (+ (any "_." alphanumeric)))
-               (identifier (n) (seq "‘" (group-n n (* (not "’"))) "’"))
-               (ws (any ?\n ?\r ?\s ?\t))
+               (identifier (n) (attrap-ghc-identifier n))
+               (ws attrap-ghc-ws)
                (spaces0 (* ?\s))
                (spaces1 (+ ?\s))
                (spaces (+ ?\s))
@@ -662,6 +740,7 @@ Error is given as MSG and reported between POS and END."
                                     t)))
            (--map (attrap-add-to-import (nth 1 match) (nth 2 it) (nth 5 it) (nth 6 it))
                   (s-match-strings-all (rx (identifier 2) " " (parens (src-loc 3 4 5 6))) msg)))
+
          ;; Not in scope: data constructor ‘SimpleBroadcast’
          ;; Perhaps you meant ‘SimpleBroadCast’ (imported from TypedFlow.Types)
          ;; Not in scope: ‘BackCore.argmax’
@@ -881,28 +960,18 @@ Error is given as MSG and reported between POS and END."
            (let ((identifier (attrap-strip-parens (match-string-no-properties 1 normalized-msg)))
                  (is-constructor? (not (null (match-beginning 2))))
                  (is-type-or-class? (not (null (match-beginning 3)))))
-             (if-let ((have-specific-import-location?
-                       (string-match
-                        (rx (or (seq "Suggested fix:"
-                                     (* ws) "Add" (* ws) (identifier 1) (* ws)
-                                     "to the import list in the import of"
-                                     (* ws) (identifier 2) (* ws) (parens (src-loc 3 4 5 6)))
-                                (seq "Suggested fixes:" (* ws)
-                                     (* "•" (+ (not ?•)))
-                                     "• Add" (* ws) (identifier 1) (* ws)
-                                     "to the import list in the import of"
-                                     (* ws) (identifier 2) (* ws) (parens (src-loc 3 4 5 6)))))
-                        normalized-msg)))
-                 (let ((module (match-string-no-properties 2 normalized-msg))
-                       (line (match-string-no-properties 5 normalized-msg))
-                       (col (match-string-no-properties 6 normalized-msg)))
-                   (attrap-one-option (format "add to import list of ‘%s’" module)
-                     (attrap-add-to-haskell-import--add-parent-from-eproj-tags-if-needed identifier
-                                                                                         module
-                                                                                         (string-to-number line)
-                                                                                         (string-to-number col)
-                                                                                         is-constructor?
-                                                                                         is-type-or-class?)))
+             (if-let ((specific-import-locations
+                       (attrap-ghc--extract-add-import-list-suggestions msg normalized-msg)))
+                 (--map
+                  (attrap-option (format "add to import list of ‘%s’" (attrap-ghc-import-location-module it))
+                    (attrap-add-to-haskell-import--add-parent-from-eproj-tags-if-needed identifier
+                                                                                        (attrap-ghc-import-location-module it)
+                                                                                        (attrap-ghc-import-location-line it)
+                                                                                        (attrap-ghc-import-location-col it)
+                                                                                        is-constructor?
+                                                                                        is-type-or-class?))
+
+                  specific-import-locations)
                (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer)))
                           (candidate-tags (attrap-import--get-matching-tags-for-proj proj identifier)))
                  (attrap-one-option "add import"
