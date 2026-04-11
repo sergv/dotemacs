@@ -9008,6 +9008,29 @@ _|_bar")
   "}"
   ""))
 
+(vim-tests--test-fresh-buffer-contents-init-all
+ :name
+ vim-tests/paredit-semicolon-1
+ :modes
+ (emacs-lisp-mode)
+ :action
+ (paredit-semicolon)
+ :contents
+ (tests-utils--multiline
+  ""
+  "  (lambda (node typ)"
+  "    (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)"
+  "         _|_(haskell-ts--is-toplevel-node? node)))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "  (lambda (node typ)"
+  "    (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)"
+  "         ;_|_(haskell-ts--is-toplevel-node? node)"
+  "         ))"
+  ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
