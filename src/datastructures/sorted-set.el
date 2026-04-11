@@ -19,7 +19,7 @@
   length)
 
 
-(defun sorted-set/rest (set)
+(defun sorted-set/remove-min (set)
   "Produce new sorted set without minimal item."
   (make-sorted-set :items (cdr (sorted-set/items set))
                    :lt-pred (sorted-set/lt-pred set)
@@ -128,6 +128,7 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
 (defun sorted-set/from-list (items lt-pred)
   "Construct sorted set from ITEMS list using LT-PRED predicate to sort
 items and remove any duplicates."
+  (cl-assert (listp items))
   (let ((remove-duplicates
          (lambda (items)
            ;; items is sorted here
@@ -142,8 +143,9 @@ items and remove any duplicates."
                        len (+ 1 len)))
                (setf items (rest items)))
              (values result len)))))
-    (cl-multiple-value-bind (items len) (funcall remove-duplicates
-                                              (sort (seq-copy items) lt-pred))
+    (cl-multiple-value-bind (items len)
+        (funcall remove-duplicates
+                 (sort items :lessp lt-pred :in-place nil))
       (make-sorted-set :items items
                        :lt-pred lt-pred
                        :length len))))
