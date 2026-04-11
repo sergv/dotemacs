@@ -18,6 +18,7 @@
 (require 'haskell-ts-getters)
 (require 'haskell-ts-indent)
 (require 's)
+(require 'sorted-set)
 (require 'treesit)
 (require 'treesit-utils)
 
@@ -460,6 +461,10 @@ but when paired then it’s like a string."
 (defun haskell-ts--is-comment-node? (node)
   (treesit-haskell--is-comment-node-type? (treesit-node-type node)))
 
+(defun haskell-ts--is-toplevel-node? (node)
+  (when-let* ((parent (treesit-node-parent node)))
+    (string= (treesit-node-type parent) "declarations")))
+
 (defun haskell-ts--is-toplevel-function-related-named-node-type? (typ)
   (cl-assert (stringp typ))
   (or (string= typ "signature")
@@ -469,22 +474,33 @@ but when paired then it’s like a string."
 (defun haskell-ts--is-toplevel-function-related-node? (node)
   (haskell-ts--is-toplevel-function-related-named-node-type? (treesit-node-type node)))
 
-(defun haskell-ts--function-name (node)
+(defun haskell-ts--function-binding-names (node)
   (cl-assert (haskell-ts--is-toplevel-function-related-node? node)
              nil
              "Unexpected non-function treesit node: %s"
              node)
-  (if-let ((name-node (treesit-node-child-by-field-name node "name")))
-      (treesit-node-text-no-properties-unsafe name-node)
-    (if-let ((first-child (treesit-node-child node 0))
-             (name (haskell-ts--infix-name-node first-child)))
-        (treesit-node-text-no-properties-unsafe name)
-      (error "Cannot obtain function nome from node: %s" node))))
+  (let ((names (if-let ((pattern-node (treesit-node-child-by-field-name node "pattern")))
+                   (if (string= (treesit-node-type pattern-node) "tuple")
+                       (--map (if (string= (treesit-node-type it) "variable")
+                                  (treesit-node-text-no-properties-unsafe it)
+                                (error "Unexpected binding in function pattern: %s" it))
+                              (treesit-node-children pattern-node t))
+                     (error "Unexpected function binding pattern: %s" pattern-node))
+                 (if-let ((name-node (treesit-node-child-by-field-name node "name")))
+                     (list (treesit-node-text-no-properties-unsafe name-node))
+                   (if-let ((first-child (treesit-node-child node 0))
+                            (name (haskell-ts--infix-name-node first-child)))
+                       (list (treesit-node-text-no-properties-unsafe name))
+                     (error "Cannot obtain function nome from node: %s" node))))))
+    (sorted-set/from-list names #'string<)))
 
 (defun haskell-ts--infix-name-node (node)
   "Extract operator name from an infix NODE."
   (cl-assert (treesit-node-p node))
-  (cl-assert (string= "infix" (treesit-node-type node)))
+  (cl-assert (string= "infix" (treesit-node-type node))
+             nil
+             "Not an infix node: %s"
+             node)
   (if-let* ((op (treesit-node-child-by-field-name node "operator")))
       (cond
         ((string= "constructor_operator" (treesit-node-type op))
@@ -559,25 +575,32 @@ indented block will be their bounds without any extra processing."
                                     (max (point) (point-min)))))))
                          (unless (eq pos next-pos)
                            (treesit-node-at next-pos)))))
-                    ((treesit-haskell--is-comment-node-type? n-typ)
+                    ((and (treesit-haskell--is-comment-node-type? n-typ)
+                          (haskell-ts--is-toplevel-node? current-node))
                      (let ((func-node-above (haskell-ts--search-non-comment-nodes
                                              current-node
                                              nil
-                                             (lambda (_ typ)
-                                               (haskell-ts--is-toplevel-function-related-named-node-type? typ))
+                                             (lambda (node typ)
+                                               (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                                                    ;; (haskell-ts--is-toplevel-node? node)
+                                                    ))
                                              t))
                            (func-node-below (haskell-ts--search-non-comment-nodes
                                              current-node
                                              t
-                                             (lambda (_ typ)
-                                               (haskell-ts--is-toplevel-function-related-named-node-type? typ))
+                                             (lambda (node typ)
+                                               (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                                                    ;; (haskell-ts--is-toplevel-node? node)
+                                                    ))
                                              t)))
 
                        (cond
                          ((and func-node-above
                                func-node-below
-                               (string= (haskell-ts--function-name func-node-above)
-                                        (haskell-ts--function-name func-node-below)))
+                               (not
+                                (sorted-set/empty?
+                                 (sorted-set/intersection (haskell-ts--function-binding-names func-node-above)
+                                                          (haskell-ts--function-binding-names func-node-below)))))
                           (if scan-forward?
                               func-node-below
                             func-node-above))
@@ -601,7 +624,7 @@ indented block will be their bounds without any extra processing."
                     (not (string= (treesit-node-type p) "declarations")))
           (setf node p))
         (if (haskell-ts--is-toplevel-function-related-node? node)
-            (let ((func-name (haskell-ts--function-name node))
+            (let ((func-names (haskell-ts--function-binding-names node))
                   (first-node node)
                   (last-node node))
 
@@ -613,7 +636,10 @@ indented block will be their bounds without any extra processing."
                            nil
                            (lambda (x typ)
                              (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
-                                  (string= func-name (haskell-ts--function-name x))))
+                                  (not
+                                   (sorted-set/empty?
+                                    (sorted-set/intersection func-names
+                                                             (haskell-ts--function-binding-names x))))))
                            nil)
                           first-node)))
 
@@ -625,7 +651,10 @@ indented block will be their bounds without any extra processing."
                            t
                            (lambda (x typ)
                              (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
-                                  (string= func-name (haskell-ts--function-name x))))
+                                  (not
+                                   (sorted-set/empty?
+                                    (sorted-set/intersection func-names
+                                                             (haskell-ts--function-binding-names x))))))
                            nil)
                           last-node)))
 
