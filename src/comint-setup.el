@@ -666,9 +666,9 @@ inclusively."
   (save-excursion
     (with-inhibited-field-text-motion
       (with-inhibited-read-only
-       (forward-line -1)
-       (delete-region (point-min) (line-end-position))
-       (delete-char 1)))))
+       (forward-line 0)
+       (unless (bobp)
+         (delete-region (point-min) (point)))))))
 
 (defun comint-get-last-output ()
   "Return last output as string."
