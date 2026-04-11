@@ -375,6 +375,40 @@ Entries should be a list of of elements of the form
   "      result) $ 1"
   ""))
 
+(haskell-tests--test-buffer-contents-region*
+ :name
+ haskell-tests/haskell-align-on-arrows-2
+ :action
+ (haskell-align-on-arrows)
+ :contents
+ (tests-utils--multiline
+  ""
+  "commandLineFlagsToProjectConfig globalFlags NixStyleFlags{..} clientInstallFlags ="
+  "  (\result ->"
+  "    Debug.Trace.trace_|_"
+  "      (PP.renderString $ PP.ppDictHeader \"commandLineFlagsToProjectConfig\""
+  "        [ \"a\"     PP.---> PP.ppShow globalFlags"
+  "        , \"b\"       PP.:-> PP.ppShow clientInstallFlags"
+  "        , \"cc\"         PP.--> PP.ppShow configFlags"
+  "        , \"d\"    PP.→ PP.ppShow foo"
+  "        ])_||_"
+  "      result) $ 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "commandLineFlagsToProjectConfig globalFlags NixStyleFlags{..} clientInstallFlags ="
+  "  (\result ->"
+  "    Debug.Trace.trace"
+  "      (PP.renderString $ PP.ppDictHeader \"commandLineFlagsToProjectConfig\""
+  "        [ \"a\"  PP.---> PP.ppShow globalFlags"
+  "        , \"b\"  PP.:-> PP.ppShow clientInstallFlags"
+  "        , \"cc\" PP.--> PP.ppShow configFlags"
+  "        , \"d\"  PP.→ PP.ppShow foo"
+  "        ])_|_"
+  "      result) $ 1"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-align-language-pragmas-1
     (haskell-align-language-pragmas (point))
