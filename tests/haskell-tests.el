@@ -135,6 +135,35 @@ Entries should be a list of of elements of the form
             ,@(when modes `(:modes ,modes))
             :fresh-buffer ,fresh-buffer)))))
 
+(cl-defmacro haskell-tests--make-multiple-output-test-buffer-contents*
+    (&key entries contents modes fresh-buffer)
+  "Define a set of tests that share final buffer state but
+have different input states.
+
+Entries should be a list of of elements of the form
+(:name _ :contents _)"
+  (declare (indent nil))
+  `(progn
+     ,@(cl-loop
+        for entry in entries
+        collect
+        (let ((name (plist-get entry :name))
+              (action (plist-get entry :action))
+              (expected-value (plist-get entry :expected-value)))
+          (unless name
+            (error "Entry missing :name entry: %s" entry))
+          (unless action
+            (error "Entry missing :action entry: %s" entry))
+          (unless expected-value
+            (error "Entry missing :expected-value entry: %s" entry))
+          `(haskell-tests--test-buffer-contents*
+            :name ,name
+            :action ,action
+            :contents ,contents
+            :expected-value ,expected-value
+            ,@(when modes `(:modes ,modes))
+            :fresh-buffer ,fresh-buffer)))))
+
 (cl-defmacro haskell-tests--make-multiple-test-result-tests (name &key entries contents modes)
   (declare (indent 1))
   `(progn
@@ -11962,6 +11991,679 @@ Entries should be a list of of elements of the form
 
 (haskell-tests--test-buffer-contents*
  :name
+ haskell-tests/haskell-ts-beginning-of-defun-1
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo a = Foo"
+  "  { foo :: (Bar Int)"
+  "  , bar :: (_|_a, Double)"
+  "  , baz :: {-# UNPACK #-} !Double"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_data Foo a = Foo"
+  "  { foo :: (Bar Int)"
+  "  , bar :: (a, Double)"
+  "  , baz :: {-# UNPACK #-} !Double"
+  "  }"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-2
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "bar 0 = 1"
+  "bar n = _|_n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "bar 0 = 1"
+  "bar n = n * n"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-3
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +_|_"
+  "#endif"
+  "    baz (quux x)")
+ :expected-value
+ (tests-utils--multiline
+  "_|_foo :: Int -> Int"
+  "foo x ="
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +"
+  "#endif"
+  "    baz (quux x)")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-3a
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo = \\x ->"
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +_|_"
+  "#endif"
+  "    baz (quux x)")
+ :expected-value
+ (tests-utils--multiline
+  "_|_foo :: Int -> Int"
+  "foo = \\x ->"
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +"
+  "#endif"
+  "    baz (quux x)")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-4
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo = bar_|_")
+ :expected-value
+ (tests-utils--multiline
+  "_|_foo :: Int -> Int"
+  "foo = bar")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-5
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "bar :: Int -> Int -> Int"
+  "x `bar` y = foo_|_")
+ :expected-value
+ (tests-utils--multiline
+  "_|_bar :: Int -> Int -> Int"
+  "x `bar` y = foo")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-5a
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "bar :: Int -> Int -> Int"
+  "0 `bar` y = 100 * y"
+  "x `bar` y = foo_|_")
+ :expected-value
+ (tests-utils--multiline
+  "_|_bar :: Int -> Int -> Int"
+  "0 `bar` y = 100 * y"
+  "x `bar` y = foo")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-5b
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "bar :: Int -> Int -> Int"
+  "bar 0 y = 100 * y"
+  "x `bar` 2 = foo"
+  "bar x y = quux_|_")
+ :expected-value
+ (tests-utils--multiline
+  "_|_bar :: Int -> Int -> Int"
+  "bar 0 y = 100 * y"
+  "x `bar` 2 = foo"
+  "bar x y = quux")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-6a
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +_|_"
+  "-- #endif"
+  "    baz (quux x)")
+ :expected-value
+ (tests-utils--multiline
+  "_|_foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-6b
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)_|_")
+ :expected-value
+ (tests-utils--multiline
+  "_|_foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-6c
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)_|_")
+ :expected-value
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "_|_foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-6d
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)_|_")
+ :expected-value
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "_|_foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-6e
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)_|_")
+ :expected-value
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "_|_foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-6f
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "_|_foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-6g
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)"
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "module Foo where"
+  ""
+  "_|_foo :: Int -> Int"
+  "foo = \\x ->"
+  "-- #if FOO"
+  "  bar + 1 +"
+  "-- #else"
+  "  bar + 2 +"
+  "-- #endif"
+  "    baz (quux x)"
+  ""
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-7
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "bar n = _|_n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "bar n = n * n"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-7a
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "bar n = _|_n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "bar n = n * n"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-7b
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "bar 0 = 1 -- baz"
+  "bar n = _|_n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "bar 0 = 1 -- baz"
+  "bar n = n * n"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-7c
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "-- foo_|_"
+  "bar n = n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "bar n = n * n"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-7d
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "-- foo"
+  ""
+  "-- foo_|_"
+  "-- foo"
+  "bar n = n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "-- foo"
+  ""
+  "-- foo"
+  "-- foo"
+  "bar n = n * n"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-ts-beginning-of-defun)
+ :entries
+ ((:name
+   haskell-tests/haskell-ts-beginning-of-defun-7ea
+   :contents
+   (tests-utils--multiline
+    ""
+    "bar :: Int -> Int"
+    "-- bar"
+    "bar 0 = 1 -- baz"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo_|_"
+    "-- foo"
+    ""
+    "bar n = n * n"
+    ""))
+  (:name
+   haskell-tests/haskell-ts-beginning-of-defun-7eb
+   :contents
+   (tests-utils--multiline
+    ""
+    "bar :: Int -> Int"
+    "-- bar"
+    "bar 0 = 1 -- baz"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo_|_"
+    ""
+    "bar n = n * n"
+    ""))
+  (:name
+   haskell-tests/haskell-ts-beginning-of-defun-7ec
+   :contents
+   (tests-utils--multiline
+    ""
+    "bar :: Int -> Int"
+    "-- bar"
+    "bar 0 = 1 -- baz"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "_|_-- foo"
+    "-- foo"
+    ""
+    "bar n = n * n"
+    ""))
+  (:name
+   haskell-tests/haskell-ts-beginning-of-defun-7ed
+   :contents
+   (tests-utils--multiline
+    ""
+    "bar :: Int -> Int"
+    "-- bar"
+    "bar 0 = 1 -- baz"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo"
+    "_|_"
+    "-- foo"
+    "-- foo"
+    ""
+    "bar n = n * n"
+    ""))
+  (:name
+   haskell-tests/haskell-ts-beginning-of-defun-7ee
+   :contents
+   (tests-utils--multiline
+    ""
+    "bar :: Int -> Int"
+    "-- bar"
+    "bar 0 = 1 -- baz"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo"
+    "_|_"
+    "bar n = n * n"
+    ""))
+  (:name
+   haskell-tests/haskell-ts-beginning-of-defun-7ef
+   :contents
+   (tests-utils--multiline
+    ""
+    "bar :: Int -> Int"
+    "-- bar"
+    "bar 0 = 1 -- baz"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "-- foo"
+    "-- foo"
+    ""
+    "bar n = n * n_|_"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  ""
+  "-- foo"
+  "-- foo"
+  ""
+  "-- foo"
+  "-- foo"
+  ""
+  "-- foo"
+  "-- foo"
+  ""
+  "bar n = n * n"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
  haskell-tests/haskell-ts-beginning-of-defun-8
  :action
  (haskell-ts-beginning-of-defun)
@@ -12019,6 +12721,249 @@ Entries should be a list of of elements of the form
   "      quux $ x * 2"
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-end-of-defun-1
+ :action
+ (haskell-ts-end-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "bar n = n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "-- bar"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "bar n = n * n_|_"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-end-of-defun-1a
+ :action
+ (haskell-ts-end-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "bar n = n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "bar 0 = 1 -- baz"
+  "-- foo"
+  "bar n = n * n_|_"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-end-of-defun-1b
+ :action
+ (haskell-ts-end-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_bar :: Int -> Int"
+  "bar 0 = 1 -- baz"
+  "bar n = n * n"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "bar 0 = 1 -- baz"
+  "bar n = n * n_|_"
+  "")
+ :modes
+ (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--make-multiple-output-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :contents
+ (tests-utils--multiline
+  "quux :: Int -> Int"
+  "quux 0 = 1"
+  "quux x = x"
+  ""
+  "-----------------"
+  "-- foo"
+  "_|_"
+  ""
+  "-- | bar"
+  "foo :: Int -> Int"
+  "foo 0 = 3"
+  "foo x = x + x")
+ :entries
+ ((:name
+   haskell-tests/haskell-ts-beginning-and-end-of-defun-1-beginning
+   :action
+   (haskell-ts-beginning-of-defun)
+   :expected-value
+   (tests-utils--multiline
+    "_|_quux :: Int -> Int"
+    "quux 0 = 1"
+    "quux x = x"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x"))
+  (:name
+   haskell-tests/haskell-ts-beginning-and-end-of-defun-1-end
+   :action
+   (haskell-ts-end-of-defun)
+   :expected-value
+   (tests-utils--multiline
+    "quux :: Int -> Int"
+    "quux 0 = 1"
+    "quux x = x"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x_|_"))))
+
+(haskell-tests--make-multiple-output-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar Foo Foo"
+  "  deriving (Eq, Ord, Show)"
+  ""
+  "-----------------"
+  "-- foo"
+  "_|_"
+  ""
+  "-- | bar"
+  "foo :: Int -> Int"
+  "foo 0 = 3"
+  "foo x = x + x")
+ :entries
+ ((:name
+   haskell-tests/haskell-ts-beginning-and-end-of-defun-2-beginning
+   :action
+   (haskell-ts-beginning-of-defun)
+   :expected-value
+   (tests-utils--multiline
+    "_|_data Foo"
+    "  = Foo Int"
+    "  | Bar Foo Foo"
+    "  deriving (Eq, Ord, Show)"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x"))
+  (:name
+   haskell-tests/haskell-ts-beginning-and-end-of-defun-2-end
+   :action
+   (haskell-ts-end-of-defun)
+   :expected-value
+   (tests-utils--multiline
+    "data Foo"
+    "  = Foo Int"
+    "  | Bar Foo Foo"
+    "  deriving (Eq, Ord, Show)"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x_|_"))))
+
+(haskell-tests--make-multiple-output-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo 0 = 3"
+  "foo x = x + x"
+  ""
+  "-----------------"
+  "-- foo"
+  "_|_"
+  ""
+  "-- | bar"
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar Foo Foo"
+  "  deriving (Eq, Ord, Show)")
+ :entries
+ ((:name
+   haskell-tests/haskell-ts-beginning-and-end-of-defun-3-beginning
+   :action
+   (haskell-ts-beginning-of-defun)
+   :expected-value
+   (tests-utils--multiline
+    "_|_foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "data Foo"
+    "  = Foo Int"
+    "  | Bar Foo Foo"
+    "  deriving (Eq, Ord, Show)"))
+  (:name
+   haskell-tests/haskell-ts-beginning-and-end-of-defun-3-end
+   :action
+   (haskell-ts-end-of-defun)
+   :expected-value
+   (tests-utils--multiline
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "data Foo"
+    "  = Foo Int"
+    "  | Bar Foo Foo"
+    "  deriving (Eq, Ord, Show)_|_"))))
 
 (provide 'haskell-tests)
 
