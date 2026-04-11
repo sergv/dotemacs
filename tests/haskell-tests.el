@@ -44,6 +44,7 @@
           (modes '(haskell-mode haskell-ts-mode haskell-hsc-mode))
           fresh-buffer
           initialise-after-content)
+  (declare (indent nil))
   `(progn
      ,@(cl-loop
         for mode in modes
@@ -61,6 +62,61 @@
                                                      initialise-after-content)
                                             `(,mode))
             :buffer-id ,(if fresh-buffer nil (string->symbol (format "haskell-tests-%s" mode))))))))
+
+(cl-defmacro haskell-tests--test-buffer-contents-region*
+    (&key name
+          action
+          contents
+          expected-value
+          (modes '(haskell-mode haskell-ts-mode haskell-hsc-mode))
+          fresh-buffer
+          initialise-after-content)
+  (declare (indent nil))
+  `(progn
+     ,@(cl-loop
+        for mode in modes
+        collect
+        `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+           (tests-utils--test-buffer-contents
+            :action
+            (save-excursion
+              (let ((start nil)
+                    (end nil)
+                    (transient-mark-mode t))
+                (goto-char (point-min))
+                (if (re-search-forward "_|_" nil t)
+                    (replace-match "")
+                  (error "No _|_ marker for point position within contents:\n%s" ,contents))
+                (when (save-excursion
+                        (goto-char (point-min))
+                        (re-search-forward "_|_" nil t))
+                  (error "More than one occurrence of _|_ in source"))
+                (setf start (point))
+                (goto-char (point-min))
+                (if (re-search-forward "_||_" nil t)
+                    (replace-match "")
+                  (error "No _||_ marker for point position within contents:\n%s" ,contents))
+                (when (save-excursion
+                        (goto-char (point-min))
+                        (re-search-forward "_||_" nil t))
+                  (error "More than one occurrence of _||_ in source"))
+                (setf end (point))
+                (set-mark start)
+                (setq mark-active t)
+                ;; (set-mark-command start)
+                ,action
+                (insert "_|_")))
+            :suppress-cursor t
+            :contents ,contents
+            :expected-value ,expected-value
+            :initialisation ,(if (and fresh-buffer
+                                      initialise-after-content)
+                                 nil
+                               `(,mode))
+            :post-content-initialisation ,(when (and fresh-buffer
+                                                     initialise-after-content)
+                                            `(,mode))
+            :buffer-id ,(if fresh-buffer nil (string->symbol (format "haskell-tests--region-%s" mode))))))))
 
 (defmacro haskell-tests--test-buffer-contents (name action contents expected-value)
   (declare (indent 2))
@@ -284,6 +340,40 @@ Entries should be a list of of elements of the form
   "")
  :modes (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents-region*
+ :name
+ haskell-tests/haskell-align-on-arrows-1
+ :action
+ (haskell-align-on-arrows)
+ :contents
+ (tests-utils--multiline
+  ""
+  "commandLineFlagsToProjectConfig globalFlags NixStyleFlags{..} clientInstallFlags ="
+  "  (\result ->"
+  "    Debug.Trace.trace_|_"
+  "      (PP.renderString $ PP.ppDictHeader \"commandLineFlagsToProjectConfig\""
+  "        [ \"a\"         ---> PP.ppShow globalFlags"
+  "        , \"b\"       :-> PP.ppShow clientInstallFlags"
+  "        , \"cc\"     --> PP.ppShow configFlags"
+  "        , \"d\"    → PP.ppShow foo"
+  "        ])_||_"
+  "      result) $ 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "commandLineFlagsToProjectConfig globalFlags NixStyleFlags{..} clientInstallFlags ="
+  "  (\result ->"
+  "    Debug.Trace.trace"
+  "      (PP.renderString $ PP.ppDictHeader \"commandLineFlagsToProjectConfig\""
+  "        [ \"a\"  ---> PP.ppShow globalFlags"
+  "        , \"b\"  :-> PP.ppShow clientInstallFlags"
+  "        , \"cc\" --> PP.ppShow configFlags"
+  "        , \"d\"  → PP.ppShow foo"
+  "        ])_|_"
+  "      result) $ 1"
+  ""))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-align-language-pragmas-1
