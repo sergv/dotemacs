@@ -11960,6 +11960,66 @@ Entries should be a list of of elements of the form
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-8
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: Foo -> Bar"
+  "test x = mempty { foo = bar }"
+  "  where"
+  "    (frob1, frob2) = splitConfig (foo bar)"
+  ""
+  "    -- _|_Comment"
+  "    quux :: Quux -> Int"
+  "    quux _ = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_test :: Foo -> Bar"
+  "test x = mempty { foo = bar }"
+  "  where"
+  "    (frob1, frob2) = splitConfig (foo bar)"
+  ""
+  "    -- Comment"
+  "    quux :: Quux -> Int"
+  "    quux _ = 1"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-beginning-of-defun-9
+ :action
+ (haskell-ts-beginning-of-defun)
+ :contents
+ (tests-utils--multiline
+  ""
+  "(foo, bar) = (fooImpl, barImpl)"
+  "  where"
+  "    quux x = x * x"
+  "    fooImpl x ="
+  "      quux $ x + _|_1"
+  "    barImpl x ="
+  "      quux $ x * 2"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_(foo, bar) = (fooImpl, barImpl)"
+  "  where"
+  "    quux x = x * x"
+  "    fooImpl x ="
+  "      quux $ x + 1"
+  "    barImpl x ="
+  "      quux $ x * 2"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
