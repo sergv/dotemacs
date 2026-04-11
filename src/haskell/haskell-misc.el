@@ -192,6 +192,7 @@ sexps and indentation levels."
 ;;;###autoload (autoload 'haskell-align-on-arrows "haskell-misc" nil t)
 (defalign haskell-align-on-arrows
   (rx
+   (? haskell-regexen/modid ".")
    (or (seq
         (+ (any ?: ?| ?- ?=))
         (+ ">"))
