@@ -140,6 +140,30 @@
                        expected-fixes))
         (attrap-select-and-apply-option fixes)))))
 
+(ert-deftest attrap/haskell/attrap-ghc--extract-add-import-list-suggestions-1 ()
+  (let ((msg
+         (tests-utils--multiline
+          "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+          "    Variable not in scope: foo :: IO a0"
+          "    Suggested fix:"
+          "      Add ‘foo’ to one of these import lists:"
+          "        ‘Bar.Baz’ (at /home/sergey/projects/haskell/projects/thirdparty/cabal/cabal-install/src/Distribution/Client/ScriptUtils.hs:(4,1)-(5,3))"
+          "        ‘System.Quux.Frob’ (at /home/sergey/projects/haskell/projects/thirdparty/cabal/cabal-install/src/Distribution/Client/ScriptUtils.hs:(7,1)-(9,3))")))
+    (should
+     (equal
+      (attrap-ghc--extract-add-import-list-suggestions
+       msg
+       (s-collapse-whitespace msg))
+      (list
+       (make-attrap-ghc-import-location
+        :module "Bar.Baz"
+        :line   5
+        :col    3)
+       (make-attrap-ghc-import-location
+        :module "System.Quux.Frob"
+        :line   9
+        :col    3))))))
+
 (attrap-tests--test-buffer-contents-many
  :name attrap/haskell-dante/delete-import-1
  :error-message
@@ -1761,6 +1785,56 @@
   "main :: IO ()"
   "main = do"
   "  _|_hPutStrLn stderr \"Hello\""
+  "  pure ()"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-list-8
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+  "    Variable not in scope: foo :: IO a0"
+  "    Suggested fix:"
+  "      Add ‘foo’ to one of these import lists:"
+  "        ‘Bar.Baz’ (at /home/sergey/projects/haskell/projects/thirdparty/cabal/cabal-install/src/Distribution/Client/ScriptUtils.hs:(4,1)-(5,3))"
+  "        ‘System.Quux.Frob’ (at /home/sergey/projects/haskell/projects/thirdparty/cabal/cabal-install/src/Distribution/Client/ScriptUtils.hs:(7,1)-(9,3))")
+ :action
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘System.Quux.Frob’"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Bar.Baz"
+  "  ( bar"
+  "  )"
+  "import System.Quux.Frob"
+  "  ( quux"
+  "  , frob"
+  "  )"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_foo"
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "module Test2 where"
+  ""
+  "import Bar.Baz"
+  "  ( bar"
+  "  )"
+  "import System.Quux.Frob"
+  "  ( quux"
+  "  , frob"
+  "  , foo"
+  "  )"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  _|_foo"
   "  pure ()"
   ""))
 
