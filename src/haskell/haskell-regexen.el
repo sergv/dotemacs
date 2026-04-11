@@ -25,14 +25,25 @@
   (concat "\\(?:\\b\\|'+\\)" haskell-regexen/conid-raw))
 
 
+(rx-define haskell-regexen/module-name-section
+  (regex "[[:upper:]][[:alnum:]'_]*"))
+
 (defconst haskell-regexen/module-name-section
-  "[[:upper:]][[:alnum:]'_]*")
+  (rx haskell-regexen/module-name-section))
+
+(rx-define haskell-regexen/modid-raw
+  (seq haskell-regexen/module-name-section
+       (* "."
+          haskell-regexen/module-name-section)))
 
 (defconst haskell-regexen/modid-raw
-  (concat haskell-regexen/module-name-section "\\(?:\\." haskell-regexen/module-name-section "\\)*"))
+  (rx haskell-regexen/modid-raw))
+
+(rx-define haskell-regexen/modid
+  (seq word-boundary haskell-regexen/modid-raw))
 
 (defconst haskell-regexen/modid
-  (concat "\\b" haskell-regexen/modid-raw))
+  (rx haskell-regexen/modid))
 
 (defconst haskell-regexen/q/varid
   (concat "\\(?:" haskell-regexen/modid "\\)\\.\\(?:" haskell-regexen/varid "\\)"))
