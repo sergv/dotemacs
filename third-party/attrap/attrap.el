@@ -1278,6 +1278,7 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Data.Traversable" . "Data.Traversable")
                          ("GHC.Internal.Data.Typeable" . "Data.Typeable")
                          ("GHC.Internal.Data.Type.Equality" . "Data.Type.Equality")
+                         ("GHC.Internal.Exception.Backtrace" . "Control.Exception.Backtrace")
                          ("GHC.Internal.Foreign.Marshal.Alloc" . "Foreign.Marshal.Alloc")
                          ("GHC.Internal.Foreign.Marshal.Array" . "Foreign.Marshal.Array")
                          ("GHC.Internal.Foreign.Marshal.Utils" . "Foreign.Marshal.Utils")
