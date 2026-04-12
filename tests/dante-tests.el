@@ -14,34 +14,34 @@
 (require 'ert)
 (require 'tests-utils)
 
-(defconst dante-tests-tests/simple-check-test-project
+(defconst dante-test-data/simple-check-test-project
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project"))
 
-(defconst dante-tests-tests/simple-test-project-archive
+(defconst dante-test-data/simple-test-project-archive
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project.zip"))
 
-(defconst dante-tests-tests/simple-test-project-name-shadowing-error
+(defconst dante-test-data/simple-test-project-name-shadowing-error
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project-name-shadowing-error"))
 
-(defconst dante-tests-tests/simple-check-project-error-with-relative-path-from-subproject-archive
+(defconst dante-test-data/simple-check-project-error-with-relative-path-from-subproject-archive
   (concat +emacs-config-path+
           "/tests/test-data/dante/simple-check-project-error-with-relative-path-from-subproject.zip"))
 
-(defconst dante-tests-tests/native-flake
+(defconst dante-test-data/native-flake
   (concat +emacs-config-path+
           "/native/emacs-native/flake.nix"))
 
-(defconst dante-tests-tests/native-flake-lock
+(defconst dante-test-data/native-flake-lock
   (concat +emacs-config-path+
           "/native/emacs-native/flake.lock"))
 
-(defconst dante-tests-tests/simple-repl-test-project
+(defconst dante-test-data/simple-repl-test-project
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-repl-project"))
 
-(defconst dante-tests-tests/simple-check-test-project-with-hsc-archive
+(defconst dante-test-data/simple-check-test-project-with-hsc-archive
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project-with-hsc.zip"))
 
-(defconst dante-tests-tests/simple-repl-test-project-with-hsc
+(defconst dante-test-data/simple-repl-test-project-with-hsc
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-repl-project-with-hsc"))
 
 (defmacro dante-tests/with-file (path &rest body)
@@ -137,8 +137,8 @@
     (ert-skip "ghc not available"))
 
   (dante-tests/with-file
-      (concat dante-tests-tests/simple-check-test-project "/src/Foo.hs")
-    ;; (find-file (concat dante-tests-tests/simple-check-test-project "/src/Foo.hs"))
+      (concat dante-test-data/simple-check-test-project "/src/Foo.hs")
+    ;; (find-file (concat dante-test-data/simple-check-test-project "/src/Foo.hs"))
     (should (derived-mode-p 'haskell-ts-base-mode))
     (should flycheck-mode)
     (should dante-mode)
@@ -155,7 +155,7 @@
                         flycheck-current-errors)))
        (should (not (null err)))
        (should (string= (flycheck-error-filename err)
-                        (concat dante-tests-tests/simple-check-test-project "/src/Bar/Baz.hs")))
+                        (concat dante-test-data/simple-check-test-project "/src/Bar/Baz.hs")))
        (should (= (flycheck-error-line err) 10))
        (should (string-search "GHC-25897" (flycheck-error-message err)))
        (should (string-search "Couldn't match expected type ‘b’ with actual type ‘a’"
@@ -164,7 +164,7 @@
     (progn
       (flycheck-enhancements-next-error-with-wraparound)
 
-      (should (string= (concat dante-tests-tests/simple-check-test-project "/src/Bar/Baz.hs")
+      (should (string= (concat dante-test-data/simple-check-test-project "/src/Bar/Baz.hs")
                        (buffer-file-name))))
 
     (progn
@@ -182,7 +182,7 @@
     (ert-skip "ghc not available"))
 
   (test-utils--with-unzipped-project
-      dante-tests-tests/simple-test-project-archive
+      dante-test-data/simple-test-project-archive
       tmp-dir
 
     (let ((proj-dir (concat tmp-dir "/simple-check-project")))
@@ -250,7 +250,7 @@
     (ert-skip "ghc not available"))
 
   (dante-tests/with-file
-      (concat dante-tests-tests/simple-test-project-name-shadowing-error "/src/Foo.hs")
+      (concat dante-test-data/simple-test-project-name-shadowing-error "/src/Foo.hs")
     (should (derived-mode-p 'haskell-ts-base-mode))
     (should flycheck-mode)
     (should dante-mode)
@@ -268,14 +268,14 @@
                         flycheck-current-errors)))
        (should (not (null err)))
        (should (string= (flycheck-error-filename err)
-                        (concat dante-tests-tests/simple-test-project-name-shadowing-error "/src/Foo.hs")))
+                        (concat dante-test-data/simple-test-project-name-shadowing-error "/src/Foo.hs")))
        (should (string-search "This binding for ‘x’ shadows the existing binding"
                               (flycheck-error-message err)))))
 
     (progn
       (flycheck-enhancements-next-error-with-wraparound)
 
-      (should (string= (concat dante-tests-tests/simple-test-project-name-shadowing-error "/src/Foo.hs")
+      (should (string= (concat dante-test-data/simple-test-project-name-shadowing-error "/src/Foo.hs")
                        (buffer-file-name))))
 
     (progn
@@ -290,14 +290,14 @@
 
 (defun dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl (enable-flakes?)
   (test-utils--with-unzipped-project
-      dante-tests-tests/simple-check-project-error-with-relative-path-from-subproject-archive
+      dante-test-data/simple-check-project-error-with-relative-path-from-subproject-archive
       tmp-dir
 
     (let ((proj-dir (concat tmp-dir "/simple-check-project-error-with-relative-path-from-subproject")))
 
       (when enable-flakes?
-        (dolist (x (list dante-tests-tests/native-flake
-                         dante-tests-tests/native-flake-lock))
+        (dolist (x (list dante-test-data/native-flake
+                         dante-test-data/native-flake-lock))
           (copy-file x (concat proj-dir "/" (file-name-nondirectory x)))))
 
       (dante-tests/with-file-no-clean
@@ -364,7 +364,7 @@
     (ert-skip "ghc not available"))
 
   (dante-tests/with-file
-      (concat dante-tests-tests/simple-repl-test-project "/src/Foo.hs")
+      (concat dante-test-data/simple-repl-test-project "/src/Foo.hs")
 
     (should (derived-mode-p 'haskell-ts-base-mode))
     (should flycheck-mode)
@@ -423,7 +423,7 @@
     (ert-skip "ghc not available"))
 
   (test-utils--with-unzipped-project
-      dante-tests-tests/simple-check-test-project-with-hsc-archive
+      dante-test-data/simple-check-test-project-with-hsc-archive
       tmp-dir
 
     (let ((proj-dir (concat tmp-dir "/simple-check-project-with-hsc")))
@@ -500,7 +500,7 @@
     (ert-skip "sed not available"))
 
   (test-utils--with-unzipped-project
-      dante-tests-tests/simple-check-test-project-with-hsc-archive
+      dante-test-data/simple-check-test-project-with-hsc-archive
       tmp-dir
 
     (let ((proj-dir (concat tmp-dir "/simple-check-project-with-hsc")))
@@ -559,7 +559,7 @@
     (ert-skip "ghc not available"))
 
   (dante-tests/with-file
-      (concat dante-tests-tests/simple-repl-test-project-with-hsc "/src/Foo.hs")
+      (concat dante-test-data/simple-repl-test-project-with-hsc "/src/Foo.hs")
     (should (derived-mode-p 'haskell-ts-base-mode))
     (should flycheck-mode)
     (should dante-mode)
@@ -607,7 +607,7 @@
     (ert-skip "ghc not available"))
 
   (dante-tests/with-file
-      (concat dante-tests-tests/simple-repl-test-project-with-hsc "/src/Bar/Baz.hsc")
+      (concat dante-test-data/simple-repl-test-project-with-hsc "/src/Bar/Baz.hsc")
     (should (derived-mode-p 'haskell-ts-base-mode))
     (should flycheck-mode)
     (should dante-mode)
@@ -657,7 +657,7 @@
     (ert-skip "ghc not available"))
 
   (test-utils--with-unzipped-project
-      dante-tests-tests/simple-check-test-project-with-hsc-archive
+      dante-test-data/simple-check-test-project-with-hsc-archive
       tmp-dir
     (let ((proj-dir (concat tmp-dir "/simple-check-project-with-hsc")))
       (dante-tests/with-file
