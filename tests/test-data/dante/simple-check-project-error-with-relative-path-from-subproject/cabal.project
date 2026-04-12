@@ -1,0 +1,3 @@
+packages:
+  main/emacs-dante-simple-check-test-project-error-with-rel-path-main.cabal
+  dep/emacs-dante-simple-check-test-project-error-with-rel-path-dep.cabal
