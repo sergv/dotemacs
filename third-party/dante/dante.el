@@ -1392,11 +1392,12 @@ Must be called from GHCi process buffer."
   "Parse the output of load command.
 ACC umulate input and ERR-MSGS."
   (save-match-data
-    (let (result
-          cur-file
-          err-msgs
-          (acc str)
-          (ghci-state (dante-get-ghci-state ghci-buf)))
+    (let* (result
+           cur-file
+           err-msgs
+           (acc str)
+           (ghci-state (dante-get-ghci-state ghci-buf))
+           (ghci-dir (dante-check-ghci-state/ghci-path ghci-state)))
       (while (not result)
         (let* ((i (string-match (eval-when-compile
                                   (dante-regexp-disjoin dante-ghci-prompt
@@ -1438,7 +1439,7 @@ ACC umulate input and ERR-MSGS."
                       (/= (aref rest 0) ?\s)) ;; make sure we're matching a full error message
                  (when (match-beginning 4)
                    (let* ((file (match-string 4 acc))
-                          (err-msg (list file
+                          (err-msg (list (expand-file-name file ghci-dir)
                                          (match-string 5 acc)
                                          (match-string 6 acc)
                                          (match-string 7 acc))))
