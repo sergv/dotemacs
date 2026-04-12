@@ -767,6 +767,52 @@ have different input states."
   "  deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-comment-5
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "           _|_-- Comment"
+  "    bar :: Bar"
+  "    bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "    _|_-- Comment"
+  "    bar :: Bar"
+  "    bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-comment-6
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "              _|_-- Comment"
+  "    bar :: Bar"
+  "    bar = 1"
+  "  in pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "    _|_-- Comment"
+  "    bar :: Bar"
+  "    bar = 1"
+  "  in pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-where-1
  :contents
  (tests-utils--multiline
@@ -1308,6 +1354,300 @@ have different input states."
   "      !size = inputSize - 1"
   "      !idx  = positionsIndex ptr size"
   "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-8a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "           -- Comment"
+  "                 _|_bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "           -- Comment"
+  "           _|_bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-8b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "                 _|_bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "    _|_bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-8c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let -- Comment"
+  "                 _|_bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let -- Comment"
+  "      _|_bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-8d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let -- Comment"
+  "_|_"
+  "      bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let -- Comment"
+  "      _|_"
+  "      bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-8e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "_|_"
+  "    bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "    _|_"
+  "    bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-8f
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "           -- Comment"
+  "_|_"
+  "           bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "           -- Comment"
+  "           _|_"
+  "           bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-8g
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "_|_"
+  "           -- Comment"
+  "           bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  let"
+  "    _|_"
+  "           -- Comment"
+  "           bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-9a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "              -- Comment"
+  "                        _|_bar = 1"
+  "  in pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "              -- Comment"
+  "              _|_bar = 1"
+  "  in pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-9b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "                        _|_bar = 1"
+  "  in pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "    _|_bar = 1"
+  "  in pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-9c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let -- Comment"
+  "                        _|_bar = 1"
+  "  in pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let -- Comment"
+  "      _|_bar = 1"
+  "  in pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-9d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let -- Comment"
+  "_|_"
+  "      bar = 1"
+  "  in pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let -- Comment"
+  "      _|_"
+  "      bar = 1"
+  "  in pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-9e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let -- Comment"
+  "      bar = 1"
+  "_|_"
+  "  in pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let -- Comment"
+  "      bar = 1"
+  "      _|_"
+  "  in pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-9f
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "              -- Comment"
+  "_|_"
+  "              bar = 1"
+  "  in pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "              -- Comment"
+  "              _|_"
+  "              bar = 1"
+  "  in pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-9g
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "_|_"
+  "              -- Comment"
+  "              bar = 1"
+  "  in pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let"
+  "    _|_"
+  "              -- Comment"
+  "              bar = 1"
+  "  in pure 1"
   ""))
 
 (haskell-indentation-tests--test-treesitter
