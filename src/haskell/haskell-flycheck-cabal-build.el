@@ -24,8 +24,9 @@
                      ;; if defined
                      (lambda (dir)
                        dir)))
-         (command (nix-maybe-call-via-flakes
-                   (list "cabal" "build" "--builddir" build-dir (dante-config/cabal-target (dante-get-config)))
+         (command (nix-maybe-call-via-flakes-exe-args
+                   "cabal"
+                   (list "build" "--builddir" build-dir (dante-config/cabal-target (dante-get-config)))
                    proj-dir)))
     (flycheck-report-status 'running)
     (let ((buf (get-buffer-create (haskell-flycheck-cabal-build--buffer-name))))
@@ -37,7 +38,7 @@
               (let ((default-directory proj-dir))
                 (make-process :name "flycheck-haskell-cabal-build"
                               :buffer buf
-                              :command command
+                              :command (cmdline-to-executable-command command)
                               :noquery t
                               :sentinel (lambda (process event)
                                           (pcase (process-status process)
