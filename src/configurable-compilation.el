@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
+(provide 'cmdline)
 (require 'el-patch)
 (require 'eproj)
 (require 'persistent-sessions-global-vars)
@@ -113,25 +114,14 @@ same for a set of buffers rather than being different."
   )
 
 (defun make-optional-nix-cc-command (full-command-line env proj-dir)
-  (let ((pretty-cmd nil))
-    (if proj-dir
-        (setf full-command-line
-              (nix-maybe-call-via-flakes full-command-line proj-dir)
-              pretty-cmd
-              (let ((tmp nil))
-                (s-join " "
-                        (if (and full-command-line
-                                 (member (setf tmp
-                                               (file-name-nondirectory-preserve-text-properties (car full-command-line)))
-                                         '("trix" "nix")))
-                            (cons (configurable-compilation--unimportant-text tmp) (cdr full-command-line))
-                          full-command-line))))
-      (setf pretty-cmd
-            (s-join " " full-command-line)))
-    (make-cc-command full-command-line
+  (let ((args (nix-maybe-call-via-flakes-exe-args
+               (car full-command-line)
+               (cdr full-command-line)
+               proj-dir)))
+    (make-cc-command (cmdline-to-executable-command args)
                      env
                      proj-dir
-                     pretty-cmd)))
+                     (cmdline-to-pretty-command args))))
 
 (defun make-cc-command (full-command-line env dir pretty-cmd)
   (cl-assert (not (null full-command-line)))
