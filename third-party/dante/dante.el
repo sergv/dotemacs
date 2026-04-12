@@ -45,6 +45,7 @@
   (require 'dash)
   (require 'set-up-platform))
 
+(require 'cmdline)
 (require 'dash)
 (require 'f)
 (require 'flycheck)
@@ -329,9 +330,9 @@ targets and components about current buffer’s ghci session."
                                              "--builddir"
                                              (dante-config/build-dir cfg))
                                 :target (dante-config/cabal-target cfg))))
-                  (cl-assert (-all? #'stringp result)
+                  (cl-assert (cmdline-p result)
                              nil
-                             "Dante method command line must contain only strings, but it’s: %s"
+                             "Dante method command line must be of type ‘cmdline’, but it’s: %s"
                              result)
                   result))
               :make-repl-command-line
@@ -354,8 +355,8 @@ targets and components about current buffer’s ghci session."
                                                      (dante-config/repl-dir cfg))
                                                (cons "--repl-no-load" repl-options))
                                 :target (dante-config/cabal-target cfg))))
-                  (cl-assert (-all? #'stringp load-all-mods))
-                  (cl-assert (-all? #'stringp load-no-mods))
+                  (cl-assert (cmdline-p load-all-mods))
+                  (cl-assert (cmdline-p load-no-mods))
                   (make-dante-repl-cmdline
                    :cmdline-loading-all-modules
                    load-all-mods
@@ -384,9 +385,9 @@ targets and components about current buffer’s ghci session."
                                                        "--repl-no-load"
                                                        "--with-repl=echo"))
                                   :target (dante-config/cabal-target cfg))))
-                    (cl-assert (-all? #'stringp result)
+                    (cl-assert (cmdline-p result)
                                nil
-                               "Dante method command line must contain only strings, but it’s: %s"
+                               "Dante method preprocess command line must be of type ‘cmdline’, but it’s: %s"
                                result)
                     result))))))))
     (dante--mk-methods
@@ -401,7 +402,7 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore target))
-                  (nix-call-via-flakes `(,cabal-exe "repl" ,buffer-file-name ,@flags) flake-root))))
+                  (nix-call-via-flakes cabal-exe `("repl" ,buffer-file-name ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'nix-flakes-build
@@ -412,7 +413,7 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (cl-assert (stringp target))
-                  (nix-call-via-flakes `(,cabal-exe "repl" ,target ,@flags) flake-root))))
+                  (nix-call-via-flakes cabal-exe `("repl" ,target ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'build-script
@@ -424,7 +425,9 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore flake-root target))
-                  `(,cabal-exe "repl" ,buffer-file-name ,@flags))))
+                  (make-cmdline
+                   :exe cabal-exe
+                   :args `("repl" ,buffer-file-name ,@flags)))))
 
       (funcall mk-dante-method
                :name 'build
@@ -436,7 +439,9 @@ targets and components about current buffer’s ghci session."
                 (lambda (&key flake-root flags target)
                   (declare (ignore flake-root))
                   (cl-assert (stringp target))
-                  `(,cabal-exe "repl" ,target ,@flags))))
+                  (make-cmdline
+                   :exe cabal-exe
+                   :args `("repl" ,target ,@flags)))))
 
       (funcall mk-dante-method
                :name 'bare-ghci
@@ -447,7 +452,7 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore flake-root flags target))
-                  '("ghci"))))))))
+                  (make-cmdline :exe "ghci"))))))))
 
 (defcustom dante-methods (dante--methods-names dante-methods-defs)
   "Keys in `dante-methods-alist' to try, in order.
@@ -549,7 +554,7 @@ Consider setting this variable as a directory variable."
   ;; because of cabal behaviour.
   ghci-path
 
-  ;; Command line used to start GHCi.
+  ;; Command line used to start GHCi, list of strings.
   command-line
 
   ;; Load messages from GHCi before actual repl starts.
@@ -1051,19 +1056,20 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
          (cmdline (funcall (dante-method/make-preprocess-command-line (dante-config/method cfg))
                            cfg
                            is-repl?)))
+    (cl-assert (cmdline-p cmdline))
     (with-fresh-buffer-no-switch tmp-buf (get-buffer-create " *dante-cabal-preprocessing*")
       (let ((exit-code (lcr-call lcr-call-process-async
                                  (list
                                   :name "dante-preprocessing"
                                   :buffer tmp-buf
-                                  :command cmdline
+                                  :command (cmdline-to-executable-command cmdline)
                                   :noquery t))))
         (unless (zerop exit-code)
           (let ((sep "\n--------------------------------\n"))
             (error "Preprocessing of current project failed with exit code %s:%s%s%s%s"
                    exit-code
                    sep
-                   cmdline
+                   (cmdline-to-pretty-command cmdline)
                    sep
                    (with-current-buffer tmp-buf
                      (buffer-substring-no-properties (point-min) (point-max))))))))))
@@ -1296,14 +1302,15 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
          (cfg (dante-get-config))
          (args (funcall (dante-method/make-check-command-line (dante-config/method cfg))
                         cfg))
+         (arglist (cmdline-to-executable-command args))
          (ghc-initialising? t)
          (initial-ghc-messages nil)
          (vanilla-filter (lcr-process-make-filter ghci-buf))
          (process (with-current-buffer ghci-buf
-                    (message "Dante: Starting GHCi: %s" (combine-and-quote-strings args))
+                    (message "Dante: Starting GHCi: %s" (combine-and-quote-strings arglist))
                     (make-process :name "dante"
                                   :buffer ghci-buf
-                                  :command args
+                                  :command arglist
                                   :noquery t
                                   :filter (lambda (process str)
                                             (if ghc-initialising?
