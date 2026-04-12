@@ -1307,7 +1307,7 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
          (initial-ghc-messages nil)
          (vanilla-filter (lcr-process-make-filter ghci-buf))
          (process (with-current-buffer ghci-buf
-                    (message "Dante: Starting GHCi: %s" (combine-and-quote-strings arglist))
+                    (message "Dante: Starting GHCi: %s" (cmdline-to-pretty-command args))
                     (make-process :name "dante"
                                   :buffer ghci-buf
                                   :command arglist
