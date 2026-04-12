@@ -40,7 +40,7 @@
          (develop-prop (eval-when-compile (configurable-compilation--unimportant-text "develop")))
          (command-prop (eval-when-compile (configurable-compilation--unimportant-text "--command"))))
     (if-let* ((trix-exe (cached-executable-find "trix")))
-        (let ((trix-exe-prop (configurable-compilation--unimportant-text trix-exe))
+        (let ((trix-exe-prop (eval-when-compile (configurable-compilation--unimportant-text "trix")))
               (packed-quoted-args (s-join " " (-map #'shell-quote-argument (cons exe args))))
               (packed-args (s-join " " (cons exe args))))
           (if proj-dir
@@ -67,7 +67,7 @@
              :rendered
              (cons trix-exe-prop (cons develop-prop (cons command-prop packed-args))))))
       (if-let* ((nix-exe (cached-executable-find "nix")))
-          (let ((nix-exe-prop (configurable-compilation--unimportant-text nix-exe))
+          (let ((nix-exe-prop (eval-when-compile (configurable-compilation--unimportant-text "nix")))
                 (no-warn-dirty "--no-warn-dirty")
                 (no-warn-dirty-prop (eval-when-compile (configurable-compilation--unimportant-text "--no-warn-dirty"))))
             (if proj-dir
