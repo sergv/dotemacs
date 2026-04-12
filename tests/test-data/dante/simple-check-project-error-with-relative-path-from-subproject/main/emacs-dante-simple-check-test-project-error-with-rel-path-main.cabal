@@ -1,0 +1,35 @@
+cabal-version: 3.6
+
+-- Created : 11 April 2026
+
+name:
+  emacs-dante-simple-check-test-project-error-with-rel-path-main
+version:
+  0.1
+synopsis:
+  TODO
+description:
+  TODO
+copyright:
+  (c) Sergey Vinokurov 2026
+license:
+  Apache-2.0
+author:
+  Sergey Vinokurov
+maintainer:
+  Sergey Vinokurov <serg.foo@gmail.com>
+
+build-type:
+  Simple
+
+library
+  default-language:
+    GHC2024
+  exposed-modules:
+    Foo.Bar
+    Baz.Quux
+  hs-source-dirs:
+    src
+  build-depends:
+    , base >= 4.16
+    , emacs-dante-simple-check-test-project-error-with-rel-path-dep
