@@ -11,13 +11,14 @@
 
   (declare-function sessions-mark-global-var-for-save "persistent-sessions-global-vars"))
 
+(require 'cmdline)
 (require 'current-column-fixed)
 (require 'dante)
 (require 'haskell-syntax-table)
 (require 'lcr)
 
 (defvar-local dante-repl--last-command-line nil
-  "Last command line used to start the REPL session.")
+  "Last command line used to start the REPL session, a value of type ‘cmdline’.")
 
 (defun dante-repl--make-command-line (load-all-on-start?)
   (let* ((cfg (dante-get-config))
@@ -137,20 +138,22 @@ otherwise the command for starting repl will be inferred."
     (dante-repl--start-in-buffer-with-command-line repl-buf command-line initial-repl-command current-dir)))
 
 (defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line initial-repl-command current-dir)
+  (cl-assert (cmdline-p command-line))
   (let ((dir (or current-dir
                  (dante-config/project-root (dante-get-config)))))
     (with-current-buffer repl-buf
       (cd dir)
       (dante-repl-mode)
       (setq-local dante-repl--last-command-line command-line)
-      (let ((proc
-             (get-buffer-process
-              (apply #'make-comint-in-buffer
-                     "dante"
-                     repl-buf
-                     (car command-line)
-                     nil
-                     (cdr command-line)))))
+      (let* ((exe-command (cmdline-to-executable-command command-line))
+             (proc
+              (get-buffer-process
+               (apply #'make-comint-in-buffer
+                      "dante"
+                      repl-buf
+                      (car exe-command)
+                      nil
+                      (cdr exe-command)))))
         (when (process-live-p proc)
           (set-process-query-on-exit-flag proc nil)
           (let ((cmd
@@ -163,7 +166,7 @@ otherwise the command for starting repl will be inferred."
             (comint-simple-send proc (if initial-repl-command
                                          (concat cmd "\n" initial-repl-command)
                                        cmd)))
-          (message "Started REPL with %s" (s-join " " command-line))
+          (message "Started REPL with %s" (cmdline-to-pretty-command command-line))
           t)))))
 
 (defun dante-repl-completion-at-point ()
