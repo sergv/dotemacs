@@ -23,6 +23,18 @@
 (defconst dante-tests-tests/simple-test-project-name-shadowing-error
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project-name-shadowing-error"))
 
+(defconst dante-tests-tests/simple-check-project-error-with-relative-path-from-subproject-archive
+  (concat +emacs-config-path+
+          "/tests/test-data/dante/simple-check-project-error-with-relative-path-from-subproject.zip"))
+
+(defconst dante-tests-tests/native-flake
+  (concat +emacs-config-path+
+          "/native/emacs-native/flake.nix"))
+
+(defconst dante-tests-tests/native-flake-lock
+  (concat +emacs-config-path+
+          "/native/emacs-native/flake.lock"))
+
 (defconst dante-tests-tests/simple-repl-test-project
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-repl-project"))
 
@@ -50,6 +62,12 @@
                (when (buffer-live-p it)
                  (kill-buffer it)))
              (kill-buffer ,buf-var)))))))
+
+(defmacro dante-tests/with-file-no-clean (path &rest body)
+  (declare (indent 1))
+  `(let ((noninteractive nil))
+     (with-current-buffer (find-file-noselect ,path)
+       ,@body)))
 
 (defmacro dante-tests/check-buffer-and-assert-when-done (&rest body)
   (let ((checking-done-var '#:checking-done))
@@ -269,6 +287,75 @@
       (dante-tests/type-at-point-and-assert-when-done
        ty
        (should (string= ty "myreplicate :: Int -> [a] -> [[a]]"))))))
+
+(defun dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl (enable-flakes?)
+  (test-utils--with-unzipped-project
+      dante-tests-tests/simple-check-project-error-with-relative-path-from-subproject-archive
+      tmp-dir
+
+    (let ((proj-dir (concat tmp-dir "/simple-check-project-error-with-relative-path-from-subproject")))
+
+      (when enable-flakes?
+        (dolist (x (list dante-tests-tests/native-flake
+                         dante-tests-tests/native-flake-lock))
+          (copy-file x (concat proj-dir "/" (file-name-nondirectory x)))))
+
+      (dante-tests/with-file-no-clean
+          (concat proj-dir "/main/src/Foo/Bar.hs")
+        (should (derived-mode-p 'haskell-ts-base-mode))
+        (should flycheck-mode)
+        (should dante-mode)
+
+        (should (string= (dante-config/cabal-target (dante-get-config))
+                         "emacs-dante-simple-check-test-project-error-with-rel-path-main:lib:emacs-dante-simple-check-test-project-error-with-rel-path-main"))
+
+        (delete-directory (dante-config/build-dir (dante-get-config)) t)
+
+        (dante-tests/check-buffer-and-assert-when-done
+         (should (null flycheck-current-errors))))
+
+      (dante-tests/with-file-no-clean
+          (concat proj-dir "/main/src/Baz/Quux.hs")
+        (goto-line-dumb 10)
+        (delete-region (line-beginning-position) (line-end-position))
+        (insert "bar bar")
+        (save-buffer))
+
+      (dante-tests/with-file-no-clean
+          (concat proj-dir "/main/src/Foo/Bar.hs")
+        (dante-tests/check-buffer-and-assert-when-done
+         (should (not (null flycheck-current-errors)))
+
+         (let ((err (--find (and (string-suffix-p "Baz/Quux.hs" (flycheck-error-filename it) t)
+                                 (string-search "GHC-25277" (flycheck-error-message it)))
+                            flycheck-current-errors)))
+           (should (not (null err)))
+           (should (string= (flycheck-error-filename err)
+                            (concat proj-dir "/main/src/Baz/Quux.hs")))))
+
+        (progn
+          (flycheck-enhancements-next-error-with-wraparound)
+
+          (should (string= (concat proj-dir "/main/src/Baz/Quux.hs")
+                           (buffer-file-name))))))))
+
+(ert-deftest z-dante-tests/simple-check-project-4-error-with-relative-path-from-subproject ()
+  (unless (executable-find "cabal")
+    (ert-skip "cabal not available"))
+  (unless (executable-find "ghc")
+    (ert-skip "ghc not available"))
+
+  (dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl nil))
+
+(ert-deftest z-dante-tests/simple-check-project-5-error-with-relative-path-from-subproject-run-under-nix ()
+  (unless (executable-find "cabal")
+    (ert-skip "cabal not available"))
+  (unless (executable-find "ghc")
+    (ert-skip "ghc not available"))
+  (unless (or (executable-find "trix") (executable-find "nix"))
+    (ert-skip "neither trix nor nix are not available"))
+
+  (dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl t))
 
 (ert-deftest z-dante-tests/simple-repl-project-1 ()
   (unless (executable-find "cabal")
