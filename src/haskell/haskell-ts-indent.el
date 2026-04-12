@@ -841,6 +841,21 @@
               parent
               0)
 
+             ((and (parent-is "let" "let_in")
+                   (or (node-is "local_binds" "comment")
+                       no-node))
+              ,(lambda (node parent bol-pos)
+                 (if node
+                     (treesit-node-prev-sibling node)
+                   (if-let ((child (treesit-node-first-child-for-pos parent bol-pos)))
+                       (treesit-node-prev-sibling child)
+                     parent)))
+              ,(lambda (node parent bol-pos)
+                 (lambda (matched-anchor)
+                   (if (string= (treesit-node-type matched-anchor) "let")
+                       haskell-indent-offset
+                     0))))
+
              (no-node
               ,(lambda (node parent bol-pos)
                  (let ((typ (treesit-node-type parent)))
@@ -936,6 +951,9 @@
              ;; Must come after where because parents of comments are sometimes
              ;; incorrect and comment under ‘where’ may be attributed to the enclosing
              ;; function.
+             ;;
+             ;; Must also come after "local_binds" so that indentation within lets
+             ;; is handled there.
              ((or (parent-is "record")
                   (node-is "comment" "haddock"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent
