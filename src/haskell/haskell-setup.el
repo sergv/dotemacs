@@ -176,15 +176,20 @@ regexps to not be confused by the instance location."
          (identifier
           (when dante-ident-bounds
             (buffer-substring-no-properties (car dante-ident-bounds)
-                                            (cdr dante-ident-bounds)))))
+                                            (cdr dante-ident-bounds))))
+         (ghci-root
+          (when-let* ((ghci-state (dante-get-ghci-state)))
+            (dante-check-ghci-state/ghci-path ghci-state))))
+    (unless ghci-root
+      (error "GHCi not configured"))
     (lcr-cps-let ((_load_messages (dante-async-load-current-buffer nil nil))
                   (locations (dante-async-call
                               (concat ":loc-at " (dante--ghc-subexp dante-ident-bounds)))))
-      (if-let (ghci-tags
-               (save-match-data
-                 (delq nil
-                       (-map #'haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag
-                             (s-lines locations)))))
+      (if-let* ((ghci-tags
+                 (save-match-data
+                   (delq nil
+                         (--map (haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag ghci-root it)
+                                (s-lines locations))))))
           (let* ((proj (eproj-get-project-for-buf (current-buffer)))
                  (effective-major-mode (eproj/resolve-synonym-modes major-mode))
                  (lang (aif (gethash effective-major-mode eproj/languages-table)
@@ -215,8 +220,7 @@ regexps to not be confused by the instance location."
                        (line (string->number (match-string 2 info)))
                        (column (string->number (match-string 3 info))))
                    (unless (file-name-absolute-p file)
-                     (setq file (expand-file-name file
-                                                  (dante-config/project-root (dante-get-config)))))
+                     (setq file (expand-file-name file ghci-root)))
                    (eproj-symbnav--jump-to-location file line column (eproj-symbnav-current-home-entry) identifier)))
                 ;; Now try to check whether :loc-at produced module name we could use. The same module
                 ;; name is available in the output of :i command but :loc-at also includes
@@ -266,7 +270,7 @@ regexps to not be confused by the instance location."
     (let ((identifier (eproj-symbnav/identifier-at-point nil)))
       (xref-find-references identifier))))
 
-(defun haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag (string)
+(defun haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag (ghci-root string)
   "Extract a location from a ghc span STRING."
   (when (string-match haskell-regexen/ghci-src-span string)
     (let* ((file (match-string-no-properties 1 string))
@@ -276,7 +280,7 @@ regexps to not be confused by the instance location."
                 file))
            (line (string-to-number (match-string-no-properties 2 string)))
            (col (string-to-number (match-string-no-properties 3 string))))
-      (make-eproj-tag (expand-file-name resolved-file (dante-config/project-root (dante-get-config)))
+      (make-eproj-tag (expand-file-name resolved-file ghci-root)
                       line
                       nil
                       t
