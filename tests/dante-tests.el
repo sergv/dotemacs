@@ -108,6 +108,21 @@
        (progn
          ,@body))))
 
+(defmacro dante-tests/haskell-symbnav-go-to-symbol-home-and-assert-when-done (&rest body)
+  (let ((checking-done-var '#:checking-done)
+        (arg-var '#:fresh-var))
+    `(let ((,checking-done-var nil))
+       (haskell-dante-symbnav/go-to-symbol-home
+        (lambda (func args)
+          (setf ,checking-done-var t)
+          (apply func args)
+
+          (progn
+            ,@body)))
+
+       (while (not ,checking-done-var)
+         (sit-for 0.05)))))
+
 (defun dante-repl/wait-for-prompt (proc)
   "Spin in a loop until prompt dante-repl prompt shows up befor epoint."
   (cl-assert (processp proc))
@@ -312,7 +327,19 @@
         (delete-directory (dante-config/build-dir (dante-get-config)) t)
 
         (dante-tests/check-buffer-and-assert-when-done
-         (should (null flycheck-current-errors))))
+         (should (null flycheck-current-errors)))
+
+        (goto-line-dumb 13)
+        (move-to-column-fixed 12)
+
+        ;; Sanity check
+        (should (looking-at-p (rx symbol-start "bar" symbol-end)))
+
+        (dante-tests/haskell-symbnav-go-to-symbol-home-and-assert-when-done
+         (should (string= (concat proj-dir "/main/src/Baz/Quux.hs")
+                          (buffer-file-name)))
+         (should (string= (buffer-substring-no-properties (line-beginning-position) (line-end-position))
+                          "bar x = x"))))
 
       (dante-tests/with-file-no-clean
           (concat proj-dir "/main/src/Baz/Quux.hs")
