@@ -237,7 +237,7 @@ targets and components about current buffer’s ghci session."
   (make-repl-command-line nil :read-only t)
 
   ;; Function of one argument of type ‘dante-config’ that
-  ;; returns string buffer name for dante repl buffer
+  ;; returns string buffer name for underlynig dante ghci interaction buffer.
   (repl-buf-name-func nil :read-only t)
 
   ;; Function of two arguments, project root and build directory that returns
