@@ -147,7 +147,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
    (setf dirtrack-directory-function #'cygwin-directory-name-to-emacs)))
 
 (defun shell-backward-up-indentation-or-sexp ()
-  "Haskell brother of ‘paredit-backward-up’ that considers both
+  "‘shell-mode’ brother of ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (interactive)
   (indent-backward-up-indentation-or-sexp #'indent-on-blank-line?))
