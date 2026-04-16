@@ -179,11 +179,12 @@
                    "/"
                    (replace-regexp-in-string "\\." "/" module)
                    "."
-                   (eval-when-compile (regexp-opt +haskell-extensions+)))))))))
+                   (eval-when-compile (regexp-opt +haskell-extensions+)))
+           (eproj-get-project-for-buf (current-buffer))))))))
 
-(defun haskell-symbnav--jump-to-filtered-tags (identifier filter-re)
-  (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-         (effective-major-mode (eproj/resolve-synonym-modes major-mode)))
+(defun haskell-symbnav--jump-to-filtered-tags (identifier filter-re proj)
+  (cl-assert (eproj-project-p proj))
+  (let ((effective-major-mode (eproj/resolve-synonym-modes major-mode)))
 
     (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
 
