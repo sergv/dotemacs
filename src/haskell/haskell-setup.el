@@ -140,7 +140,7 @@ With prefix argument puts symbol at point also in substitute part"
             (strip-string-prefix "  -package-id " it))
            lines2)))
 
-(defun haskell-go-to-symbol-home--jump-to-filtered-tags (identifier mod-name pkgs-without-versions)
+(defun haskell-go-to-symbol-home--jump-to-filtered-tags (identifier mod-name pkgs-without-versions proj)
   (haskell-symbnav--jump-to-filtered-tags
    identifier
    (concat "/"
@@ -149,7 +149,8 @@ With prefix argument puts symbol at point also in substitute part"
            "/"
            (s-extras-replace-char! ?. ?/ mod-name)
            "."
-           (eval-when-compile (regexp-opt +haskell-extensions+)))))
+           (eval-when-compile (regexp-opt +haskell-extensions+)))
+   proj))
 
 (defun haskell-dante--strip-instances-from-ghci-info (str)
   "The info may look like, for a type ‘Foo’ that comes from
@@ -177,6 +178,12 @@ regexps to not be confused by the instance location."
           (when dante-ident-bounds
             (buffer-substring-no-properties (car dante-ident-bounds)
                                             (cdr dante-ident-bounds))))
+         (buf (current-buffer))
+         (dante-cfg (dante-get-config buf))
+         (proj (aif (dante-config/eproj-root dante-cfg)
+                   (eproj-get-project-for-path it)
+                 (eproj-get-project-for-buf buf)))
+         (eproj-root (eproj-project/root proj))
          (ghci-root
           (when-let* ((ghci-state (dante-get-ghci-state)))
             (dante-check-ghci-state/ghci-path ghci-state))))
@@ -189,10 +196,9 @@ regexps to not be confused by the instance location."
         (if-let* ((ghci-tags
                    (save-match-data
                      (delq nil
-                           (--map (haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag ghci-root it)
+                           (--map (haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag ghci-root eproj-root it)
                                   (s-lines locations))))))
-            (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-                   (effective-major-mode (eproj/resolve-synonym-modes major-mode))
+            (let* ((effective-major-mode (eproj/resolve-synonym-modes major-mode))
                    (lang (aif (gethash effective-major-mode eproj/languages-table)
                              it
                            (error "unsupported language %s" effective-major-mode)))
@@ -246,7 +252,8 @@ regexps to not be confused by the instance location."
                             #'haskell-go-to-symbol-home--jump-to-filtered-tags
                             (list identifier
                                   mod-name
-                                  pkgs-without-versions))))
+                                  pkgs-without-versions
+                                  proj))))
                 ;; Other times :i only provides us with a module name which is still
                 ;; usefull to narrow down tag search.
                 ((string-match haskell-regexen/ghci-info-definition-site info)
@@ -257,7 +264,8 @@ regexps to not be confused by the instance location."
                             #'haskell-go-to-symbol-home--jump-to-filtered-tags
                             (list identifier
                                   mod-name
-                                  pkgs-without-versions))))
+                                  pkgs-without-versions
+                                  proj))))
                 ((string-match-p haskell-regexen/ghci-name-not-in-scope-error info)
                  (error "Name not in scope, invoke eproj tags via M-."))
                 (t
@@ -282,7 +290,7 @@ regexps to not be confused by the instance location."
     (let ((identifier (eproj-symbnav/identifier-at-point nil)))
       (xref-find-references identifier))))
 
-(defun haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag (ghci-root string)
+(defun haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag (ghci-root eproj-root string)
   "Extract a location from a ghc span STRING."
   (when (string-match haskell-regexen/ghci-src-span string)
     (let* ((file (match-string-no-properties 1 string))
@@ -292,7 +300,8 @@ regexps to not be confused by the instance location."
                 file))
            (line (string-to-number (match-string-no-properties 2 string)))
            (col (string-to-number (match-string-no-properties 3 string))))
-      (make-eproj-tag (expand-file-name resolved-file ghci-root)
+      (make-eproj-tag (file-relative-name (expand-file-name resolved-file ghci-root)
+                                          eproj-root)
                       line
                       nil
                       t
