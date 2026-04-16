@@ -205,6 +205,19 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-indent--get-let-node-in (node)
+  "Get ‘in’ field from a let_in NODE."
+  (cl-assert (string= "let_in" (treesit-node-type node)))
+  (let ((result (treesit-node-child node -2)))
+    (cl-assert (and result
+                    (string= (treesit-node-type result) "in"))
+               nil
+               "No ‘in’ field in let_in node %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (provide 'haskell-ts-getters)
 
 ;; Local Variables:
