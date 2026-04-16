@@ -71,6 +71,8 @@ Return the root node of the syntax tree."
            (treesit-available-p))
   (el-patch-feature treesit))
 
+(defvar treesit-indent-region--indent-line-impl #'treesit--indent-1)
+
 (el-patch-defun treesit-indent-region (beg end)
   "Indent the region between BEG and END.
 Similar to `treesit-indent', but indent a region instead."
@@ -112,7 +114,10 @@ Similar to `treesit-indent', but indent a region instead."
               ;; `indent-region'.  Set ANCHOR and OFFSET to nil.
               (setf (aref meta-vec (* idx meta-len)) nil
                     (aref meta-vec (+ 1 (* idx meta-len))) nil)
-            (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1))
+            (pcase-let* ((`(,anchor . ,offset)
+                          (el-patch-swap
+                            (treesit--indent-1)
+                            (funcall treesit-indent-region--indent-line-impl)))
                          (marker (aref meta-vec (* idx meta-len))))
               (if (not (and anchor offset))
                   ;; No indent for this line, either...
