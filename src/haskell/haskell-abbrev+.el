@@ -186,13 +186,13 @@
                                                            nil
                                                            ""))))
       ;; Decide whether to put message on a separate line or on current line.
-      (if (< 80 (+ 1 column-after-pp-dict (length header-message)))
+      (if (< 100 (+ 1 column-after-pp-dict (length header-message)))
           (progn
-            ;; Separate line - otherwise it would go past 80 column.
+            ;; Separate line - otherwise it would go past 100 column.
             (insert "\n")
             (indent-to (+ haskell-indent-offset start-column)))
         (progn
-          ;; Same line - will fit into 80 columns.
+          ;; Same line - will fit into 100 columns.
           (insert " ")))
       (insert header-message "\n")
       (indent-to (+ haskell-indent-offset start-column)))
