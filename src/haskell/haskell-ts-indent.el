@@ -704,7 +704,7 @@
              ((node-is "in") parent 0)
              ((match nil "let_in" "expression" nil nil)
               ,(lambda (node parent bol)
-                 (let* ((in-node (treesit-node-child parent 2))
+                 (let* ((in-node (haskell-ts-indent--get-let-node-in parent))
                         (in-node-start (treesit-node-start in-node))
                         (parent-start (treesit-node-start parent)))
                    (if (haskell-ts--positions-on-the-same-line? in-node-start parent-start)
