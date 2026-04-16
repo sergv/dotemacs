@@ -719,7 +719,9 @@
              ;; list
              ((node-is "]") parent 0)
              ((n-p-gp "," "list" nil) parent 0)
-             ((parent-is "list") parent haskell-indent-offset)
+             ((n-p-gp "," "qualifiers" "list_comprehension") grand-parent 0)
+             ((n-p-gp "|" "list_comprehension" nil) parent 0)
+             ((parent-is "list" "list_comprehension") parent haskell-indent-offset)
 
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
              ((n-p-gp "operator" "infix" nil)
@@ -1118,7 +1120,9 @@
               haskell-ts--treesit-simple-indent-presets
               treesit-simple-indent-rules
               (list (cons 'haskell haskell-ts-indent-rules)
-                    (cons 'hsc haskell-ts-indent-rules))))
+                    (cons 'hsc haskell-ts-indent-rules))
+              treesit-indent-region--indent-line-impl
+              #'haskell-ts-indent-line--indent-1))
 
 (defun haskell-ts-indent-line--indent-1 ()
   "Version of ‘treesit--indent-1’ tailored for Haskell syntax."

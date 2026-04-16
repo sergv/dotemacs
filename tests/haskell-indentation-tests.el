@@ -2112,6 +2112,23 @@ have different input states."
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-1c
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  | baz <- [1..n]"
+  "    _|_, quux"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  | baz <- [1..n]"
+  "  _|_, quux"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-list-2
  :contents
  (tests-utils--multiline
@@ -2314,6 +2331,25 @@ have different input states."
   "             \\x ->"
   "               _|_x + 1"
   "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-8
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "    [ x * x"
+  "        _|_| x <- [1..n]"
+  "   ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "    [ x * x"
+  "    _|_| x <- [1..n]"
+  "   ]"
+  ""))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-complex-1
@@ -7974,6 +8010,25 @@ have different input states."
   "    \"\"\""
   "  )"
   "_|_"
+  ""))
+
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-list-1
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "    _||_[ x * x"
+  "        | x <- [1..n]"
+  "   _|_]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  _|_[ x * x"
+  "  | x <- [1..n]"
+  "  ]"
   ""))
 
 (haskell-indentation-tests--test-treesitter
