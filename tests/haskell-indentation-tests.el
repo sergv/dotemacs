@@ -2182,6 +2182,25 @@ have different input states."
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-3b
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  | baz <- [1..n]"
+  "  , let quux ="
+  "                   _|_y"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  | baz <- [1..n]"
+  "  , let quux ="
+  "          _|_y"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-list-4a
  :contents
  (tests-utils--multiline
