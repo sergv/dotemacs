@@ -261,6 +261,11 @@
               (throw 'term (haskell-ts-indent--make-trivial-computed-indent it)))
 
             (cond
+              ((and (or (string= "let" curr-type)
+                        (string= "let_in" curr-type))
+                    (string= "qualifier" (treesit-node-field-name curr)))
+               (when prev2
+                 (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev2))))
               ((or (string= "list" curr-type)
                    (string= "list_comprehension" curr-type))
                (throw 'term
@@ -300,8 +305,8 @@
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t t t))
 
-(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function (node parent bol)
-  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t nil nil))
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-parent (node parent bol)
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t nil t))
 
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t nil))
@@ -978,7 +983,7 @@
               0)
 
              ((parent-is "match")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-parent
               haskell-indent-offset)
 
              ((parent-is "comment" "imports" "haskell" "declarations") column-0 0)
