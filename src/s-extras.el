@@ -40,6 +40,56 @@ Implementation is very straightforward and because of that fast and reliable."
       (cl-incf i))
     s))
 
+(defun s-extras--strip-terminal-save-restore-cursor-escape-sequences! (str)
+  (let* ((i 0)
+         (j 0)
+         (len (length str))
+         (dest str))
+    (while (< i len)
+      (let ((c (aref str i)))
+        (if (eq c 27)
+            (let ((k (+ i 1)))
+              (when (< k len)
+                (let ((c2 (aref str k)))
+                  (if (or (eq c2 ?7)
+                          (eq c2 ?8))
+                      (progn
+                        (cl-incf i 2))
+                    (progn
+                      (setf (aref dest j) c)
+                      (cl-incf i)
+                      (cl-incf j))))))
+          (progn
+            (setf (aref dest j) c)
+            (cl-incf i)
+            (cl-incf j)))))
+    (substring dest nil j)))
+
+(defun s-extras--strip-terminal-save-restore-cursor-escape-sequences (str)
+  (let* ((i 0)
+         (j 0)
+         (len (length str))
+         (dest (make-string len 0)))
+    (while (< i len)
+      (let ((c (aref str i)))
+        (if (eq c 27)
+            (let ((k (+ i 1)))
+              (when (< k len)
+                (let ((c2 (aref str k)))
+                  (if (or (eq c2 ?7)
+                          (eq c2 ?8))
+                      (progn
+                        (cl-incf i 2))
+                    (progn
+                      (setf (aref dest j) c)
+                      (cl-incf i)
+                      (cl-incf j))))))
+          (progn
+            (setf (aref dest j) c)
+            (cl-incf i)
+            (cl-incf j)))))
+    (substring dest nil j)))
+
 (provide 's-extras)
 
 ;; Local Variables:
