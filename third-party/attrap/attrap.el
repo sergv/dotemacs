@@ -947,6 +947,14 @@ Error is given as MSG and reported between POS and END."
                         ;;     • In the quasi-quotation: [osstr|fully-pinned-cabal.config|]
                         ;; error: [GHC-76037]
                         ;;     Not in scope: data constructor ‘Compose’
+                        ;;
+                        ;; error: [GHC-22385]
+                        ;;   Not in scope: record field ‘addrFlags’
+                        ;;   Suggested fixes:
+                        ;;     • Add ‘addrFlags’ to the import list in the import of
+                        ;;       ‘Network.Socket’
+                        ;;       (at /home/sergey/projects/haskell/projects/dev-tools/faster-richer-tags/tests/SearchTests.hs:2:1-42).
+                        ;;     • Perhaps use record field of AddrInfo ‘Socket.addrFlags’ (imported from Network.Socket)
                         (seq (ghc-error "76037")
                              (+ ws)
                              (or (seq "Not in scope: "
@@ -955,7 +963,10 @@ Error is given as MSG and reported between POS and END."
                                       " "
                                       (identifier 1))
                                  (seq "• Not in scope: "
-                                      (identifier 1))))))
+                                      (identifier 1))))
+                        (seq (ghc-error "22385")
+                             (+ ws)
+                             (seq "Not in scope: record field " (identifier 1)))))
                 normalized-msg)
            (let ((identifier (attrap-strip-parens (match-string-no-properties 1 normalized-msg)))
                  (is-constructor? (not (null (match-beginning 2))))
