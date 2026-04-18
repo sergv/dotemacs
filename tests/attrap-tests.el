@@ -797,6 +797,94 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-6a
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-22385]"
+  "    Not in scope: record field ‘addrFlags’"
+  "    Suggested fixes:"
+  "      • Perhaps use record field of AddrInfo ‘Socket.addrFlags’ (imported from Network.Socket)"
+  "      • Add ‘addrFlags’ to the import list in the import of"
+  "        ‘Network.Socket’"
+  "        (at /home/sergey/projects/haskell/projects/dev-tools/faster-richer-tags/tests/SearchTests.hs:2:1-42).")
+ :action
+ (let ((attrap-select-predefined-option
+        "replace addrFlags by Socket.addrFlags from Network.Socket"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber)"
+  "import Network.Socket qualified as Socket"
+  ""
+  "connectSocket :: String -> PortNumber -> IO Socket"
+  "connectSocket addr port = do"
+  "  let hints = defaultHints"
+  "        { _|_addrFlags      = [AI_PASSIVE]"
+  "        , addrSocketType = Stream"
+  "        }"
+  "  undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber)"
+  "import Network.Socket qualified as Socket"
+  ""
+  "connectSocket :: String -> PortNumber -> IO Socket"
+  "connectSocket addr port = do"
+  "  let hints = defaultHints"
+  "        { _|_Socket.addrFlags      = [AI_PASSIVE]"
+  "        , addrSocketType = Stream"
+  "        }"
+  "  undefined"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-6b
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-22385]"
+  "    Not in scope: record field ‘addrFlags’"
+  "    Suggested fixes:"
+  "      • Add ‘addrFlags’ to the import list in the import of"
+  "        ‘Network.Socket’"
+  "        (at /home/sergey/projects/haskell/projects/dev-tools/faster-richer-tags/tests/SearchTests.hs:2:1-42)."
+  "      • Perhaps use record field of AddrInfo ‘Socket.addrFlags’ (imported from Network.Socket)")
+ :action
+ (let ((attrap-select-predefined-option
+        "replace addrFlags by Socket.addrFlags from Network.Socket"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber)"
+  "import Network.Socket qualified as Socket"
+  ""
+  "connectSocket :: String -> PortNumber -> IO Socket"
+  "connectSocket addr port = do"
+  "  let hints = defaultHints"
+  "        { _|_addrFlags      = [AI_PASSIVE]"
+  "        , addrSocketType = Stream"
+  "        }"
+  "  undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber)"
+  "import Network.Socket qualified as Socket"
+  ""
+  "connectSocket :: String -> PortNumber -> IO Socket"
+  "connectSocket addr port = do"
+  "  let hints = defaultHints"
+  "        { _|_Socket.addrFlags      = [AI_PASSIVE]"
+  "        , addrSocketType = Stream"
+  "        }"
+  "  undefined"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-binding-1
  :error-message
  (tests-utils--multiline
@@ -1836,6 +1924,94 @@
   "main = do"
   "  _|_foo"
   "  pure ()"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-list-9a
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-22385]"
+  "    Not in scope: record field ‘addrFlags’"
+  "    Suggested fixes:"
+  "      • Perhaps use record field of AddrInfo ‘Socket.addrFlags’ (imported from Network.Socket)"
+  "      • Add ‘addrFlags’ to the import list in the import of"
+  "        ‘Network.Socket’"
+  "        (at /home/sergey/projects/haskell/projects/dev-tools/faster-richer-tags/tests/SearchTests.hs:2:1-42).")
+ :action
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘Network.Socket’"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber)"
+  "import Network.Socket qualified as Socket"
+  ""
+  "connectSocket :: String -> PortNumber -> IO Socket"
+  "connectSocket addr port = do"
+  "  let hints = defaultHints"
+  "        { _|_addrFlags      = [AI_PASSIVE]"
+  "        , addrSocketType = Stream"
+  "        }"
+  "  undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber, addrFlags)"
+  "import Network.Socket qualified as Socket"
+  ""
+  "connectSocket :: String -> PortNumber -> IO Socket"
+  "connectSocket addr port = do"
+  "  let hints = defaultHints"
+  "        { _|_addrFlags      = [AI_PASSIVE]"
+  "        , addrSocketType = Stream"
+  "        }"
+  "  undefined"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-list-9b
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-22385]"
+  "    Not in scope: record field ‘addrFlags’"
+  "    Suggested fixes:"
+  "      • Add ‘addrFlags’ to the import list in the import of"
+  "        ‘Network.Socket’"
+  "        (at /home/sergey/projects/haskell/projects/dev-tools/faster-richer-tags/tests/SearchTests.hs:2:1-42)."
+  "      • Perhaps use record field of AddrInfo ‘Socket.addrFlags’ (imported from Network.Socket)")
+ :action
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘Network.Socket’"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber)"
+  "import Network.Socket qualified as Socket"
+  ""
+  "connectSocket :: String -> PortNumber -> IO Socket"
+  "connectSocket addr port = do"
+  "  let hints = defaultHints"
+  "        { _|_addrFlags      = [AI_PASSIVE]"
+  "        , addrSocketType = Stream"
+  "        }"
+  "  undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber, addrFlags)"
+  "import Network.Socket qualified as Socket"
+  ""
+  "connectSocket :: String -> PortNumber -> IO Socket"
+  "connectSocket addr port = do"
+  "  let hints = defaultHints"
+  "        { _|_addrFlags      = [AI_PASSIVE]"
+  "        , addrSocketType = Stream"
+  "        }"
+  "  undefined"
   ""))
 
 (attrap-tests--test-buffer-contents-one
