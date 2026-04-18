@@ -650,7 +650,7 @@ Similarly for Soar, Scheme, etc."
 (add-hook 'comint-mode-hook #'comint-setup)
 
 ;;;###autoload
-(defun comint-clear-prompt () ;; shell-clear-prompt
+(defun comint-clear-prompt ()
   "Clear shell prompt from input."
   (interactive)
   (comint-bol)
@@ -659,7 +659,7 @@ Similarly for Soar, Scheme, etc."
     (delete-region (point) (line-end-position))))
 
 ;;;###autoload
-(defun comint-clear-buffer-above-prompt () ;; shell-clear-buffer
+(defun comint-clear-buffer-above-prompt ()
   "Clear everything between start of buffer and line above current one
 inclusively."
   (interactive)
