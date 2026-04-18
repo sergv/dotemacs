@@ -3183,6 +3183,64 @@
   "      undefined"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/export-is-a-data-constructor-1a
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-35373]"
+  "    In the import of ‘Network.Socket’:"
+  "      an item called ‘Stream’"
+  "      is exported, but it is a data constructor of"
+  "      ‘SocketType’."
+  "    Suggested fix:"
+  "      Use"
+  "        import Network.Socket ( SocketType( Stream ) )"
+  "      or"
+  "        import Network.Socket ( SocketType(..) )")
+ :action
+ (let ((attrap-select-predefined-option "replace with SocketType(..)"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber, AddrInfo(..), defaultHints, AddrInfoFlag(..), _|_Stream)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber, AddrInfo(..), defaultHints, AddrInfoFlag(..), _|_SocketType(..))"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/export-is-a-data-constructor-1b
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-35373]"
+  "    In the import of ‘Network.Socket’:"
+  "      an item called ‘Stream’"
+  "      is exported, but it is a data constructor of"
+  "      ‘SocketType’."
+  "    Suggested fix:"
+  "      Use"
+  "        import Network.Socket ( SocketType( Stream ) )"
+  "      or"
+  "        import Network.Socket ( SocketType(..) )")
+ :action
+ (let ((attrap-select-predefined-option "replace with SocketType(Stream)"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber, AddrInfo(..), defaultHints, _|_Stream, AddrInfoFlag(..))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Network.Socket (Socket, PortNumber, AddrInfo(..), defaultHints, _|_SocketType(Stream), AddrInfoFlag(..))"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
