@@ -1021,6 +1021,23 @@ will become nested lists."
                                      (cons (haskell-ts--extract-single-constraint-name-with-children x) acc))
                                    nil))
 
+(defun haskell-ts-parse-import-statement (str)
+  "Extract module name and list of imported names from STR
+containing Haskell import statement like
+
+import Network.Socket ( SocketType( Stream ) )"
+  (with-temp-buffer
+    (insert str)
+    (let* ((node (treesit-buffer-root-node 'haskell)
+                 ;; (treesit-node-at (point-min) 'haskell)
+                 )
+           (imports (treesit-node-child-by-field-name node "imports"))
+           (first-import (treesit-node-child-by-field-name imports "import"))
+           (mod-name (treesit-node-child-by-field-name first-import "module"))
+           (imported-names (treesit-node-children (treesit-node-child-by-field-name first-import "names") t)))
+      (cons (treesit-node-text-no-properties-unsafe mod-name)
+            (-map #'treesit-node-text-no-properties-unsafe imported-names)))))
+
 (defun haskell-ts-parse-constraint-names (str)
   "Extract leading constraint classes and their children from STR
 containing Haskell tuple of constraints like
