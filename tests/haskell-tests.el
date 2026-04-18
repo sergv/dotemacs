@@ -826,6 +826,10 @@ Entries should be a list of of elements of the form
                  '(("Foo" "a")
                    ("Bar" "a" "Double" "(b, c)")))))
 
+(ert-deftest haskell-tests/parse-import-statement ()
+  (should (equal (haskell-ts-parse-import-statement "import Network.Socket ( SocketType( Stream ), Bar )")
+                 '("Network.Socket" "SocketType( Stream )" "Bar"))))
+
 (ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list! ()
   (dolist (entry '((0 ()        (0))
                    (0 (2 4 6 8) (0 2 4 6 8))
