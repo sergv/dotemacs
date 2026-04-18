@@ -61,6 +61,34 @@
                                                                  (copy-sequence "привет")))
                  "припев")))
 
+(ert-deftest s-extras-tests/strip-terminal-save-restore-cursor-escape-sequences-1 ()
+
+  (should (equal (s-extras--strip-terminal-save-restore-cursor-escape-sequences "")
+                 ""))
+
+  (should (equal (s-extras--strip-terminal-save-restore-cursor-escape-sequences "x")
+                 "x"))
+
+  (should (equal (s-extras--strip-terminal-save-restore-cursor-escape-sequences "foo")
+                 "foo"))
+
+  (should (equal (s-extras--strip-terminal-save-restore-cursor-escape-sequences "foo7bar89")
+                 "foobar9")))
+
+(ert-deftest s-extras-tests/strip-terminal-save-restore-cursor-escape-sequences!-1 ()
+
+  (should (equal (s-extras--strip-terminal-save-restore-cursor-escape-sequences! (copy-sequence ""))
+                 ""))
+
+  (should (equal (s-extras--strip-terminal-save-restore-cursor-escape-sequences! (copy-sequence "x"))
+                 "x"))
+
+  (should (equal (s-extras--strip-terminal-save-restore-cursor-escape-sequences! (copy-sequence "foo"))
+                 "foo"))
+
+  (should (equal (s-extras--strip-terminal-save-restore-cursor-escape-sequences! (copy-sequence "foo7bar89"))
+                 "foobar9")))
+
 (provide 's-extras-tests)
 
 ;; Local Variables:
