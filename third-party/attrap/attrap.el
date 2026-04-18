@@ -114,7 +114,7 @@
                           (if noninteractive
                               (if attrap-select-predefined-option
                                   (or (assoc attrap-select-predefined-option named-options)
-                                      (error "Predefined option ‘%s’ does not match available options: %s\n%s"
+                                      (error "Predefined option ‘%S’ does not match available options: %S\n%s"
                                              attrap-select-predefined-option
                                              named-options
                                              (equal attrap-select-predefined-option (car (cdr named-options)))))
@@ -1124,7 +1124,35 @@ Error is given as MSG and reported between POS and END."
                 (let ((c (char-before)))
                   (if (eq c ?!)
                       (delete-char -1)
-                    (error "Previous character is not ‘!’: ‘%c’" c))))))))))))
+                    (error "Previous character is not ‘!’: ‘%c’" c)))))
+
+            (when (string-match
+                   (rx (ghc-error "35373")
+                       (+ ws) "In the import of " (identifier 1) ":"
+                       (+ ws) "an item called " (identifier 2)
+                       (+ ws) "is exported, but it is a data constructor of"
+                       (+ ws) (identifier 3) "."
+                       (+ ws) "Suggested fix:"
+                       (+ ws) "Use"
+                       (+ ws) (group-n 4 (+ not-newline)) "\n"
+                       (? (+ ws)
+                          "or"
+                          (+ ws)
+                          (group-n 5 (+ not-newline))))
+                   msg)
+              (let ((candidates (--map (replace-regexp-in-string (rx (or (seq (group-n 1 "(") (+ ws))
+                                                                         (seq (+ ws) (group-n 1 ")"))))
+                                                                 "\\1"
+                                                                 (cadr (haskell-ts-parse-import-statement it)))
+                                       (delq nil
+                                             (list (match-string 4 msg)
+                                                   (match-string 5 msg))))))
+                (--map (attrap-option (list "replace with" it)
+                         (goto-char pos)
+                         (let ((node (treesit-node-at pos)))
+                           (delete-region (treesit-node-start node) (treesit-node-end node))
+                           (insert it)))
+                       candidates))))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
