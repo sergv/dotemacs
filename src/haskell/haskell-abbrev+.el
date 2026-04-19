@@ -388,7 +388,12 @@ then Bar would be the result."
             (when (zerop dist)
               (setf continue? nil))))))
     (unless (eobp)
-      (thing-at-point 'haskell-symbol))))
+      (or (thing-at-point 'haskell-symbol)
+          (when (derived-mode-p 'haskell-ts-base-mode)
+            (when-let ((node (treesit-utils-largest-node-starting-at (point)))
+                       ((string= (treesit-node-type node) "signature"))
+                       (name-node (haskell-ts-indent--get-signature-name node)))
+              (treesit-node-text-no-properties-unsafe name-node)))))))
 
 (defun haskell-abbrev+--insert-pragma (predicate-result)
   (let ((within-instance? (eq predicate-result 'within-instance)))
