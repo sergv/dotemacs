@@ -248,6 +248,36 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-getters--infix-left-operand (node)
+  (cl-assert (string= (treesit-node-type node) "infix"))
+  (let ((result (treesit-node-child-by-field-name node "left_operand")))
+    (cl-assert result
+               nil
+               "No left operand in infix node, node = %s, parent = %s"
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-getters--infix-right-operand (node)
+  (cl-assert (string= (treesit-node-type node) "infix"))
+  (let ((result (treesit-node-child-by-field-name node "right_operand")))
+    (cl-assert result
+               nil
+               "No right operand in infix node, node = %s, parent = %s"
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-getters--infix-operator (node)
+  (cl-assert (string= (treesit-node-type node) "infix"))
+  (let ((result (treesit-node-child-by-field-name node "operator")))
+    (cl-assert result
+               nil
+               "No operator in infix node, node = %s, parent = %s"
+               node
+               (treesit-node-parent node))
+    result))
+
 (provide 'haskell-ts-getters)
 
 ;; Local Variables:
