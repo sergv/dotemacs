@@ -1073,9 +1073,16 @@ Error is given as MSG and reported between POS and END."
          ;; warning: [GHC-49957] [-Wunticked-promoted-constructors]
          ;;     Unticked promoted constructor: Bar.
          ;;     Suggested fix: Use 'Bar instead of Bar.
+         ;; warning: [GHC-49957] [-Wunticked-promoted-constructors]
+         ;;     Unticked promoted list.
+         ;;     Suggested fix: Add a promotion tick, e.g. '[x,y,z].
          (when (string-match
-                (rx (ghc-warning "49957" "unticked-promoted-constructors") spaces1
-                    "Unticked promoted constructor:" spaces1 (group-n 1 (+ (not ?\s))) ".")
+                (rx
+                 (ghc-warning "49957" "unticked-promoted-constructors") spaces1
+                 "Unticked promoted "
+                 (or "list"
+                     (seq "constructor:" spaces1 (group-n 1 (+ (not ?\s)))))
+                 ".")
                 normalized-msg)
            (attrap-one-option "add tick"
              (goto-char pos)

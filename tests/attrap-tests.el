@@ -2969,6 +2969,70 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unticked-promoted-constructor-2
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-49957] [-Wunticked-promoted-constructors]"
+  "  Unticked promoted constructor: TupleRep."
+  "  Suggested fix: Use 'TupleRep instead of TupleRep.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (>>=) #-}"
+  "(>>=) :: forall s (a :: TYPE (_|_TupleRep [LiftedRep, 'IntRep])) b. ST# s a -> (a -> ST# s b) -> ST# s b"
+  "(>>=) ma f ="
+  "  \s1 ->"
+  "    case ma s1 of"
+  "      (# s2, a #) ->"
+  "        f a s2"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (>>=) #-}"
+  "(>>=) :: forall s (a :: TYPE (_|_'TupleRep [LiftedRep, 'IntRep])) b. ST# s a -> (a -> ST# s b) -> ST# s b"
+  "(>>=) ma f ="
+  "  \s1 ->"
+  "    case ma s1 of"
+  "      (# s2, a #) ->"
+  "        f a s2"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unticked-promoted-list-1
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-49957] [-Wunticked-promoted-constructors]"
+  "  Unticked promoted list."
+  "  Suggested fix: Add a promotion tick, e.g. '[x,y,z].")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (>>=) #-}"
+  "(>>=) :: forall s (a :: TYPE (TupleRep _|_[LiftedRep, 'IntRep])) b. ST# s a -> (a -> ST# s b) -> ST# s b"
+  "(>>=) ma f ="
+  "  \s1 ->"
+  "    case ma s1 of"
+  "      (# s2, a #) ->"
+  "        f a s2"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (>>=) #-}"
+  "(>>=) :: forall s (a :: TYPE (TupleRep _|_'[LiftedRep, 'IntRep])) b. ST# s a -> (a -> ST# s b) -> ST# s b"
+  "(>>=) ma f ="
+  "  \s1 ->"
+  "    case ma s1 of"
+  "      (# s2, a #) ->"
+  "        f a s2"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/unused-source-pragma-1a
  :error-message
  (tests-utils--multiline
