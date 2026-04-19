@@ -4537,6 +4537,76 @@ _|_bar")
   "  }"
   ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-8a
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  ""
+  "-- Comment 1"
+  ""
+  "-- Comment 2"
+  ""
+  "(>>=) :: a -> a"
+  "(>>=) x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (>>=) #-}_|_"
+  ""
+  "-- Comment 1"
+  ""
+  "-- Comment 2"
+  ""
+  "(>>=) :: a -> a"
+  "(>>=) x = x"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-8b
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo x = x"
+  ""
+  "##_|_"
+  ""
+  "-- Comment 1"
+  ""
+  "-- Comment 2"
+  ""
+  "(>>=) :: a -> a"
+  "(>>=) x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo x = x"
+  ""
+  "{-# INLINE (>>=) #-}_|_"
+  ""
+  "-- Comment 1"
+  ""
+  "-- Comment 2"
+  ""
+  "(>>=) :: a -> a"
+  "(>>=) x = x"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1
