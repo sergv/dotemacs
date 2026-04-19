@@ -12,10 +12,15 @@
 (require 'buffer-span)
 (require 'treesit)
 (require 'treesit-setup)
+(require 'treesit-utils)
 
 (defconst haskell-ts-rename--renameable-identifier-query
   (haskell-ts-query-compile
    '([(variable) (name) (constructor) (operator)] @variable)))
+
+(defconst haskell-ts-rename--pragma-query
+  (haskell-ts-query-compile
+   '((pragma) @pragma)))
 
 (defface haskell-ts-rename-candidate-face
   `((t :box (:line-width
@@ -59,7 +64,12 @@
          (initial-node-type (treesit-node-type initial-node))
          (is-pragma? (string= initial-node-type "pragma"))
          (inline-pragma (when is-pragma?
-                          (treesit-haskell-parse-inline-pragma initial-node))))
+                          (treesit-haskell-parse-inline-pragma initial-node)))
+         (initial-name-span (if inline-pragma
+                                (make-buffer-span
+                                 (treesit-haskell-inline-pragma/function-name-start inline-pragma)
+                                 (treesit-haskell-inline-pragma/function-name-end inline-pragma))
+                              initial-node)))
     (unless initial-node
       (error "No treesitter node at point to rename"))
     (when (and is-pragma? (not inline-pragma))
@@ -89,19 +99,31 @@
                                              t ;; no properties
                                              )))
              (node-text-len (length node-text))
-             (relevant-scopes (list (or inline-pragma
-                                        closest-scope)))
+             (relevant-scopes (list (if inline-pragma
+                                        (if (treesit-haskell-inline-pragma-strictly-inside-node? inline-pragma closest-scope)
+                                            closest-scope
+                                          inline-pragma)
+                                      closest-scope)))
              (editing-start-pos
               (if inline-pragma
                   (treesit-haskell-inline-pragma/function-name-end inline-pragma)
                 (treesit-node-end initial-node))))
 
         (pcase (treesit-node-type closest-scope)
+          ((or "instance" "class")
+           (dolist (internal-pragma (treesit-query-capture closest-scope
+                                                           (haskell-ts-query-resolve
+                                                            haskell-ts-rename--pragma-query)
+                                                           nil
+                                                           nil
+                                                           t ;; Don’t capture names.
+                                                           ))
+             (when-let* ((parsed (treesit-haskell-parse-inline-pragma internal-pragma))
+                         ((treesit-haskell-inline-pragma-name-same-as-span? parsed initial-name-span)))
+               (push parsed relevant-scopes))))
           ((or "function" "bind" "signature" "pragma")
            (when-let ((func-name-span (if inline-pragma
-                                          (make-buffer-span
-                                           (treesit-haskell-inline-pragma/function-name-start inline-pragma)
-                                           (treesit-haskell-inline-pragma/function-name-end inline-pragma))
+                                          initial-name-span
                                         (haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator closest-scope))))
              ;; Find signature for current function by searching backwards.
              (let ((continue? t)
@@ -115,7 +137,7 @@
                     (setf continue? nil))
                    ("pragma"
                     (when-let* ((pragma (treesit-haskell-parse-inline-pragma n))
-                                ((treesit-haskell-inline-pragma-name-same-as-node? pragma func-name-span)))
+                                ((treesit-haskell-inline-pragma-name-same-as-span? pragma func-name-span)))
                       (push pragma relevant-scopes)))
                    ("signature"
                     (when-let ((sig-name (haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator n)))
@@ -132,7 +154,7 @@
                    (skip-whitespace-backward)
                    (when-let* ((node (treesit-node-at (point)))
                                (pragma (treesit-haskell-parse-inline-pragma node))
-                               ((treesit-haskell-inline-pragma-name-same-as-node? pragma func-name-span)))
+                               ((treesit-haskell-inline-pragma-name-same-as-span? pragma func-name-span)))
                      (push pragma relevant-scopes)))))
 
              ;; Find function for current signature by searching forwards.
@@ -167,7 +189,7 @@
                         (push n relevant-scopes))))
                    ("pragma"
                     (when-let* ((pragma (treesit-haskell-parse-inline-pragma n))
-                                ((treesit-haskell-inline-pragma-name-same-as-node? pragma func-name-span)))
+                                ((treesit-haskell-inline-pragma-name-same-as-span? pragma func-name-span)))
                       (push pragma relevant-scopes)))
                    ("signature"
                     (when-let ((sig-name (haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator n)))
