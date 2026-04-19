@@ -2826,7 +2826,7 @@ have different input states."
   ""
   "foo = "
   "  x"
-  "  _|_+ quux"
+  "    _|_+ quux"
   ""))
 
 (haskell-indentation-tests--test-treesitter
@@ -2860,7 +2860,95 @@ have different input states."
   ""
   "foo = "
   "  ( x"
-  "    _|_+ quux)"
+  "      _|_+ quux)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-7da
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( x"
+  "        _|_+ quux"
+  "  , y"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( x"
+  "      _|_+ quux"
+  "  , y"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-7db
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( x"
+  "        _|_+"
+  "              quux"
+  "  , y"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( x"
+  "    _|_+"
+  "              quux"
+  "  , y"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-7dc
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( x"
+  "    +"
+  "              _|_quux"
+  "  , y"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( x"
+  "    +"
+  "    _|_quux"
+  "  , y"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-7e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  (# x"
+  "        _|_+ quux"
+  "  , y"
+  "  #)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  (# x"
+  "       _|_+ quux"
+  "  , y"
+  "  #)"
   ""))
 
 (haskell-indentation-tests--test-treesitter
@@ -2880,7 +2968,7 @@ have different input states."
   "foo = "
   "  [ bar"
   "  , x"
-  "    _|_+ quux"
+  "      _|_+ quux"
   "  ]"
   ""))
 
@@ -2903,7 +2991,7 @@ have different input states."
   "  [ bar"
   "  , x"
   "    + quux"
-  "    _|_+ (baz x y z)"
+  "      _|_+ (baz x y z)"
   "  ]"
   ""))
 
@@ -3008,6 +3096,87 @@ have different input states."
   "      z :|"
   "        Nil <- undefined"
   "  pure 0"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-12a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case bar of"
+  "    Nothing -> undefined"
+  "    Just y  ->"
+  "      pure"
+  "            _|_$ f"
+  "        $ g"
+  "        $ h y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case bar of"
+  "    Nothing -> undefined"
+  "    Just y  ->"
+  "      pure"
+  "        _|_$ f"
+  "        $ g"
+  "        $ h y"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-12b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case bar of"
+  "    Nothing -> undefined"
+  "    Just y  ->"
+  "      pure"
+  "        $ f"
+  "            _|_$ g"
+  "        $ h y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case bar of"
+  "    Nothing -> undefined"
+  "    Just y  ->"
+  "      pure"
+  "        $ f"
+  "        _|_$ g"
+  "        $ h y"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-12c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case bar of"
+  "    Nothing -> undefined"
+  "    Just y  ->"
+  "      pure"
+  "        $ f"
+  "        $ g"
+  "               _|_$ h y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case bar of"
+  "    Nothing -> undefined"
+  "    Just y  ->"
+  "      pure"
+  "        $ f"
+  "        $ g"
+  "        _|_$ h y"
   ""))
 
 (haskell-indentation-tests--test-treesitter
