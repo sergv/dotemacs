@@ -680,14 +680,6 @@ Error is given as MSG and reported between POS and END."
                  (search-forward "."))
                (skip-chars-forward "\n\t ") ; skip spaces
                (insert (concat missing-constraint " => ")))))
-         (when (string-match "Unticked promoted constructor: ‘\\(.*\\)’" msg)
-           (let ((constructor (match-string 1 msg)))
-             (attrap-one-option "tick promoted constructor"
-               (goto-char pos)
-               ;; when the constructor is infix, flycheck reports the wrong position.
-               (search-forward constructor)
-               (backward-char (length constructor))
-               (insert "'"))))
          (when (string-match "Patterns not matched:" msg)
            (attrap-one-option "add missing patterns"
              (let ((patterns (mapcar #'trim-whitespace
@@ -1081,8 +1073,7 @@ Error is given as MSG and reported between POS and END."
                  (ghc-warning "49957" "unticked-promoted-constructors") spaces1
                  "Unticked promoted "
                  (or "list"
-                     (seq "constructor:" spaces1 (group-n 1 (+ (not ?\s)))))
-                 ".")
+                     (seq "constructor:" spaces1 (group-n 1 (+ (not ?\s))))))
                 normalized-msg)
            (attrap-one-option "add tick"
              (goto-char pos)
