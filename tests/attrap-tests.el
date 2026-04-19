@@ -3001,6 +3001,40 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unticked-promoted-constructor-3
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-49957] [-Wunticked-promoted-constructors]"
+  "  Unticked promoted constructor: :++:"
+  "  Suggested fix: Use ':++: instead of :++:")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo"
+  "  = Foo :++: Foo   -- ^ a SIMD vector type"
+  "  | Baz"
+  ""
+  "data Quux (x :: Foo) = Quux Int"
+  ""
+  "foo :: Quux ('Baz _|_:++: 'Baz)"
+  "foo = Quux 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo"
+  "  = Foo :++: Foo   -- ^ a SIMD vector type"
+  "  | Baz"
+  ""
+  "data Quux (x :: Foo) = Quux Int"
+  ""
+  "foo :: Quux ('Baz _|_':++: 'Baz)"
+  "foo = Quux 1"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/unticked-promoted-list-1
  :error-message
  (tests-utils--multiline
