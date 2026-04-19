@@ -35,6 +35,8 @@
       (treesit-node-end x)
     (buffer-span/end x)))
 
+(defun buffer-span-text-no-properties (x)
+  (buffer-substring-no-properties (buffer-span-start x) (buffer-span-end x)))
 
 (defun buffer-span-texts-in-current-buffer= (x y)
   (cl-assert (or (buffer-span-p y) (treesit-node-p y)))
