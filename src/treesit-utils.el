@@ -93,12 +93,41 @@
 
 (cl-defstruct (treesit-haskell-inline-pragma
                (:conc-name treesit-haskell-inline-pragma/))
-  pragma
-  function-name
-  function-name-start
-  function-name-end)
+  ;; String
+  (pragma nil :read-only t)
+  ;; String
+  (function-name nil :read-only t)
+  ;; Integer
+  (function-name-start nil :read-only t)
+  ;; Integer
+  (function-name-end nil :read-only t)
+  ;; Treesitter node
+  (node nil :read-only t))
 
-(defun treesit-haskell-inline-pragma-name-same-as-node? (pragma node)
+(defun treesit-haskell-inline-pragma-strictly-inside-node? (pragma node)
+  (cl-assert (treesit-haskell-inline-pragma-p pragma))
+  (cl-assert (treesit-node-p node))
+  (let* ((start (treesit-node-start node))
+         (end (treesit-node-end node))
+         (pragma-node (treesit-haskell-inline-pragma/node pragma))
+         (s (treesit-node-start pragma-node))
+         (e (treesit-node-end pragma-node)))
+    (and (< start s)
+         (< s end)
+         (< start e)
+         (< e end))))
+
+(defun treesit-haskell-inline-pragma= (x y)
+  (and (string= (treesit-haskell-inline-pragma/pragma x)
+                (treesit-haskell-inline-pragma/pragma y))
+       (string= (treesit-haskell-inline-pragma/function-name x)
+                (treesit-haskell-inline-pragma/function-name y))
+       (eq (treesit-haskell-inline-pragma/function-name-start x)
+           (treesit-haskell-inline-pragma/function-name-start y))
+       (eq (treesit-haskell-inline-pragma/function-name-end x)
+           (treesit-haskell-inline-pragma/function-name-end y))))
+
+(defun treesit-haskell-inline-pragma-name-same-as-span? (pragma node)
   (buffer-span-text-in-current-buffer= node
                                        (treesit-haskell-inline-pragma/function-name-start pragma)
                                        (treesit-haskell-inline-pragma/function-name-end pragma)))
@@ -113,7 +142,8 @@
          :pragma (match-string-no-properties 1)
          :function-name (match-string-no-properties 2)
          :function-name-start (match-beginning 2)
-         :function-name-end (match-end 2))))))
+         :function-name-end (match-end 2)
+         :node node)))))
 
 (defun point-inside-string?--ts-haskell (&optional pos)
   "Return non-nil if point is positioned inside a string."
