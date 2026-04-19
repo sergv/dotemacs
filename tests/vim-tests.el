@@ -7507,6 +7507,66 @@ _|_bar")
  :modes
  (haskell-ts-mode haskell-hsc-mode)
  :name
+ vim-tests/haskell-ts-rename-at-point-13a
+ :action
+ (execute-kbd-macro (kbd "C-r <backspace> <backspace> <backspace> + + + <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# _|_INLINE (>>=) #-}"
+  "(>>=) :: forall s (a :: TYPE ('TupleRep '[LiftedRep, 'IntRep])) b. ST# s a -> (a -> ST# s b) -> ST# s b"
+  "(>>=) ma f ="
+  "  \s1 ->"
+  "    case ma s1 of"
+  "      (# s2, a #) ->"
+  "        f a s2"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (+++_|_) #-}"
+  "(+++) :: forall s (a :: TYPE ('TupleRep '[LiftedRep, 'IntRep])) b. ST# s a -> (a -> ST# s b) -> ST# s b"
+  "(+++) ma f ="
+  "  \s1 ->"
+  "    case ma s1 of"
+  "      (# s2, a #) ->"
+  "        f a s2"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-13b
+ :action
+ (execute-kbd-macro (kbd "C-r <backspace> <backspace> <backspace> + + + <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (>>=) #-}"
+  "_|_(>>=) :: forall s (a :: TYPE ('TupleRep '[LiftedRep, 'IntRep])) b. ST# s a -> (a -> ST# s b) -> ST# s b"
+  "(>>=) ma f ="
+  "  \s1 ->"
+  "    case ma s1 of"
+  "      (# s2, a #) ->"
+  "        f a s2"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (+++) #-}"
+  "(+++_|_) :: forall s (a :: TYPE ('TupleRep '[LiftedRep, 'IntRep])) b. ST# s a -> (a -> ST# s b) -> ST# s b"
+  "(+++) ma f ="
+  "  \s1 ->"
+  "    case ma s1 of"
+  "      (# s2, a #) ->"
+  "        f a s2"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
  vim-tests/haskell-ts-insert-bang-1a
  :action
  (execute-kbd-macro (kbd "C-v h h h h I ! <escape>"))
