@@ -218,6 +218,36 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-getters--extract-prefix-id-operator (node)
+  (cl-assert (string= "prefix_id" (treesit-node-type node)))
+  (let ((result (treesit-node-child node 1)))
+    (cl-assert (and result
+                    (string= (treesit-node-type result) "operator"))
+               nil
+               "No operator in prefix_id node %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator--extract-operator-name (node)
+  (if (string= (treesit-node-type node) "prefix_id")
+      (haskell-ts-getters--extract-prefix-id-operator node)
+    node))
+
+(defun haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator (node)
+  (cl-assert (member (treesit-node-type node) '("function" "bind" "signature")))
+  (let ((result (haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator--extract-operator-name
+                 (treesit-node-child-by-field-name node "name"))))
+    (cl-assert (and result
+                    (member (treesit-node-type result) '("variable" "name" "constructor" "operator" "pragma")))
+               nil
+               "No name node in %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (provide 'haskell-ts-getters)
 
 ;; Local Variables:

@@ -55,27 +55,30 @@
   (concat haskell-regexen/modid "\\."
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 
+(rx-define haskell-regexen/operator
+  (+ (or "!"
+         "#"
+         "$"
+         "%"
+         "&"
+         "*"
+         "+"
+         "-"
+         "."
+         "/"
+         ":"
+         "<"
+         "="
+         ">"
+         "?"
+         "@"
+         "\\"
+         "^"
+         "|"
+         "~")))
+
 (defconst haskell-regexen/operator
-  (rx (+ (or "!"
-             "#"
-             "$"
-             "%"
-             "&"
-             "*"
-             "+"
-             "-"
-             "."
-             "/"
-             ":"
-             "<"
-             "="
-             ">"
-             "?"
-             "@"
-             "\\"
-             "^"
-             "|"
-             "~"))))
+  (rx haskell-regexen/operator))
 
 (defconst haskell-regexen/core/pkgid
   (rx (char (?a . ?z) (?A . ?Z))
@@ -328,7 +331,8 @@ otherwise results will be incorrect.")
       (group-n 1
         haskell-regexen/inline-pragmas)
       (+ (any ?\s ?\t ?\n ?\r))
-      (group-n 2 haskell-regexen/varid)
+      (or (group-n 2 haskell-regexen/varid)
+          (seq "(" (group-n 2 haskell-regexen/operator) ")"))
       (* (any ?\s ?\t ?\n ?\r))
       haskell-regexen/pragma-end))
 
