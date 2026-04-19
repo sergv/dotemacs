@@ -76,9 +76,8 @@
                                              t ;; no properties
                                              )))
              (node-text-len (length node-text))
-             (relevant-scopes (if inline-pragma
-                                  nil
-                                (list closest-scope)))
+             (relevant-scopes (list (or inline-pragma
+                                        closest-scope)))
              (editing-start-pos
               (if inline-pragma
                   (treesit-haskell-inline-pragma/function-name-end inline-pragma)
@@ -111,7 +110,8 @@
                         (push n relevant-scopes)))))
                  (setf earliest-start (treesit-node-start n)
                        n (treesit-node-prev-sibling n)))
-               (when earliest-start
+               (when (and (not inline-pragma)
+                          earliest-start)
                  (save-excursion
                    ;; Work around grammar quirk where first function’s pragma is placed
                    ;; outside declarations block for whole module.
@@ -125,45 +125,45 @@
              ;; Find function for current signature by searching forwards.
              (let ((continue? t)
                    (n (treesit-node-next-sibling closest-scope)))
-               (progn ;; save-excursion
-                 ;; Work around grammar quirk where first function’s pragma is placed
-                 ;; outside declarations block for whole module.
-                 (when (and n
-                            (string= (treesit-node-type n) "declarations"))
-                   (setf n (car (treesit-node-children n))))
-                 ;; (unless n
-                 ;;   (let ((tmp closest-scope)
-                 ;;         (continue2? t))
-                 ;;     (message "tmp = %s, line = %s" tmp (debug-current-line))
-                 ;;     (while (and tmp
-                 ;;                 continue2?)
-                 ;;       (goto-char (treesit-node-end tmp))
-                 ;;       (skip-whitespace-forward)
-                 ;;       (setf tmp (treesit-node-at (point)))
-                 ;;       (message "loop: tmp = %s, line = %s" tmp (debug-current-line))
-                 ;;       (when (and tmp
-                 ;;                  (not (treesit-haskell--is-comment-node-type? (treesit-node-type tmp))))
-                 ;;         (setf continue2? nil)))
-                 ;;     (setf n tmp)))
-                 (while (and n
-                             continue?)
-                   (pcase (treesit-node-type n)
-                     ((or "function" "bind")
-                      (when-let ((sig-name (treesit-node-child-by-field-name n "name")))
-                        (when (buffer-span-texts-in-current-buffer= func-name-span sig-name)
-                          (push n relevant-scopes))))
-                     ("pragma"
-                      (when-let* ((pragma (treesit-haskell-parse-inline-pragma n))
-                                  ((treesit-haskell-inline-pragma-name-same-as-node? pragma func-name-span)))
-                        (push pragma relevant-scopes)))
-                     ("signature"
-                      (when-let ((sig-name (treesit-node-child-by-field-name n "name")))
-                        (when (buffer-span-texts-in-current-buffer= func-name-span sig-name)
-                          (push n relevant-scopes)))
-                      ;; Found next function’s signature.
-                      ;; (setf continue? nil)
-                      ))
-                   (setf n (treesit-node-next-sibling n))))))))
+
+               ;; Work around grammar quirk where first function’s pragma is placed
+               ;; outside declarations block for whole module.
+               (when (and n
+                          (string= (treesit-node-type n) "declarations"))
+                 (setf n (car (treesit-node-children n))))
+               ;; (unless n
+               ;;   (let ((tmp closest-scope)
+               ;;         (continue2? t))
+               ;;     (message "tmp = %s, line = %s" tmp (debug-current-line))
+               ;;     (while (and tmp
+               ;;                 continue2?)
+               ;;       (goto-char (treesit-node-end tmp))
+               ;;       (skip-whitespace-forward)
+               ;;       (setf tmp (treesit-node-at (point)))
+               ;;       (message "loop: tmp = %s, line = %s" tmp (debug-current-line))
+               ;;       (when (and tmp
+               ;;                  (not (treesit-haskell--is-comment-node-type? (treesit-node-type tmp))))
+               ;;         (setf continue2? nil)))
+               ;;     (setf n tmp)))
+               (while (and n
+                           continue?)
+                 (pcase (treesit-node-type n)
+                   ((or "function" "bind")
+                    (when-let ((sig-name (treesit-node-child-by-field-name n "name")))
+                      (when (buffer-span-texts-in-current-buffer= func-name-span sig-name)
+                        (push n relevant-scopes))))
+                   ("pragma"
+                    (when-let* ((pragma (treesit-haskell-parse-inline-pragma n))
+                                ((treesit-haskell-inline-pragma-name-same-as-node? pragma func-name-span)))
+                      (push pragma relevant-scopes)))
+                   ("signature"
+                    (when-let ((sig-name (treesit-node-child-by-field-name n "name")))
+                      (when (buffer-span-texts-in-current-buffer= func-name-span sig-name)
+                        (push n relevant-scopes)))
+                    ;; Found next function’s signature.
+                    ;; (setf continue? nil)
+                    ))
+                 (setf n (treesit-node-next-sibling n)))))))
 
         (dolist (scope relevant-scopes)
           (let ((bounds
