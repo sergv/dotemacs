@@ -7347,6 +7347,62 @@ _|_bar")
    "bar x = x"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11bc
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Test where"
+  ""
+  "{-# _|_INLINE foo #-}"
+  "foo :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Test where"
+  ""
+  "{-# INLINE bar_|_ #-}"
+  "bar :: Int -> Int"
+  "bar x = x"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11bd
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Test where"
+  ""
+  "quux x = x"
+  ""
+  "{-# _|_INLINE foo #-}"
+  "foo :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Test where"
+  ""
+  "quux x = x"
+  ""
+  "{-# INLINE bar_|_ #-}"
+  "bar :: Int -> Int"
+  "bar x = x"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-ts-rename-at-point-11c
