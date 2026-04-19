@@ -191,15 +191,9 @@
               (when-let ((field-name (treesit-node-child-by-field-name curr "field")))
                 (throw 'term (haskell-ts-indent--make-trivial-computed-indent field-name))))
             (when (string= "infix" curr-type)
-              (let ((left-child (treesit-node-child-by-field-name
-                                 curr
-                                 "left_operand"))
-                    (right-child (treesit-node-child-by-field-name
-                                  curr
-                                  "right_operand"))
-                    (op-child (treesit-node-child-by-field-name
-                               curr
-                               "operator")))
+              (let ((left-child (haskell-ts-getters--infix-left-operand curr))
+                    (right-child (haskell-ts-getters--infix-right-operand curr))
+                    (op-child (haskell-ts-getters--infix-operator curr)))
                 (cond
                   ((or (equal prev1 left-child)
                        (and left-child
@@ -337,7 +331,7 @@
             (awhen (haskell-ts-indent--select-parens-anchor curr-type curr prev1 t)
               (throw 'term it))
             (cond
-              ((string= "list" curr-type)
+              ((member curr-type '("list" "tuple" "unboxed_tuple"))
                (throw 'term prev1))
               ((and (string= "match" curr-type)
                     (treesit-node-child-by-field-name curr "expression"))
@@ -745,7 +739,14 @@
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
              ((n-p-gp "operator" "infix" nil)
               haskell-ts-indent--standalone-vertical-infix-operator-parent
-              0)
+              ,(lambda (_ parent _)
+                 (lambda (matched-anchor)
+                   (cl-assert (treesit-node-p matched-anchor))
+                   (if-let* (((string= "infix" (treesit-node-type matched-anchor)))
+                             (right (haskell-ts-getters--infix-right-operand parent))
+                             ((not (haskell-ts--is-standalone-node? right))))
+                       haskell-indent-offset
+                     0))))
 
              ;; Fallback
              ((parent-is "infix")
