@@ -282,7 +282,9 @@ node don’t start at P."
   (let* ((node (treesit-node-at p lang))
          (start (treesit-node-start node))
          (tmp (treesit-node-parent node)))
-    (while (eq (treesit-node-start tmp) start)
+    (while (and (eq (treesit-node-start tmp) start)
+                ;; "declarations" is usually not what we’re interested in.
+                (not (string= (treesit-node-type tmp) "declarations")))
       (setf node tmp
             tmp (treesit-node-parent tmp)))
     node))
