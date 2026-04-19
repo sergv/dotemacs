@@ -1197,6 +1197,10 @@
                          (line-end-position))
   (when-let ((indent-res
               (pcase-let* ((`(,anchor . ,offset) (haskell-ts-indent-line--indent-1)))
+                (unless (and anchor offset)
+                  (error "No treesitter indentation anchor found for line ‘%s_|_%s’"
+                         (buffer-substring-no-properties (line-beginning-position) (point))
+                         (buffer-substring-no-properties (point) (line-end-position))))
                 (when treesit--indent-verbose
                   (message "haskell-ts-indent-line: anchor = %s" anchor))
                 (when (and anchor offset)
