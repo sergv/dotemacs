@@ -1060,6 +1060,7 @@ value section should have if it is to be properly indented."
               (error "Cannot locate the import we just added, fixme"))))))))
 
 (defun haskell-misc--is-operator? (str)
+  "Check whether string STR contain valid Haskell operator."
   (cl-assert (stringp str))
   (let ((len (length str)))
     (if (zerop len)
@@ -1243,7 +1244,11 @@ value section should have if it is to be properly indented."
         (goto-char (point-min))
         (rx-let ((ws (any ?\n ?\r ?\s ?\t))
                  (module-name (+ (any "_." alphanumeric))))
-          (let ((case-fold-search nil))
+          (let ((case-fold-search nil)
+                (identifier-fixed
+                 (if (haskell-misc--is-operator? identifier)
+                     (concat "(" identifier ")")
+                   identifier)))
             ;; Do case-sensitive search for "module" declaration.
             (if (re-search-forward
                  (rx bol
@@ -1268,22 +1273,22 @@ value section should have if it is to be properly indented."
                            (goto-char start)
                            (skip-chars-backward " \t\n\r")
                            (delete-region (point) end)
-                           (insert "\n  ( " identifier "\n  )"))
+                           (insert "\n  ( " identifier-fixed "\n  )"))
                           (`(,prev-entry)
                            (goto-char start)
                            (skip-chars-backward " \t\n\r")
                            (delete-region (point) end)
-                           (insert "\n  ( " prev-entry "\n  , " identifier "\n  )"))
+                           (insert "\n  ( " prev-entry "\n  , " identifier-fixed "\n  )"))
                           (_
                            (goto-char (1- end))
                            (skip-chars-backward " \t\n\r")
-                           (insert (haskell-import-list-sep parsed) identifier)))
+                           (insert (haskell-import-list-sep parsed) identifier-fixed)))
                         (vim-save-position)))
                   (when-let* (((not (null (match-beginning 2))))
                               (name-end (match-end 3)))
                     ;; no paren but have where
                     (goto-char name-end)
-                    (insert "\n  ( " identifier "\n  )")))
+                    (insert "\n  ( " identifier-fixed "\n  )")))
               ;; Nothing to do: either no module keyword so everything is exported.
               nil)))))))
 
