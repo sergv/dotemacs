@@ -621,6 +621,29 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-16
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux ="
+  "  (1"
+  "  , Foo $ map foo"
+  "            _|_[ (bar, baz)"
+  "      ]"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux ="
+  "  (1"
+  "  , Foo $ map foo"
+  "      _|_[ (bar, baz)"
+  "      ]"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-comment-1
  :contents
  (tests-utils--multiline
