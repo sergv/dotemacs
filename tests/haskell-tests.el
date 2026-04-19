@@ -10818,6 +10818,32 @@ Entries should be a list of of elements of the form
    "main = undefined_|_"
    ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell--export-ident-9
+ :action
+ (haskell--export-ident ">>=")
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "import System.IO"
+  ""
+  "main = undefined_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( (>>=)"
+  "  ) where"
+  ""
+  "import System.IO"
+  ""
+  "main = undefined_|_"
+  ""))
+
 (ert-deftest haskell-tests/haskell-misc--is-operator?-1 ()
   (should (haskell-misc--is-operator? "+")))
 
