@@ -2371,6 +2371,90 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-9a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  [ x * x"
+  "  | x <-"
+  "                   _|_[1..n]"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  [ x * x"
+  "  | x <-"
+  "      _|_[1..n]"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-9b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  [ x * x"
+  "  | x <-"
+  "                   _|_xs"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  [ x * x"
+  "  | x <-"
+  "      _|_xs"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-9c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  [ x * x"
+  "  | x <-"
+  "                   _|_[ 100, 200 ]"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  [ x * x"
+  "  | x <-"
+  "      _|_[ 100, 200 ]"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-10
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  [ x * y"
+  "  | (x, y) <-"
+  "                   _|_[ (100, 200), (200, 300) ]"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo n ="
+  "  [ x * y"
+  "  | (x, y) <-"
+  "      _|_[ (100, 200), (200, 300) ]"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-complex-1
  :contents
  (tests-utils--multiline

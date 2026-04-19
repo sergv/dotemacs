@@ -653,6 +653,13 @@
                 pipe-node)))
         bind-node))))
 
+(defun haskell-ts-indent--list-generator-anchor (node _ _)
+  (treesit-utils-find-closest-parent-limited
+   node
+   (lambda (x)
+     (string= (treesit-node-type x) "generator"))
+   5))
+
 (defconst haskell-ts-indent-rules
   (eval-when-compile
     (let ((rules
@@ -727,6 +734,10 @@
              ((n-p-gp "," "qualifiers" "list_comprehension") grand-parent 0)
              ((n-p-gp "|" "list_comprehension" nil) parent 0)
              ((parent-is "list" "list_comprehension") parent haskell-indent-offset)
+             ((or (parent-is "generator")
+                  (grand-parent-is "generator"))
+              haskell-ts-indent--list-generator-anchor
+              haskell-indent-offset)
 
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
              ((n-p-gp "operator" "infix" nil)
