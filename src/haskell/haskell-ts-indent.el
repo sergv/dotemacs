@@ -153,8 +153,7 @@
   (cl-assert (stringp curr-type))
   (cl-assert (treesit-node-p curr))
   (cl-assert (or (null prev) (treesit-node-p prev)))
-  (when (or (string= "parens" curr-type)
-            (string= "tuple" curr-type))
+  (when (string= "parens" curr-type)
     (if (and consider-spaces-after-open-paren?
              prev)
         (let ((open-paren (haskell-ts-getters--get-opening-paren curr)))
@@ -165,7 +164,7 @@
             curr))
       curr)))
 
-(defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent bol support-functions? support-field-update? return-list-child?)
+(defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent bol support-functions? support-field-update? return-list-or-tuple-child?)
   (save-excursion
     (let ((prev2 nil)
           (prev1 node)
@@ -176,6 +175,8 @@
           (cl-assert (treesit-node-p curr))
           (cl-assert (or (null prev1) (treesit-node-p prev1)))
           (cl-assert (or (null prev2) (treesit-node-p prev2)))
+          (when treesit--indent-verbose
+            (message "haskell-ts-indent--standalone-non-infix-parent--generic: curr = %s" curr))
           (let ((curr-type (treesit-node-type curr)))
             (when (and support-functions?
                        (string= "function" curr-type))
@@ -267,9 +268,11 @@
                (when prev2
                  (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev2))))
               ((or (string= "list" curr-type)
-                   (string= "list_comprehension" curr-type))
+                   (string= "list_comprehension" curr-type)
+                   (string= "tuple" curr-type)
+                   (string= "unboxed_tuple" curr-type))
                (throw 'term
-                      (haskell-ts-indent--make-trivial-computed-indent (if return-list-child?
+                      (haskell-ts-indent--make-trivial-computed-indent (if return-list-or-tuple-child?
                                                                            prev1
                                                                          curr))))
               ((and (string= "match" curr-type)
@@ -302,16 +305,16 @@
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t t nil))
 
-(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent (node parent bol)
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t t t))
 
-(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-parent (node parent bol)
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t nil t))
 
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t nil))
 
-(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent (node parent bol)
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t t))
 
 (defun haskell-ts-indent--standalone-record-start (node parent bol)
@@ -703,7 +706,7 @@
 
              ((or (parent-is "field_update")
                   (node-is "infix"))
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent
               haskell-indent-offset)
 
              ;; Other infix rules
@@ -746,7 +749,7 @@
 
              ;; Fallback
              ((parent-is "infix")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
                    (cond
@@ -760,7 +763,7 @@
                       haskell-indent-offset)))))
 
              ((parent-is "apply")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent
               haskell-indent-offset)
 
              ;; ((lambda (node parent bol)
@@ -789,7 +792,7 @@
              ((parent-is "do")
               ,(lambda (n p bol)
                  (when-let* ((matched-anchor
-                              (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent n p bol)))
+                              (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent n p bol)))
                    (if (string= "do" (treesit-matched-anchor-node-type matched-anchor))
                        ;; If do node is our topmost guide then take its bol...
                        (save-excursion
@@ -804,7 +807,7 @@
               haskell-indent-offset)
 
              ((node-is "alternatives")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent
               haskell-indent-offset)
              ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
 
@@ -821,7 +824,7 @@
                                 (forward-line 0)
                                 (skip-chars-backward " \t\n\r")
                                 (eq (char-before) ?\\))))
-                     (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
+                     (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent
                       node
                       parent
                       bol-pos))
@@ -974,7 +977,7 @@
              ;; is handled there.
              ((or (parent-is "record")
                   (node-is "comment" "haddock"))
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent
               haskell-indent-offset)
 
              ((n-p-gp "match" '("bind" "multi_way_if") nil)
@@ -994,7 +997,7 @@
               0)
 
              ((parent-is "match")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-parent
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent
               haskell-indent-offset)
 
              ((parent-is "comment" "imports" "haskell" "declarations") column-0 0)
