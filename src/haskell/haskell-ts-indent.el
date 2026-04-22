@@ -355,6 +355,12 @@
           (point))
         n)))
 
+(defun haskell-ts-indent--under-local-binds-anchor (node parent bol)
+  (if node
+      (haskell-ts-indent--prev-sib node parent bol)
+    ;; Handle no-node empty line case.
+    parent))
+
 (defun haskell-ts--positions-on-the-same-line? (pos1 pos2)
   (let ((end (max pos1 pos2)))
     (save-excursion
@@ -878,6 +884,12 @@
                        haskell-indent-offset
                      0))))
 
+             ;; Also handles binds within let.
+             ;; Needs to come before ‘no-node’ to handle empty lines in where blocks.
+             ((parent-is "local_binds")
+              haskell-ts-indent--under-local-binds-anchor
+              0)
+
              (no-node
               ,(lambda (node parent bol-pos)
                  (let ((typ (treesit-node-type parent)))
@@ -964,10 +976,6 @@
                     (setq n (treesit-node-prev-sibling n)))
                   n))
               haskell-indent-offset)
-             ;; Also handles binds within let.
-             ((parent-is "local_binds")
-              haskell-ts-indent--prev-sib
-              0)
              ((node-is "where") parent haskell-indent-offset)
 
              ;; Must come after where because parents of comments are sometimes
