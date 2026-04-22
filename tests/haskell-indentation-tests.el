@@ -1052,6 +1052,31 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-7
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "  where"
+  "    f y = y"
+  ""
+  "_|_"
+  ""
+  "    g y = y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "  where"
+  "    f y = y"
+  ""
+  "    _|_"
+  ""
+  "    g y = y"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-class-1
  :contents
  (tests-utils--multiline
