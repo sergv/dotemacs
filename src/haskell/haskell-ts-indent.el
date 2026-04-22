@@ -663,6 +663,10 @@
      (string= (treesit-node-type x) "generator"))
    5))
 
+(defun haskell-ts-indent--record-field-update-anchor (_ parent _)
+  (cl-assert (string= "record" (treesit-node-type parent)))
+  (haskell-ts-indent--get-record-or-fields-open-brace parent))
+
 (defconst haskell-ts-indent-rules
   (eval-when-compile
     (let ((rules
@@ -978,13 +982,17 @@
               haskell-indent-offset)
              ((node-is "where") parent haskell-indent-offset)
 
+             ((n-p-gp "field_update" "record" nil)
+              haskell-ts-indent--record-field-update-anchor
+              haskell-indent-offset)
+
              ;; Must come after where because parents of comments are sometimes
              ;; incorrect and comment under ‘where’ may be attributed to the enclosing
              ;; function.
              ;;
              ;; Must also come after "local_binds" so that indentation within lets
              ;; is handled there.
-             ((or (parent-is "record")
+             ((or (n-p-gp "{" "record" nil)
                   (node-is "comment" "haddock"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent
               haskell-indent-offset)
