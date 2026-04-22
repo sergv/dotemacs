@@ -1914,6 +1914,86 @@ have different input states."
   "  } deriving (Show, Eq, Ord)"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-6a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = Foo"
+  "  {"
+  "               _|_x = 1"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = Foo"
+  "  {"
+  "    _|_x = 1"
+  "  }"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-6b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  Foo"
+  "    {"
+  "                 _|_x = 1"
+  "    }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  Foo"
+  "    {"
+  "      _|_x = 1"
+  "    }"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-7a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = Foo"
+  "  {"
+  "               _|_"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = Foo"
+  "  {"
+  "    _|_"
+  "  }"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-7b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  Foo"
+  "    {"
+  "                 _|_"
+  "    }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  Foo"
+  "    {"
+  "      _|_"
+  "    }"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-field-update-1a
  :contents
  (tests-utils--multiline
