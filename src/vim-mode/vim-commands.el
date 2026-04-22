@@ -780,32 +780,60 @@ block motions."
   (vim-notify "Switch to Emacs for the next command.")
   (vim-escape-to-emacs nil))
 
-(defconst vim:cmd-inc-dec-at-point--numbers "0-9+\\-")
+(defun vim:cmd-inc-dec-at-point--is-number-char? (c)
+  (and (<= ?0 c)
+       (<= c ?9)))
+
+(defconst vim:cmd-inc-dec-at-point--numbers "0-9")
+(defconst vim:cmd-inc-dec-at-point--signs "+\\-")
 
 (defun vim-cmd--plus-region (delta start end)
   (cl-assert (numberp delta))
   (cl-assert (< start end))
   (let* ((sign-char (char-after start))
-         (sign (pcase sign-char
-                 (?+ "+")
-                 ;; Minus will be automatically added for negative numbers.
-                 (_  "")))
-         (n (string->number (buffer-substring-no-properties start end))))
+         (sign-flag (pcase sign-char
+                      (?+ "+")
+                      ;; Minus will be automatically added for negative numbers.
+                      (_  nil)))
+         (leading-digit (pcase sign-char
+                          ((or ?+ ?-)
+                           (char-after (+ start 1)))
+                          (_
+                           sign-char)))
+         (is-leading-zero? (eq leading-digit ?0))
+         (n (string->number (buffer-substring-no-properties start end)))
+         (result (+ delta n))
+         (width (- end start))
+         (fmt (concat "%"
+                      sign-flag
+                      (if is-leading-zero?
+                          (concat "0" (number->string width))
+                        nil)
+                      "d")))
     (delete-region start end)
-    (insert sign (number->string (+ delta n)))))
+    (insert (format fmt result))))
 
-(vim-defcmd vim:cmd-increment-at-point (count)
+(defun vim:cmd-inc-dec-at-point--impl (sign count)
   (let ((mid (point))
         start
         end)
     (skip-chars-backward vim:cmd-inc-dec-at-point--numbers)
     (setf start (point))
+    (save-excursion
+      (skip-chars-backward vim:cmd-inc-dec-at-point--signs)
+      (when (not (vim:cmd-inc-dec-at-point--is-number-char? (char-before)))
+        (setf start (point))))
     (goto-char mid)
+    (when (eq mid start)
+      (skip-chars-forward vim:cmd-inc-dec-at-point--signs))
     (skip-chars-forward vim:cmd-inc-dec-at-point--numbers)
     (setf end (point))
     (if (eq start end)
         (error "No number at point")
-      (vim-cmd--plus-region (or count 1) start end))))
+      (vim-cmd--plus-region (* sign (or count 1)) start end))))
+
+(vim-defcmd vim:cmd-increment-at-point (count)
+  (vim:cmd-inc-dec-at-point--impl 1 count))
 
 (vim-defcmd vim:cmd-increment (count motion)
   (let ((start (vim-motion-begin-pos motion))
@@ -821,17 +849,7 @@ block motions."
                  (buffer-substring-no-properties start end)))))))
 
 (vim-defcmd vim:cmd-decrement-at-point (count)
-  (let ((mid (point))
-        start
-        end)
-    (skip-chars-backward vim:cmd-inc-dec-at-point--numbers)
-    (setf start (point))
-    (goto-char mid)
-    (skip-chars-forward vim:cmd-inc-dec-at-point--numbers)
-    (setf end (point))
-    (if (eq start end)
-        (error "No number at point")
-      (vim-cmd--plus-region (if count (- count) -1) start end))))
+  (vim:cmd-inc-dec-at-point--impl -1 count))
 
 (vim-defcmd vim:cmd-decrement (count motion)
   (let ((start (vim-motion-begin-pos motion))
