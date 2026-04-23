@@ -2157,7 +2157,7 @@ have different input states."
   "    }"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-alternatives-1
+ :name haskell-indentation-tests--test-treesitter-alternatives-1a
  :contents
  (tests-utils--multiline
   "foo x = case x of"
@@ -2168,7 +2168,20 @@ have different input states."
   "  _|_Bar y -> y * y"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-alternatives-2
+ :name haskell-indentation-tests--test-treesitter-alternatives-1b
+ :contents
+ (tests-utils--multiline
+  "foo x = case x of"
+  "                _|_"
+  "  Bar y -> y * y")
+ :expected-value
+ (tests-utils--multiline
+  "foo x = case x of"
+  "  _|_"
+  "  Bar y -> y * y"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-alternatives-2a
  :contents
  (tests-utils--multiline
   "quux = do"
@@ -2189,6 +2202,72 @@ have different input states."
   "            False -> 2"
   "        ]"
   "  pure ()"))
+
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-alternatives-2b
+ :contents
+ (tests-utils--multiline
+  "quux = do"
+  "  let bar ="
+  "        [ frobnicate"
+  "        , case xyz of"
+  "                         _|_"
+  "            True  -> 1"
+  "            False -> 2"
+  "        ]"
+  "  pure ()")
+ :expected-value
+ (tests-utils--multiline
+  "quux = do"
+  "  let bar ="
+  "        [ frobnicate"
+  "        , case xyz of"
+  "            _|_"
+  "            True  -> 1"
+  "            False -> 2"
+  "        ]"
+  "  pure ()"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-alternatives-3a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let x = 1"
+  "  in case x of"
+  "                  _|__ -> 2"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let x = 1"
+  "  in case x of"
+  "    _|__ -> 2"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-alternatives-3b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let x = 1"
+  "  in case x of"
+  "             _|_"
+  "    _ -> 2"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  let x = 1"
+  "  in case x of"
+  "    _|_"
+  "    _ -> 2"
+  ""))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-list-1
