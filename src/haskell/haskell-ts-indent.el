@@ -285,10 +285,18 @@
                   (if-let* ((expr (treesit-node-child-by-field-name curr "expression")))
                       (throw 'term (haskell-ts-indent--make-trivial-computed-indent expr))
                     (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr))))
-                 ((or (string= "let" curr-type)
-                      (string= "let_in" curr-type))
+                 ((string= "let" curr-type)
                   (when prev2
                     (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev2))))
+                 ((string= "let_in" curr-type)
+                  (let ((in (haskell-ts-indent--get-let-node-in curr)))
+                    (cond
+                      ((and prev1
+                            (< (treesit-node-start in) (treesit-node-start prev1))
+                            (haskell-ts--is-standalone-node? in))
+                       (throw 'term (haskell-ts-indent--make-trivial-computed-indent in)))
+                      (prev2
+                       (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev2))))))
                  (t
                   (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))))))
           (setq prev2 prev1
@@ -916,14 +924,16 @@
                               (t
                                pos))
                           (haskell-ts-indent--make-trivial-computed-indent parent))))
-                     ((member typ
-                              '("data_constructors"))
+                     ((string= typ "data_constructors")
                       (make-treesit-computed-indent
                        :anchor-node parent
                        :flags '(indent-once)))
-                     ((member typ
-                              '("class_declarations"))
+                     ((string= typ "class_declarations")
                       (haskell-ts-indent--make-trivial-computed-indent parent))
+                     ((string= typ "case")
+                      (when-let ((indent (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent node parent bol-pos)))
+                        (push 'indent-once (treesit-computed-indent-flags indent))
+                        indent))
                      (t
                       (haskell-ts-indent--prev-adaptive-prefix node parent bol-pos)))))
               ,(lambda (_node parent bol-pos)

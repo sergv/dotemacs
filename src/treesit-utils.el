@@ -180,9 +180,11 @@
        (treesit-haskell--is-inside-node? p node)))
 
 (cl-defstruct treesit-computed-indent
-  (anchor-node :read-only t) ;; treesit node
-  (flags       :read-only t) ;; list of symbols
-  )
+  ;; treesit node
+  (anchor-node nil :read-only t)
+  ;; list of symbols
+  flags)
+
 
 (defun treesit-matched-anchor-node-type (x)
   (cl-assert (or (treesit-node-p x)
