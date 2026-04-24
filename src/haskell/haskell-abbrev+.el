@@ -456,8 +456,8 @@ then Bar would be the result."
 (defun haskell-insert-qualified-import ()
   (yas-expand-snippet
    (if (haskell-ext-tracking-have-import-qualified-post?)
-       "import $1 qualified as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0"
-     "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
+       "import $1 qualified as ${2:${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}}$0"
+     "import qualified $1 as ${2:${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}}$0")))
 
 (defun haskell-insert-import-block (type-name module-name alias)
   (insert (concat (if type-name
