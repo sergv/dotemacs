@@ -3632,7 +3632,7 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import-6
+    vim-tests/haskell-abbrev-import-6a
     (execute-kbd-macro (kbd "i i q SPC F o o <tab> <escape>"))
   (tests-utils--multiline
    ""
@@ -3640,7 +3640,20 @@ _|_bar")
    "")
   (tests-utils--multiline
    ""
-   "import qualified Foo as _|_F"
+   "import qualified Foo as_|_ F"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+    vim-tests/haskell-abbrev-import-6b
+    (execute-kbd-macro (kbd "i i q SPC F o o <tab> BB <tab> <escape>"))
+  (tests-utils--multiline
+   ""
+   "_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import qualified Foo as B_|_B"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
