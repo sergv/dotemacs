@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'semnav)
 
 (defun java-print-info-template-generic (func-name)
   "Insert call to printf statement to print some variables and messages
