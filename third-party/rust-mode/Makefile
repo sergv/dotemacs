@@ -28,6 +28,7 @@ compile:
 
 test:
 	$(EASK) test ert rust-mode-tests.el
+	$(EASK) test ert rust-cargo-tests.el
 
 checkdoc:
 	$(EASK) lint checkdoc
@@ -40,7 +41,7 @@ CLEAN = $(PKG)-autoloads.el
 clean:
 	@printf "Cleaning...\n"
 	@rm -rf $(CLEAN)
-	$(EASK) clean-all
+	$(EASK) clean all
 
 $(PKG)-autoloads.el:
 	@printf "Generating $@\n"
