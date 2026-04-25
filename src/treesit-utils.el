@@ -181,6 +181,13 @@
   (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
        (treesit-haskell--is-inside-node? p node)))
 
+(defun treesit-utils--string-at (node string-node-type-pred)
+  (declare (pure nil) (side-effect-free t))
+  (treesit-utils-find-closest-parent
+   node
+   (lambda (n)
+     (funcall string-node-type-pred (treesit-node-type n)))))
+
 (cl-defstruct treesit-computed-indent
   ;; treesit node
   (anchor-node nil :read-only t)

@@ -172,7 +172,8 @@ Ensures a final newline is inserted."
     (emacs-lisp-mode (emacs-lisp-mode))
     (rust-mode (rust-mode))
     (c-mode (c-mode))
-    (sh-mode (sh-mode))))
+    (sh-mode (sh-mode))
+    (bash-ts-mode (bash-ts-mode))))
 
 (cl-defmacro tests-utils--test-buffer-contents-for-inits
     (&key name
