@@ -392,8 +392,10 @@ foo {
   (setq-local ;; Don't skip any messages.
    compilation-skip-threshold 0)
 
-  (pretty-ligatures--install (append pretty-ligatures-c-like-symbols
-                                     pretty-ligatures-python-like-words))
+  (pretty-ligatures--install (append pretty-ligatures-python-like-words
+                                     pretty-ligatures-c-like-symbols
+                                     ;; pretty-ligatures-rust-symbols
+                                     ))
   (setq-local prettify-symbols-compose-predicate #'rust--prettify-symbols-compose-p)
 
   (bind-tab-keys #'indent-for-tab-command
