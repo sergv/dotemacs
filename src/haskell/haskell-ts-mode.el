@@ -990,7 +990,7 @@ reverse order, e.g.
           acc))
     acc))
 
-(defun haskell-ts--extract-single-constraint-name-with-children (node &optional typ)
+(defun haskell-ts--extract-single-constraint-name-with-children (node &optional typ str)
   "Take node representing single class constraint, e.g. \"HasCallStack\", \"Foo a b\", \"a `Foo` b\"
 and extract it’s toplevel constructor name plus its children, in effect normalizing it.
 
@@ -1007,19 +1007,19 @@ will become nested lists."
           (let ((typ2 (treesit-node-type x)))
             (pcase typ2
               ((or "apply" "infix")
-               (haskell-ts--extract-single-constraint-name-with-children x typ2))
+               (haskell-ts--extract-single-constraint-name-with-children x typ2 str))
               (_
-               (treesit-node-text-no-properties-unsafe x)))))
+               (treesit-node-text-no-properties-unsafe x str)))))
         (pcase typ
           ("name"  (list node))
           ("apply" (haskell-ts--decompose-apply-node node))
           ("infix" (cons (haskell-ts--infix-name-node node)
                          (haskell-ts--infix-children node))))))
 
-(defun haskell-ts--extract-tuple-contraints (node)
+(defun haskell-ts--extract-tuple-contraints (node str)
   (haskell-ts-foldr-toplevel-tuples node
                                    (lambda (x acc)
-                                     (cons (haskell-ts--extract-single-constraint-name-with-children x) acc))
+                                     (cons (haskell-ts--extract-single-constraint-name-with-children x nil str) acc))
                                    nil))
 
 (defun haskell-ts-parse-import-statement (str)
@@ -1027,17 +1027,13 @@ will become nested lists."
 containing Haskell import statement like
 
 import Network.Socket ( SocketType( Stream ) )"
-  (with-temp-buffer
-    (insert str)
-    (let* ((node (treesit-buffer-root-node 'haskell)
-                 ;; (treesit-node-at (point-min) 'haskell)
-                 )
-           (imports (treesit-node-child-by-field-name node "imports"))
-           (first-import (treesit-node-child-by-field-name imports "import"))
-           (mod-name (treesit-node-child-by-field-name first-import "module"))
-           (imported-names (treesit-node-children (treesit-node-child-by-field-name first-import "names") t)))
-      (cons (treesit-node-text-no-properties-unsafe mod-name)
-            (-map #'treesit-node-text-no-properties-unsafe imported-names)))))
+  (let* ((node (treesit-parse-string str 'haskell))
+         (imports (treesit-node-child-by-field-name node "imports"))
+         (first-import (treesit-node-child-by-field-name imports "import"))
+         (mod-name (treesit-node-child-by-field-name first-import "module"))
+         (imported-names (treesit-node-children (treesit-node-child-by-field-name first-import "names") t)))
+    (cons (treesit-node-text-no-properties-unsafe mod-name str)
+          (--map (treesit-node-text-no-properties-unsafe it str) imported-names))))
 
 (defun haskell-ts-parse-constraint-names (str)
   "Extract leading constraint classes and their children from STR
@@ -1049,25 +1045,25 @@ HasCallStack
 (Foo a, Bar a Double (b, c))
 
 In effect, normalize contraints."
-  (with-temp-buffer
-    (insert "type Constraints = " str)
-    (let ((results
-           (treesit-query-capture (treesit-buffer-root-node 'haskell)
-                                  haskell-ts--type-synonym-type-query
-                                  (point-min)
-                                  (point-max)
-                                  t ;; do not need capture names
-                                  )))
-      (when (not (null (cdr results)))
-        (error "Parsing of Haskell constraints tuple produced more than one candidate: %s"
-               results))
-      (let* ((node (car results))
-             (typ (treesit-node-type node)))
-        (cond
-          ((string= "tuple" typ)
-           (haskell-ts--extract-tuple-contraints node))
-          (t
-           (list (haskell-ts--extract-single-constraint-name-with-children node typ))))))))
+  (let* ((src (concat "type Constraints = " str))
+         (node (treesit-parse-string src 'haskell))
+         (results
+          (treesit-query-capture node
+                                 haskell-ts--type-synonym-type-query
+                                 1
+                                 (1- (length src))
+                                 t ;; do not need capture names
+                                 )))
+    (when (not (null (cdr results)))
+      (error "Parsing of Haskell constraints tuple produced more than one candidate: %s"
+             results))
+    (let* ((node (car results))
+           (typ (treesit-node-type node)))
+      (cond
+        ((string= "tuple" typ)
+         (haskell-ts--extract-tuple-contraints node src))
+        (t
+         (list (haskell-ts--extract-single-constraint-name-with-children node typ src)))))))
 
 (cl-defstruct (haskell-ts--remove-constraints-state
                (:conc-name haskell-ts--remove-constraints-state/))
