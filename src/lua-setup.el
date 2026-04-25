@@ -40,7 +40,7 @@ _a_lign"
                :use-whitespace 'tabs-only
                :use-fci t)
   (setq-local vim-bounds-of-string-guess-start
-              #'vim--bounds-of-string--guess-via-enclosing-smaller-indent)
+              #'vim--inclusive-bounds-of-string--guess-via-enclosing-smaller-indent)
   (hs-minor-mode-initialize
    :start (eval-when-compile (concat
                               "\\(:?"

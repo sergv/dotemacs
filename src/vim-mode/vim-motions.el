@@ -1246,19 +1246,19 @@ but only on the current line."
                           :end (cdr bounds)
                           :type 'inclusive))))))
 
-(defun vim--bounds-of-string--guess-via-beginning-of-defun ()
+(defun vim--inclusive-bounds-of-string--guess-via-beginning-of-defun ()
   (save-excursion
     (beginning-of-defun)
     (point)))
 
-(defun vim--bounds-of-string--guess-via-comint-prompt ()
+(defun vim--inclusive-bounds-of-string--guess-via-comint-prompt ()
   "Take closest comint prompt as a reasonable guess."
   (or (save-excursion
         (and (comint-previous-prompt 1)
              (point)))
       (point-min)))
 
-(defun vim--bounds-of-string--guess-via-enclosing-smaller-indent ()
+(defun vim--inclusive-bounds-of-string--guess-via-enclosing-smaller-indent ()
   ;; Find beginning of enclosing “entity” to limit parsing scope. The
   ;; “entity” here is defined as any thing above us that has less
   ;; indentation (leading whitespace) than we do.
@@ -1273,39 +1273,44 @@ but only on the current line."
             (forward-line -1))
           (point))))))
 
-(defvar vim-bounds-of-string-guess-start #'vim--bounds-of-string--guess-via-beginning-of-defun
+(defvar vim-bounds-of-string-guess-start #'vim--inclusive-bounds-of-string--guess-via-beginning-of-defun
   "Function that should produce point in current buffer that would
 be a good start for ‘parse-partial-sexp’ region for the purpose
 of detecting strings.
 
 The function shouldn’t move point.")
 
-(defun vim--bounds-of-string (p)
+(defun vim--inclusive-bounds-of-string (p)
   "Return beginning and end of string at point P."
-  (save-excursion
-    (let* ((start (funcall vim-bounds-of-string-guess-start))
-           (end p)
-           (state (parse-partial-sexp start end))
-           (inside-stringp (elt state 3))
-           (string-start (elt state 8)))
-      (if inside-stringp
-          (progn
-            ;; Continue parsing to find the end of string.
-            (parse-partial-sexp end
-                                (point-max)
-                                nil
-                                nil
-                                state
-                                'syntax-table ;; Stop after string end.
-                                )
-            (cons string-start (- (point) 1)))
-        nil))))
+  (if semnav-bounds-of-string-at-override
+      ;; If there’s override then use it since it’s probably more accurate
+      ;; (because it likely uses treesitter).
+      (when-let* ((bounds (semnav-bounds-of-string-at p)))
+        ;; Want to return inclusive bounds.
+        (cl-decf (cdr bounds))
+        bounds)
+    ;; If not then use our implementation with potentially better heuristics for
+    ;; shell prompts that default.
+    (save-excursion
+      (let* ((start (funcall vim-bounds-of-string-guess-start))
+             (end p)
+             (state (parse-partial-sexp start end))
+             (inside-string? (parse-partial-sexp--inside-string? state))
+             (string-start (parse-partial-sexp--comment-or-string-start state)))
+        (when inside-string?
+          ;; Continue parsing to find the end of string.
+          (parse-partial-sexp end
+                              (point-max)
+                              nil
+                              nil
+                              state
+                              'syntax-table ;; Stop after string end.
+                              )
+          (cons string-start (- (point) 1)))))))
 
 (defun vim--inner-doubled-quote (count)
   "Select text between two quotes."
-  (let ((bounds (vim--bounds-of-string (point))))
-    (if (not bounds)
-        (signal 'vim/no-such-object nil)
+  (if-let* ((bounds (vim--inclusive-bounds-of-string (point))))
       (destructuring-bind (beg . end) bounds
         (cond
           ;; point is in visual mode on one of both quotes
@@ -1337,7 +1342,8 @@ The function shouldn’t move point.")
            (vim-make-motion :has-begin t
                             :begin (1+ beg)
                             :end (1- end)
-                            :type 'inclusive)))))))
+                            :type 'inclusive))))
+    (signal 'vim/no-such-object nil)))
 
 ;; TODO: find out how to support count here
 (defun vim--outer-doubled-quote (_count)
@@ -1345,24 +1351,23 @@ The function shouldn’t move point.")
   (if (and (vim-visual-mode-p)
            (/= (point) (mark)))
       ;; visual mode so extend the region
-      (let* ((to-right (>= (point) (mark)))
-             (bounds (vim--bounds-of-string (point))))
-        (when bounds
-          (let* ((beg (min (point) (mark) (car bounds)))
-                 (end (max (point) (mark) (cdr bounds)))
-                 (pnt (if to-right end beg)))
-            (goto-char pnt)
-            (when to-right
-              (forward-char)
-              (skip-chars-forward " \t\r")
-              (backward-char)
-              (setq end (point)))
-            (vim-make-motion :has-begin t
-                             :begin beg
-                             :end end
-                             :type 'inclusive))))
-
-    (if-let (bounds (vim--bounds-of-string (point)))
+      (let* ((to-right (>= (point) (mark))))
+        (if-let* ((bounds (vim--inclusive-bounds-of-string (point))))
+            (let* ((beg (min (point) (mark) (car bounds)))
+                   (end (max (point) (mark) (cdr bounds)))
+                   (pnt (if to-right end beg)))
+              (goto-char pnt)
+              (when to-right
+                (forward-char)
+                (skip-chars-forward " \t\r")
+                (backward-char)
+                (setq end (point)))
+              (vim-make-motion :has-begin t
+                               :begin beg
+                               :end end
+                               :type 'inclusive))
+          (signal 'vim/no-such-object nil)))
+    (if-let (bounds (vim--inclusive-bounds-of-string (point)))
         (destructuring-bind (beg . end) bounds
           (cond
             ;; extend whitespaces to the right
@@ -1388,7 +1393,6 @@ The function shouldn’t move point.")
                                        (point))
                               :end end
                               :type 'inclusive))))
-      ;; nothing found
       (signal 'vim/no-such-object nil))))
 
 (defconst vim--motion-single-quote-syntax-table
