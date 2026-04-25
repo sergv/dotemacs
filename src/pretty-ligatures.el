@@ -109,9 +109,7 @@ Regexp match data 0 specifies the characters to be composed."
     (alist->hash-table
      (mapcar
       (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-first x) :width (cl-second x))))
-      '((?⋁ 2)
-        (?⋁ 2)
-
+      '(
         ;; Check font: ?⨆, ?⨅, ?⨉
         ;; Good: ?⨁, ?⨂, ?⨀
         (?⋃ 2) ;; union
