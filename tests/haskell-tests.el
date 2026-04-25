@@ -22,6 +22,7 @@
 (require 'haskell-smart-operators-mode)
 (require 'haskell-sort-imports)
 (require 'paredit)
+(require 'semnav)
 
 (require 'common)
 (require 'ert)

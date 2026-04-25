@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'semnav)
 
 (defun c++-print-info-template ()
   "Insert call to printf statement to print some variables and messages

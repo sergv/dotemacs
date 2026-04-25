@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'semnav)
 (require 'solarized)
 
 (defgroup python-highlight nil

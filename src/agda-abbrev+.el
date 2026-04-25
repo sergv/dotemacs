@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'abbrev+)
+(require 'semnav)
 
 (defun-once agda-abbrev+-make-abbrevs
   (abbrev+-compile-abbreviations
