@@ -11,6 +11,7 @@
 
 (require 'macro-util)
 (require 'abbrev+)
+(require 'semnav)
 
 (defun shell-script-info-message-template ()
   "Call echo to show current some messages/values of specified variables."

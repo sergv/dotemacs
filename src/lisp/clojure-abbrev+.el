@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'abbrev+)
+(require 'semnav)
 
 (defun clojure-util/quote-format-arguments (x)
   (replace-regexp-in-string (rx "%"

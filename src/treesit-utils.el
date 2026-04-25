@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'cl))
 
+(require 'semnav)
+
 (defsubst treesit-haskell--current-node ()
   (treesit-haskell--node-at (point)))
 

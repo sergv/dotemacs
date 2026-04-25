@@ -14,6 +14,7 @@
 (require 'general-lisp-setup)
 (require 'abbrev+)
 (require 'common)
+(require 'semnav)
 
 (defun emacs-lisp-print-info-template--quote-string (str)
   (replace-regexp-in-string "\"" "\\\\\"" str))
