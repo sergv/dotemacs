@@ -9,6 +9,9 @@
 
 (require 'current-column-fixed)
 
+(require 'rust-compile)
+(require 'compile)
+
 (defcustom rust-format-on-save nil
   "Format future rust buffers before saving using rustfmt."
   :type 'boolean
@@ -32,8 +35,10 @@
   :type 'string
   :group 'rust-mode)
 
-(defcustom rust-rustfmt-switches '("--edition" "2018")
-  "Arguments to pass when invoking the `rustfmt' executable."
+(defcustom rust-rustfmt-switches nil
+  "Arguments to pass when invoking the `rustfmt' executable. This variable
+will override any user configuration (e.g. rustfmt.toml). Recommendation
+is to not modify this and rely on declarative configuration instead."
   :type '(repeat string)
   :group 'rust-mode)
 
@@ -41,16 +46,57 @@
 
 (defconst rust-rustfmt-buffername "*rustfmt*")
 
+(define-compilation-mode rust-format-mode "rust-format"
+  "Major mode for Rust compilation output."
+
+  (setq-local compilation-error-regexp-alist-alist nil)
+  (add-to-list 'compilation-error-regexp-alist-alist
+               (cons 'rustc-refs rustc-refs-compilation-regexps))
+  (add-to-list 'compilation-error-regexp-alist-alist
+               (cons 'rustc rustc-compilation-regexps))
+  (add-to-list 'compilation-error-regexp-alist-alist
+               (cons 'rustc-colon rustc-colon-compilation-regexps))
+  (add-to-list 'compilation-error-regexp-alist-alist
+               (cons 'cargo cargo-compilation-regexps))
+  (add-to-list 'compilation-error-regexp-alist-alist
+               (cons 'rustc-panics rustc-panics-compilation-regexps))
+
+  (setq-local compilation-error-regexp-alist nil)
+  (add-to-list 'compilation-error-regexp-alist 'rustc-refs)
+  (add-to-list 'compilation-error-regexp-alist 'rustc)
+  (add-to-list 'compilation-error-regexp-alist 'rustc-colon)
+  (add-to-list 'compilation-error-regexp-alist 'cargo)
+  (add-to-list 'compilation-error-regexp-alist 'rustc-panics)
+
+  (add-hook 'next-error-hook #'rustc-scroll-down-after-next-error)
+
+  (if (or compilation-auto-jump-to-first-error
+          (eq compilation-scroll-output 'first-error))
+      (set (make-local-variable 'compilation-auto-jump-to-next) t)))
+
+;; (defun rust--format-call (buf start end)
+;;   "Format BUF using rustfmt."
+;;   (let ((tmp (get-buffer-create rust-rustfmt-buffername)))
+;;     (with-current-buffer tmp
+;;       (view-mode +1)
+;;       (let ((inhibit-read-only t))
+;;         (erase-buffer)
+;;         (insert-buffer-substring buf start end)
+;;         (let* ((tmpf (make-temp-file "rustfmt"))
+;;                (ret (apply 'call-process-region
+
 (defun rust--format-call (buf start end)
   "Format BUF using rustfmt."
-  (let ((tmp (get-buffer-create rust-rustfmt-buffername)))
+  (let ((path exec-path)
+        (tmp (get-buffer-create rust-rustfmt-buffername)))
     (with-current-buffer tmp
+      (setq-local exec-path path)
       (view-mode +1)
       (let ((inhibit-read-only t))
         (erase-buffer)
         (insert-buffer-substring buf start end)
         (let* ((tmpf (make-temp-file "rustfmt"))
-               (ret (apply 'call-process-region
+               (ret (apply #'call-process-region
                            (point-min)
                            (point-max)
                            rust-rustfmt-bin
@@ -59,40 +105,55 @@
                            nil
                            rust-rustfmt-switches)))
           (unwind-protect
-              (let ((old-contents (with-current-buffer buf
-                                    (buffer-substring-no-properties start end)))
-                    (new-contents (buffer-substring-no-properties (point-min) (point-max))))
-                (if (or (zerop ret)
-                        (= ret 3) ;; Has useful output but couldn’t format something
-                        )
-                    (when (not (string= new-contents old-contents))
-                      ;; replace-buffer-contents was in emacs 26.1, but it
-                      ;; was broken for non-ASCII strings, so we need 26.2.
-                      (with-current-buffer buf
-                        (if (and (fboundp 'replace-buffer-contents)
-                                 (version<= "26.2" emacs-version))
-                            (save-restriction
-                              (narrow-to-region start end)
-                              (replace-buffer-contents rust-rustfmt-buffername))
-                          (save-excursion
-                            (goto-char start)
-                            (delete-region start end)
-                            (insert-buffer-substring tmp)))))
-                  (if (zerop ret)
-                      (kill-buffer)
-                    (progn
-                      (erase-buffer)
-                      (insert-file-contents tmpf)
-                      (rust--format-fix-rustfmt-buffer (buffer-name buf))
-                      (error "Rustfmt could not format some lines, see %s buffer for details"
-                             rust-rustfmt-buffername)))
-                  (progn
-                   (erase-buffer)
-                   (insert-file-contents tmpf)
-                   (rust--format-fix-rustfmt-buffer (buffer-name buf))
-                   (error "Rustfmt failed, see %s buffer for details"
-                          rust-rustfmt-buffername)))))
-          (delete-file tmpf))))))
+              (cond
+                ((zerop ret)
+                 (when (not (zerop (compare-buffer-substrings (current-buffer) (point-min) (point-max) buf start end)))
+                   ;; replace-buffer-contents was in emacs 26.1, but it
+                   ;; was broken for non-ASCII strings, so we need 26.2.
+                   (with-current-buffer buf
+                     (if (eval-when-compile
+                           (and (fboundp 'replace-buffer-contents)
+                                (version<= "26.2" emacs-version)))
+                         (save-restriction
+                           (narrow-to-region start end)
+                           (replace-buffer-contents tmp))
+                       (save-excursion
+                         (goto-char start)
+                         (delete-region start end)
+                         (insert-buffer-substring tmp)))))
+                 (let ((win (get-buffer-window tmp)))
+                   (if win
+                       (quit-window t win)
+                     (kill-buffer tmp))))
+                ((= ret 1)
+                 (erase-buffer)
+                 (insert-file-contents tmpf)
+
+                 (rust-format-mode) ;; render compilation errors in compilation-mode
+                 (setq-local compile-command (format "%s %s" rust-rustfmt-bin (buffer-file-name buf)))
+
+                 (rust--format-fix-rustfmt-buffer (buffer-name buf))
+                 (error "Rustfmt failed because of parsing errors, see %s buffer for details"
+                        rust-rustfmt-buffername))
+                ((= ret 3)
+                 (when (not (zerop (compare-buffer-substrings (current-buffer) (point-min) (point-max) buf start end)))
+                   (with-current-buffer buf
+                     (save-excursion
+                       (goto-char start)
+                       (delete-region start end)
+                       (insert-buffer-substring tmp))))
+                 (erase-buffer)
+                 (insert-file-contents tmpf)
+                 (rust--format-fix-rustfmt-buffer (buffer-name buf))
+                 (error "Rustfmt could not format some lines, see %s buffer for details"
+                        rust-rustfmt-buffername))
+                (t
+                 (erase-buffer)
+                 (insert-file-contents tmpf)
+                 (rust--format-fix-rustfmt-buffer (buffer-name buf))
+                 (error "Rustfmt failed, see %s buffer for details"
+                        rust-rustfmt-buffername)))
+            (delete-file tmpf)))))))
 
 ;; Since we run rustfmt through stdin we get <stdin> markers in the
 ;; output. This replaces them with the buffer name instead.
@@ -155,7 +216,8 @@ rustfmt complain in the echo area."
           (goto-char (point-min))
           (forward-line (1- (car target-point)))
           (forward-char (1- (cdr target-point))))
-        (message target-problem)))))
+        (unless rust-format-show-buffer
+          (message target-problem))))))
 
 (defconst rust--format-word "\
 \\b\\(else\\|enum\\|fn\\|for\\|if\\|let\\|loop\\|\
