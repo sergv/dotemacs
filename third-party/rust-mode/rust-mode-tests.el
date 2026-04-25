@@ -47,14 +47,23 @@
 (put 'rust-compare-code-after-manip 'ert-explainer
      'rust-test-explain-bad-manip)
 
-(defun rust-test-manip-code (original point-pos manip-func expected)
+(defun rust-test-manip-code (original manip-pos manip-func expected &optional final-pos)
   (with-temp-buffer
     (rust-mode)
     (insert original)
-    (goto-char point-pos)
+    (goto-char manip-pos)
     (funcall manip-func)
     (should (rust-compare-code-after-manip
-             original point-pos manip-func expected (buffer-string)))))
+             original manip-pos manip-func expected (buffer-string)))
+    (if final-pos
+        (should (equal (point) final-pos)))))
+
+(defmacro rust-test-with-standard-fill-settings (&rest body)
+  (declare (indent defun))
+  `(let ((fill-column rust-test-fill-column)
+         (sentence-end-double-space t)
+         (colon-double-space nil))
+     ,@body))
 
 (defun rust-test-fill-paragraph (unfilled expected &optional start-pos end-pos)
   "We're going to run through many scenarios here--the point should be able to be anywhere from the start-pos (defaults to 1) through end-pos (defaults to the length of what was passed in) and (fill-paragraph) should return the same result.  It should also work with fill-region from start-pos to end-pos.
@@ -80,7 +89,7 @@ Also, the result should be the same regardless of whether the code is at the beg
                                  (concat padding-beginning unfilled padding-end)
                                  pos
                                  (lambda ()
-                                   (let ((fill-column rust-test-fill-column))
+                                   (rust-test-with-standard-fill-settings
                                      (fill-paragraph)))
                                  (concat padding-beginning expected padding-end)))))
     ;; In addition to all the fill-paragraph tests, check that it works using fill-region
@@ -88,7 +97,7 @@ Also, the result should be the same regardless of whether the code is at the beg
      unfilled
      start-pos
      (lambda ()
-       (let ((fill-column rust-test-fill-column))
+       (rust-test-with-standard-fill-settings
          (fill-region start-pos end-pos)))
      expected)
     ))
@@ -880,6 +889,98 @@ struct A {
 "
    ))
 
+;; When point is inside an example code block, indent-for-tab-command
+;; should reindent the example code.
+(ert-deftest indent-inside-doc-example ()
+  (rust-test-manip-code
+   "
+/// ```
+/// if 2 + 2 == 4 {
+/// success();
+/// }
+/// ```
+"
+   34
+   #'indent-for-tab-command
+   "
+/// ```
+/// if 2 + 2 == 4 {
+///     success();
+/// }
+/// ```
+"
+   38))
+
+;; Inside example code blocks, hidden lines starting with "# " should
+;; be indented as if the "# " wasn't there.
+(ert-deftest indent-inside-doc-example-hidden-code ()
+  (rust-test-manip-code
+   "
+/// ```
+/// # if 2 + 2 == 4 {
+/// # success();
+/// # }
+/// ```
+"
+   36
+   #'indent-for-tab-command
+   "
+/// ```
+/// # if 2 + 2 == 4 {
+/// #     success();
+/// # }
+/// ```
+"
+   42))
+
+;; Inside example code blocks, hidden lines starting with "# "
+;; shouldn't affect indentation of non-hidden lines.
+(ert-deftest indent-inside-doc-example-with-hidden-block ()
+  (rust-test-manip-code
+   "
+/// ```
+/// # if 2 + 2 == 4 {
+///     success();
+/// # }
+/// ```
+"
+   40
+   #'indent-for-tab-command
+   "
+/// ```
+/// # if 2 + 2 == 4 {
+/// success();
+/// # }
+/// ```
+"
+   36))
+
+;; When point is outside the comment, indent-for-tab-command should
+;; reindent the comment line without affecting its contents.
+(ert-deftest indent-outside-doc-example ()
+  (rust-test-manip-code
+   "
+impl Foo {
+    /// ```
+    /// if 2 + 2 == 4 {
+  /// success();
+    /// }
+    /// ```
+}
+"
+   49
+   #'indent-for-tab-command
+   "
+impl Foo {
+    /// ```
+    /// if 2 + 2 == 4 {
+    /// success();
+    /// }
+    /// ```
+}
+"
+   53))
+
 (defconst rust-test-motion-string
       "
 fn fn1(arg: i32) -> bool {
@@ -1096,6 +1197,25 @@ fn test4();")
       (beginning-of-defun 2)
       (should (eq (point) fn-1)))))
 
+(ert-deftest rust-beginning-of-defun-pub-scoped ()
+  (let (fn-1-start fn-1-end fn-2-start fn-2-end)
+   (with-temp-buffer
+     (rust-mode)
+     (setq fn-1-start (point))
+     (insert "pub(crate::mod1) fn test2() {}\n")
+     (setq fn-1-end (point))
+     (setq fn-2-start (point))
+     (insert "pub(self) fn test1() {}\n")
+     (setq fn-3-end (point))
+
+     (goto-char (point-max))
+
+     (beginning-of-defun)
+     (should (eq (point) fn-2-start))
+
+     (beginning-of-defun)
+     (should (eq (point) fn-1-start)))))
+
 (ert-deftest rust-end-of-defun-from-middle-of-fn ()
   (rust-test-motion
    rust-test-motion-string
@@ -1137,6 +1257,25 @@ fn test4();")
    'middle-of-fn3
    'between-fn1-fn2
    #'end-of-defun -2))
+
+(ert-deftest rust-end-of-defun-pub-scoped ()
+  (let (fn-1-start fn-1-end fn-2-start fn-2-end)
+   (with-temp-buffer
+     (rust-mode)
+     (setq fn-1-start (point))
+     (insert "pub(crate::mod1) fn test2() {}\n")
+     (setq fn-1-end (point))
+     (setq fn-2-start (point))
+     (insert "pub(self) fn test1() {}\n")
+     (setq fn-2-end (point))
+
+     (goto-char (point-min))
+
+     (end-of-defun)
+     (should (eq (point) fn-1-end))
+
+     (end-of-defun)
+     (should (eq (point) fn-2-end)))))
 
 (ert-deftest rust-mark-defun-from-middle-of-fn ()
   (rust-test-region
@@ -2754,7 +2893,7 @@ fn foo<T:Fn() -> X<Y>>() -> Z {
      )
    ))
 
-(ert-deftest rust-test-paren-matching-lt-ops-in-fn-params ()
+(ert-deftest rust-test-paren-matching-lt-ops-in-fn-params-1 ()
   (rust-test-matching-parens
    "
 fn foo(x:i32) {
@@ -2766,7 +2905,7 @@ fn foo(x:i32) {
      )
    ))
 
-(ert-deftest rust-test-paren-matching-lt-ops-in-fn-params ()
+(ert-deftest rust-test-paren-matching-lt-ops-in-fn-params-2 ()
   (rust-test-matching-parens
    "
 fn foo(x:i32) -> bool {
@@ -3118,7 +3257,7 @@ macro_c!{
      (syntax-ppss))))
 
 
-(ert-deftest rust-test-in-macro-no-caching ()
+(ert-deftest rust-test-in-macro-around-opening ()
   (should-not
    (with-temp-buffer
      (insert
@@ -3127,66 +3266,38 @@ macro_c!{
         struct Boo<D> {}
 ")
      (rust-mode)
-     (search-backward "macro")
-     ;; do not use the cache
-     (let ((rust-macro-scopes nil))
-       (rust-in-macro)))))
-
-(ert-deftest rust-test-in-macro-fake-cache ()
-  (should
-   (with-temp-buffer
-     (insert
-      "fn foo<A>(a:A) {
-    macro_c!{
-        struct Boo<D> {}
-")
-     (rust-mode)
-     (search-backward "macro")
-     ;; make the cache lie to make the whole buffer in scope
-     ;; we need to be at paren level 1 for this to work
-     (let ((rust-macro-scopes `((,(point-min) ,(point-max)))))
-       (rust-in-macro)))))
-
-(ert-deftest rust-test-in-macro-broken-cache ()
-  (should-error
-   (with-temp-buffer
-     (insert
-      "fn foo<A>(a:A) {
-    macro_c!{
-        struct Boo<D> {}
-")
-     (rust-mode)
-     (search-backward "Boo")
-     ;; do we use the cache at all
-     (let ((rust-macro-scopes '(I should break)))
-       (rust-in-macro)))))
+     (search-backward "macro_c")
+     (and
+      (not (rust-in-macro))
+      (progn (forward-thing 'symbol 1) (not (rust-in-macro)))
+      (progn (forward-char 1) (rust-in-macro))
+      (progn (goto-char (point-max)) (rust-in-macro))))))
 
 (ert-deftest rust-test-in-macro-nested ()
-  (should
-   (equal
-    (with-temp-buffer
-      (insert
-       "macro_rules! outer {
+  (with-temp-buffer
+    (insert
+     "macro_rules! outer {
     () => { vec![] };
 }")
-      (rust-mode)
-      (rust-macro-scope (point-min) (point-max)))
-    '((38 40) (20 45)))))
+    (rust-mode)
+    (should (progn (goto-char 20) (not (rust-in-macro))))
+    (should (progn (goto-char 21) (eq (rust-in-macro) 20)))
+    (should (progn (goto-char 38) (eq (rust-in-macro) 20)))
+    (should (progn (goto-char 39) (eq (rust-in-macro) 38)))
+    (should (progn (goto-char 40) (eq (rust-in-macro) 20)))
+    (should (progn (goto-char 44) (eq (rust-in-macro) 20)))
+    (should (progn (goto-char 45) (not (rust-in-macro))))))
 
 (ert-deftest rust-test-in-macro-not-with-space ()
-  (should
-   (equal
-    (with-temp-buffer
-      (insert
+  (with-temp-buffer
+    (insert
        "fn foo<T>() {
     if !(mem::size_of::<T>() > 8) {
         bar()
     }
 }")
-      (rust-mode)
-      (rust-macro-scope (point-min) (point-max)))
-    'empty)))
-
+    (rust-mode)
+    (should (progn (goto-char 24) (not (rust-in-macro))))))
 
 (ert-deftest rust-test-paren-matching-type-with-module-name ()
   (rust-test-matching-parens
@@ -3432,19 +3543,72 @@ impl Two<'a> {
      "Foo" font-lock-type-face
      "in" font-lock-keyword-face)))
 
-(ert-deftest rust-test-dbg-wrap-symbol ()
+(ert-deftest rust-test-dbg-wrap-sexp ()
+  "a valid sexp ahead of current pos"
   (rust-test-manip-code
    "let x = add(first, second);"
    15
    #'rust-dbg-wrap-or-unwrap
-   "let x = add(dbg!(first), second);"))
+   "let x = add(dbg!(first), second);"
+   24))
+
+(ert-deftest rust-test-dbg-wrap-sexp-fallback ()
+  "a invalid sexp ahead of current pos"
+  ;; inside
+  (rust-test-manip-code
+   "if let Ok(val) = may_val {}"
+   27
+   #'rust-dbg-wrap-or-unwrap
+   "if let Ok(val) = may_val {dbg!()}"
+   32)
+  ;; before
+  (rust-test-manip-code
+   "let a = {}"
+   9
+   #'rust-dbg-wrap-or-unwrap
+   "let a = dbg!({})"
+   17))
+
+(ert-deftest rust-test-dbg-wrap-empty-line ()
+  (rust-test-manip-code
+   "let a = 1;
+
+let b = 1;"
+   12
+   #'rust-dbg-wrap-or-unwrap
+   "let a = 1;
+dbg!()
+let b = 1;"
+   17))
+
+(ert-deftest rust-test-dbg-wrap-empty-before-comment ()
+  (rust-test-manip-code
+   "let a = 1;
+// comment
+let b = 1;"
+   12
+   #'rust-dbg-wrap-or-unwrap
+   "let a = 1;
+dbg!()// comment
+let b = 1;"
+   17)
+  ;; between statements and comments
+  (rust-test-manip-code
+   "let a = 1;// comment
+let b = 1;"
+   11
+   #'rust-dbg-wrap-or-unwrap
+   "let a = 1;dbg!()// comment
+let b = 1;"
+   16))
 
 (ert-deftest rust-test-dbg-wrap-symbol-unbalanced ()
   (rust-test-manip-code
    "let x = add((first, second);"
    14
    #'rust-dbg-wrap-or-unwrap
-   "let x = add((dbg!(first), second);"))
+   "let x = add((dbg!(first), second);"
+   25))
 
 (ert-deftest rust-test-dbg-wrap-region ()
   (rust-test-manip-code
@@ -3455,7 +3619,8 @@ impl Two<'a> {
      (push-mark nil t t)
      (goto-char 26)
      (rust-dbg-wrap-or-unwrap))
-   "let x = dbg!(add(first, second));"))
+   "let x = dbg!(add(first, second));"
+   33))
 
 (defun rust-test-dbg-unwrap (position)
   (rust-test-manip-code
@@ -3529,6 +3694,9 @@ impl Two<'a> {
     (insert "warning found a -> b\n  --> file3.rs:12:34\n\n")
     (insert "note: `ZZZ` could also refer to the constant imported here -> b\n  --> file4.rs:12:34\n\n")
     (insert "    ::: file5.rs:12:34\n\n")
+    (insert "thread 'main' panicked at src/file7.rs:12:34:\n\n")
+    (insert "[src/file8.rs:159:5] symbol_value(SOME_VAR) = Some(\n\n")
+    (insert "    at file9.rs:12:34\n\n")
     ;; should not match
     (insert "werror found a -> b\n  --> no_match.rs:12:34\n\n")
     (insert "error[E0061]: this function takes 1 parameter but 2 parameters were supplied\n  --> file6.rs:132:34
@@ -3547,11 +3715,17 @@ impl Two<'a> {
                 ("file6.rs" "132" "34" compilation-error "file6.rs:132:34"))
                (("file5.rs" "12" "34" compilation-info "file5.rs:12:34"))
                ((like-previous-one "82" back-to-indentation compilation-info "82")
-                (like-previous-one "132" back-to-indentation compilation-info "132")))
+                (like-previous-one "132" back-to-indentation compilation-info "132"))
+               (("src/file7.rs" "12" "34" nil "src/file7.rs:12:34"))
+               (("src/file8.rs" "159" "5" compilation-info "src/file8.rs:159:5"))
+               (("file9.rs" "12" "34" compilation-info "file9.rs:12:34")))
              (mapcar #'rust-collect-matches
                      (list rustc-compilation-regexps
                            rustc-colon-compilation-regexps
-                           rustc-refs-compilation-regexps))))))
+                           rustc-refs-compilation-regexps
+                           rustc-panics-compilation-regexps
+                           rustc-dbg!-compilation-regexps
+                           rustc-backtrace-compilation-regexps))))))
 
 ;; If electric-pair-mode is available, load it and run the tests that use it.  If not,
 ;; no error--the tests will be skipped.
