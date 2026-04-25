@@ -108,6 +108,22 @@
     :expected-value
     ,expected-value))
 
+(cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-except* (&key skip-modes name action contents expected-value)
+  (declare (indent 3))
+  (cl-assert (listp skip-modes))
+  (cl-assert (cl-every #'symbolp skip-modes))
+  `(vim-tests--test-fresh-buffer-contents-init-all
+    :name
+    ,name
+    :modes
+    ,(--remove (memq it skip-modes) (-map #'car tests-utils--modes-and-init))
+    :action
+    ,action
+    :contents
+    ,contents
+    :expected-value
+    ,expected-value))
+
 (cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
     (&key modes
           name
@@ -139,6 +155,20 @@
     :expected-value ,expected-value))
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes (name action contents expected-value)
+  (declare (indent 2))
+  `(vim-tests--test-fresh-buffer-contents-init-all
+    :name
+    ,name
+    :modes
+    ,(-map #'car tests-utils--modes-and-init)
+    :action
+    ,action
+    :contents
+    ,contents
+    :expected-value
+    ,expected-value))
+
+(cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes* (&key name action contents expected-value)
   (declare (indent 2))
   `(vim-tests--test-fresh-buffer-contents-init-all
     :name
@@ -1879,55 +1909,109 @@
    " quux)"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (c-mode)
-    vim-tests/motion-inner-single-quote-1
-    (execute-kbd-macro (kbd ", i '"))
-  (tests-utils--multiline
-   ""
-   "foo 'b_|_ar' baz"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo '_|_' baz"
-   ""))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-except*
+ :skip-modes
+ (c-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/motion-inner-single-quote-1
+ :action
+ (execute-kbd-macro (kbd ", i '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo 'b_|_ar' baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo '_|_' baz"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (c-mode)
-    vim-tests/motion-outer-single-quote-1
-    (execute-kbd-macro (kbd ", a '"))
-  (tests-utils--multiline
-   ""
-   "foo 'b_|_ar' baz"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo _|_baz"
-   ""))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-except*
+ :skip-modes
+ (c-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/motion-outer-single-quote-1
+ :action
+ (execute-kbd-macro (kbd ", a '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo 'b_|_ar' baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo _|_baz"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/motion-inner-double-quote-1
-    (execute-kbd-macro (kbd ", i \""))
-  (tests-utils--multiline
-   ""
-   "foo \"b_|_ar\" baz"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo \"_|_\" baz"
-   ""))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (c-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/motion-inner-single-quote-1
+ :action
+ (execute-kbd-macro (kbd ", i '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo '_|_a' baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo '_|_' baz"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/motion-outer-double-quote-1
-    (execute-kbd-macro (kbd ", a \""))
-  (tests-utils--multiline
-   ""
-   "foo \"b_|_ar\" baz"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo _|_baz"
-   ""))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (c-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/motion-outer-single-quote-1
+ :action
+ (execute-kbd-macro (kbd ", a '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo '_|_a' baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo _|_baz"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes*
+ :name
+ vim-tests/motion-inner-double-quote-1
+ :action
+ (execute-kbd-macro (kbd ", i \""))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo \"b_|_ar\" baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo \"_|_\" baz"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes*
+ :name
+ vim-tests/motion-outer-double-quote-1
+ :action
+ (execute-kbd-macro (kbd ", a \""))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo \"b_|_ar\" baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo _|_baz"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value
