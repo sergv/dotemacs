@@ -1298,7 +1298,7 @@ The function shouldn’t move point.")
                                 state
                                 'syntax-table ;; Stop after string end.
                                 )
-            (list string-start (- (point) 1)))
+            (cons string-start (- (point) 1)))
         nil))))
 
 (defun vim--inner-doubled-quote (count)
@@ -1306,7 +1306,7 @@ The function shouldn’t move point.")
   (let ((bounds (vim--bounds-of-string (point))))
     (if (not bounds)
         (signal 'vim/no-such-object nil)
-      (cl-multiple-value-bind (beg end) bounds
+      (destructuring-bind (beg . end) bounds
         (cond
           ;; point is in visual mode on one of both quotes
           ;; or quoted text is empty
@@ -1348,8 +1348,8 @@ The function shouldn’t move point.")
       (let* ((to-right (>= (point) (mark)))
              (bounds (vim--bounds-of-string (point))))
         (when bounds
-          (let* ((beg (min (point) (mark) (first bounds)))
-                 (end (max (point) (mark) (second bounds)))
+          (let* ((beg (min (point) (mark) (car bounds)))
+                 (end (max (point) (mark) (cdr bounds)))
                  (pnt (if to-right end beg)))
             (goto-char pnt)
             (when to-right
@@ -1363,7 +1363,7 @@ The function shouldn’t move point.")
                              :type 'inclusive))))
 
     (if-let (bounds (vim--bounds-of-string (point)))
-        (cl-multiple-value-bind (beg end) bounds
+        (destructuring-bind (beg . end) bounds
           (cond
             ;; extend whitespaces to the right
             ((save-excursion
