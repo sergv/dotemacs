@@ -949,12 +949,14 @@ Returns the compilation buffer created."
                              ((cc-command-p command)
                               (cd (cc-command-dir command))
                               (let ((command-line (cc-command-cmd command)))
-                                (apply #'start-file-process
-                                       (concat "compilation for " (cc-command-dir command))
-                                       (current-buffer)
-                                       (car command-line)
-                                       (cdr command-line)))))))
-		       )))
+                                (make-process
+	                         :name (concat "compilation for " (cc-command-dir command))
+                                 :buffer (current-buffer)
+                                 :command command-line
+                                 ;; :process-connection-type
+                                 ;; :connection-type 'pipe
+                                 :width (window-body-width outwin)
+                                 :height (window-body-height outwin))))))))))
                 ;; Make the buffer's mode line show process state.
                 (setq mode-line-process
                       '((:propertize ":%s" face compilation-mode-line-run)
