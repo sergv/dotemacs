@@ -21,7 +21,7 @@
         - [Clippy](#clippy)
         - [Easy insertion of dbg!](#easy-insertion-of-dbg)
         - [More commands](#more-commands)
-    - [highlighting with tree-sitter](#highlighting-with-tree-sitter)
+    - [tree-sitter](#tree-sitter)
     - [LSP](#lsp)
         - [eglot](#eglot)
         - [lsp-mode](#lsp-mode)
@@ -50,12 +50,12 @@ This mode provides:
 - Indentation
 - Integration with Cargo, clippy and rustfmt
 
-This mode does _not_ provide autocompletion, or jumping to function /
+This mode does _not_ provide auto completion, or jumping to function /
 trait definitions. See [Auto-completion](#auto-completion) below for tips on how
 to enable this.
 
 If you are missing features in rust-mode, please check out
-[rustic](https://github.com/brotzeit/rustic) before you open a feature
+[rustic](https://github.com/emacs-rustic/rustic) before you open a feature
 request. It depends on rust-mode and provides additional features. This
 allows us to keep rust-mode light-weight for users that are happy with
 basic functionality.
@@ -166,17 +166,21 @@ The `rust-run`, `rust-test`, `rust-compile` and `rust-check` functions
 shell out to Cargo to run, test, build and check your code. Under the
 hood, these use the standard Emacs `compile` function.
 
-These are not bound by default. To bind these to keyboard shortcuts,
-you can use the following in your init.el:
+By default these are bound to:
 
-``` elisp
-(define-key rust-mode-map (kbd "C-c C-c") 'rust-run)
-```
+- <kbd>C-c C-c C-u</kbd> `rust-compile`
+- <kbd>C-c C-c C-k</kbd> `rust-check`
+- <kbd>C-c C-c C-t</kbd> `rust-test`
+- <kbd>C-c C-c C-r</kbd> `rust-run`
+
+To run programs requiring user input use universal argument when invoking
+ `rust-run` (<kbd>C-u C-c C-c C-r</kbd>).
 
 ### Clippy
 
 `rust-run-clippy` runs
-[Clippy](https://github.com/rust-lang/rust-clippy), a linter.
+[Clippy](https://github.com/rust-lang/rust-clippy), a linter. By
+default, this is bound to <kbd>C-c C-c C-l</kbd>.
 
 ### Easy insertion of dbg!
 
@@ -188,11 +192,22 @@ This is bound to <kbd>C-c C-d</kbd> by default.
 
 ### More commands
 
-- `rustic-toggle-mutability` toggle mut for var defined at current line
+- `rust-toggle-mutability` toggle mut for var defined at current line
 
-## highlighting with tree-sitter
+## tree-sitter
 
-You should take a look at [tree-sitter](https://github.com/emacs-tree-sitter/elisp-tree-sitter). When the dependencies are installed you can activate the feature with:
+You can try the new native treesitter mode `rust-ts-mode` with:
+
+```elisp
+(use-package rust-mode
+  :init
+  (setq rust-mode-treesitter-derive t))
+```
+
+In case you want to use treesitter but can't use Emacs 29.1, you can
+take a look at
+[tree-sitter](https://github.com/emacs-tree-sitter/elisp-tree-sitter). When
+the dependencies are installed you can activate the feature with:
 
 ```elisp
 (use-package tree-sitter
@@ -227,7 +242,7 @@ by using additional packages. You can find more information in the
 You can either use a lsp client or [racer](https://github.com/racer-rust/racer)
 with [emacs-racer](https://github.com/racer-rust/emacs-racer#installation).
 
-Note that racer and rls are considered deprecated. You should try rust-analyzer
+Note that racer and rls are considered deprecated. You should use rust-analyzer
 instead.
 
 ## Other recommended packages
@@ -251,7 +266,7 @@ post](https://www.badykov.com/emacs/2021/05/29/emacs-cargo-mode/).
 
 ### rustic
 
-[rustic](https://github.com/brotzeit/rustic) is based on rust-mode,
+[rustic](https://github.com/emacs-rustic/rustic) is based on rust-mode,
 extending it with other features such as integration with LSP and with
 flycheck.
 
