@@ -14,6 +14,7 @@
 (require 'common)
 (require 'current-column-fixed)
 (require 'macro-util)
+(require 'semnav)
 
 (defun python-print-info-template ()
   "Insert call to print statement to print some variables and messages while

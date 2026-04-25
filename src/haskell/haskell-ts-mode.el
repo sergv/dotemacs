@@ -18,6 +18,7 @@
 (require 'haskell-ts-getters)
 (require 'haskell-ts-indent)
 (require 's)
+(require 'semnav)
 (require 'sorted-set)
 (require 'treesit)
 (require 'treesit-utils)
