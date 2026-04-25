@@ -12,6 +12,7 @@
 (require 'common)
 (require 'current-column-fixed)
 (require 'macro-util)
+(require 'semnav)
 
 (defun octave-print-info-template ()
   "Insert call to printf statement to print some variables and messages

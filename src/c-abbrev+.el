@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'semnav)
 
 (defun-once c-abbrev+-make-abbrevs
   (abbrev+-compile-abbreviations
