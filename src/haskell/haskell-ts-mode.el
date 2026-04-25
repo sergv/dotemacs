@@ -1161,6 +1161,12 @@ In effect, normalize contraints."
                          :in-place t))
       (haskell-ts-remove-constraints--single-context (cdr state)))))
 
+(defun semnav-bounds-of-string-at--ts-haskell (pos)
+  (declare (pure nil) (side-effect-free t))
+  (when-let* ((node (treesit-utils--string-at (treesit-haskell--node-at pos)
+                                              #'treesit-haskell--is-string-node-type?)))
+    (cons (treesit-node-start node) (treesit-node-end node))))
+
 ;;;###autoload
 (define-derived-mode haskell-ts-base-mode prog-mode "Haskell[ts]"
   "Bare-bones major mode for Haskell that uses tree-sitter."
@@ -1188,10 +1194,11 @@ In effect, normalize contraints."
               comment-end-skip "[ \t]*\\(-}\\|\\s>\\)"
               fill-paragraph-function #'haskell-fill-paragraph
 
-              point-inside-string?-impl                #'point-inside-string?--ts-haskell
-              point-inside-comment?-impl               #'point-inside-comment?--ts-haskell
-              point-inside-string-or-comment?-impl     #'point-inside-string-or-comment?--ts-haskell
-              point-not-inside-string-or-comment?-impl #'point-not-inside-string-or-comment?--ts-haskell))
+              point-inside-string?-override                #'point-inside-string?--ts-haskell
+              point-inside-comment?-override               #'point-inside-comment?--ts-haskell
+              point-inside-string-or-comment?-override     #'point-inside-string-or-comment?--ts-haskell
+              point-not-inside-string-or-comment?-override #'point-not-inside-string-or-comment?--ts-haskell
+              semnav-bounds-of-string-at-override         #'semnav-bounds-of-string-at--ts-haskell))
 
 (define-derived-mode haskell-ts-mode haskell-ts-base-mode "Haskell[ts]"
   "Major mode for Haskell that uses tree-sitter."
