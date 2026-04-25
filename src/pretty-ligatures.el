@@ -131,7 +131,9 @@ Regexp match data 0 specifies the characters to be composed."
         (?⇕ 2)
         (?↦ 2)
         (?⟼ 2)
-        (?∞ 2))))))
+        (?∞ 2)
+        (?→ 2)
+        (?⇒ 2))))))
 
 (defconst iosevka-slab-lig-glyphs
   (eval-when-compile
@@ -261,16 +263,17 @@ Regexp match data 0 specifies the characters to be composed."
 (defconst pretty-ligatures-rust-symbols
   (eval-when-compile
     (let* ((ligs
-            '(("<-" . "<-")
-              ("->" . "->")
-              ("=>" . "=>")
-              ("==" . "==")
-              ("!=" . "/=")
-              ("<=" . "LE")
-              (">=" . "GE")
-              ("||" . "||")
-              ("&&" . "&&")
-              ("::" . "::"))))
+            '(("<-"       . "<-")
+              ("->"       . ?→)
+              ("=>"       . ?⇒)
+              ("=="       . "==")
+              ("!="       . "/=")
+              ("<="       . "LE")
+              (">="       . "GE")
+              ("||"       . "||")
+              ("&&"       . "&&")
+              ("::"       . "::")
+              ("INFINITY" . ?∞))))
       (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it))) ligs))))
 
 (defconst pretty-ligatures-c-like-symbols

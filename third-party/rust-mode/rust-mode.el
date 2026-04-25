@@ -43,12 +43,6 @@ This variable might soon be remove again.")
   :type 'function
   :group 'rust-mode)
 
-(defvar rust-prettify-symbols-alist
-  '(("&&" . ?∧) ("||" . ?∨)
-    ("<=" . ?≤)  (">=" . ?≥) ("!=" . ?≠)
-    ("INFINITY" . ?∞) ("->" . ?→) ("=>" . ?⇒))
-  "Alist of symbol prettifications used for `prettify-symbols-alist'.")
-
 ;;; Customization
 
 (defgroup rust-mode nil
@@ -316,9 +310,6 @@ See `prettify-symbols-compose-predicate'."
               #'rust-electric-pair-inhibit-predicate-wrap)
   (add-function :before-until (local 'electric-pair-skip-self)
                 #'rust-electric-pair-skip-self)
-  ;; Configure prettify
-  (setq prettify-symbols-alist rust-prettify-symbols-alist)
-  (setq prettify-symbols-compose-predicate #'rust--prettify-symbols-compose-p)
 
   (add-hook 'before-save-hook rust-before-save-hook nil t)
   (add-hook 'after-save-hook rust-after-save-hook nil t))
