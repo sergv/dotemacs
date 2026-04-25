@@ -6,6 +6,7 @@
 ;; Created: 29 November 2019
 ;; Description:
 
+(require 'semnav)
 (require 'typography-setup)
 
 (defun smart-operators--point-surrounded-by2 (before2 before1 after1 after2)
