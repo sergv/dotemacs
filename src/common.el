@@ -760,10 +760,14 @@ the current buffer."
          (pos-a (with-selected-window win-a
                   (with-current-buffer buf-a
                     (point))))
+         (start-a (window-start win-a))
+         (scroll-a (window-vscroll win-a))
          (buf-b (window-buffer win-b))
          (pos-b (with-selected-window win-b
                   (with-current-buffer buf-b
-                    (point)))))
+                    (point))))
+         (start-b (window-start win-b))
+         (scroll-b (window-vscroll win-b)))
     (if (eq buf-b buf-a)
         (progn
           (with-selected-window win-a
@@ -778,8 +782,14 @@ the current buffer."
         (set-window-dedicated-p win-a nil)
         (set-window-dedicated-p win-b nil)
         (switch-to-buffer buf-b)
+        (set-window-vscroll win-a scroll-b)
+        (set-window-start win-a start-b)
+        (goto-char pos-b)
         (select-window win-b)
         (switch-to-buffer buf-a)
+        (set-window-vscroll win-b scroll-a)
+        (set-window-start win-b start-a)
+        (goto-char pos-a)
         (set-window-dedicated-p win-a dedicated-b?)
         (set-window-dedicated-p win-b dedicated-a?)))))
 
