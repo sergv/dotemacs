@@ -45,6 +45,16 @@
                               (shell-quote-argument buffer-file-name)))
                      t))
 
+(defun treesit-bash--is-string-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (member typ '("string" "raw_string")))
+
+(defun semnav-bounds-of-string-at--ts-bash (pos)
+  (declare (pure nil) (side-effect-free t))
+  (when-let* ((node (treesit-utils--string-at (treesit-node-at pos)
+                                              #'treesit-bash--is-string-node-type?)))
+    (cons (treesit-node-start node) (treesit-node-end node))))
+
 ;;;###autoload
 (defun shell-script-setup ()
   (init-common :use-yasnippet t
@@ -54,6 +64,10 @@
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
   (setq-local yas-indent-line 'fixed)
+
+  (when (eq major-mode 'bash-ts-mode)
+    (setq-local semnav-bounds-of-string-at-override #'semnav-bounds-of-string-at--ts-bash))
+
   (which-function-mode -1)
   (bind-tab-keys #'indent-for-tab-command
                  nil
@@ -183,7 +197,7 @@ sexps and indentation levels."
   (setup-folding t nil)
   (setup-hideshow-yafolding t nil)
 
-  (setq-local vim-bounds-of-string-guess-start #'vim--bounds-of-string--guess-via-comint-prompt)
+  (setq-local vim-bounds-of-string-guess-start #'vim--inclusive-bounds-of-string--guess-via-comint-prompt)
 
   (with-editor-export-editor '("EDITOR" "GIT_EDITOR"))
 
