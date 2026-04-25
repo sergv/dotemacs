@@ -17,6 +17,7 @@
 (require 'haskell-misc)
 (require 'haskell-snippets)
 (require 's)
+(require 'semnav)
 (require 'treesit-utils)
 (require 'trie)
 (require 'v)

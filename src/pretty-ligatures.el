@@ -11,6 +11,7 @@
   (require 'dash))
 
 (require 'el-patch)
+(require 'semnav)
 (require 'treesit-utils)
 
 (require 'common-font)

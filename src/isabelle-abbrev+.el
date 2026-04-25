@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'abbrev+)
+(require 'semnav)
 
 (defun-once isabelle-abbrev+-make-abbrevs
   (abbrev+-compile-abbreviations
