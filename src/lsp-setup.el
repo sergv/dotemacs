@@ -188,11 +188,13 @@
         (def-keys-for-map it
           ("M-." #'lsp-symbnav/go-to-symbol-home-no-regexp))))
     (def-keys-for-map vim-normal-mode-local-keymap
-      ("M-." (if enable-regexp?
-                 #'lsp-symbnav/go-to-symbol-home
-               #'lsp-symbnav/go-to-symbol-home-no-regexp))
       ("M-," lsp-symbnav/go-back)
-      ("M-?" lsp-symbnav/find-references))))
+      ("M-?" lsp-symbnav/find-references))
+    (if enable-regexp?
+        (def-keys-for-map vim-normal-mode-local-keymap
+          ("M-." #'lsp-symbnav/go-to-symbol-home))
+      (def-keys-for-map vim-normal-mode-local-keymap
+        ("M-." #'lsp-symbnav/go-to-symbol-home-no-regexp)))))
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
 
