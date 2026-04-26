@@ -2013,6 +2013,24 @@
   "foo _|_baz"
   ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/motion-outer-double-quote-2
+ :action
+ (execute-kbd-macro (kbd ", a \""))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- foo \"b_|_ar\" baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- foo _|_baz"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
