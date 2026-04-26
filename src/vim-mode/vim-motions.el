@@ -1282,31 +1282,32 @@ The function shouldn’t move point.")
 
 (defun vim--inclusive-bounds-of-string (p)
   "Return beginning and end of string at point P."
-  (if semnav-bounds-of-string-at-override
-      ;; If there’s override then use it since it’s probably more accurate
-      ;; (because it likely uses treesitter).
-      (when-let* ((bounds (semnav-bounds-of-string-at p)))
-        ;; Want to return inclusive bounds.
-        (cl-decf (cdr bounds))
-        bounds)
-    ;; If not then use our implementation with potentially better heuristics for
-    ;; shell prompts that default.
-    (save-excursion
-      (let* ((start (funcall vim-bounds-of-string-guess-start))
-             (end p)
-             (state (parse-partial-sexp start end))
-             (inside-string? (parse-partial-sexp--inside-string? state))
-             (string-start (parse-partial-sexp--comment-or-string-start state)))
-        (when inside-string?
-          ;; Continue parsing to find the end of string.
-          (parse-partial-sexp end
-                              (point-max)
-                              nil
-                              nil
-                              state
-                              'syntax-table ;; Stop after string end.
-                              )
-          (cons string-start (- (point) 1)))))))
+  (or
+   ;; If there’s override then use it since it’s probably more accurate
+   ;; (because it likely uses treesitter).
+   (when-let* (((not (null semnav-bounds-of-string-at-override)))
+               (bounds (semnav-bounds-of-string-at p)))
+     ;; Want to return inclusive bounds.
+     (cl-decf (cdr bounds))
+     bounds)
+   ;; If not then use our implementation with potentially better heuristics for
+   ;; shell prompts that default.
+   (save-excursion
+     (let* ((start (funcall vim-bounds-of-string-guess-start))
+            (end p)
+            (state (parse-partial-sexp start end))
+            (inside-string? (parse-partial-sexp--inside-string? state))
+            (string-start (parse-partial-sexp--comment-or-string-start state)))
+       (when inside-string?
+         ;; Continue parsing to find the end of string.
+         (parse-partial-sexp end
+                             (point-max)
+                             nil
+                             nil
+                             state
+                             'syntax-table ;; Stop after string end.
+                             )
+         (cons string-start (- (point) 1)))))))
 
 (defun vim--inner-doubled-quote (count)
   "Select text between two quotes."
