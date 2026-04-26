@@ -6300,7 +6300,6 @@ one or more symbols, and STRUCTURE should be compatible with
     (powershell-ts-mode         . powershell-ts-mode-indent-offset) ; PowerShell
     (raku-mode                  . raku-indent-offset)               ; Perl6/Raku
     (ruby-mode                  . ruby-indent-level)                ; Ruby
-    (rust-mode                  . rust-indent-offset)               ; Rust
     (rust-ts-mode               . rust-ts-mode-indent-offset)
     (rustic-mode                . rustic-indent-offset)             ; Rust
     (scala-mode                 . scala-indent:step)                ; Scala
