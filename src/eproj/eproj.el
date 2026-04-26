@@ -276,6 +276,7 @@
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/rust-tag-kind
     :tag->string-func #'eproj/rust-tag->string
+    :synonym-modes '(rust-ts-mode)
     :extra-navigation-globs
     (eval-when-compile
       (--map (concat "*." it)
