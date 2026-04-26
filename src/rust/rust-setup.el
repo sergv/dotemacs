@@ -345,7 +345,7 @@ foo {
 ;;;; Setup
 
 ;;;###autoload
-(defun rust-setup ()
+(defun rust-ts-setup ()
   (init-common :use-render-formula nil
                :use-yasnippet t
                :use-whitespace t)
@@ -370,8 +370,8 @@ foo {
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
 
-  (setf vim-shift-width rust-indent-offset
-        tab-width rust-indent-offset)
+  (setf vim-shift-width rust-ts-mode-indent-offset
+        tab-width rust-ts-mode-indent-offset)
 
   (let (;; NB may be nil.
         (proj (eproj-get-project-for-buf-lax (current-buffer))))
