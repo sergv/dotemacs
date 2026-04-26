@@ -847,7 +847,7 @@
    "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (rust-mode haskell-ts-mode haskell-hsc-mode)
+    (rust-ts-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/block-insert-newline-1
     (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <return> <escape>"))
   (tests-utils--multiline
@@ -944,7 +944,7 @@
    "        ]);"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (rust-mode)
+    (rust-ts-mode)
     vim-tests/linewise-append-newline-1
     (execute-kbd-macro (kbd "d d V h h h A 1 2 3 <return> <escape>"))
   (tests-utils--multiline
@@ -969,7 +969,7 @@
    "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (rust-mode)
+    (rust-ts-mode)
     vim-tests/block-append-newline-1
     (execute-kbd-macro (kbd "d d C-v h h h A 1 2 3 <return> <escape>"))
   (tests-utils--multiline
@@ -1012,9 +1012,9 @@
      " quux)"
      "")))
 
-(ert-deftest vim-tests/comment-linewise-region-1/rust-mode ()
+(ert-deftest vim-tests/comment-linewise-region-1/rust-ts-mode ()
   (vim-tests--test-fresh-buffer-contents-init
-      (rust-mode)
+      (rust-ts-mode)
       (execute-kbd-macro (kbd "V h j c c"))
     (tests-utils--multiline
      ""
@@ -1617,7 +1617,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
- (rust-mode)
+ (rust-ts-mode)
  :name
  vim-tests/navigation-insertion-1a
  :action
@@ -2934,7 +2934,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (rust-mode)
+    (rust-ts-mode)
     vim-tests/record-and-execute-macro-1
     (let ((vim--macro-definitions (make-hash-table :test #'equal))
           (name (cons nil 0)))
@@ -5359,7 +5359,7 @@ _|_bar")
 
 (ert-deftest vim-tests/rust-open-paren-1 ()
   (vim-tests--test-fresh-buffer-contents-init
-      (rust-mode)
+      (rust-ts-mode)
       (execute-kbd-macro (kbd "i ( f o o + 1 ) ; <escape>"))
     (tests-utils--multiline
      ""
@@ -5713,28 +5713,28 @@ _|_bar")
   (tests-utils--multiline "" "foo [_|_] bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode emacs-lisp-mode)
+    (text-mode c-mode rust-ts-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo{_|_}bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode emacs-lisp-mode)
+    (text-mode c-mode rust-ts-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3a
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo {_|_}bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode emacs-lisp-mode)
+    (text-mode c-mode rust-ts-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3b
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo{_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode emacs-lisp-mode)
+    (text-mode c-mode rust-ts-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3c
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo _|_ bar" "")
@@ -5826,63 +5826,63 @@ _|_bar")
 
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-6
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo[_|_]bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-6a
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo [_|_]bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-6b
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo[_|_] bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-6c
     (execute-kbd-macro (kbd "i \["))
   (tests-utils--multiline "" "foo _|_ bar" "")
   (tests-utils--multiline "" "foo [_|_] bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-8
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo\"_|_\"bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-8a
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo \"_|_\"bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-8b
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo\"_|_\" bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-8c
     (execute-kbd-macro (kbd "i \""))
   (tests-utils--multiline "" "foo _|_ bar" "")
   (tests-utils--multiline "" "foo \"_|_\" bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-mode)
+    (text-mode c-mode rust-ts-mode)
     vim-tests/pseudoparedit-8d
     (execute-kbd-macro (kbd "i \" x \""))
   (tests-utils--multiline "" "foo _|_ bar" "")
