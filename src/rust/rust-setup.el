@@ -70,7 +70,7 @@ warnings will be colorized in `rust-compilation-mode'.")
   (let ((inhibit-read-only t))
     (ansi-color-apply-on-region compilation-filter-start (point-max))))
 
-(defun rust--prettify-symbols-compose-p (start end match)
+(defun rust-setup--prettify-symbols-compose-p (start end match)
   "Return true iff the symbol MATCH should be composed.
 The symbol starts at position START and ends at position END.
 This is the default for `prettify-symbols-compose-predicate'
@@ -396,7 +396,7 @@ foo {
                                      pretty-ligatures-c-like-symbols
                                      ;; pretty-ligatures-rust-symbols
                                      ))
-  (setq-local prettify-symbols-compose-predicate #'rust--prettify-symbols-compose-p)
+  (setq-local prettify-symbols-compose-predicate #'rust-setup--prettify-symbols-compose-p)
 
   (bind-tab-keys #'indent-for-tab-command
                  #'tab-to-tab-stop-backward
