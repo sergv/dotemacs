@@ -380,6 +380,17 @@ foo {
              (insert-char ?\t)
            (insert-char ?\s tab-width)))))))
 
+(defconst rust-setup--extra-ts-indent-rules
+  `(
+
+    ((n-p-gp nil nil "parenthesized_expression")
+     prev-adaptive-prefix
+     0)
+
+    (no-node
+     prev-adaptive-prefix
+     0)))
+
 ;;;; Setup
 
 ;;;###autoload
@@ -397,6 +408,10 @@ foo {
                                      ;; pretty-ligatures-rust-symbols
                                      ))
   (setq-local prettify-symbols-compose-predicate #'rust-setup--prettify-symbols-compose-p)
+
+  (setf (cdr (car treesit-simple-indent-rules))
+        (append rust-setup--extra-ts-indent-rules
+                (cdr (car treesit-simple-indent-rules))))
 
   (bind-tab-keys #'indent-for-tab-command
                  #'tab-to-tab-stop-backward
