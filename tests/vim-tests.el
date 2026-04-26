@@ -1588,28 +1588,55 @@
    " quux)"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/navigation-insertion-1
-    (execute-kbd-macro (kbd "h h h o <escape>"))
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " _|_abc"
-   " def"
-   " ghi"
-   " jkl"
-   " quux)"
-   "")
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " abc"
-   " def"
-   " ghi"
-   " jkl"
-   "_|_ "
-   " quux)"
-   ""))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes*
+ :name
+ vim-tests/navigation-insertion-1
+ :action
+ (execute-kbd-macro (kbd "h h h o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " _|_abc"
+  " def"
+  " ghi"
+  " jkl"
+  " quux)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " abc"
+  " def"
+  " ghi"
+  " jkl"
+  "_|_ "
+  " quux)"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (rust-mode)
+ :name
+ vim-tests/navigation-insertion-1a
+ :action
+ (execute-kbd-macro (kbd "h o x + 1 <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "fn foo() -> _|_i32 {"
+  "    let x = 1;"
+  "}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fn foo() -> i32 {"
+  "    let x = 1;"
+  "    x + _|_1"
+  "}"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-cycle-after-1
@@ -1682,34 +1709,39 @@
    " quux)"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/tab-on-newly-created-empty-line-1
-    (progn
-      (execute-kbd-macro (kbd "h h h o <escape> <tab>"))
-      (when (eq major-mode 'text-mode)
-        (while (and (char-after)
-                    (char= (char-after) ?\s))
-          (delete-char 1))))
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " _|_abc"
-   " def"
-   " ghi"
-   " jkl"
-   " quux)"
-   "")
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " abc"
-   " def"
-   " ghi"
-   " jkl"
-   " _|_"
-   " quux)"
-   ""))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-except*
+ :skip-modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/tab-on-newly-created-empty-line-1
+ :action
+ (progn
+   (execute-kbd-macro (kbd "h h h o <escape> <tab>"))
+   (when (eq major-mode 'text-mode)
+     (while (and (char-after)
+                 (char= (char-after) ?\s))
+       (delete-char 1))))
+ :contents
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " _|_abc"
+  " def"
+  " ghi"
+  " jkl"
+  " quux)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " abc"
+  " def"
+  " ghi"
+  " jkl"
+  " _|_"
+  " quux)"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
@@ -1888,26 +1920,31 @@
    " quux)"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (c-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/insert-linewise-region-newline-1
-    (execute-kbd-macro (kbd "V h I x y z <return> <escape>"))
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " b_|_ar"
-   " baz"
-   " quux)"
-   "")
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " xyz"
-   "_|_ bar"
-   " xyz"
-   " baz"
-   " quux)"
-   ""))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-except*
+ :skip-modes
+ (c-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/insert-linewise-region-newline-1
+ :action
+ (execute-kbd-macro (kbd "V h I x y z <return> <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " b_|_ar"
+  " baz"
+  " quux)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " xyz"
+  "_|_ bar"
+  " xyz"
+  " baz"
+  " quux)"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except*
  :skip-modes
