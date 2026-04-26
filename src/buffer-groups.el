@@ -68,7 +68,7 @@
        (c-c++-filter `(or (mode . c-mode)
                           (mode . c++-mode)
                           (mode . glsl-mode)))
-       (rust-filter `(or (mode . rust-mode)
+       (rust-filter `(or (mode . rust-ts-mode)
                          (mode . cargo-toml-mode)))
        (isabelle-filter `(or (mode . isar-mode)))
        (ml-filter `(or (mode . sml-mode)
