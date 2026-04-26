@@ -39,7 +39,7 @@ This variable might soon be remove again.")
   :link '(url-link "https://www.rust-lang.org/")
   :group 'languages)
 
-(defcustom rust-mode-treesitter-derive nil
+(defcustom rust-mode-treesitter-derive t
   "Whether rust-mode should derive from the new treesitter mode `rust-ts-mode'
 instead of `prog-mode'. This option requires emacs29+."
   :version "29.1"
