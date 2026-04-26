@@ -6,6 +6,9 @@
 ;; Created: 29 November 2019
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'common)
 (require 'ert)
 (require 'tests-utils)
@@ -21,6 +24,20 @@
     :expected-value (concat "\n\n" ,expected-value "\n\n")
     :initialisation (rust-mode)
     :buffer-id rust))
+
+(cl-defmacro rust-tests--test-buffer-contents*
+    (&key name
+          action
+          contents
+          expected-value)
+  (declare (indent nil))
+  `(ert-deftest ,name ()
+     (tests-utils--test-buffer-contents
+      :action ,action
+      :contents (concat "\n\n" ,contents "\n\n")
+      :expected-value (concat "\n\n" ,expected-value "\n\n")
+      :initialisation (rust-mode)
+      :buffer-id rust)))
 
 (ert-deftest rust-tests/rust-newline--expand-braced-block-1 ()
   (rust-tests--test-buffer-contents
@@ -791,6 +808,51 @@
 ;;      "    Err(ParseError::PrematureStringEnd(mk_string(input)))"
 ;;      "}"
 ;;      "")))
+
+
+(rust-tests--test-buffer-contents*
+ :name
+ rust-tests/backward-up-indentation-or-sexp-1a
+ :action
+ (rust-backward-up-indentation-or-sexp)
+ :contents
+ (tests-utils--multiline
+  ""
+  "fn foo() -> i32 {"
+  "    let x = 1;"
+  "_|_"
+  "    x"
+  "}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fn foo() -> i32 {"
+  "    _|_let x = 1;"
+  ""
+  "    x"
+  "}"
+  ""))
+
+(rust-tests--test-buffer-contents*
+ :name
+ rust-tests/backward-up-indentation-or-sexp-2b
+ :action
+ (rust-backward-up-indentation-or-sexp)
+ :contents
+ (tests-utils--multiline
+  "fn foo() -> i32 {"
+  "    let x = 1;"
+  ""
+  "    _|_x"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "_|_fn foo() -> i32 {"
+  "    let x = 1;"
+  ""
+  "    x"
+  "}"))
 
 (provide 'rust-tests)
 
