@@ -22,7 +22,7 @@
     :action ,action
     :contents (concat "\n\n" ,contents "\n\n")
     :expected-value (concat "\n\n" ,expected-value "\n\n")
-    :initialisation (rust-mode)
+    :initialisation (rust-ts-mode)
     :buffer-id rust))
 
 (cl-defmacro rust-tests--test-buffer-contents*
@@ -36,7 +36,7 @@
       :action ,action
       :contents (concat "\n\n" ,contents "\n\n")
       :expected-value (concat "\n\n" ,expected-value "\n\n")
-      :initialisation (rust-mode)
+      :initialisation (rust-ts-mode)
       :buffer-id rust)))
 
 (ert-deftest rust-tests/rust-newline--expand-braced-block-1 ()
