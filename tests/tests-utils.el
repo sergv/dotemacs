@@ -170,7 +170,7 @@ Ensures a final newline is inserted."
     (haskell-ts-mode (haskell-ts-mode))
     (haskell-hsc-mode (haskell-hsc-mode))
     (emacs-lisp-mode (emacs-lisp-mode))
-    (rust-mode (rust-mode))
+    (rust-ts-mode (rust-ts-mode))
     (c-mode (c-mode))
     (sh-mode (sh-mode))
     (bash-ts-mode (bash-ts-mode))))
