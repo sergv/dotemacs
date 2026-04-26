@@ -513,7 +513,6 @@ foo {
     (def-keys-for-map vim-normal-mode-local-keymap
       ("C-r" lsp-rename))))
 
-
 (provide 'rust-setup)
 
 ;; Local Variables:
