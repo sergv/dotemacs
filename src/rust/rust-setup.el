@@ -349,6 +349,7 @@ foo {
   (init-common :use-render-formula nil
                :use-yasnippet t
                :use-whitespace t)
+  (add-hook 'after-save-hook #'update-eproj-tags-on-save! nil t)
   (setup-folding t '(:header-symbol "/" :length-min 3))
   (company-mode +1)
   (setq-local ;; Don't skip any messages.

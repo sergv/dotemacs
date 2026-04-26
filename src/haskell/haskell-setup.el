@@ -107,10 +107,6 @@
 (vim-defcmd vim:haskell-comment-line (count repeatable)
   (haskell-comment-line count))
 
-(defun haskell-update-eproj-tags-on-save ()
-  (ignore-errors
-    (eproj-update-current-buffer-within-its-project!)))
-
 (vim-defcmd vim:haskell-qualify-import (repeatable)
   (haskell-qualify-import))
 
@@ -462,7 +458,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
 (defun haskell-setup-common-prelude ()
   (init-common :use-whitespace 'tabs-only)
-  (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
+  (add-hook 'after-save-hook #'update-eproj-tags-on-save! nil t)
 
   ;; Order is important, otherwise special forall fontification doesn’t work
   (pretty-ligatures-install-special-haskell-ligatures!)
