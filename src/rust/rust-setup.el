@@ -449,7 +449,7 @@ foo {
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-u"      rust-insert-unimplemented)
+    ("M-u"      rust-insert-unimplemented)
     ("C-h"      flycheck-enhancements-next-error-with-wraparound)
     ("C-t"      flycheck-enhancements-previous-error-with-wraparound)
     ("M-h"      compilation-navigation-next-error-other-window)
