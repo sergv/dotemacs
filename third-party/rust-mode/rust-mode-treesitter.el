@@ -9,7 +9,7 @@
 
 ;; Do not compile or load on Emacs releases that don't support
 ;; this.  See https://github.com/rust-lang/rust-mode/issues/520.
-(when (version<= "29.1" emacs-version)
+(when (eval-when-compile (version<= "29.1" emacs-version))
   (require 'treesit)
   (require 'rust-ts-mode)
 
