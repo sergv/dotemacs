@@ -218,7 +218,7 @@ sexps and indentation levels."
                    p)))))
           (via-parens
            (when (and enable-sexp?
-                      (/= 0 (syntax-ppss-depth (syntax-ppss start))))
+                      (not (zerop (syntax-ppss-depth (syntax-ppss start)))))
              (with-demoted-errors "Ignoring error: %s"
                (save-excursion
                  (paredit-backward-up)
