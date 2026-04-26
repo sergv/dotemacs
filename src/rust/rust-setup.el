@@ -403,11 +403,13 @@ foo {
   (setq-local ;; Don't skip any messages.
    compilation-skip-threshold 0)
 
+  (setq-local prettify-symbols-alist nil
+              prettify-symbols-compose-predicate #'rust-setup--prettify-symbols-compose-p)
+
   (pretty-ligatures--install (append pretty-ligatures-python-like-words
                                      pretty-ligatures-c-like-symbols
                                      ;; pretty-ligatures-rust-symbols
                                      ))
-  (setq-local prettify-symbols-compose-predicate #'rust-setup--prettify-symbols-compose-p)
 
   (setf (cdr (car treesit-simple-indent-rules))
         (append rust-setup--extra-ts-indent-rules
