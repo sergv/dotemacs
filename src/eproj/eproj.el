@@ -517,6 +517,10 @@ get proper flycheck checker."
    (eproj-project/root (eproj-get-project-for-buf (current-buffer))))
   (notify "done"))
 
+(defun update-eproj-tags-on-save! ()
+  (with-demoted-errors "Failed to update tags on save: %s"
+    (eproj-update-current-buffer-within-its-project!)))
+
 ;; careful: quite complex procedure
 ;;;###autoload
 (defun eproj-update-current-buffer-within-its-project! ()
