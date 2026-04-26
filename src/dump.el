@@ -139,9 +139,7 @@
         (error "Language 'hsc not available: %s" (cdr it))))
     (awhen (treesit-language-available-p 'rust t)
       (if (car it)
-          (progn
-            (require 'rust-ts-mode)
-            (require 'rust-mode))
+          (require 'rust-ts-mode)
         (error "Language 'hsc not available: %s" (cdr it))))
 
     (require 'ebuf)
