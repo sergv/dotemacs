@@ -146,21 +146,6 @@ Use idomenu (imenu with `ido-mode') for best mileage.")
 
 ;;; Prettify
 
-(defun rust--prettify-symbols-compose-p (start end match)
-  "Return true iff the symbol MATCH should be composed.
-See `prettify-symbols-compose-predicate'."
-  (and (fboundp 'prettify-symbols-default-compose-p)
-       (prettify-symbols-default-compose-p start end match)
-       ;; Make sure || is not a closure with 0 arguments and && is not
-       ;; a double reference.
-       (pcase match
-         ("||" (not (save-excursion
-                      (goto-char start)
-                      (looking-back "\\(?:\\<move\\|[[({:=,;]\\) *"
-                                    (line-beginning-position)))))
-         ("&&" (char-equal (char-after end) ?\s))
-         (_ t))))
-
 (defvar rust-top-item-beg-re
   (concat "\\s-*\\(?:priv\\|pub\\)?\\s-*"
           ;; TODO some of this does only make sense for `fn' (unsafe, extern...)
@@ -1611,10 +1596,7 @@ whichever comes first."
   (setq-local electric-pair-inhibit-predicate
               #'rust-electric-pair-inhibit-predicate-wrap)
   (add-function :before-until (local 'electric-pair-skip-self)
-                #'rust-electric-pair-skip-self)
-  ;; Configure prettify
-  (setq prettify-symbols-alist rust-prettify-symbols-alist)
-  (setq prettify-symbols-compose-predicate #'rust--prettify-symbols-compose-p))
+                #'rust-electric-pair-skip-self))
 
 (define-derived-mode rust-mode prog-mode "Rust"
   "Major mode for Rust code.
