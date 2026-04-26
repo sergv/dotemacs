@@ -18,6 +18,7 @@
 
 (require 'configurable-compilation)
 (require 'rust-mode)
+(require 'rust-ts-mode)
 (require 's)
 
 (defun rust-compilation--make-cargo-build-command-presets (target-dir)
