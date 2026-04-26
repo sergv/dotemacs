@@ -56,7 +56,7 @@
     (awhen rustup-home
       (push (concat it "/toolchains") lsp-rust-library-directories))))
 
-(puthash 'rust-mode
+(puthash 'rust-ts-mode
          #'rust-format-region
          *mode-indent-functions-table*)
 
@@ -124,7 +124,7 @@ which is suitable for most programming languages such as C or Lisp."
              (eq flycheck-checker 'lsp))
     (lsp-restart-workspace)))
 
-(with-eval-after-load 'rust-mode
+(with-eval-after-load 'rust-ts-mode
   (add-hook 'flycheck-mode-hook #'rust-flycheck-configure))
 
 ;;;;; rust-compilation-mode
@@ -184,9 +184,9 @@ which is suitable for most programming languages such as C or Lisp."
 
 (define-derived-mode rust-syntax-mode special-mode "Rust syntax"
   "Major mode to highlight Rust programs."
-  :group 'rust-mode
-  :syntax-table rust-mode-syntax-table
-  (rust-mode--set-up-local-vars))
+  :group 'rust-ts-mode
+  :syntax-table rust-ts-mode-syntax-table
+  (rust-ts-mode--set-up-local-vars))
 
 ;;;;
 
