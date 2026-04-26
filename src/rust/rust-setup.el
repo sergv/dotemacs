@@ -290,61 +290,12 @@ _<tab>_: format region _h_: end of defun"
     (evaporate-region start (point))
     (goto-char start)))
 
-(defconst rust-regexen/empty-line "^\\(?:[ \t]*$\\)")
-
-(defun rust-back-up-indent-level ()
-  "Move up to lesser indentation level, skipping empty lines.
-
-Returns t if indentation occured."
-  (let ((start-indent (indentation-size))
-        (col (current-column-fixed)))
-    (cond
-      ((> col start-indent)
-       (skip-to-indentation)
-       t)
-      ;; Do not move past 0th column in order to not skip to the
-      ;; beginning of file.
-      ((/= 0 start-indent)
-       ;;(= col start-indent)
-       (while (and (not (bobp))
-                   (let ((curr-indent (indentation-size)))
-                     (or (>= curr-indent start-indent)
-                         (> curr-indent col))))
-         (forward-line -1)
-         (while (looking-at-p rust-regexen/empty-line)
-           (forward-line -1)))
-       (skip-to-indentation)
-       t)
-      (t
-       nil))))
-
 ;;;###autoload
 (defun rust-backward-up-indentation-or-sexp ()
   "Rust brother of ‘paredit-backward-up-sexp’ that considers both
 sexps and indentation levels."
   (interactive)
-  (let* ((start (point))
-         (with-indentation
-          (with-demoted-errors "Ignoring error: %s"
-              (save-excursion
-                (rust-back-up-indent-level)
-                (let ((p (point)))
-                  (when (/= p start)
-                    p)))))
-         (with-sp
-          (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
-            (with-demoted-errors "Ignoring error: %s"
-                (save-excursion
-                  (paredit-backward-up)
-                  (let ((p (point)))
-                    (when (/= p start)
-                      p)))))))
-    (if (and with-indentation
-             with-sp)
-        (goto-char (max with-indentation with-sp))
-      (goto-char (or with-indentation
-                     with-sp
-                     (error "Both indentation-based and sexp-based navigations failed"))))))
+  (indent-backward-up-indentation-or-sexp #'indent-on-blank-line? t))
 
 (vimmize-motion rust-backward-up-indentation-or-sexp
                 :name vim:rust-backward-up-indentation-or-sexp
