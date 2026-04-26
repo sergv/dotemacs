@@ -123,7 +123,6 @@
     ;; (require 'posframe)
     (require 'ptx-mode)
     (require 'rainbow-delimiters)
-    (require 'rust-mode)
     (require 'shell)
     (require 'smex)
     (require 'toml-mode)
@@ -137,6 +136,12 @@
     (awhen (treesit-language-available-p 'hsc t)
       (if (car it)
           (require 'haskell-hsc-mode)
+        (error "Language 'hsc not available: %s" (cdr it))))
+    (awhen (treesit-language-available-p 'rust t)
+      (if (car it)
+          (progn
+            (require 'rust-ts-mode)
+            (require 'rust-mode))
         (error "Language 'hsc not available: %s" (cdr it))))
 
     (require 'ebuf)
