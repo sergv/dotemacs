@@ -182,7 +182,7 @@ Intended to be used with comment-util-mode."
                                    :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char
                                    :nested-ok? nil))
 
-            ((rust-mode
+            ((rust-ts-mode
               cuda-mode
               ptx-mode
               c-mode

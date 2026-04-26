@@ -154,7 +154,7 @@ same for a set of buffers rather than being different."
               (when (or (derived-mode-p 'haskell-mode)
                         (derived-mode-p 'haskell-ts-base-mode))
                 (haskell-misc-get-project-root))
-              (when (derived-mode-p 'rust-mode)
+              (when (derived-mode-p 'rust-ts-mode)
                 (if configurable-compilation--cached-rust-project-root
                     configurable-compilation--cached-rust-project-root
                   (when-let ((buf (buffer-file-name))
