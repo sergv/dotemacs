@@ -260,7 +260,11 @@ e.g. shell prompt."
 
 (vim-defmotion vim:motion-first-non-blank (exclusive raw-result)
   "Move the cursor to the first non-blank character of the current line."
-  (skip-to-indentation))
+  (if (derived-mode-p 'comint-mode)
+      (progn
+        (goto-char (comint-line-beginning-position))
+        (skip-indentation-forward))
+    (skip-to-indentation)))
 
 (vim-defmotion vim:motion-end-of-line (inclusive raw-result)
   "Move the cursor to the end of the current line."
