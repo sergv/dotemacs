@@ -1118,12 +1118,14 @@ Return indentation size in number of characters (i.e. tabs count as 1)."
   (forward-line (- (or count 1))))
 
 
-(defsubst goto-line-dumb (line)
+(defun goto-line-dumb (line)
   "Set point at the beginning of line LINE counting from line 1 at
 beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" as
 `goto-line' does."
   (goto-char (point-min))
-  (forward-line (1- line)))
+  (if (derived-mode-p 'comint-mode)
+      (beginning-of-line line)
+    (forward-line (1- line))))
 
 ;;; rotate list functions, very old...
 
