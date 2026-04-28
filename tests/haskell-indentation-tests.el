@@ -836,6 +836,27 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-comment-7
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Foo"
+  ""
+  "    _|_-- Comment"
+  ""
+  "foo x =x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Foo"
+  ""
+  "_|_-- Comment"
+  ""
+  "foo x =x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-where-1
  :contents
  (tests-utils--multiline
