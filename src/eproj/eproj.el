@@ -784,7 +784,7 @@ for project at ROOT directory."
           (eproj-get-related-projects root aux-info))
          (cached-ignored-files-re
           (let ((related-projs-globs
-                 (--map (concat (strip-string-prefix (concat root "/") it) "/*")
+                 (--map (concat (strip-directory-and-separator-prefix root it) "/*")
                         (--filter (eproj--path-under-p root it)
                                   related-projects))))
             (globs-to-regexp ignored-files-globs)))
