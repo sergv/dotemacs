@@ -84,7 +84,14 @@ runtime but rather will be silently relied on)."
               (file-name-cache (eproj-normalise-file-name-cached/make-cache))
               (sharing-cache (eproj-ctags--make-sharing-cache)))
           (dolist (entry data)
-            (let* ((filename (car entry))
+            (let* ((filename-raw (car entry))
+                   (filename (if (file-name-absolute-p filename-raw)
+                                 (if (string-prefix-p proj-root filename-raw)
+                                     (strip-directory-and-separator-prefix proj-root filename-raw)
+                                   (error "Unexpected tag filename not coming from project %s: %s"
+                                          proj-root
+                                          filename-raw))
+                               filename-raw))
                    (tags (cdr entry))
                    (file (eproj-ctags--share
                           (eproj-normalise-file-name-cached/with-explicit-cache
