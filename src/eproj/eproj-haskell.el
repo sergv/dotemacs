@@ -19,58 +19,52 @@
 
 (require 'haskell-cabal)
 
-(defun eproj/create-haskell-generic-tags (proj project-files-thunk parse-tags-proc args)
+;;;###autoload
+(defun eproj/create-haskell-compact-tags (proj project-files-thunk parse-tags-proc)
   (with-temp-buffer
     (with-disabled-undo
      (with-inhibited-modification-hooks
       (let ((out-buffer (current-buffer))
             (ext-re (eproj-language/extension-re
                      (gethash 'haskell-mode eproj/languages-table)))
-            (fast-tags-exe
-             (cached-executable-find "fast-tags")))
-        (unless fast-tags-exe
-          (error "Fast tags executable not found"))
-        (unless (file-executable-p fast-tags-exe)
-          (error "Fast tags executable does not exist: %s"
-                 fast-tags-exe))
+            (faster-richer-tags-exe
+             (cached-executable-find "faster-richer-tags")))
+        (unless faster-richer-tags-exe
+          (error "faster-richer-tags executable not found"))
+        (unless (file-executable-p faster-richer-tags-exe)
+          (error "faster-richer-tags executable does not exist: %s"
+                 faster-richer-tags-exe))
         (with-temp-buffer
           (with-disabled-undo
            (with-inhibited-modification-hooks
             (dolist (file (nanothunk-force project-files-thunk))
               (when (string-match-p ext-re file)
-                (insert file "\n")))
+                (insert file "\0")))
             (unless (= 0
                        (let ((default-directory (eproj-project/root proj)))
-                         (apply
-                          #'call-process-region
+                         (call-process-region
                           (point-min)
                           (point-max)
-                          fast-tags-exe
+                          faster-richer-tags-exe
+                          ;; Don’t delete input regino.
                           nil
-                          ;; Discard error output from fast-tags
-                          (list out-buffer nil)
+                          ;; Keep error output from faster-richer-tags and
+                          ;; mix with stdout.
+                          (list out-buffer t)
+                          ;; Don’t redisplay.
                           nil
-                          args)))
-              (error "fast-tags invokation failed: %s"
+                          "generate"
+                          "--null")))
+              (error "faster-richer-tags invokation failed: %s"
                      (with-current-buffer out-buffer
                        (buffer-substring-no-properties (point-min) (point-max)))))
             (erase-buffer))))
         (funcall parse-tags-proc (eproj-project/root proj) out-buffer nil))))))
 
 ;;;###autoload
-(defun eproj/create-haskell-compact-tags (proj project-files-thunk parse-tags-proc)
-  (eproj/create-haskell-generic-tags
-   proj
-   project-files-thunk
-   parse-tags-proc
-   '("-o-"
-     "--compact-format"
-     "-")))
-
-;;;###autoload
-(defun eproj/get-fast-tags-compact-tags-from-buffer (proj-root buffer tags-source)
+(defun eproj/get-faster-richer-tags-compact-tags-from-buffer (proj-root buffer tags-source)
   "Constructs hash-able of (tag . eproj-tag) bindings extracted from buffer BUFFER.
-BUFFER is expected to contain simplified output of ctags - fast-tags command.
+BUFFER is expected to contain simplified output of ctags - faster-richer-tags command.
 
 Function does not attempt to parse <key>=<value> pairs after ;\",
 and expects single character there instead (this isn't be checked at
