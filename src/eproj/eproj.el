@@ -178,7 +178,10 @@
   (cl-assert (or (null parse-tags-procedure)
                  (functionp parse-tags-procedure)
                  (autoloadp parse-tags-procedure)
-                 (subr-native-elisp-p parse-tags-procedure)))
+                 (subr-native-elisp-p parse-tags-procedure))
+             nil
+             "Invalid parse-tags-procedure: %s"
+             parse-tags-procedure)
   (cl-assert (listp synonym-modes))
   (cl-assert (or (functionp tag->string-func)
                  (autoloadp tag->string-func)
@@ -243,7 +246,7 @@
     :create-tags-procedure
     #'eproj/create-haskell-compact-tags
     :parse-tags-procedure
-    #'eproj/get-fast-tags-compact-tags-from-buffer
+    #'eproj/get-faster-richer-tags-compact-tags-from-buffer
     :show-tag-kind-procedure #'eproj/haskell-tag-kind
     :tag->string-func #'eproj/haskell-tag->string
     :synonym-modes '(haskell-ts-mode
