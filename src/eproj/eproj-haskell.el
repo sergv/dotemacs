@@ -58,16 +58,6 @@
         (funcall parse-tags-proc (eproj-project/root proj) out-buffer nil))))))
 
 ;;;###autoload
-(defun eproj/create-haskell-vim-tags (proj project-files-thunk parse-tags-proc)
-  (eproj/create-haskell-generic-tags
-   proj
-   project-files-thunk
-   parse-tags-proc
-   '("-o-"
-     "--nomerge"
-     "-")))
-
-;;;###autoload
 (defun eproj/create-haskell-compact-tags (proj project-files-thunk parse-tags-proc)
   (eproj/create-haskell-generic-tags
    proj
@@ -76,59 +66,6 @@
    '("-o-"
      "--compact-format"
      "-")))
-
-;;;###autoload
-(defun eproj/get-fast-tags-vim-tags-from-buffer (proj-root buffer tags-source)
-  "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
-BUFFER is expected to contain simplified output of ctags - fast-tags command.
-
-Function does not attempt to parse <key>=<value> pairs after ;\",
-and expects single character there instead (this isn't be checked at
-runtime but rather will be silently relied on)."
-  (declare (ignore tags-source))
-  (with-current-buffer buffer
-    (save-match-data
-      (goto-char (point-min))
-      (let ((tags-index (empty-eproj-tag-index))
-            (gc-cons-threshold (cap-floor
-                                   (* 100 1024 1024)
-                                   gc-cons-threshold
-                                 ;; Every 1000 lines takes up 1 mb or so.
-                                 (/ (* (count-lines-fixed (point-min) (point-max)) 1024 1024)
-                                    1000)))
-            (progress-reporter (when eproj-verbose-tag-loading
-                                 (let ((total-tags-count (count-lines-fixed (point-min) (point-max))))
-                                   (make-standard-progress-reporter total-tags-count "tags"))))
-            (file-name-cache (eproj-normalise-file-name-cached/make-cache))
-            (sharing-cache (eproj-ctags--make-sharing-cache)))
-        (garbage-collect)
-        (while (looking-at-p "^!_TAG_")
-          (forward-line 1))
-        (while (not (eobp))
-          (beginning-of-line)
-          (when (looking-at eproj-ctags--line-re)
-            (let ((symbol (match-string-no-properties 1))
-                  (file (eproj-ctags--share
-                         (eproj-normalise-file-name-cached/with-explicit-cache
-                          file-name-cache
-                          (match-string-no-properties 2))
-                         sharing-cache))
-                  (line (string->number (match-string-no-properties 3))))
-              (goto-char (match-end 0))
-              ;; now we're past ;"
-              (skip-chars-forward "\t")
-              (let ((type (char-after (point))))
-                (eproj-tag-index-add! symbol
-                                      file
-                                      line
-                                      type
-                                      t
-                                      nil
-                                      tags-index))))
-          (forward-line 1)
-          (when eproj-verbose-tag-loading
-            (funcall progress-reporter 1)))
-        tags-index))))
 
 ;;;###autoload
 (defun eproj/get-fast-tags-compact-tags-from-buffer (proj-root buffer tags-source)
