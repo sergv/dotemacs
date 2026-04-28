@@ -1291,7 +1291,7 @@
  :eproj-project
  (attrap-tests-make-ephemeral-haskell-eproj-project
   '(
-    ;; Tags produced by fast-tags may not contain parent annotation
+    ;; Tags produced by faster-richer-tags may not contain parent annotation
     ;; for patterns. But in case they do then this test ensures that
     ;; everything on the Emacs side will be handled correctly.
     ("Foo" "Test/Foo/Bar.hs" 100 ?p ((parent "Bar" . ?t)))
