@@ -688,7 +688,7 @@
               haskell-ts-haddock--haddock-result-doc-anchor
               0)
 
-             ((n-p-gp '("comment" "haddock") '("declarations" "haskell") nil) prev-sibling 0)
+             ((n-p-gp '("comment" "haddock") '("imports" "declarations" "haskell") nil) prev-sibling 0)
 
              ((n-p-gp nil "prefix" "data_constructor")
               grand-parent
