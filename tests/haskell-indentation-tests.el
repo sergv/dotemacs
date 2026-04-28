@@ -5968,6 +5968,27 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-5
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "    where"
+  "      bar x = x"
+  "      baz x      | quux x    = 1"
+  "            _|_| otherwise = 2"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "    where"
+  "      bar x = x"
+  "      baz x      | quux x    = 1"
+  "                 _|_| otherwise = 2"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-do-1a
  :contents
  (tests-utils--multiline
@@ -7870,10 +7891,10 @@ have different input states."
   "    s' = C8.cons '\\n' $ C8.snoc (C8.snoc (stripBOM s) '\\n') '\\0'"
   "    stripBOM :: C8.ByteString -> C8.ByteString"
   "    stripBOM xs"
-  "        | \"\\xEF\\xBB\\xBF\" `C8.isPrefixOf` xs"
-  "        = C8.drop 3 xs"
-  "        | otherwise"
-  "        = xs"
+  "      | \"\\xEF\\xBB\\xBF\" `C8.isPrefixOf` xs"
+  "      = C8.drop 3 xs"
+  "      | otherwise"
+  "      = xs"
   ""
   "{-# INLINE extractDefineOrLetName #-}"
   "extractDefineOrLetName :: AlexInput -> Int -> T.Text"
@@ -7939,10 +7960,10 @@ have different input states."
   ""
   "    findCharStart :: Addr# -> Addr#"
   "    findCharStart p#"
-  "        | startsWith10# w#"
-  "        = findCharStart (p# `plusAddr#` -1#)"
-  "        | otherwise"
-  "        = p#"
+  "      | startsWith10# w#"
+  "      = findCharStart (p# `plusAddr#` -1#)"
+  "      | otherwise"
+  "      = p#"
   "      where"
   "        w# = word2Int# (word8ToWord# (indexWord8OffAddr# p# 0#))"
   ""
@@ -8402,6 +8423,31 @@ have different input states."
   "    , quux5"
   "    )"
   "  = bar1 + quux1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-5
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "foo x = x"
+  "    where"
+  "      bar x = x"
+  "      baz x | quux x    = 1"
+  "            | otherwise = 2"
+  "_||_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  ""
+  "foo x = x"
+  "  where"
+  "    bar x = x"
+  "    baz x | quux x    = 1"
+  "          | otherwise = 2"
+  "_|_"
   ""))
 
 (haskell-indentation-tests--test-treesitter-region
