@@ -74,12 +74,11 @@
                                   (directory-files dir
                                                    t
                                                    directory-files-no-dot-files-regexp))))))
-                  (raw-name (strip-string-prefix (strip-trailing-slash
-                                                  (expand-file-name root))
-                                                 (file-name-sans-extension
-                                                  (expand-file-name
-                                                   buffer-file-name))
-                                                 :starting-at 1)))
+                  (raw-name (strip-directory-and-separator-prefix (strip-trailing-slash
+                                                                   (expand-file-name root))
+                                                                  (file-name-sans-extension
+                                                                   (expand-file-name
+                                                                    buffer-file-name)))))
              (replace-regexp-in-string "/" "." raw-name))))
    (list "empty" (lambda () "")))
   "Alist of form (string function), used by `util:auto-insert-update'.

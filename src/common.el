@@ -405,6 +405,14 @@ main table and value in aux table."
   (declare (pure t) (side-effect-free t))
   (substring str (+ starting-at (length prefix))))
 
+(defun strip-directory-and-separator-prefix (prefix str)
+  (cl-assert (not (= ?/ (aref prefix (1- (length prefix)))))
+             nil
+             "Prefix must not end with slash.")
+  (substring str (+ (length prefix)
+                    ;; Account for trailing slash in prefix
+                    1)))
+
 ;;;
 
 (defsubst file-modification-time (filename)
