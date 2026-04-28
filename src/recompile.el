@@ -137,110 +137,111 @@ session."
 (defun recompile-main (emacs-dir k n compile-native? config)
   (cl-assert (numberp k))
   (cl-assert (numberp n))
-  (cl-destructuring-bind
-      (emacs-dir . init-file)
-      (recompile-set-up-env emacs-dir)
-    (message "[recompile.el] collecting *.el files")
-    (let* ((local-dirs
-            (find-elisp-dirs (concat emacs-dir "/src")))
-           (third-party-dirs
-            (append
-             (list
-              (concat emacs-dir "/native/fakecygpty"))
-             (find-elisp-dirs (concat emacs-dir "/third-party")
-                              set-up-paths--ignored-third-party-el-dirs-re)))
-           (extra-files (list init-file))
-           (dir-el-files
-            (lambda (dir)
-              (directory-files dir
-                               t ;; produce full names
-                               "^.*\\.el\\'"
-                               nil ;; do sort
-                               )))
-           (should-not-recompile-p
-            (lambda (x)
-              (let ((fname (file-name-nondirectory x))
-                    (rel-name (file-relative-name x emacs-dir)))
-                (or (string-match-p +ignored-files-re+ rel-name)
-                    (string-match-p "^\\..*el$" fname)))))
-           (local-files
-            (cl-remove-if should-not-recompile-p
-                          (mapcan dir-el-files local-dirs)))
-           (third-party-files
-            (cl-remove-if should-not-recompile-p
-                          (append extra-files
-                                  (mapcan dir-el-files third-party-dirs))))
-           (byte-compile-docstring-max-column
-            200)
-           ;; (byte-compile-warnings
-           ;;  (cl-remove 'docstrings byte-compile-warning-types))
+  (unwind-protect
+      (cl-destructuring-bind
+          (emacs-dir . init-file)
+          (recompile-set-up-env emacs-dir)
+        (message "[recompile.el] collecting *.el files")
+        (let* ((local-dirs
+                (find-elisp-dirs (concat emacs-dir "/src")))
+               (third-party-dirs
+                (append
+                 (list
+                  (concat emacs-dir "/native/fakecygpty"))
+                 (find-elisp-dirs (concat emacs-dir "/third-party")
+                                  set-up-paths--ignored-third-party-el-dirs-re)))
+               (extra-files (list init-file))
+               (dir-el-files
+                (lambda (dir)
+                  (directory-files dir
+                                   t ;; produce full names
+                                   "^.*\\.el\\'"
+                                   nil ;; do sort
+                                   )))
+               (should-not-recompile-p
+                (lambda (x)
+                  (let ((fname (file-name-nondirectory x))
+                        (rel-name (file-relative-name x emacs-dir)))
+                    (or (string-match-p +ignored-files-re+ rel-name)
+                        (string-match-p "^\\..*el$" fname)))))
+               (local-files
+                (cl-remove-if should-not-recompile-p
+                              (mapcan dir-el-files local-dirs)))
+               (third-party-files
+                (cl-remove-if should-not-recompile-p
+                              (append extra-files
+                                      (mapcan dir-el-files third-party-dirs))))
+               (byte-compile-docstring-max-column
+                200)
+               ;; (byte-compile-warnings
+               ;;  (cl-remove 'docstrings byte-compile-warning-types))
 
-           (native-comp-available? (and (fboundp #'native-comp-available-p)
-                                        (native-comp-available-p)))
-           (proceed? (or (not compile-native?)
-                         native-comp-available?)))
+               (native-comp-available? (and (fboundp #'native-comp-available-p)
+                                            (native-comp-available-p)))
+               (proceed? (or (not compile-native?)
+                             native-comp-available?)))
 
-      (cond
-       (config
-        ;; No point in config for now, just exit. Uncomment when decide to use again.
-        (when nil
-          (with-temp-buffer
-            (dolist (entry '((no-native-compile nil)
-                             (byte-native-compiling t)
-                             (byte-native-qualities nil)
-                             (native-comp-debug 0)
-                             (native-comp-compiler-options '("-O2"))
-                             (native-comp-driver-options '("-march=native"))))
-              (insert (format "(setf %s %S)\n" (car entry) (cadr entry))))
-            (insert (format "(setf load-path '%S)" load-path))
+          (cond
+            (config
+             ;; No point in config for now, just exit. Uncomment when decide to use again.
+             (when nil
+               (with-temp-buffer
+                 (dolist (entry '((no-native-compile nil)
+                                  (byte-native-compiling t)
+                                  (byte-native-qualities nil)
+                                  (native-comp-debug 0)
+                                  (native-comp-compiler-options '("-O2"))
+                                  (native-comp-driver-options '("-march=native"))))
+                   (insert (format "(setf %s %S)\n" (car entry) (cadr entry))))
+                 (insert (format "(setf load-path '%S)" load-path))
 
-            (write-file config)
-            (message "WRITTEN CONFIG TO %S" config))))
+                 (write-file config)
+                 (message "WRITTEN CONFIG TO %S" config))))
 
-       (proceed?
-        (message "[recompile.el] loading local *.el files")
-        (dolist (file local-files)
-          (require (intern (file-name-sans-extension (file-name-nondirectory file))))
-          ;; (load-library file)
-          )
+            (proceed?
+             (message "[recompile.el] loading local *.el files")
+             (dolist (file local-files)
+               (require (intern (file-name-sans-extension (file-name-nondirectory file))))
+               ;; (load-library file)
+               )
 
-        (let ((i 0)
-              (byte-compile-dest-file-function #'elisp-compile-get-elc-destination))
-          (message "[recompile.el] %s %s files" k (if compile-native? "native-compiling" "byte-compiling"))
-          (dolist (file (append local-files third-party-files))
-            (when (= k (mod i n))
-              (if compile-native?
-                  (progn
-                    (message "[recompile.el] %s native-compiling %s" k file)
+             (let ((i 0)
+                   (byte-compile-dest-file-function #'elisp-compile-get-elc-destination))
+               (message "[recompile.el] %s %s files" k (if compile-native? "native-compiling" "byte-compiling"))
+               (dolist (file (append local-files third-party-files))
+                 (when (= k (mod i n))
+                   (if compile-native?
+                       (progn
+                         (message "[recompile.el] %s native-compiling %s" k file)
 
-                    (condition-case err
-                        (let ((no-native-compile nil)
-                              (byte-native-compiling t)
-                              (byte-native-qualities nil)
-                              ;; Batch compilation has memory leak thanks to libgccjit.
-                              (comp-running-batch-compilation nil)
-                              (native-comp-debug 0)
-                              (native-comp-compiler-options '("-O2"))
-                              (native-comp-driver-options '("-march=native")))
-                          (native-compile file
-                                          (comp-el-to-eln-filename file)))
-                      (error
-                       (message "[recompile.el] %s failed to native-compile %s: %s" k file (cdr err)))))
+                         (condition-case err
+                             (let ((no-native-compile nil)
+                                   (byte-native-compiling t)
+                                   (byte-native-qualities nil)
+                                   ;; Batch compilation has memory leak thanks to libgccjit.
+                                   (comp-running-batch-compilation nil)
+                                   (native-comp-debug 0)
+                                   (native-comp-compiler-options '("-O2"))
+                                   (native-comp-driver-options '("-march=native")))
+                               (native-compile file
+                                               (comp-el-to-eln-filename file)))
+                           (error
+                            (message "[recompile.el] %s failed to native-compile %s: %s" k file (cdr err)))))
 
-                (progn
-                  (message "[recompile.el] %s byte-compiling %s" k file)
-                  (let ((target (concat file "c")))
-                    (if (file-exists-p target)
-                        (message "[recompile.el] %s skipping %s - already compiled" k file)
-                      (byte-compile-file file))))))
-            (cl-incf i))
+                     (progn
+                       (message "[recompile.el] %s byte-compiling %s" k file)
+                       (let ((target (concat file "c")))
+                         (if (file-exists-p target)
+                             (message "[recompile.el] %s skipping %s - already compiled" k file)
+                           (byte-compile-file file))))))
+                 (cl-incf i))
 
-          (message "[recompile.el] %s done %s" k (if compile-native? "native-compiling" "byte-compiling"))))
+               (message "[recompile.el] %s done %s" k (if compile-native? "native-compiling" "byte-compiling"))))
 
-       (t
-        (message "[recompile.el] %s nothing to do" k)))))
+            (t
+             (message "[recompile.el] %s nothing to do" k)))))
 
-  (recompile-disable-hooks))
+    (recompile-disable-hooks)))
 
 
 ;; Local Variables:
