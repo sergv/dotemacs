@@ -7534,6 +7534,87 @@ Entries should be a list of of elements of the form
   "  pure ()"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-18a
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "  where"
+  "    go _|_:: Int"
+  "       -> Int"
+  "    go y = y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "  where"
+  "    go"
+  "      _|_:: Int"
+  "       -> Int"
+  "    go y = y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-18b
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "  where"
+  "    go_|_ :: Int"
+  "       -> Int"
+  "    go y = y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "  where"
+  "    go"
+  "      _|_:: Int"
+  "       -> Int"
+  "    go y = y"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-18c
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "  where"
+  "    go_|_:: Int"
+  "       -> Int"
+  "    go y = y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = x"
+  "  where"
+  "    go"
+  "      _|_:: Int"
+  "       -> Int"
+  "    go y = y"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
