@@ -1364,7 +1364,10 @@ Error is given as MSG and reported between POS and END."
                    ("Map"))
                   (("Data.Text.Internal")
                    "Data.Text"
-                   ("Text")))
+                   ("Text"))
+                  (("GHC.Internal.Base")
+                   "Data.Void"
+                   ("Void")))
                 ;; Wildcards
                 (--map (list (list (car it)) (cdr it) t)
                        '(("Prettyprinter.Internal" . "Prettyprinter")
