@@ -843,29 +843,31 @@ a single entity."
                    (when-let* ((node (treesit-node-at
                                       (advance-pos-over-whitespace (point))))
                                (parent (treesit-node-parent node)))
-                     (let* ((argument-parethesized? (member (treesit-node-type node) '("(" "[" "{")))
-                            (arg-node (if argument-parethesized?
-                                          (let ((parent-type (treesit-node-type parent)))
-                                            (if (string= parent-type "(#")
-                                                (when-let ((grandparent (treesit-node-parent parent)))
-                                                  (when (string= (treesit-node-type grandparent) "unboxed_tuple")
-                                                    grandparent))
-                                              (and (member parent-type '("parens" "list" "tuple" "record"))
-                                                   parent)))
-                                        node))
-                            (apply-node (and arg-node
-                                             (treesit-node-parent arg-node))))
-                       (and apply-node
-                            (string= (treesit-node-type apply-node) "apply")
-                            (not (= (point) (treesit-node-end apply-node)))
-                            (string= (treesit-node-field-name arg-node) "argument"))))))
+                     (or (string= "::" (treesit-node-type node))
+                         (let* ((argument-parethesized? (member (treesit-node-type node) '("(" "[" "{")))
+                                (arg-node (if argument-parethesized?
+                                              (let ((parent-type (treesit-node-type parent)))
+                                                (if (string= parent-type "(#")
+                                                    (when-let ((grandparent (treesit-node-parent parent)))
+                                                      (when (string= (treesit-node-type grandparent) "unboxed_tuple")
+                                                        grandparent))
+                                                  (and (member parent-type '("parens" "list" "tuple" "record"))
+                                                       parent)))
+                                            node))
+                                (apply-node (and arg-node
+                                                 (treesit-node-parent arg-node))))
+                           (and apply-node
+                                (string= (treesit-node-type apply-node) "apply")
+                                (not (= (point) (treesit-node-end apply-node)))
+                                (string= (treesit-node-field-name arg-node) "argument")))))))
              (delete-spaces-forward)
              (haskell--simple-indent-newline-indent)
-             (when (and (derived-mode-p 'haskell-ts-base-mode)
+             (when (and is-ts-mode?
                         (when-let* ((after (char-after)))
                           (not (whitespace-char? after))))
                (haskell-ts-indent-line)))
             (t
+             (message "last alt")
              (haskell--simple-indent-newline-same-col))))))))
 
 (defun haskell--ghci-hyphen (&optional prefix)
