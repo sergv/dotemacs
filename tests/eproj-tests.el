@@ -18,6 +18,9 @@
 (require 'ert)
 (require 'haskell-tests)
 
+(defconst eproj-tests/faster-richer-tags-exe
+  (cached-executable-find "faster-richer-tags"))
+
 (defun eproj-tests/non-special-files (path)
   "Construct list of non-special files (i.e. that typically would be under version control)
 under ROOT directory."
@@ -316,7 +319,7 @@ under ROOT directory."
 
 (eproj-tests--define-tests
  "eproj-tests/project-with-ignored-files"
- (unless (cached-executable-find "faster-richer-tags")
+ (unless eproj-tests/faster-richer-tags-exe
    (ert-skip "faster-richer-tags not available"))
  (let* ((path eproj-tests/project-with-ignored-files)
         (proj (eproj-get-project-for-path path)))
@@ -364,7 +367,7 @@ under ROOT directory."
 
 (eproj-tests--define-tests
  "eproj-tests/haskell-project-with-manually-configured-default-projects"
- (unless (cached-executable-find "faster-richer-tags")
+ (unless eproj-tests/faster-richer-tags-exe
    (ert-skip "faster-richer-tags not available"))
  (let* ((path eproj-tests/project-with-manual-default)
         (eproj/default-projects (alist->hash-table
@@ -423,7 +426,7 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project"
 
-  (unless (cached-executable-find "faster-richer-tags")
+  (unless eproj-tests/faster-richer-tags-exe
     (ert-skip "faster-richer-tags not available"))
 
   (test-utils--with-unzipped-project
@@ -461,7 +464,7 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project-alt-cabal.project"
 
-  (unless (cached-executable-find "faster-richer-tags")
+  (unless eproj-tests/faster-richer-tags-exe
     (ert-skip "faster-richer-tags not available"))
 
   (test-utils--with-unzipped-project
@@ -499,7 +502,7 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project-with-local"
 
-  (unless (cached-executable-find "faster-richer-tags")
+  (unless eproj-tests/faster-richer-tags-exe
     (ert-skip "faster-richer-tags not available"))
 
   (test-utils--with-unzipped-project
@@ -536,7 +539,7 @@ under ROOT directory."
 
 (eproj-tests--define-tests
     "eproj-tests/haskell-project-with-aux-files"
-  (unless (cached-executable-find "faster-richer-tags")
+  (unless eproj-tests/faster-richer-tags-exe
     (ert-skip "faster-richer-tags not available"))
   (let* ((path eproj-tests/haskell-project-with-aux-files)
          (proj (eproj-get-project-for-path path))
@@ -569,7 +572,7 @@ under ROOT directory."
 
 (eproj-tests--define-tests
     "eproj-tests/haskell-project-authoritative"
-  (unless (cached-executable-find "faster-richer-tags")
+  (unless eproj-tests/faster-richer-tags-exe
     (ert-skip "faster-richer-tags not available"))
   (let* ((path eproj-tests/haskell-project-authoritative)
          (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
