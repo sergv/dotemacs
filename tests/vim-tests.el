@@ -3389,6 +3389,24 @@ _|_bar")
    "foo x = \{_|_bar x\}"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/advance-backtick-1-haskell
+ :action
+ (execute-kbd-macro (kbd "i ` z <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = y `bar_|_` x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = y `bar`_|_z x"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/wrap-backtick-1-haskell
