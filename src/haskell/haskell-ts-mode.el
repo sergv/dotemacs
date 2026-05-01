@@ -831,15 +831,26 @@ indented block will be their bounds without any extra processing."
             ;; Transform Executable(buildInfo) -> buildInfo for when
             ;; we imported a type’s accessor but GHC reports it together
             ;; with parent type name.
-            (when-let (m (s-match (rx
-                                   (* (any ?_))
-                                   (any (?A . ?Z))
-                                   (* alphanumeric)
-                                   "("
-                                   (group-n 1 (+ (not ?\))))
-                                   ")")
-                                  name))
-              (setf name (nth 1 m)))
+            ;;
+            ;; But for Foo(..) keep only Foo since that’s the name to be
+            ;; removed..
+            (if-let* ((m (s-match (rx
+                                   (group-n 1
+                                     (* (any ?_))
+                                     (any (?A . ?Z))
+                                     (* alphanumeric))
+                                   "(..)")
+                                  name)))
+                (setf name (nth 1 m))
+              (when-let* ((m (s-match (rx
+                                       (* (any ?_))
+                                       (any (?A . ?Z))
+                                       (* alphanumeric)
+                                       "("
+                                       (group-n 1 (+ (not ?\))))
+                                       ")")
+                                      name)))
+                (setf name (nth 1 m))))
 
             (let ((tmp nil))
               (cond
