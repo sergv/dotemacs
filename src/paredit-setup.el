@@ -257,25 +257,30 @@ This macro is similar to `vim:do-motion'."
         (unless (= p (cdr sym-bounds))
           (setf start (car sym-bounds)
                 end (cdr sym-bounds)))))
-    ;; If point is not in the symbol then don't wrap the next symbol, but
-    ;; insert pair at point instead.
-    (if (< p start)
-        (progn
-          (goto-char p)
-          (insert open close))
-      (progn
-        (goto-char end)
-        (insert-char close)
-        (goto-char start)
-        (insert-char open)
+    (cond
+      ((< p start)
+       ;; If point is not in the symbol then don't wrap the next symbol, but
+       ;; insert pair at point instead.
+       (goto-char p)
+       (insert open close))
+      ((and (= start end)
+            (= open close)
+            (= (char-after) close))
+       ;; Advance over closing delimiter
+       (forward-char))
+      (t
+       (goto-char end)
+       (insert-char close)
+       (goto-char start)
+       (insert-char open)
 
-        (setq end (+ end 2))
+       (setq end (+ end 2))
 
-        (if escape?
-            (progn
-              (setf end (paredit-setup--escape-region (+ start 1) (- end 1)))
-              (paredit-indent-region start end ))
-          (paredit-indent-region start end))))))
+       (if escape?
+           (progn
+             (setf end (paredit-setup--escape-region (+ start 1) (- end 1)))
+             (paredit-indent-region start end ))
+         (paredit-indent-region start end))))))
 
 (defun paredit-setup--escape-region (start end)
   (save-excursion
