@@ -1656,13 +1656,13 @@ Entries should be a list of of elements of the form
    ""))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--inserting-within-backtics-avoids-spaces-1
+    haskell-tests/haskell-smart-operators--inserting-within-backtick-avoids-spaces-1
     (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
   "x = x `andI_|_` y"
   "x = x `andI#_|_` y")
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--inserting-within-backtics-avoids-spaces-2
+    haskell-tests/haskell-smart-operators--inserting-within-backtick-avoids-spaces-2
     (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
   "x = x `_|_` y"
   "x = x `#_|_` y")
