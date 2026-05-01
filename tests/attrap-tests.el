@@ -574,6 +574,28 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-8
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-61689]"
+  "    Module ‘Haskell.Language.Lexer.Types’ does not export ‘Pos(..)’.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName, _|_Pos(..), Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName_|_, Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/replace-1
  :error-message
  (tests-utils--multiline
