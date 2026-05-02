@@ -127,7 +127,7 @@
                                    named-options))))))
     ;; (message "SELECTED-FIX: %s" selected-fix)
     ;; (message "Applied %s" (car selected-fix))
-    (save-excursion
+    (progn
       (funcall (cl-second selected-fix))
       (awhen (cl-third selected-fix)
         (cl-assert (overlayp it))
@@ -414,8 +414,9 @@ value is a list which is appended to the result of
 (defmacro attrap-insert-language-pragma (pragma &rest body)
   (declare (indent 1))
   `(attrap-option (list 'use-extension ,pragma)
-     (attrap-do-insert-language-pragma ,pragma)
-     ,@body))
+     (save-excursion
+       (attrap-do-insert-language-pragma ,pragma)
+       ,@body)))
 
 (defun attrap-add-to-import--impl (missing parent line col)
   (cl-assert (stringp missing))
@@ -477,7 +478,8 @@ value is a list which is appended to the result of
   "Action: insert MISSING to the import of MODULE.
 The import ends at LINE and COL in the file."
   `(attrap-option (format "add to import list of ‘%s’" ,module)
-     (attrap-add-to-import--impl ,missing nil (string-to-number ,line) (string-to-number ,col))))
+     (save-excursion
+       (attrap-add-to-import--impl ,missing nil (string-to-number ,line) (string-to-number ,col)))))
 
 ;; (cl-defstruct (attrap-redundant-constraints-state
 ;;                (:conc-name attrap-redundant-constraints-state/))
@@ -599,21 +601,22 @@ Error is given as MSG and reported between POS and END."
            (list (attrap-insert-language-pragma "PatternSynonyms")))
          (when (string-match "No explicit implementation for" msg)
            (attrap-one-option "insert method"
-             (let ((missings (s-match-strings-all "‘\\([^’]*\\)’"
-                                                  (car (s-split-up-to "In the instance declaration" msg 1)))))
-               (end-of-line)
-               (let ((start (point)))
-                 (skip-whitespace-backward)
-                 (delete-region (point) start))
-               (let* ((start (point))
-                      (have-where?
-                       (save-excursion
-                         (backward-word)
-                         (string= "where" (trim-whitespace (buffer-substring-no-properties (point) start))))))
-                 (unless have-where?
-                   (insert " where"))
-                 (dolist (missing missings)
-                   (insert (format "\n  %s = _" (nth 1 missing))))))))
+             (save-excursion
+               (let ((missings (s-match-strings-all "‘\\([^’]*\\)’"
+                                                    (car (s-split-up-to "In the instance declaration" msg 1)))))
+                 (end-of-line)
+                 (let ((start (point)))
+                   (skip-whitespace-backward)
+                   (delete-region (point) start))
+                 (let* ((start (point))
+                        (have-where?
+                         (save-excursion
+                           (backward-word)
+                           (string= "where" (trim-whitespace (buffer-substring-no-properties (point) start))))))
+                   (unless have-where?
+                     (insert " where"))
+                   (dolist (missing missings)
+                     (insert (format "\n  %s = _" (nth 1 missing)))))))))
          (when (string-match "No explicit associated type or default declaration for ‘\\(.*\\)’" msg)
            (let ((type (match-string 1 msg)))
              (attrap-one-option "insert type"
@@ -664,12 +667,13 @@ Error is given as MSG and reported between POS and END."
                 msg)
            (let ((name (match-string-no-properties 1 msg)))
              (attrap-one-option "add binding"
-               (skip-to-indentation)
-               (let ((col (current-column)))
-                 (forward-line)
-                 (while (< col (indentation-size))
-                   (forward-line)))
-               (insert (concat name " = _\n")))))
+               (save-excursion
+                 (skip-to-indentation)
+                 (let ((col (current-column)))
+                   (forward-line)
+                   (while (< col (indentation-size))
+                     (forward-line)))
+                 (insert (concat name " = _\n"))))))
          (when (string-match "add (\\(.*\\)) to the context of[\n ]*the type signature for:[ \n]*\\([^ ]*\\) ::" msg)
            (let ((missing-constraint (match-string 1 msg))
                  (function-name (match-string 2 msg)))
@@ -713,11 +717,12 @@ Error is given as MSG and reported between POS and END."
            (let ((ext (match-string-no-properties 1 msg))
                  (replacement (match-string 2 msg)))
              (attrap-one-option "rename extension"
-               ;; Delete-region may garble the matches
-               (goto-char pos)
-               (search-forward ext)
-               (delete-region (match-beginning 0) (point))
-               (insert replacement))))
+               (save-excursion
+                 ;; Delete-region may garble the matches
+                 (goto-char pos)
+                 (search-forward ext)
+                 (delete-region (match-beginning 0) (point))
+                 (insert replacement)))))
          (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
                                         " to the import list in the import of " (identifier 2)
                                         " " (parens (src-loc 3 4 5 6)))
@@ -757,11 +762,13 @@ Error is given as MSG and reported between POS and END."
                                      (parens (or (seq "imported from " (group-n 2 module-name))
                                                  (group-n 2 (seq "line "  (* num))))))
                                  rest)))
-             (--map (attrap-option (list 'replace delete-no-paren 'by (nth 1 it) 'from (nth 2 it))
-                      (goto-char pos)
-                      (let ((case-fold-search nil))
-                        (search-forward delete-no-paren (+ (length delete) pos))
-                        (replace-match (nth 1 it) t)))
+             (--map (attrap-option
+                        (list 'replace delete-no-paren 'by (nth 1 it) 'from (nth 2 it))
+                      (save-excursion
+                        (goto-char pos)
+                        (let ((case-fold-search nil))
+                          (search-forward delete-no-paren (+ (length delete) pos))
+                          (replace-match (nth 1 it) t))))
                     replacements)))
          (when (string-match "It could refer to" msg) ;; ambiguous identifier
            (let ((replacements (--map (nth 1 it) (s-match-strings-all  (rx (identifier 1) ",") msg))))
@@ -841,12 +848,13 @@ Error is given as MSG and reported between POS and END."
            (let ((wildcard  (match-string-no-properties 1 msg))
                  (type-expr (match-string-no-properties 2 msg)))
              (attrap-one-option "explicit type wildcard"
-               (goto-char pos)
-               (search-forward wildcard)
-               (replace-match
-                (if (string-contains? ?\s type-expr) (concat "(" type-expr ")") type-expr)
-                t
-                t))))
+               (save-excursion
+                 (goto-char pos)
+                 (search-forward wildcard)
+                 (replace-match
+                  (if (string-contains? ?\s type-expr) (concat "(" type-expr ")") type-expr)
+                  t
+                  t)))))
          (when (and (string-match-p "parse error on input ‘case’" msg) ; Obsolete with GHC 9, which appears to recognize Lambda case specially.
                     (save-excursion
                       (goto-char pos)
@@ -967,12 +975,14 @@ Error is given as MSG and reported between POS and END."
                        (attrap-ghc--extract-add-import-list-suggestions msg normalized-msg)))
                  (--map
                   (attrap-option (format "add to import list of ‘%s’" (attrap-ghc-import-location-module it))
-                    (attrap-add-to-haskell-import--add-parent-from-eproj-tags-if-needed identifier
-                                                                                        (attrap-ghc-import-location-module it)
-                                                                                        (attrap-ghc-import-location-line it)
-                                                                                        (attrap-ghc-import-location-col it)
-                                                                                        is-constructor?
-                                                                                        is-type-or-class?))
+                    (save-excursion
+                      (attrap-add-to-haskell-import--add-parent-from-eproj-tags-if-needed
+                       identifier
+                       (attrap-ghc-import-location-module it)
+                       (attrap-ghc-import-location-line it)
+                       (attrap-ghc-import-location-col it)
+                       is-constructor?
+                       is-type-or-class?)))
 
                   specific-import-locations)
                (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer)))
@@ -1027,9 +1037,10 @@ Error is given as MSG and reported between POS and END."
                   (delete-no-paren (if delete-has-paren (substring delete 1 (1- (length delete))) delete))
                   (new-ident (match-string-no-properties 2 msg))
                   (new-module (match-string-no-properties 3 msg)))
-             (attrap-one-option (append (list 'replace delete-no-paren 'by new-ident)
-                                        (when new-module
-                                          (list 'from new-module)))
+             (attrap-one-option
+                 (append (list 'replace delete-no-paren 'by new-ident)
+                         (when new-module
+                           (list 'from new-module)))
                (goto-char pos)
                (let ((case-fold-search nil))
                  (search-forward delete-no-paren (+ (length delete) pos))
@@ -1059,9 +1070,10 @@ Error is given as MSG and reported between POS and END."
            (let ((old (match-string-no-properties 1 msg))
                  (new (match-string-no-properties 2 msg)))
              (attrap-one-option (list 'rename-module-to new)
-               (goto-char pos)
-               (search-forward old)
-               (replace-match new))))
+               (save-excursion
+                 (goto-char pos)
+                 (search-forward old)
+                 (replace-match new)))))
          ;; warning: [GHC-49957] [-Wunticked-promoted-constructors]
          ;;     Unticked promoted constructor: Bar.
          ;;     Suggested fix: Use 'Bar instead of Bar.
@@ -1076,8 +1088,9 @@ Error is given as MSG and reported between POS and END."
                      (seq "constructor:" spaces1 (group-n 1 (+ (not ?\s))))))
                 normalized-msg)
            (attrap-one-option "add tick"
-             (goto-char pos)
-             (insert-char ?')))
+             (save-excursion
+               (goto-char pos)
+               (insert-char ?'))))
 
          (when (string-match
                 (rx (ghc-warning "88907" "unused-imports")
@@ -1109,8 +1122,9 @@ Error is given as MSG and reported between POS and END."
                        "Pattern bindings containing unlifted types should use an outermost bang pattern:")
                    normalized-msg)
               (attrap-one-option "insert bang"
-                (goto-char pos)
-                (haskell-smart-operators-exclamation-mark--insert-for-field! nil (treesit-node-at (point)))))
+                (save-excursion
+                  (goto-char pos)
+                  (haskell-smart-operators-exclamation-mark--insert-for-field! nil (treesit-node-at (point))))))
 
             (when (string-match-p
                    (rx (ghc-warning "38520" "redundant-bang-patterns")
@@ -1146,10 +1160,11 @@ Error is given as MSG and reported between POS and END."
                                              (list (match-string 4 msg)
                                                    (match-string 5 msg))))))
                 (--map (attrap-option (list "replace with" it)
-                         (goto-char pos)
-                         (let ((node (treesit-node-at pos)))
-                           (delete-region (treesit-node-start node) (treesit-node-end node))
-                           (insert it)))
+                         (save-excursion
+                           (goto-char pos)
+                           (let ((node (treesit-node-at pos)))
+                             (delete-region (treesit-node-start node) (treesit-node-end node))
+                             (insert it))))
                        candidates))))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
