@@ -863,13 +863,12 @@ indented block will be their bounds without any extra processing."
 
           (let ((intervals nil))
             (dolist (node remove-nodes)
-              (push (haskell-ts-node-to-interval-with-margins node nil)
+              (push (haskell-ts--comma-list-node-to-interval-with-margins node nil)
                     intervals))
-            (dolist (interval (nreverse (interval-with-margins-merge-overlapping! intervals)))
-              (delete-region (interval-with-margins-resolved-start interval)
-                             (interval-with-margins-resolved-end interval)))))))))
+            (mapc #'interval-with-margins-delete!
+                  (nreverse (interval-with-margins-merge-overlapping! intervals)))))))))
 
-(defun haskell-ts-node-with-surrounding-space-to-interval-with-margins (node include-spaces final-only?)
+(defun haskell-ts--node-with-surrounding-space-to-interval-with-margins (node include-spaces final-only?)
   (cl-assert (memq include-spaces '(both only-before only-after)))
   (let* ((start (treesit-node-start node))
          (end (treesit-node-end node))
@@ -883,6 +882,8 @@ indented block will be their bounds without any extra processing."
                            (skip-whitespace-forward)))))
     (mk-interval-with-margins start
                               end
+                              nil
+                              nil
                               ;; Spaces here are not intended to participate in merging,
                               ;; only in final deletions.
                               (unless final-only? margin-before)
@@ -890,27 +891,41 @@ indented block will be their bounds without any extra processing."
                               margin-before
                               margin-after)))
 
-(defun haskell-ts-node-to-interval-with-margins (node include-parens-before-and-after?)
+(defun haskell-ts--comma-list-node-to-interval-with-margins (node include-parens-before-and-after?)
   (let* ((start (treesit-node-start node))
          (end (treesit-node-end node))
-         (margin-before (when-let* ((prev (treesit-node-prev-sibling node))
-                                    ((string= "," (treesit-node-type prev)))
-                                    (prev2 (treesit-node-prev-sibling prev)))
+         (prev (treesit-node-prev-sibling node))
+         (prev-is-comma? (and prev
+                              (string= "," (treesit-node-type prev))))
+         (next (treesit-node-next-sibling node))
+         (next-is-comma? (and next
+                              (string= "," (treesit-node-type next))))
+         (spaces-before (save-excursion
+                          (goto-char start)
+                          ;; Don’t take newlines into account to preserve indentation style.
+                          (abs (skip-chars-backward " \t"))))
+         (spaces-after (save-excursion
+                         (goto-char end)
+                         ;; Don’t take newlines into account to preserve indentation style.
+                         (abs (skip-chars-forward " \t"))))
+         (margin-before (when-let* ((prev2 (and prev-is-comma?
+                                                (treesit-node-prev-sibling prev))))
                           (- start (treesit-node-end prev2))))
-         (margin-after (when-let* ((next (treesit-node-next-sibling node))
-                                   ((string= "," (treesit-node-type next)))
-                                   (next2 (treesit-node-next-sibling next)))
+         (margin-after (when-let* ((next2 (and next-is-comma?
+                                               (treesit-node-next-sibling next))))
                          (- (treesit-node-start next2) end)))
-         (final-before (when include-parens-before-and-after?
-                         (when-let* ((prev (treesit-node-prev-sibling node))
-                                     ((string= "(" (treesit-node-type prev))))
-                           (- start (treesit-node-start prev)))))
-         (final-after (when include-parens-before-and-after?
-                        (when-let* ((next (treesit-node-next-sibling node))
-                                    ((string= ")" (treesit-node-type next))))
-                          (- (treesit-node-end next) end)))))
+         (final-before (when (and include-parens-before-and-after?
+                                  prev
+                                  (string= "(" (treesit-node-type prev)))
+                         (- start (treesit-node-start prev))))
+         (final-after (when (and include-parens-before-and-after?
+                                 next
+                                 (string= ")" (treesit-node-type next)))
+                        (- (treesit-node-end next) end))))
     (mk-interval-with-margins start
                               end
+                              spaces-before
+                              spaces-after
                               ;; If surrounded by commas then remove the node
                               ;; itself, margins will be nil.
                               margin-before
@@ -1077,7 +1092,7 @@ In effect, normalize contraints."
 (cl-defstruct (haskell-ts--remove-constraints-state
                (:conc-name haskell-ts--remove-constraints-state/))
   ;; List of strings
-  constrains-to-remove ; (haskell-ts-node-to-interval-with-margins x t)
+  constrains-to-remove ; (haskell-ts--comma-list-node-to-interval-with-margins x t)
   ;; Integer, all constraints in a context
   total-constraints
 
@@ -1086,51 +1101,45 @@ In effect, normalize contraints."
   arrow)
 
 (defun haskell-ts-remove-constraints--single-context (analysed-state)
-  (let* ((arrow-interval (haskell-ts-node-with-surrounding-space-to-interval-with-margins
+  (let* ((arrow-interval (haskell-ts--node-with-surrounding-space-to-interval-with-margins
                           (haskell-ts--remove-constraints-state/arrow analysed-state)
                           'both
                           t))
          (unmerged-intervals-per-constraints
-          (--map (haskell-ts-node-to-interval-with-margins it t)
+          (--map (haskell-ts--comma-list-node-to-interval-with-margins it t)
                  (haskell-ts--remove-constraints-state/constrains-to-remove analysed-state)))
          (remove-length (length unmerged-intervals-per-constraints))
-         (intervals-for-constraints
-          (nreverse
-           (interval-with-margins-merge-overlapping!
-            unmerged-intervals-per-constraints)))
          (total-constraints
           (haskell-ts--remove-constraints-state/total-constraints analysed-state)))
     (let* ((delete-all? (= total-constraints remove-length))
            (delete-singleton-parens? (= total-constraints (1+ remove-length))))
       (when (and delete-all?
                  arrow-interval)
-        (delete-region (interval-with-margins-resolved-start arrow-interval t)
-                       (interval-with-margins-resolved-end arrow-interval t)))
+        (interval-with-margins-delete! arrow-interval t))
       (let ((to-delete-with-parens
-             (if (and delete-singleton-parens?
-                      (haskell-ts--remove-constraints-state/rparen analysed-state)
-                      (haskell-ts--remove-constraints-state/lparen analysed-state))
-                 (nreverse
-                  (interval-with-margins-merge-overlapping!
+             (nreverse
+              (interval-with-margins-merge-overlapping!
+               (if (and delete-singleton-parens?
+                        (haskell-ts--remove-constraints-state/rparen analysed-state)
+                        (haskell-ts--remove-constraints-state/lparen analysed-state))
                    (cons
-                    (haskell-ts-node-with-surrounding-space-to-interval-with-margins
+                    (haskell-ts--node-with-surrounding-space-to-interval-with-margins
                      (haskell-ts--remove-constraints-state/rparen analysed-state)
                      'only-before
                      nil)
                     (cons
-                     (haskell-ts-node-with-surrounding-space-to-interval-with-margins
+                     (haskell-ts--node-with-surrounding-space-to-interval-with-margins
                       (haskell-ts--remove-constraints-state/lparen analysed-state)
                       'only-after
                       nil)
-                     intervals-for-constraints))))
-               intervals-for-constraints)))
-        (dolist (x to-delete-with-parens)
-          (delete-region (interval-with-margins-resolved-start x delete-all?)
-                         (interval-with-margins-resolved-end x delete-all?)))))))
+                     unmerged-intervals-per-constraints))
+                 unmerged-intervals-per-constraints)))))
+        (mapc (lambda (x) (interval-with-margins-delete! x delete-all?)) to-delete-with-parens)))))
 
 (defun haskell-ts-remove-constraints-from-signature-node (names-to-remove sig)
   (cl-assert (listp names-to-remove))
   (cl-assert (treesit-node-p sig))
+  (cl-assert (string= (treesit-node-type sig) "signature"))
   (let* ((get-state
           (lambda (ctx states)
             (or (gethash ctx states)
