@@ -574,7 +574,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/delete-import-8
+ :name attrap/haskell-dante/delete-import-8a
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -587,6 +587,122 @@
   ""
   "import Haskell.Language.Lexer.Types"
   "  (tokToName, _|_Pos(..), Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName_|_, Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-8b
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-61689]"
+  "    Module ‘Haskell.Language.Lexer.Types’ does not export ‘Pos(..)’.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  ( tokToName"
+  "  , _|_Pos(..)"
+  "  , Line"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  ( tokToName_|_"
+  "  , Line"
+  "  )"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-8c
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-61689]"
+  "    Module ‘Haskell.Language.Lexer.Types’ does not export ‘Pos(..)’.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName, _|_Pos ( .. ), Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName_|_, Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  ""))
+
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-8da
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-61689]"
+  "    Module ‘Haskell.Language.Lexer.Types’ does not export ‘Pos(..)’.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName, _|_Pos ( .. ) , Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName_|_, Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-8db
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-61689]"
+  "    Module ‘Haskell.Language.Lexer.Types’ does not export ‘Pos(..)’.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName,   _|_Pos ( .. )  , Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName_|_, Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-8e
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-61689]"
+  "    Module ‘Haskell.Language.Lexer.Types’ does not export ‘Pos(..)’.")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Haskell.Language.Lexer.Types"
+  "  (tokToName, _|_Pos( .. ), Line, SrcPos(..), Type, posLine, PragmaType(..), Token(..), Type(..), ppTokens)"
   "")
  :expected-value
  (tests-utils--multiline
@@ -2385,7 +2501,7 @@
   "  ) where"))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1a
+ :name attrap/haskell-dante/redundant-constraint-1aa
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2399,6 +2515,128 @@
  (tests-utils--multiline
   ""
   "foo :: _|_HasCallStack => Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: _|_Int -> Int"
+  "foo x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1aba
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ::  _|_HasCallStack    =>     Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: _|_Int -> Int"
+  "foo x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1abb
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ::  Foo  =>  _|_HasCallStack    =>     Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ::  Foo  => _|_Int -> Int"
+  "foo x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1ac
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_HasCallStack"
+  "    => Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: _|_Int -> Int"
+  "foo x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1ad
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: ( _|_HasCallStack )"
+  "    => Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: _|_Int -> Int"
+  "foo x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-1ae
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: HasCallStack"
+  "    In the type signature for:"
+  "         foo :: HasCallStack => Int -> Int")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: ( _|_HasCallStack )    =>  Int -> Int"
   "foo x = x"
   "")
  :expected-value
