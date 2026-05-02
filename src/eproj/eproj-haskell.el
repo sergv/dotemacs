@@ -30,7 +30,10 @@
             (ext-re (eproj-language/extension-re
                      (gethash 'haskell-mode eproj/languages-table)))
             (faster-richer-tags-exe
-             (cached-executable-find "faster-richer-tags")))
+             (or (executable-find "faster-richer-tags")
+                 "/tmp/dist/build/x86_64-linux/ghc-9.14.1/faster-richer-tags-0.1/x/faster-richer-tags/build/faster-richer-tags/faster-richer-tags")
+             ;; (cached-executable-find "faster-richer-tags")
+             ))
         (unless faster-richer-tags-exe
           (error "faster-richer-tags executable not found"))
         (unless (file-executable-p faster-richer-tags-exe)
