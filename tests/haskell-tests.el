@@ -10515,6 +10515,7 @@ Entries should be a list of of elements of the form
   (tests-utils--multiline
    ""
    "import Prettyprinter.Combinators"
+   "import Prettyprinter.Instances ()"
    ""
    "import System.IO"
    ""
@@ -10530,6 +10531,7 @@ Entries should be a list of of elements of the form
    "")
   (tests-utils--multiline
    "import Prettyprinter.Combinators"
+   "import Prettyprinter.Instances ()"
    ""
    "main = undefined_|_"
    ""))
@@ -10549,6 +10551,7 @@ Entries should be a list of of elements of the form
    ""
    "import qualified Debug.Trace"
    "import Prettyprinter.Combinators"
+   "import Prettyprinter.Instances ()"
    ""
    "import System.IO"
    ""
@@ -10567,6 +10570,7 @@ Entries should be a list of of elements of the form
   (tests-utils--multiline
    "import qualified Debug.Trace"
    "import Prettyprinter.Combinators"
+   "import Prettyprinter.Instances ()"
    ""
    "main = undefined_|_"
    ""))
@@ -10586,6 +10590,7 @@ Entries should be a list of of elements of the form
   (tests-utils--multiline
    "import qualified Debug.Trace"
    "import Prettyprinter.Combinators"
+   "import Prettyprinter.Instances ()"
    ""
    "import Data.List"
    ""
