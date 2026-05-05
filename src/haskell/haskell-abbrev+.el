@@ -83,10 +83,12 @@
                                    t))
               (progn
                 (goto-char (match-end 0))
-                (insert "\nimport Prettyprinter.Combinators"))
+                (insert "\nimport Prettyprinter.Combinators")
+                (insert "\nimport Prettyprinter.Instances ()"))
             (let ((have-imports? (haskell-abbrev+--have-imports?)))
               (haskell-navigate-imports)
               (insert "import Prettyprinter.Combinators\n")
+              (insert "import Prettyprinter.Instances ()\n")
               (when have-imports?
                 (insert-char ?\n)))))))))
 
