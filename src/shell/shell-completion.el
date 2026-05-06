@@ -4228,6 +4228,9 @@ under version-control directories."
 
     "--rollback")))
 
+;;;###autoload
+(defalias 'pcomplete/trix #'pcomplete/nix)
+
 ;;;; Epilogue
 
 (provide 'shell-completion)
