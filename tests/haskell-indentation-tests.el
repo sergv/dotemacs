@@ -1741,6 +1741,48 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-11a
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux ="
+  "  let bar :: Int"
+  "       _|_"
+  "      bar = 1"
+  "  in 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux ="
+  "  let bar :: Int"
+  "      _|_"
+  "      bar = 1"
+  "  in 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-11b
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux = do"
+  "  let bar :: Int"
+  "       _|_"
+  "      bar = 1"
+  "  pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux = do"
+  "  let bar :: Int"
+  "      _|_"
+  "      bar = 1"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-record-1a
  :contents
  (tests-utils--multiline
