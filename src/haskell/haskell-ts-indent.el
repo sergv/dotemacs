@@ -900,7 +900,16 @@
              ;; Needs to come before ‘no-node’ to handle empty lines in where blocks.
              ((parent-is "local_binds")
               haskell-ts-indent--under-local-binds-anchor
-              0)
+              (lambda (_ _ _)
+                (lambda (matched-anchor)
+                  (if-let* (((treesit-node-p matched-anchor))
+                            ((string= (treesit-node-type matched-anchor)
+                                      "local_binds"))
+                            (gp (treesit-node-parent matched-anchor))
+                            ((member (treesit-node-type gp)
+                                     '("let" "let_in"))))
+                      1
+                    0))))
 
              (no-node
               ,(lambda (node parent bol-pos)
