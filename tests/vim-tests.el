@@ -241,6 +241,51 @@
       :expected-value
       ,expected2)))
 
+(cl-defmacro vim-tests--test-region-result
+    (&key name
+          action
+          contents)
+  (cons
+   'progn
+   (cl-loop
+    for entry in vim-tests--all-known-modes-and-init
+    for mode = (car entry)
+    for init = (cdr entry)
+    collect
+    `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+       (tests-utils--test-evaluate
+        :action
+        (save-excursion
+          (let ((start nil)
+                (end nil))
+            (goto-char (point-min))
+            (if (re-search-forward "_|_" nil t)
+                (replace-match "")
+              (error "No _|_ marker for point position within contents:\n%s" ,contents))
+            (when (save-excursion
+                    (goto-char (point-min))
+                    (re-search-forward "_|_" nil t))
+              (error "More than one occurrence of _|_ in source"))
+            (setf start (point))
+            (goto-char (point-min))
+            (if (re-search-forward "_||_" nil t)
+                (replace-match "")
+              (error "No _||_ marker for point position within contents:\n%s" ,contents))
+            (when (save-excursion
+                    (goto-char (point-min))
+                    (re-search-forward "_||_" nil t))
+              (error "More than one occurrence of _||_ in source"))
+            (setf end (point))
+            ,action
+            ;; (insert "_|_")
+            ))
+        :contents ,contents
+        :initialisation (progn ,@init)
+        :suppress-cursor t
+        :buffer-id nil
+        ;; ,(string->symbol (format "haskell-indentation-tests-%s" mode))
+        )))))
+
 (ert-deftest vim-tests/test-vim--parse-substitute-pattern-repl-flags ()
   (should (equal (vim--parse-substitute-pattern-repl-flags "/foo/bar")
                  '("foo" "bar" nil)))
@@ -1342,6 +1387,68 @@
    "dynProcessInput          , processInput         = mkFunc env (#peek emacs_env, process_input)          dynProcessInput"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes*
+ :name
+ vim-tests/paste-before-visual-block-region-5a
+ :action
+ (vim-tests--enable-undo
+  (execute-kbd-macro (kbd "Y h C-v h h h h h h P <escape>")))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_abcabcabcabcabcabcabcabcabcabcabc"
+  "defdefdefdef1"
+  "defdefdefdef2"
+  "defdefdefdef3"
+  "defdefdefdef4"
+  "defdefdefdef5"
+  "defdefdefdef6"
+  "xyz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "abcabcabcabcabcabcabcabcabcabcabc"
+  "_|_abcabcabcabcabcabcabcabcabcabcabcdefdefdefdef1"
+  "abcabcabcabcabcabcabcabcabcabcabcdefdefdefdef2"
+  "abcabcabcabcabcabcabcabcabcabcabcdefdefdefdef3"
+  "abcabcabcabcabcabcabcabcabcabcabcdefdefdefdef4"
+  "abcabcabcabcabcabcabcabcabcabcabcdefdefdefdef5"
+  "abcabcabcabcabcabcabcabcabcabcabcdefdefdefdef6"
+  "abcabcabcabcabcabcabcabcabcabcabcxyz"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes*
+ :name
+ vim-tests/paste-before-visual-block-region-5b
+ :action
+ (vim-tests--enable-undo
+  (execute-kbd-macro (kbd "Y h C-v h h h h h h P <escape>")))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_abcabcabcabcabcabcabcabcabcabcabc"
+  "def1"
+  "def2"
+  "def3"
+  "def4"
+  "def5"
+  "def6"
+  "xyz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "abcabcabcabcabcabcabcabcabcabcabc"
+  "_|_abcabcabcabcabcabcabcabcabcabcabcdef1"
+  "abcabcabcabcabcabcabcabcabcabcabcdef2"
+  "abcabcabcabcabcabcabcabcabcabcabcdef3"
+  "abcabcabcabcabcabcabcabcabcabcabcdef4"
+  "abcabcabcabcabcabcabcabcabcabcabcdef5"
+  "abcabcabcabcabcabcabcabcabcabcabcdef6"
+  "abcabcabcabcabcabcabcabcabcabcabcxyz"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-before-visual-block-region-undo-1
     ;; Enable undo tracking.
@@ -1505,6 +1612,68 @@
    " jklabc"
    " quux)"
    ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes*
+ :name
+ vim-tests/paste-after-visual-block-region-5a
+ :action
+ (vim-tests--enable-undo
+  (execute-kbd-macro (kbd "Y h C-v h h h h h h SPC SPC $ p <escape>")))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_abcabcabcabcabcabcabcabcabcabcabc"
+  "defdefdefdef1"
+  "defdefdefdef2"
+  "defdefdefdef3"
+  "defdefdefdef4"
+  "defdefdefdef5"
+  "defdefdefdef6"
+  "xyz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "abcabcabcabcabcabcabcabcabcabcabc"
+  "defdefdefdef1abcabcabcabcabcabcabcabcabcabcab_|_c"
+  "defdefdefdef2abcabcabcabcabcabcabcabcabcabcabc"
+  "defdefdefdef3abcabcabcabcabcabcabcabcabcabcabc"
+  "defdefdefdef4abcabcabcabcabcabcabcabcabcabcabc"
+  "defdefdefdef5abcabcabcabcabcabcabcabcabcabcabc"
+  "defdefdefdef6abcabcabcabcabcabcabcabcabcabcabc"
+  "xyz          abcabcabcabcabcabcabcabcabcabcabc"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes*
+ :name
+ vim-tests/paste-after-visual-block-region-5b
+ :action
+ (vim-tests--enable-undo
+  (execute-kbd-macro (kbd "Y h C-v h h h h h h SPC SPC $ p <escape>")))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_abcabcabcabcabcabcabcabcabcabcabc"
+  "def1"
+  "def2"
+  "def3"
+  "def4"
+  "def5"
+  "def6"
+  "xyz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "abcabcabcabcabcabcabcabcabcabcabc"
+  "def1abcabcabcabcabcabcabcabcabcabcab_|_c"
+  "def2abcabcabcabcabcabcabcabcabcabcabc"
+  "def3abcabcabcabcabcabcabcabcabcabcabc"
+  "def4abcabcabcabcabcabcabcabcabcabcabc"
+  "def5abcabcabcabcabcabcabcabcabcabcabc"
+  "def6abcabcabcabcabcabcabcabcabcabcabc"
+  "xyz abcabcabcabcabcabcabcabcabcabcabc"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-after-visual-block-region-undo-1
@@ -1681,8 +1850,8 @@
    " def"
    " ghi"
    " jkl"
-   " "
-   "de_|_f quux)"
+   " de_|_f"
+   " quux)"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
@@ -8724,6 +8893,89 @@ _|_bar")
   "    (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)"
   "         ;_|_(haskell-ts--is-toplevel-node? node)"
   "         ))"
+  ""))
+
+(vim-tests--test-region-result
+ :name vim-tests/vim-count-lines-with-correction-1a
+ :action
+ (should (= (vim-count-lines-with-correction start end) 2))
+ :contents
+ (tests-utils--multiline
+  "_|_abc"
+  "_||_def"
+  "xyz"
+  ""))
+
+(vim-tests--test-region-result
+ :name vim-tests/vim-count-lines-with-correction-1b
+ :action
+ (should (= (vim-count-lines-with-correction start end) 2))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_abc"
+  "_||_def"
+  "xyz"
+  ""))
+
+(vim-tests--test-region-result
+ :name vim-tests/vim-count-lines-with-correction-1c
+ :action
+ (should (= (vim-count-lines-with-correction start end) 2))
+ :contents
+ (tests-utils--multiline
+  ""
+  "a_|_bc"
+  "d_||_ef"
+  "xyz"
+  ""))
+
+(vim-tests--test-region-result
+ :name vim-tests/vim-count-lines-with-correction-1d
+ :action
+ (should (= (vim-count-lines-with-correction start end) 2))
+ :contents
+ (tests-utils--multiline
+  ""
+  "abc_|_"
+  "def_||_"
+  "xyz"
+  ""))
+
+(vim-tests--test-region-result
+ :name vim-tests/vim-count-lines-with-correction-2a
+ :action
+ (should (= (vim-count-lines-with-correction start end) 3))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_abc"
+  "def"
+  "_||_xyz"
+  ""))
+
+(vim-tests--test-region-result
+ :name vim-tests/vim-count-lines-with-correction-2b
+ :action
+ (should (= (vim-count-lines-with-correction start end) 3))
+ :contents
+ (tests-utils--multiline
+  ""
+  "a_|_bc"
+  "def"
+  "x_||_yz"
+  ""))
+
+(vim-tests--test-region-result
+ :name vim-tests/vim-count-lines-with-correction-2c
+ :action
+ (should (= (vim-count-lines-with-correction start end) 3))
+ :contents
+ (tests-utils--multiline
+  ""
+  "abc_|_"
+  "def"
+  "_||_xyz"
   ""))
 
 (provide 'vim-tests)
