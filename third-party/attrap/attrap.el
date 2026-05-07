@@ -1357,6 +1357,10 @@ Error is given as MSG and reported between POS and END."
                     "unsafeDupablePerformIO"
                     "unsafeInterleaveIO"
                     "unsafeFixIO"))
+                  (("GHC.Internal.Types")
+                   "Data.Coerce"
+                   ("Coercible"
+                    "coerce"))
                   (("GHC.Internal.Word")
                    "Data.Word"
                    ("Word"
