@@ -539,12 +539,18 @@ and switches to insert-mode."
          (vim:motion-first-non-blank:wrapper)))
 
       (`vim--yank-block-handler
-       (forward-char)
+       (let ((next (char-after)))
+         (unless (or (eq next ?\n)
+                     (eq next ?\r))
+           (forward-char)))
        (vim--cmd-paste-before-impl count))
 
       (_
        (when (and adjust?
-                  (not (eobp)))
+                  (not (eobp))
+                  (let ((next (char-after)))
+                    (not (or (eq next ?\n)
+                             (eq next ?\r)))))
          (forward-char))
        (vim--cmd-paste-before-impl count)
        ;; goto end of paste
