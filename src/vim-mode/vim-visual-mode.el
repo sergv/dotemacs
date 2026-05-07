@@ -659,12 +659,13 @@ This function is also responsible for setting the X-selection."
        (vim-visual--record-undo-pos! beg)
        (goto-char beg)
        (move-to-column-fixed col t)
-       (vim--cmd-paste-after 1 t)
-       (save-excursion
-         (dotimes (_ (vim-count-lines-with-correction beg end))
-           (forward-line 1)
-           (move-to-column-fixed col t)
-           (vim--cmd-paste-after 1 t)))))))
+       (let ((count (vim-count-lines-with-correction beg end)))
+         (vim--cmd-paste-after 1 t)
+         (save-excursion
+           (dotimes (_ (1- count))
+             (forward-line 1)
+             (move-to-column-fixed col t)
+             (vim--cmd-paste-after 1 t))))))))
 
 (vim-defcmd vim:visual-paste-before (motion)
   "‘vim:cmd-paste-before’ extended to visual region."
@@ -680,12 +681,14 @@ This function is also responsible for setting the X-selection."
            (undo-inhibit-record-point t))
        (vim-visual--record-undo-pos! beg)
        (goto-char beg)
-       (vim--cmd-paste-before-impl 1)
-       (save-excursion
-         (dotimes (_ (vim-count-lines-with-correction beg end))
-           (forward-line 1)
-           (move-to-column-fixed col t)
-           (vim--cmd-paste-before-impl 1)))))))
+       (move-to-column-fixed col t)
+       (let ((count (vim-count-lines-with-correction beg end)))
+         (vim--cmd-paste-before-impl 1)
+         (save-excursion
+           (dotimes (_ (1- count))
+             (forward-line 1)
+             (move-to-column-fixed col t)
+             (vim--cmd-paste-before-impl 1))))))))
 
 (vim-defcmd vim:visual-append (motion)
   "Starts insertion at the right column of a visual block."
