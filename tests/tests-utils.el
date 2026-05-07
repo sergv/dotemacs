@@ -135,16 +135,39 @@ Ensures a final newline is inserted."
     :contents ,contents
     :buffer-id ,buffer-id))
 
-(cl-defmacro tests-utils--test-result (&key action expected-value contents)
+(cl-defmacro tests-utils--test-result
+    (&key action
+          expected-value
+          contents
+          initialisation
+          post-content-initialisation
+          suppress-cursor
+          buffer-id)
+  (declare (indent nil))
   `(tests-utils--with-temp-buffer
     :action (should (equal ,action ,expected-value))
-    :contents ,contents))
+    :contents ,contents
+    :initialisation ,initialisation
+    :post-content-initialisation ,post-content-initialisation
+    :suppress-cursor ,suppress-cursor
+    :buffer-id ,buffer-id))
 
-(defmacro tests-utils--test-evaluate (action contents)
-  (declare (indent 1))
+(cl-defmacro tests-utils--test-evaluate
+    (&key action
+          expected-value
+          contents
+          initialisation
+          post-content-initialisation
+          suppress-cursor
+          buffer-id)
+  (declare (indent nil))
   `(tests-utils--with-temp-buffer
     :action ,action
-    :contents ,contents))
+    :contents ,contents
+    :initialisation ,initialisation
+    :post-content-initialisation ,post-content-initialisation
+    :suppress-cursor ,suppress-cursor
+    :buffer-id ,buffer-id))
 
 (cl-defmacro tests-utils--multiple-buffer-contents-from-same-init (&key initialisation contents actions-with-results buffer-id)
   `(progn
