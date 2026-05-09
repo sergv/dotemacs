@@ -286,11 +286,12 @@ scheme and it’s view of current buffer is malformed."
                            (find-file filename)
                            t)
                        (aif (compilation/find-buffer filename
-                                                     (funcall flycheck-enhancements--get-project-root-for-current-buffer))
+                                                     (funcall flycheck-enhancements--get-project-root-for-current-buffer)
+                                                     (eproj-get-project-for-buf-lax buf))
                            (progn
                              (switch-to-buffer it)
                              t)
-                         (error "Failed to find path the error refers to: ‘%s’. file does not exist an no matching buffer is opened"
+                         (error "Failed to find path the error refers to: ‘%s’. File does not exist an no matching buffer is opened"
                                 (flycheck-error-filename next-error)))))
                  ;; No filename - got to the bufer in the error message
                  (if-let* ((err-buf (flycheck-error-buffer next-error)))
