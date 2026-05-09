@@ -106,6 +106,7 @@ same for a set of buffers rather than being different."
 (defvar-local configurable-compilation--cached-rust-project-root nil)
 
 (cl-defstruct (cc-command
+               (:conc-name cc-command/)
                (:constructor make--cc-command))
   (cmd nil :read-only t) ;; List of strings, non-empty.
   (env nil :read-only t) ;; List of strings or nil; gets added to ‘process-environment’.
