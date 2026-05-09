@@ -45,14 +45,14 @@
                                             (`signal
                                              (funcall cont 'interrupted))
                                             (`exit
-                                             (let ((result (haskell-flycheck-cabal-build--extract-errors buf proj-dir process)))
+                                             (let ((result (haskell-flycheck-cabal-build--extract-errors buf proj-dir (eproj-project/root proj) process)))
                                                (funcall cont (car result) (cdr result))))))))))))))
 
 (defconst haskell-flycheck-cabal-build--extract-errors--resolved-filenames
   (make-hash-table :test #'equal)
   "Mapping from strings (filenames reported by the checker) to buffers.")
 
-(defun haskell-flycheck-cabal-build--extract-errors (buf dir proc)
+(defun haskell-flycheck-cabal-build--extract-errors (buf compilation-root eproj-root proc)
   (clrhash haskell-flycheck-cabal-build--extract-errors--resolved-filenames)
   (let ((results nil))
     (with-current-buffer buf
@@ -67,7 +67,7 @@
                               ;; the same basename but in different folders then we will have
                               ;; no way to know which one was meant. So the best we can do
                               ;; is to instruct flycheck to assign the error to all of them.
-                              (compilation/find-all-buffers file dir dir)
+                              (compilation/find-all-buffers file compilation-root eproj-root)
                               haskell-flycheck-cabal-build--extract-errors--resolved-filenames)))
                (location-raw (match-string 5))
                (err-type (match-string 6))
