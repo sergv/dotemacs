@@ -70,12 +70,18 @@ same for a set of buffers rather than being different."
         (error "`compilation-command' evaluated to non-string"))
     configurable-compilation-command-presets))
 
-(defmacro configurable-compilation--with-proj-dir-and-command-key (proj-dir-var command-key-var &rest body)
-  (declare (indent 2))
+(defmacro configurable-compilation--with-dirs-and-command-key (proj-dir-var eproj-root-var command-key-var &rest body)
+  (declare (indent 3))
   (cl-assert (symbolp proj-dir-var))
+  (cl-assert (or (null eproj-root-var) (symbolp eproj-root-var)))
   (cl-assert (symbolp command-key-var))
   (let ((effective-major-mode-var '#:effective-major-mode))
     `(let* ((,proj-dir-var (configurable-compilation-proj-dir))
+            ,@(when eproj-root-var
+                (list
+                 `(,eproj-root-var
+                   (when-let ((epr (eproj-get-project-for-buf-lax (current-buffer))))
+                     (eproj-project/root epr)))))
             (,effective-major-mode-var
              (configurable-compilation--resolve-synonym-modes major-mode))
             (,command-key-var (cons ,proj-dir-var ,effective-major-mode-var)))
@@ -89,8 +95,9 @@ same for a set of buffers rather than being different."
   (cl-assert (symbolp history-var))
   (cl-assert (symbolp compilation-mode))
   (setq-local configurable-compilation-command-presets presets)
-  (configurable-compilation--with-proj-dir-and-command-key
+  (configurable-compilation--with-dirs-and-command-key
       proj-dir
+      nil
       command-key
     (unless (gethash command-key configurable-compilation-last-command)
       (puthash command-key
@@ -108,13 +115,25 @@ same for a set of buffers rather than being different."
 (cl-defstruct (cc-command
                (:conc-name cc-command/)
                (:constructor make--cc-command))
-  (cmd nil :read-only t) ;; List of strings, non-empty.
-  (env nil :read-only t) ;; List of strings or nil; gets added to ‘process-environment’.
-  (dir nil :read-only t) ;; String, a value for ‘default-directory’. Never nil.
-  (pretty-cmd nil :read-only t) ;; String with properties, what to show user when this command executes.
-  )
+  ;; List of strings, non-empty.
+  (cmd nil :read-only t)
 
-(defun make-optional-nix-cc-command (full-command-line env proj-dir)
+  ;; List of strings or nil; gets added to ‘process-environment’.
+  (env nil :read-only t)
+
+  ;; String, a value for ‘default-directory’. Never nil.
+  ;; Current directory for the compilation process, may be different
+  ;; from eproj project root of the relevant project.
+  (dir nil :read-only t)
+
+  ;; String with properties, what to show user when this command executes.
+  (pretty-cmd nil :read-only t)
+
+  ;; String or nil. Absolute path to eproj project root that
+  ;; buffer where compilation was initiated belongs to.
+  (eproj-root nil :read-only t))
+
+(defun make-optional-nix-cc-command (full-command-line env proj-dir eproj-root)
   (let ((args (nix-maybe-call-via-flakes-exe-args
                (car full-command-line)
                (cdr full-command-line)
@@ -122,9 +141,10 @@ same for a set of buffers rather than being different."
     (make-cc-command (cmdline-to-executable-command args)
                      env
                      proj-dir
-                     (cmdline-to-pretty-command args))))
+                     (cmdline-to-pretty-command args)
+                     eproj-root)))
 
-(defun make-cc-command (full-command-line env dir pretty-cmd)
+(defun make-cc-command (full-command-line env dir pretty-cmd eproj-root)
   (cl-assert (not (null full-command-line)))
   (cl-assert (listp full-command-line))
   (cl-assert (-all? #'stringp full-command-line))
@@ -132,10 +152,12 @@ same for a set of buffers rather than being different."
   (cl-assert (stringp dir))
   (cl-assert (file-directory-p dir))
   (cl-assert (stringp pretty-cmd))
+  (cl-assert (or (null eproj-root) (file-directory-p eproj-root)))
   (make--cc-command :cmd full-command-line
                     :env env
                     :dir dir
-                    :pretty-cmd pretty-cmd))
+                    :pretty-cmd pretty-cmd
+                    :eproj-root eproj-root))
 
 (defun configurable-compilation--format-timestamp (x)
   (format-time-string "%a %-d %b %Y %H:%M:%S" x))
@@ -172,8 +194,9 @@ same for a set of buffers rather than being different."
   (interactive "P")
   (save-some-buffers (not compilation-ask-about-save)
                      compilation-save-buffers-predicate)
-  (configurable-compilation--with-proj-dir-and-command-key
+  (configurable-compilation--with-dirs-and-command-key
       proj-dir
+      eproj-root
       command-key
     (let* ((raw-command
             (if edit-command
@@ -198,9 +221,9 @@ same for a set of buffers rather than being different."
                   ;;      (format raw-command (expand-file-name proj-dir))
                   ;;    raw-command))
                   ((functionp raw-command)
-                   (funcall raw-command proj-dir))
+                   (funcall raw-command proj-dir eproj-root))
                   (t
-                   (error "Raw command must a function of 1 argument: %s" raw-command))))
+                   (error "Raw command must a function of 2 arguments: %s" raw-command))))
            (buf-name (configurable-compilation-buffer-name proj-dir)))
 
       (cl-assert (cc-command-p cmd))
