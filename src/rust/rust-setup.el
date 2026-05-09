@@ -19,7 +19,6 @@
 (require 'compilation-setup)
 (require 'current-column-fixed)
 (require 'flycheck)
-(require 'haskell-compile)
 (require 'indentation)
 (require 'lsp-rust)
 (require 'lsp-setup)
