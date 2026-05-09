@@ -17,6 +17,7 @@
 (cl-defstruct (compilation-error
                (:conc-name compilation-error/))
   compilation-root-directory
+  compilation-eproj-root
   filename
   line-number
   column-number)
@@ -29,38 +30,61 @@
            (line (compilation--loc->line loc))
            (col (awhen (compilation--loc->col loc) (1- it))))
       (make-compilation-error :compilation-root-directory default-directory
+                              :compilation-eproj-root (awhen configurable-compilation--command
+                                                        (cc-command/eproj-root it))
                               :filename file
                               :line-number line
                               :column-number col))))
 
-(defun compilation/find-all-buffers (filename &optional root proj-dir)
+(defun compilation/find-all-buffers (filename compilation-root eproj-root)
   "Get all buffers that corresponds to FILENAME within current project and/or current root that
 we could reasonably identify.
 
-Returns cons pair of opened buffers that we found and filename, if any, resolved under ROOT."
+Returns cons pair of opened buffers that we found and filename, if any, resolved under COMPILATION-ROOT."
   (cl-assert (and filename
                   (not (zerop (length filename)))))
-  (cl-assert (if root (file-name-absolute-p root) t))
-  (cl-assert (if proj-dir (file-name-absolute-p proj-dir) t))
-  (let* ((root-norm (and root
-                         (normalise-file-name (expand-file-name root))))
-         (proj-dir-norm (and proj-dir
-                             (normalise-file-name (expand-file-name proj-dir))))
+  (cl-assert (if compilation-root (file-name-absolute-p compilation-root) t))
+  (cl-assert (if eproj-root (file-name-absolute-p eproj-root) t))
+  (let* ((compilation-root-norm (and compilation-root
+                                     (normalise-file-name (expand-file-name compilation-root))))
+         (eproj-root-norm (and eproj-root
+                               (normalise-file-name (expand-file-name eproj-root))))
+         (proj (eproj-get-project-for-path-exact-lax eproj-root))
+         (prepare-filename-for-comparisons (fold-platform-os-type #'identity
+                                                                  #'downcase))
+         (ignore-case? (fold-platform-os-type nil t))
+         (related-roots (when proj
+                          (trie-from-list
+                           (--map (cons (funcall prepare-filename-for-comparisons (eproj-project/root it)) t)
+                                  (eproj-get-non-default-related-projects proj)))))
          (candidates
-          (-filter (lambda (buf)
-                     (awhen (buffer-file-name buf)
-                       (let ((buf-file (normalise-file-name it)))
-                         (and (string-suffix-p filename buf-file)
-                              (or (and root-norm (string-prefix-p root-norm buf-file))
-                                  (and proj-dir-norm (string-prefix-p proj-dir-norm buf-file)))))))
-                   (visible-buffers))))
+          (append
+           (-filter (lambda (buf)
+                      (awhen (buffer-file-name buf)
+                        (let ((buf-file (normalise-file-name it)))
+                          (and (string-suffix-p filename buf-file)
+                               (or (and compilation-root-norm (string-prefix-p compilation-root-norm buf-file ignore-case?))
+                                   (and eproj-root-norm (string-prefix-p eproj-root-norm buf-file ignore-case?))
+                                   (and related-roots
+                                        (trie-matches-string-prefix? related-roots
+                                                                     (funcall prepare-filename-for-comparisons buf-file))))))))
+                    (visible-buffers))
+           (when proj
+             (let ((root (eproj-project/root proj))
+                   (eproj-candidates nil))
+               (eproj-with-all-project-files-for-navigation proj
+                                                            (lambda (rel-path)
+                                                              (when (string-suffix-p filename rel-path (fold-platform-os-type nil t))
+                                                                (push (concat root "/" rel-path) eproj-candidates))))
+               eproj-candidates)
+             ))))
     (cons
      candidates
      (cl-block done
        ;; If filename did not resolve in immediate root then try all the parents,
        ;; perhaps compilation was actually executed/reported its errors from the
        ;; directory above?
-       (dolist (parent (file-name-all-parents root))
+       (dolist (parent (file-name-all-parents compilation-root))
          (let ((resolved-filename (resolve-to-abs-path-lax filename parent)))
            (when (and resolved-filename
                       (file-exists-p resolved-filename))
@@ -69,29 +93,40 @@ Returns cons pair of opened buffers that we found and filename, if any, resolved
                    it
                  (find-file-noselect resolved-filename))))))))))
 
-(defun compilation/find-buffer (filename &optional root proj-dir)
+(defun compilation/find-buffer (filename compilation-root eproj-root)
   "Get buffer that corresponds to FILENAME within current project and/or current root.
 
 The FILENAME may be neither full nor relative path. In case it’s
 neither, a buffer visiting filename with suffix equal to FILENAME will
-searched for within specified root and/or project."
-  (let ((candidates (compilation/find-all-buffers filename root proj-dir)))
+searched for within specified root and/or project.
+
+If EPROJ-ROOT resolves to an existing eproj project then FILENAME will be
+searched among its files as a last resort measure."
+  (let ((candidates (compilation/find-all-buffers filename compilation-root eproj-root)))
     (aif (car candidates)
-        (car it)
+        (let ((first-candidate (car it)))
+          (cond
+            ((bufferp first-candidate)
+             first-candidate)
+            ((stringp first-candidate)
+             (find-file-noselect first-candidate))
+            (t
+             (error "‘compilation/find-all-buffers’ returned not a buffer or string: ‘%s’"
+                    first-candidate))))
       (cdr candidates))))
 
-(defun compilation/jump-to-error (err &optional other-window proj-dir)
+(defun compilation/jump-to-error (err &optional other-window)
   "Jump to source of compilation error. ERR should be structure describing
 error location - value of compilation-error structure."
   (cl-assert (compilation-error-p err))
   (aif (compilation/find-buffer
         (compilation-error/filename err)
         (compilation-error/compilation-root-directory err)
-        proj-dir)
-    (funcall (if other-window
-               #'switch-to-buffer-other-window
-               #'switch-to-buffer)
-             it)
+        (compilation-error/compilation-eproj-root err))
+      (funcall (if other-window
+                   #'switch-to-buffer-other-window
+                 #'switch-to-buffer)
+               it)
     (error "Could not find buffer for file %s" (compilation-error/filename err)))
   (vim-save-position)
   (goto-line-dumb (compilation-error/line-number err))
@@ -102,28 +137,38 @@ error location - value of compilation-error structure."
   "Jump to location of error or warning (file, line and column) in current window."
   (interactive)
   (when-let (err (compilation--error-at-point))
-    (compilation/jump-to-error err nil nil)))
+    (compilation/jump-to-error
+     err
+     nil)))
 
 (defun compilation/goto-error-other-window ()
   "Jump to location of error or warning (file, line and column) in other window."
   (interactive)
   (when-let (err (compilation--error-at-point))
-    (compilation/jump-to-error err t nil)))
+    (compilation/jump-to-error
+     err
+     t)))
 
-(defun compilation-navigation--use-selected-error-or-jump-to-next (win buf jump-to-next-err-func)
+(defun compilation--get-compilation-buffer-proj-root (comp-buf)
+  "Return eproj project root for compilation buffer"
+  (cl-assert (provided-mode-derived-p (buffer-local-value 'major-mode comp-buf) '(compilation-mode)))
+  (buffer-local-value 'default-directory comp-buf))
+
+(defun compilation-navigation--use-selected-error-or-jump-to-next (win comp-buf jump-to-next-err-func)
   "Either return error currently selected in the compilation buffer BUF, if
 point is not located on it, or return the next error if current position argees
 with the position of the selected error."
   (let ((curr-buf (current-buffer))
         (line (line-number-at-pos)))
     (with-selected-window win
-      (with-current-buffer buf
+      (with-current-buffer comp-buf
         (prog1
             (if-let ((selected-err (compilation--error-at-point)))
                 (if (and
                      (eq (compilation/find-buffer
                           (compilation-error/filename selected-err)
-                          (compilation-error/compilation-root-directory selected-err))
+                          (compilation-error/compilation-root-directory err)
+                          (compilation-error/compilation-eproj-root selected-err))
                          curr-buf)
                      (equal (compilation-error/line-number selected-err)
                             line))
@@ -151,7 +196,7 @@ with the position of the selected error."
                           win
                           comp-buf
                           jump-to-next-err-func))
-                (compilation/jump-to-error err nil nil)
+                (compilation/jump-to-error err nil)
               (funcall fallback))
           (funcall fallback)))
     (funcall fallback)))
@@ -191,7 +236,7 @@ current window."
                            (when hl-line-mode
                              (hl-line-highlight))
                            (compilation--error-at-point)))))
-              (compilation/jump-to-error err nil proj-dir))
+              (compilation/jump-to-error err nil))
           (error "Compilation buffer for current project is not visible: %s" bufname))
       (error "No compilation buffer: %s" bufname))))
 
