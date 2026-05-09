@@ -86,32 +86,4 @@ imports."
   "The path which is considered as project root, this is determined by the
 presence of a *.cabal file or stack.yaml file or something similar.")
 
-(defun haskell-build-type ()
-  "Looks for cabal and stack spec files.
-   When found, returns a pair (TAG . DIR)
-   where TAG is 'cabal-project, 'cabal-sandbox. 'cabal, or 'stack;
-   and DIR is the directory containing cabal or stack file.
-   When none found, DIR is nil, and TAG is 'ghc"
-  ;; REVIEW maybe just 'cabal is enough.
-  (let ((cabal-project (locate-dominating-file default-directory "cabal.project"))
-        (cabal-sandbox (locate-dominating-file default-directory "cabal.sandbox.config"))
-        (stack         (locate-dominating-file default-directory "stack.yaml"))
-        (cabal         (locate-dominating-file
-                        default-directory
-                        (lambda (d)
-                          (cl-find-if
-                           (lambda (f) (string-match-p ".\\.cabal\\'" f))
-                           (directory-files d))))))
-    (cond
-     ((and cabal-project (executable-find "cabal"))
-      (cons 'cabal-project cabal-project))
-     ((and cabal-sandbox (executable-find "cabal"))
-      (cons 'cabal-sandbox cabal-sandbox))
-     ((and stack (executable-find "stack"))
-      (cons 'stack stack))
-     ((and cabal (executable-find "cabal"))
-      (cons 'cabal cabal))
-     ((executable-find "ghc") (cons 'ghc nil))
-     (t (error "Could not find any installation of GHC.")))))
-
 (provide 'haskell-customize)
