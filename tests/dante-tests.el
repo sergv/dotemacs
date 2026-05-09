@@ -146,7 +146,7 @@
     (accept-process-output proc nil nil t)))
 
 (ert-deftest z-dante-tests/simple-check-project-1 ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -191,7 +191,7 @@
         (should (string= ty "x :: a"))))))
 
 (ert-deftest z-dante-tests/simple-check-project-2 ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -259,7 +259,7 @@
            (should (null flycheck-current-errors))))))))
 
 (ert-deftest z-dante-tests/simple-check-project-3-name-shadowing-error ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -367,7 +367,7 @@
                            (buffer-file-name))))))))
 
 (ert-deftest z-dante-tests/simple-check-project-4-error-with-relative-path-from-subproject ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -375,7 +375,7 @@
   (dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl nil))
 
 (ert-deftest z-dante-tests/simple-check-project-5-error-with-relative-path-from-subproject-run-under-nix ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -385,7 +385,7 @@
   (dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl t))
 
 (ert-deftest z-dante-tests/simple-repl-project-1 ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -444,7 +444,7 @@
       (should (string= (dante-repl-get-last-output) "36\n")))))
 
 (ert-deftest z-dante-tests/check-hsc-project-1 ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -519,7 +519,7 @@
            (should (null flycheck-current-errors))))))))
 
 (ert-deftest z-dante-tests/check-hsc-project-2 ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -580,7 +580,7 @@
          (should (not (null flycheck-current-errors))))))))
 
 (ert-deftest z-dante-tests/repl-hsc-project-1 ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -628,7 +628,7 @@
       (should (string= (dante-repl-get-last-output) "0.0\n")))))
 
 (ert-deftest z-dante-tests/repl-hsc-project-2 ()
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
@@ -678,7 +678,7 @@
 (ert-deftest z-dante-tests/repl-hsc-project-3 ()
   ;; todo: unpack simple-check-project-with-hsc.zip and try fixing and reloading to see
   ;; that changes in hsc file are picked up by dante-repl ghci session
-  (unless (executable-find "cabal")
+  (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
   (unless (executable-find "ghc")
     (ert-skip "ghc not available"))
