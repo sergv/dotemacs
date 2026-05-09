@@ -392,14 +392,6 @@ main table and value in aux table."
 
 ;;;
 
-(defun string-suffix? (string1 string2 &optional ignore-case)
-  "Return t if STRING1 is a suffix of STRING2."
-  (declare (pure t) (side-effect-free t))
-  (and (<= (length string1) (length string2))
-       (eq t (compare-strings string1 0 nil
-                              string2 (- (length string2) (length string1)) nil
-                              ignore-case))))
-
 (cl-defun strip-string-prefix (prefix str &key (starting-at 0))
   "Remove (+ (length PREFIX) STARTING-AT) characters from start of STR."
   (declare (pure t) (side-effect-free t))
