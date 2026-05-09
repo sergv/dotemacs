@@ -526,6 +526,26 @@
     (should (equal (trie-matches-string-suffix? trie "barxba" 'not-found) 'not-found))
     (should (equal (trie-matches-string-suffix? trie "quuxxquu" 'not-found) 'not-found))))
 
+(ert-deftest datastructures-tests/trie-matches-stringh-prefix-1 ()
+  (let ((items '(("foo" . 1)
+                 ("bar" . 2)
+                 ("quux" . 3)))
+        (trie (make-empty-trie)))
+    (dolist (x items)
+      (trie-insert! (car x) (cdr x) trie))
+
+    (should (equal (trie-matches-string-prefix? trie "foo") 1))
+    (should (equal (trie-matches-string-prefix? trie "bar") 2))
+    (should (equal (trie-matches-string-prefix? trie "quux") 3))
+
+    (should (equal (trie-matches-string-prefix? trie "foox") 1))
+    (should (equal (trie-matches-string-prefix? trie "barx") 2))
+    (should (equal (trie-matches-string-prefix? trie "quuxx") 3))
+
+    (should (equal (trie-matches-string-prefix? trie "xfoox" 'not-found) 'not-found))
+    (should (equal (trie-matches-string-prefix? trie "xbarx" 'not-found) 'not-found))
+    (should (equal (trie-matches-string-prefix? trie "xquuxx" 'not-found) 'not-found))))
+
 (ert-deftest datastructures-tests/append-list-null-1 ()
   (should (append-list-null (append-list-empty))))
 
