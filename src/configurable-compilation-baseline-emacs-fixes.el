@@ -106,7 +106,7 @@ Returns the compilation buffer created."
                 ((stringp command)
                  orig)
                 ((cc-command-p command)
-                 (cd (cc-command-dir command)))
+                 (cd (cc-command/dir command)))
                 (t
                  (error "Unexpected compilation command: %s" command)))))
           (erase-buffer)
@@ -133,7 +133,7 @@ Returns the compilation buffer created."
                           ((stringp command)
                            thisenv)
                           ((cc-command-p command)
-                           (append (cc-command-env command)
+                           (append (cc-command/env command)
                                    thisenv))
                           (t
                            (error "Unexpected compilation command: %s" command)))))
@@ -181,7 +181,7 @@ Returns the compilation buffer created."
                       ((stringp command)
                        command)
                       ((cc-command-p command)
-                       (cc-command-pretty-cmd command))))
+                       (cc-command/pretty-cmd command))))
                   "\n")
           ;; Mark the end of the header so that we don't interpret
           ;; anything in it as an error.
@@ -251,7 +251,7 @@ Returns the compilation buffer created."
                                         ((stringp command)
                                          command)
                                         ((cc-command-p command)
-                                         (mapconcat #'identity (cc-command-cmd command) " ")))))))))
+                                         (mapconcat #'identity (cc-command/cmd command) " ")))))))))
                        (el-patch-let ((orig
                                        (start-file-process-shell-command
                                         (downcase mode-name)
@@ -263,10 +263,10 @@ Returns the compilation buffer created."
                              ((stringp command)
                               orig)
                              ((cc-command-p command)
-                              (cd (cc-command-dir command))
-                              (let ((command-line (cc-command-cmd command)))
+                              (cd (cc-command/dir command))
+                              (let ((command-line (cc-command/cmd command)))
                                 (apply #'start-file-process
-                                       (concat "compilation for " (cc-command-dir command))
+                                       (concat "compilation for " (cc-command/dir command))
                                        (current-buffer)
                                        (car command-line)
                                        (cdr command-line))))))))))
@@ -440,7 +440,7 @@ Returns the compilation buffer created."
                 ((stringp command)
                  orig)
                 ((cc-command-p command)
-                 (cd (cc-command-dir command)))
+                 (cd (cc-command/dir command)))
                 (t
                  (error "Unexpected compilation command: %s" command)))))
           (if continue
@@ -473,7 +473,7 @@ Returns the compilation buffer created."
                           ((stringp command)
                            thisenv)
                           ((cc-command-p command)
-                           (append (cc-command-env command)
+                           (append (cc-command/env command)
                                    thisenv))
                           (t
                            (error "Unexpected compilation command: %s" command)))))
@@ -517,7 +517,7 @@ Returns the compilation buffer created."
                       ((stringp command)
                        command)
                       ((cc-command-p command)
-                       (cc-command-pretty-cmd command))
+                       (cc-command/pretty-cmd command))
                       (t
                        (error "Unexpected compilation command: %s" command)))
                     "\n"))
@@ -594,7 +594,7 @@ Returns the compilation buffer created."
                                         ((stringp command)
                                          command)
                                         ((cc-command-p command)
-                                         (mapconcat #'identity (cc-command-cmd command) " ")))))))))
+                                         (mapconcat #'identity (cc-command/cmd command) " ")))))))))
                        (el-patch-let ((orig
                                        (start-file-process-shell-command
                                         (downcase mode-name)
@@ -606,10 +606,10 @@ Returns the compilation buffer created."
                              ((stringp command)
                               orig)
                              ((cc-command-p command)
-                              (cd (cc-command-dir command))
-                              (let ((command-line (cc-command-cmd command)))
+                              (cd (cc-command/dir command))
+                              (let ((command-line (cc-command/cmd command)))
                                 (apply #'start-file-process
-                                       (concat "compilation for " (cc-command-dir command))
+                                       (concat "compilation for " (cc-command/dir command))
                                        (current-buffer)
                                        (car command-line)
                                        (cdr command-line))))))))))
@@ -783,7 +783,7 @@ Returns the compilation buffer created."
                 ((stringp command)
                  orig)
                 ((cc-command-p command)
-                 (cd (cc-command-dir command)))
+                 (cd (cc-command/dir command)))
                 (t
                  (error "Unexpected compilation command: %s" command)))))
           (if continue
@@ -816,7 +816,7 @@ Returns the compilation buffer created."
                           ((stringp command)
                            thisenv)
                           ((cc-command-p command)
-                           (append (cc-command-env command)
+                           (append (cc-command/env command)
                                    thisenv))
                           (t
                            (error "Unexpected compilation command: %s" command)))))
@@ -862,7 +862,7 @@ Returns the compilation buffer created."
                ((stringp command)
                 command)
                ((cc-command-p command)
-                (cc-command-pretty-cmd command))
+                (cc-command/pretty-cmd command))
                (t
                 (error "Unexpected compilation command: %s" command)))
              "\n"
@@ -937,7 +937,7 @@ Returns the compilation buffer created."
                                         ((stringp command)
                                          command)
                                         ((cc-command-p command)
-                                         (mapconcat #'identity (cc-command-cmd command) " ")))))))))
+                                         (mapconcat #'identity (cc-command/cmd command) " ")))))))))
                        (el-patch-let ((orig (start-file-process-shell-command
                                              (compilation--downcase-mode-name mode-name)
 		                             outbuf command)))
@@ -947,10 +947,10 @@ Returns the compilation buffer created."
                              ((stringp command)
                               orig)
                              ((cc-command-p command)
-                              (cd (cc-command-dir command))
-                              (let ((command-line (cc-command-cmd command)))
+                              (cd (cc-command/dir command))
+                              (let ((command-line (cc-command/cmd command)))
                                 (make-process
-	                         :name (concat "compilation for " (cc-command-dir command))
+                                 :name (concat "compilation for " (cc-command/dir command))
                                  :buffer (current-buffer)
                                  :command command-line
                                  ;; :process-connection-type
