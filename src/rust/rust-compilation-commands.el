@@ -34,8 +34,8 @@
 
             (setf args (cons rust-cargo-bin (cons cmd args)))
 
-            (lambda (proj-dir)
-              (make-optional-nix-cc-command args env proj-dir))))))
+            (lambda (proj-dir eproj-root)
+              (make-optional-nix-cc-command args env proj-dir eproj-root))))))
     (mapcan (lambda (entry)
               (let ((target (car entry)))
                 (if (listp target)
