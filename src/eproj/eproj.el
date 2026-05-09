@@ -781,7 +781,7 @@ for project at ROOT directory."
           (eproj-project/query-aux-info-entry aux-info 'extra-navigation-files))
 
          (related-projects
-          (eproj-get-related-projects root aux-info))
+          (eproj--get-related-projects-from-info root aux-info))
          (cached-ignored-files-re
           (let ((related-projs-globs
                  (--map (concat (strip-directory-and-separator-prefix root it) "/*")
@@ -1287,7 +1287,7 @@ paths."
          :ignored-directory-prefixes +ignored-directory-prefixes+
          :relative-paths t)))))
 
-(defun eproj-get-related-projects (root aux-info)
+(defun eproj--get-related-projects-from-info (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
 AUX-INFO is expected to be a list with entry (related { <abs-path> | <rel-path> }* ).
 Returns nil if no relevant entry found in AUX-INFO."
