@@ -17,6 +17,9 @@
 (defvar-local compilation-start-timestamp nil
   "Time when current compilation started")
 
+(defvar-local configurable-compilation--command nil
+  "Value of ‘cc-command’ structure type that initiated this compilation.")
+
 (when-emacs-version (= 28 it)
   (el-patch-defun compilation-start (command &optional mode name-function highlight-regexp)
     "Run compilation command COMMAND (low level interface).
@@ -886,6 +889,9 @@ Returns the compilation buffer created."
 	        (copy-sequence process-environment))))
           (setq-local compilation-arguments
                       (list command mode name-function highlight-regexp))
+          (el-patch-add
+            (when (cc-command-p command)
+              (setq-local configurable-compilation--command command)))
           (setq-local revert-buffer-function 'compilation-revert-buffer)
 	  (when (and outwin
                      (not continue)
@@ -956,7 +962,9 @@ Returns the compilation buffer created."
                                  ;; :process-connection-type
                                  ;; :connection-type 'pipe
                                  :width (window-body-width outwin)
-                                 :height (window-body-height outwin))))))))))
+                                 :height (window-body-height outwin))))
+                             (t
+                              (error "Unexpected compilation command: ‘%s’" command))))))))
                 ;; Make the buffer's mode line show process state.
                 (setq mode-line-process
                       '((:propertize ":%s" face compilation-mode-line-run)
@@ -1159,8 +1167,6 @@ Returns the compilation buffer created."
       (if (and opoint (< opoint omax))
 	  (goto-char opoint))
       (run-hook-with-args 'compilation-finish-functions cur-buffer msg))))
-
-
 
 (provide 'configurable-compilation-baseline-emacs-fixes)
 
