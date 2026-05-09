@@ -26,8 +26,8 @@
 
            (setf args (cons "cabal" (cons cmd args)))
 
-           (lambda (proj-dir)
-             (make-optional-nix-cc-command args nil proj-dir)))))
+           (lambda (proj-dir eproj-root)
+             (make-optional-nix-cc-command args nil proj-dir eproj-root)))))
     (mapcan (lambda (entry)
               (let ((target (car entry)))
                 (if (listp target)

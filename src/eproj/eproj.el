@@ -1058,6 +1058,10 @@ symbol 'unresolved.")
      (buffer-local-value 'major-mode buf))))
 
 ;;;###autoload
+(defun eproj-get-project-for-path-exact-lax (path)
+  (gethash path *eproj-projects* nil))
+
+;;;###autoload
 (defun eproj-get-project-for-path-lax (path is-self-contained-file?)
   "Retrieve project that contains PATH as its part. Similar to
 `eproj-get-project-for-path' but returns nil if there's no
@@ -1388,6 +1392,10 @@ project.")
                  (eproj-project/languages proj))))
     (eproj--transitive-closure-of-related-projects
      (cons proj all-related-default-projects))))
+
+(defun eproj-get-non-default-related-projects (proj)
+  "Return transitive closure all projects related to PROJ."
+  (eproj--transitive-closure-of-related-projects (list proj)))
 
 (defun eproj-get-all-related-projects-for-mode (proj mode)
   "Return eproj-project structures of projects related to PROJ

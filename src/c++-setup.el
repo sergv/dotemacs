@@ -135,7 +135,7 @@
 (defvar c++-compile--build-presets-history nil)
 
 (defconst +c++-compilation-presets+
-  `((make . ,(lambda (proj-dir) (make-cc-command '("make") nil proj-dir "make")))))
+  `((make . ,(lambda (proj-dir eproj-root) (make-cc-command '("make") nil proj-dir "make" eproj-root)))))
 
 (defhydra hydra-c++-toggle (:exit nil :foreign-keys nil :hint nil)
   "
