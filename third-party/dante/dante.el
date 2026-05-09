@@ -89,7 +89,7 @@
 
 (defun dante-vanilla-cabal-script-buf? (buf)
   "Non-nil if BUF is a cabal-style script which has no extra configuration."
-  (and (cached-executable-find "cabal")
+  (and (cached-executable-find dante-cabal-executable)
        (haskell-misc-cabal-script-buf? buf)))
 
 (defun dante-directory-regular-files (dir re)
@@ -282,6 +282,8 @@ targets and components about current buffer’s ghci session."
                 (concat "-" (sha1 it))))
     (concat "dist-newstyle/" name)))
 
+(defconst dante-cabal-executable "cabal")
+
 (defconst dante-methods-defs
   (let* ((ghci-options
           '("-fbyte-code"
@@ -297,8 +299,6 @@ targets and components about current buffer’s ghci session."
             "-fshow-loaded-modules"
             "-fprint-potential-instances"
             "-fdefer-typed-holes"))
-
-         (cabal-exe "cabal")
 
          (get-check-build-dir (lambda (proj-root build-dir)
                                 (cl-assert (stringp proj-root))
@@ -402,7 +402,7 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (declare (ignore target))
-                  (nix-call-via-flakes cabal-exe `("repl" ,buffer-file-name ,@flags) flake-root))))
+                  (nix-call-via-flakes dante-cabal-executable `("repl" ,buffer-file-name ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'nix-flakes-build
@@ -413,7 +413,7 @@ targets and components about current buffer’s ghci session."
                (cl-function
                 (lambda (&key flake-root flags target)
                   (cl-assert (stringp target))
-                  (nix-call-via-flakes cabal-exe `("repl" ,target ,@flags) flake-root))))
+                  (nix-call-via-flakes dante-cabal-executable `("repl" ,target ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'build-script
@@ -426,7 +426,7 @@ targets and components about current buffer’s ghci session."
                 (lambda (&key flake-root flags target)
                   (declare (ignore flake-root target))
                   (make-cmdline
-                   :exe cabal-exe
+                   :exe dante-cabal-executable
                    :args `("repl" ,buffer-file-name ,@flags)))))
 
       (funcall mk-dante-method
@@ -440,7 +440,7 @@ targets and components about current buffer’s ghci session."
                   (declare (ignore flake-root))
                   (cl-assert (stringp target))
                   (make-cmdline
-                   :exe cabal-exe
+                   :exe dante-cabal-executable
                    :args `("repl" ,target ,@flags)))))
 
       (funcall mk-dante-method
