@@ -194,6 +194,26 @@ call (MERGE old-val VALUE) to produce a new value."
                             (<= 0 idx)))))
     res))
 
+(defun trie-matches-string-prefix? (tr str &optional def)
+  (let* ((res def)
+         (len (length str))
+         (idx 0)
+         (continue (< idx len)))
+    (while (and tr
+                continue)
+      (let ((c (aref str idx)))
+        (setf tr (trie-lookup-node-char c tr))
+        (if tr
+            (let ((val (trie-node--value tr)))
+              (when (not (eq val trie--unbound))
+                (setf continue nil
+                      res val)))
+          (setf continue nil))
+        (setf idx (+ idx 1)
+              continue (and continue
+                            (< idx len)))))
+    res))
+
 ;;;; End
 
 (provide 'trie)
