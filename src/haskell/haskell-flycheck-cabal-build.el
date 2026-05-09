@@ -25,7 +25,7 @@
                      (lambda (dir)
                        dir)))
          (command (nix-maybe-call-via-flakes-exe-args
-                   "cabal"
+                   dante-cabal-executable
                    (list "build" "--builddir" build-dir (dante-config/cabal-target (dante-get-config)))
                    proj-dir)))
     (flycheck-report-status 'running)
