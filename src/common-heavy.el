@@ -607,22 +607,34 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
   (let* ((beginning (point))
          (var-list nil)
          (insert-message
-          (lambda (_is-initial-insertion? user-input)
-            (insert (funcall quote-message user-input))))
+          (lambda (_acc _is-initial-insertion? user-input)
+            (cl-assert (stringp user-input))
+            (insert (funcall quote-message user-input))
+            (cons 'message user-input)))
          (insert-variable
-          (lambda (is-initial-insertion? user-input)
-            (unless is-initial-insertion?
-              (insert ", "))
+          (lambda (acc is-initial-insertion? user-input)
+            (cl-assert (stringp user-input))
+            (cond
+              (is-initial-insertion?)
+              ((and acc
+                    (eq (car acc) 'message)
+                    (let ((str (cdr acc)))
+                      (cl-assert (stringp str))
+                      (eq ?: (aref str (1- (length str))))))
+               (insert " "))
+              (t
+               (insert ", ")))
             (funcall format user-input)
-            (push user-input var-list))))
+            (push user-input var-list)
+            acc)))
     (insert-info-template
-     :start start
-     :end (lambda ()
+     :start (lambda () (funcall start) nil)
+     :end (lambda (_acc)
             (funcall end (reverse var-list))
             (save-excursion
               (goto-char beginning)
               (funcall reindent-at-end)))
-     :insert-continuation #'ignore
+     :insert-continuation (lambda (acc _should-merge-messages?) acc)
      :insert-message insert-message
      :insert-variable insert-variable)))
 
@@ -644,32 +656,39 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
         (is-message?
          (lambda (x)
            (and (not (zerop (length x)))
-                (or (char= ?\s (aref x 0))
-                    (char= ?\t (aref x 0))))))
+                (let ((c (aref x 0)))
+                  (or (char= ?\s c)
+                      (char= ?\t c))))))
         (prompt-user
          (lambda ()
            (read-string-no-default "Variable or message starting with space: "
                                    nil
                                    nil
-                                   ""))))
-    (funcall start)
+                                   "")))
+        (acc nil))
+    (setf acc (funcall start))
     (while (and (setf user-input (funcall prompt-user))
                 (not (string= user-input "")))
       (let* ((current-is-message? (funcall is-message? user-input))
              (should-merge-messages? prev-was-message?))
         (unless is-initial-insertion?
-          (funcall insert-continuation
-                   should-merge-messages?))
-        (if current-is-message?
-            (funcall insert-message
-                     is-initial-insertion?
-                     (replace-regexp-in-string "^[ \t]" "" user-input))
-          (funcall insert-variable
-                   is-initial-insertion?
-                   user-input))
+          (setf acc
+                (funcall insert-continuation
+                         acc
+                         should-merge-messages?)))
+        (setf acc
+              (if current-is-message?
+                  (funcall insert-message
+                           acc
+                           is-initial-insertion?
+                           (replace-regexp-in-string "^[ \t]" "" user-input))
+                (funcall insert-variable
+                         acc
+                         is-initial-insertion?
+                         user-input)))
         (setf prev-was-message? current-is-message?))
       (setf is-initial-insertion? nil))
-    (funcall end)))
+    (funcall end acc)))
 
 ;;;;
 
