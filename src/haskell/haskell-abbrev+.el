@@ -116,36 +116,54 @@
                          (has-liftio?   "liftIO $ putStrLn")
                          (has-liftbase? "liftBase $ putStrLn")
                          (t             "putStrLn")))))
-                 " $ \""))
+                 " $ \"")
+                nil)
             (lambda ()
               (insert (if trace-func-name
                           trace-func-name
                         "trace")
-                      " (\""))))
+                      " (\"")
+              nil)))
          (end
           (if monadic?
-              (lambda ()
+              (lambda (_acc)
                 (insert ""))
-            (lambda () (insert ") " (if insert-dollar? "$ " "")))))
+            (lambda (_acc)
+              (insert ") " (if insert-dollar? "$ " "")))))
          (quote-input
           #'haskell--quote-string-for-template-insertion)
          (insert-continuation
-          (lambda (should-merge-messages?)
+          (lambda (acc should-merge-messages?)
             (if should-merge-messages?
                 (delete-char -1)
-              (insert " ++ \""))))
+              (insert " ++ \""))
+            acc))
          (insert-message
-          (lambda (_is-initial-insertion? user-input)
-            (insert (format "%s\"" (funcall quote-input user-input)))))
+          (lambda (acc _is-initial-insertion? user-input)
+            (cl-assert (stringp user-input))
+            (insert (format "%s\"" (funcall quote-input user-input)))
+            (cons 'message user-input)))
          (insert-variable
-          (lambda (is-initial-insertion? user-input)
+          (lambda (acc is-initial-insertion? user-input)
+            (cl-assert (stringp user-input))
             (insert
              (format "%s%s = \" ++ show %s"
-                     (if is-initial-insertion? "" ", ")
+                     (cond
+                       (is-initial-insertion?
+                        "")
+                       ((and acc
+                             (eq (car acc) 'message)
+                             (let ((str (cdr acc)))
+                               (cl-assert (stringp str))
+                               (eq ?: (aref str (1- (length str))))))
+                        " ")
+                       (t
+                        ", "))
                      (funcall quote-input user-input)
                      (if (string-match-p "[ \t]" user-input)
                          (concat "(" user-input ")")
-                       user-input))))))
+                       user-input)))
+            (cons 'variable user-input))))
     (insert-info-template
      :start start
      :end end
