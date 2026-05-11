@@ -95,7 +95,7 @@
         (import (if (eq haskell-literate 'bird)
                     "^> ?import "
                   "^import ")))
-    (if (string-match import line)
+    (if (string-match-p import line)
         line
       nil)))
 
