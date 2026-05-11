@@ -37,16 +37,49 @@
 (defun haskell--quote-string-for-template-insertion (str)
   (replace-regexp-in-string "\"" "\\\\\"" str))
 
-(defmacro haskell-abbrev+--is-function-available (function-name module-name)
-  `(save-excursion
-     (with-no-narrowing
-       (save-match-data
-         (goto-char (point-min))
-         (re-search-forward
-          (rx (or ,@(when function-name (list `(seq bow ,function-name eow)))
-                  ,@(when module-name   (list `(seq bol "import" (* any) ,module-name)))))
-          nil
-          t)))))
+(defun haskell-abbrev+--is-function-available (function-name module-names)
+  "Check that Haskell function and module names are available in current module.
+
+Can check for multiple functions/modules at once.
+
+FUNCTION-NAME is a regular expression that should match function names to check for.
+
+MODULE-NAMES is list of alists of (symbol name1 name2 ... nameN) entries. Toplevel
+entries will be checked with disjunction, each alist entry will match only when all
+names are available. Function returns symbol of the matched alist entry or T if
+functions were present already.
+
+The idea is to check that relevant functions are already used then we won’t need
+to check whether their modules are imported if functions are already in scope."
+  (save-excursion
+    (with-no-narrowing
+      (or (when function-name
+            (goto-char (point-min))
+            (and (re-search-forward (rx symbol-start (regexp function-name) symbol-end)
+                                    nil
+                                    t)
+                 t))
+          (when module-names
+            (let ((result nil)
+                  (continue? t)
+                  (tmp module-names)
+                  (entry nil))
+              (while continue?
+                (let* ((entry (car tmp))
+                       (names (cdr entry)))
+                  (cl-assert (symbolp (car entry)))
+                  (cl-assert (listp names) nil "All module names must be a list of strings: %S" names)
+                  (cl-assert (-all? #'stringp names) nil "All module names must be strings: %S" names)
+                  (when (--every?
+                         (save-match-data
+                           (goto-char (point-min))
+                           (re-search-forward it nil t))
+                         names)
+                    (setf continue? nil
+                          result (car entry)))
+                  (setf tmp (cdr tmp)
+                        continue? (not (null tmp)))))
+              result))))))
 
 (defun haskell-abbrev+--have-imports? ()
   (save-match-data
@@ -56,8 +89,11 @@
 
 (defun haskell-abbrev+--ensure-debug-trace-available ()
   (unless (haskell-abbrev+--is-function-available nil
-                                                  (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
-                                                      (seq symbol-start "Debug.Trace" (or eol (seq symbol-end (* any) "qualified")))))
+                                                  (list
+                                                   (list 'debug-trace
+                                                         (rx bol
+                                                             (or "import Debug.Trace qualified"
+                                                                 "import qualified Debug.Trace")))))
     (save-excursion
       (with-no-narrowing
         (let ((have-imports? (haskell-abbrev+--have-imports?)))
@@ -68,29 +104,88 @@
           (when have-imports?
             (insert-char ?\n)))))))
 
-(defun haskell-abbrev+--ensure-prettyprinter-combinators-available ()
-  (unless (haskell-abbrev+--is-function-available "ppDict"
-                                                  (or (seq "qualified" (* any) symbol-start "Prettyprinter.Combinators" symbol-end)
-                                                      (seq symbol-start "Prettyprinter.Combinators" (or eol (seq symbol-end (* any) "qualified")))))
+(defun haskell-abbrev+--ensure-functions-or-modules-available (func-name mod-entries)
+  (unless (haskell-abbrev+--is-function-available
+           (rx (literal func-name))
+           (list
+            (cons 'prettyprinter-combinators
+                  (-map (lambda (entry)
+                          (let ((mod-name (car entry))
+                                (qualification (cadr entry))
+                                (import-list (caddr entry)))
+                            (cl-assert (stringp mod-name))
+                            (cl-assert (or (null qualification) (stringp qualification)))
+                            (cl-assert (or (null import-list) (stringp import-list)))
+                            (cond
+                              (qualification
+                               (rx bol
+                                   "import "
+                                   (or (seq (literal mod-name) " qualified")
+                                       (seq "qualified " (literal mod-name)))
+                                   " as "
+                                   (literal qualification)))
+                              (import-list
+                               (rx bol
+                                   "import "
+                                   (literal mod-name)
+                                   " "
+                                   (literal import-list)))
+                              (t
+                               (error "Either import list or qualification is expected in mod-entry: %s" entry)))))
+                        mod-entries))))
     (save-match-data
       (save-excursion
         (with-no-narrowing
-          (if (save-excursion
-                (goto-char (point-min))
-                (re-search-forward (rx "import" (* any) (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
-                                                            (seq symbol-start "Debug.Trace" symbol-end (* any) "qualified" eol)))
-                                   nil
-                                   t))
-              (progn
-                (goto-char (match-end 0))
-                (insert "\nimport Prettyprinter.Combinators")
-                (insert "\nimport Prettyprinter.Instances ()"))
-            (let ((have-imports? (haskell-abbrev+--have-imports?)))
-              (haskell-navigate-imports)
-              (insert "import Prettyprinter.Combinators\n")
-              (insert "import Prettyprinter.Instances ()\n")
-              (when have-imports?
-                (insert-char ?\n)))))))))
+          (let ((do-insert!
+                 (lambda (add-newline)
+                   (dolist (entry mod-entries)
+                     (let ((mod-name (car entry))
+                           (qualification (cadr entry))
+                           (import-list (caddr entry)))
+                       (cl-assert (stringp mod-name))
+                       (cl-assert (or (null qualification) (stringp qualification)))
+                       (cl-assert (or (null import-list) (stringp import-list)))
+                       (insert (funcall add-newline
+                                        (cond
+                                          (qualification
+                                           (concat
+                                            (if (haskell-ext-tracking-have-import-qualified-post?)
+                                                (concat "import " mod-name " qualified")
+                                              (concat "import qualified " mod-name))
+                                            " as "
+                                            qualification))
+                                          (import-list
+                                           (concat "import " mod-name " " import-list))))))))))
+            (if (save-excursion
+                  (goto-char (point-min))
+                  (re-search-forward (rx bol
+                                         (or "import Debug.Trace qualified"
+                                             "import qualified Debug.Trace"))
+                                     nil
+                                     t))
+                (progn
+                  (goto-char (match-end 0))
+                  (funcall do-insert! (lambda (str) (concat "\n" str)))
+                  ;; (insert (if (haskell-ext-tracking-have-import-qualified-post?)
+                  ;;             "\nimport Prettyprinter.Combinators qualified as PP"
+                  ;;           "\nimport qualified as Prettyprinter.Combinators PP"))
+                  ;; (insert "\nimport Prettyprinter.Instances ()")
+                  )
+              (let ((have-imports? (haskell-abbrev+--have-imports?)))
+                (haskell-navigate-imports)
+                (funcall do-insert! (lambda (str) (concat str "\n")))
+                ;; (insert (if (haskell-ext-tracking-have-import-qualified-post?)
+                ;;             "import Prettyprinter.Combinators qualified as PP\n"
+                ;;           "import qualified as Prettyprinter.Combinators PP\n"))
+                ;; (insert "import Prettyprinter.Instances ()\n")
+                (when have-imports?
+                  (insert-char ?\n))))))))))
+
+(defun haskell-abbrev+--ensure-prettyprinter-combinators-available ()
+  (haskell-abbrev+--ensure-functions-or-modules-available
+   "PP.ppDictHeader"
+   '(("Prettyprinter.Combinators" "PP" nil)
+     ("Prettyprinter.Instances" nil "()"))))
 
 (defun haskell-insert-general-info-template (_arg monadic? trace-func-name)
   (let* ((start-position (point))
@@ -103,19 +198,22 @@
                  (if trace-func-name
                      trace-func-name
                    (save-match-data
-                     (haskell-abbrev+--is-function-available
-                      (seq "lift"
-                           (or (group-n 1 "IO")
-                               (group-n 2 "Base")))
-                      (seq "Control.Monad."
-                           (or (group-n 1 "IO.Class")
-                               (group-n 2 "Base"))))
-                     (let ((has-liftio? (match-beginning 1))
-                           (has-liftbase? (match-beginning 2)))
-                       (cond
-                         (has-liftio?   "liftIO $ putStrLn")
-                         (has-liftbase? "liftBase $ putStrLn")
-                         (t             "putStrLn")))))
+                     (let ((res
+                            (haskell-abbrev+--is-function-available
+                             (rx (seq "lift"
+                                      (or (group-n 1 "IO")
+                                          (group-n 2 "Base"))))
+                             (list
+                              (list 'liftio "Control.Monad.IO.Class")
+                              (list 'liftbase "Control.Monad.Base")))))
+                       (let ((has-liftio? (or (and (eq res t) (match-beginning 1))
+                                              (eq res 'liftio)))
+                             (has-liftbase? (or (and (eq res t) (match-beginning 2))
+                                                (eq res 'liftbase))))
+                         (cond
+                           (has-liftio?   "liftIO $ putStrLn")
+                           (has-liftbase? "liftBase $ putStrLn")
+                           (t             "putStrLn"))))))
                  " $ \"")
                 nil)
             (lambda ()
@@ -243,9 +341,9 @@
 (defun haskell-insert-pp-dict-info-template (&optional extra-entries)
   (interactive)
   (haskell-insert-pp-dict-info-template--helper
-   :function-name "ppDictHeader"
+   :function-name "PP.ppDictHeader"
    :make-print-entry (lambda (x y)
-                       (concat x " --> " y))
+                       (concat x " PP.--> " y))
    :realign #'haskell-align-on-arrows-indent-region
    :extra-entries extra-entries))
 
@@ -259,7 +357,7 @@
          (two (make-string (+ indent (* 2 haskell-indent-offset)) ?\s)))
     (insert "(\\result ->\n"
             one "Debug.Trace.trace\n"
-            two "(renderString $ ")
+            two "(PP.renderString $ ")
     (haskell-insert-pp-dict-info-template '("result"))
     (insert ")\n"
             two "result) $")))
@@ -269,7 +367,7 @@
   (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-abbrev+--ensure-prettyprinter-combinators-available)
   (haskell-misc--ensure-language-pragma "OverloadedStrings")
-  (insert "Debug.Trace.traceM $ renderString $ ")
+  (insert "Debug.Trace.traceM $ PP.renderString $ ")
   (haskell-insert-pp-dict-info-template nil))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
