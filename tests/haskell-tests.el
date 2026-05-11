@@ -10514,7 +10514,7 @@ Entries should be a list of of elements of the form
    "")
   (tests-utils--multiline
    ""
-   "import Prettyprinter.Combinators"
+   "import qualified Prettyprinter.Combinators as PP"
    "import Prettyprinter.Instances ()"
    ""
    "import System.IO"
@@ -10530,14 +10530,14 @@ Entries should be a list of of elements of the form
    "main = undefined_|_"
    "")
   (tests-utils--multiline
-   "import Prettyprinter.Combinators"
+   "import qualified Prettyprinter.Combinators as PP"
    "import Prettyprinter.Instances ()"
    ""
    "main = undefined_|_"
    ""))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-abbrev+/ensure-debug-trace-and-prettyprinter-combinators-available-1
+    haskell-tests/haskell-abbrev/ensure-debug-trace-and-prettyprinter-combinators-available-1
     (progn
       (haskell-abbrev+--ensure-debug-trace-available)
       (haskell-abbrev+--ensure-prettyprinter-combinators-available))
@@ -10550,7 +10550,7 @@ Entries should be a list of of elements of the form
   (tests-utils--multiline
    ""
    "import qualified Debug.Trace"
-   "import Prettyprinter.Combinators"
+   "import qualified Prettyprinter.Combinators as PP"
    "import Prettyprinter.Instances ()"
    ""
    "import System.IO"
@@ -10559,7 +10559,7 @@ Entries should be a list of of elements of the form
    ""))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-abbrev+/ensure-debug-trace-and-prettyprinter-combinators-available-2
+    haskell-tests/haskell-abbrev/ensure-debug-trace-and-prettyprinter-combinators-available-2
     (progn
       (haskell-abbrev+--ensure-debug-trace-available)
       (haskell-abbrev+--ensure-prettyprinter-combinators-available))
@@ -10569,35 +10569,46 @@ Entries should be a list of of elements of the form
    "")
   (tests-utils--multiline
    "import qualified Debug.Trace"
-   "import Prettyprinter.Combinators"
+   "import qualified Prettyprinter.Combinators as PP"
    "import Prettyprinter.Instances ()"
    ""
    "main = undefined_|_"
    ""))
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-abbrev+/ensure-debug-trace-and-prettyprinter-combinators-available-3
-    (progn
-      (haskell-abbrev+--ensure-debug-trace-available)
-      (haskell-abbrev+--ensure-prettyprinter-combinators-available))
-  (tests-utils--multiline
-   "import Data.List"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "import qualified Debug.Trace"
-   "import Prettyprinter.Combinators"
-   "import Prettyprinter.Instances ()"
-   ""
-   "import Data.List"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-abbrev/ensure-debug-trace-and-prettyprinter-combinators-available-3
+ :action
+ (progn
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-abbrev+--ensure-debug-trace-available)
+   (haskell-abbrev+--ensure-prettyprinter-combinators-available))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  ""
+  "import Data.List"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  ""
+  "import Debug.Trace qualified"
+  "import Prettyprinter.Combinators qualified as PP"
+  "import Prettyprinter.Instances ()"
+  ""
+  "import Data.List"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-navigate-imports-1
