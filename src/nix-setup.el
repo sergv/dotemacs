@@ -13,6 +13,7 @@
 (require 'align-util)
 (require 'hydra-setup)
 (require 'indentation)
+(require 'nix-abbrev+)
 (require 'vim-setup)
 
 (require 'nix-company)
@@ -126,6 +127,8 @@ _a_lign"
               search-syntax-table nix-search-fixed-syntax-table)
 
   (setup-hideshow-yafolding t '(:header-symbol "#" :length-min 3))
+
+  (nix-abbrev+-setup)
 
   (yafolding-mode +1)
 
