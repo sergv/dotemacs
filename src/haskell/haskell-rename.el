@@ -44,10 +44,22 @@
 
 (defun haskell-ts-rename--find-initial-node (node)
   (let ((typ (treesit-node-type node))
-        (parent nil))
+        (parent nil)
+        (grandparent nil))
+    (when (and (member typ '("module_id" "."))
+               (string= (treesit-node-type (setf parent
+                                                 (treesit-node-parent node)))
+                        "module")
+               (string= (treesit-node-type (setf grandparent
+                                                 (treesit-node-parent parent)))
+                        "qualified"))
+      ;; Shift focus within qualified name from module to the name itself,
+      ;; to be checked later as if cursor was pointing to the name all along.
+      (setf node (haskell-ts-getters--qualified-id grandparent)
+            typ (treesit-node-type node)))
     (cond
       ((member typ '("variable" "name" "constructor" "operator" "pragma"))
-       node)
+       (haskell-ts-rename-at-point--take-qualified-parent-if-present node))
       ((and (string= typ "(")
             (string= (treesit-node-type (setf parent
                                               (treesit-node-parent node)))
@@ -55,6 +67,12 @@
        (haskell-ts-getters--extract-prefix-id-operator parent))
       (t
        (error "Cannot rename non-variable. Attempted to rename node: %s" node)))))
+
+(defun haskell-ts-rename-at-point--take-qualified-parent-if-present (node)
+  (if-let* ((p (treesit-node-parent node))
+            ((string= "qualified" (treesit-node-type p))))
+      p
+    node))
 
 ;;;###autoload
 (defun haskell-ts-rename-at-point ()
@@ -205,13 +223,14 @@
                  (cond
                    ((treesit-node-p scope)
                     (--map (cons (treesit-node-start it) (treesit-node-end it))
-                           (treesit-query-capture scope
-                                                  (haskell-ts-query-resolve
-                                                   haskell-ts-rename--renameable-identifier-query)
-                                                  nil
-                                                  nil
-                                                  t ;; Don’t capture names, we only ask for variables.
-                                                  )))
+                           (-map #'haskell-ts-rename-at-point--take-qualified-parent-if-present
+                                 (treesit-query-capture scope
+                                                        (haskell-ts-query-resolve
+                                                         haskell-ts-rename--renameable-identifier-query)
+                                                        nil
+                                                        nil
+                                                        t ;; Don’t capture names, we only ask for variables.
+                                                        ))))
                    ((treesit-haskell-inline-pragma-p scope)
                     (list (cons (treesit-haskell-inline-pragma/function-name-start scope)
                                 (treesit-haskell-inline-pragma/function-name-end scope))))

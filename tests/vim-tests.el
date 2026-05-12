@@ -8004,6 +8004,94 @@ _|_bar")
  :modes
  (haskell-ts-mode haskell-hsc-mode)
  :name
+ vim-tests/haskell-ts-rename-at-point-15
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a z <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x + Baz.bar x * y"
+  "  where"
+  "    y = bar (x * x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = baz_|_ x + Baz.bar x * y"
+  "  where"
+  "    y = baz (x * x)"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-16a
+ :action
+ (execute-kbd-macro (kbd "C-r C-w C-w B a z . b a z <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_Bar.bar x + Baz.bar x * y"
+  "  where"
+  "    y = Bar.bar (x * x) + bar z"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = Baz.baz_|_ x + Baz.bar x * y"
+  "  where"
+  "    y = Baz.baz (x * x) + bar z"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-16b
+ :action
+ (execute-kbd-macro (kbd "C-r C-w C-w B a z . b a z <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = Bar_|_.bar x + Baz.bar x * y"
+  "  where"
+  "    y = Bar.bar (x * x) + bar z"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = Baz.baz_|_ x + Baz.bar x * y"
+  "  where"
+  "    y = Baz.baz (x * x) + bar z"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-16c
+ :action
+ (execute-kbd-macro (kbd "C-r C-w C-w B a z . b a z <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = Bar.bar_|_ x + Baz.bar x * y"
+  "  where"
+  "    y = Bar.bar (x * x) + bar z"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = Baz.baz_|_ x + Baz.bar x * y"
+  "  where"
+  "    y = Baz.baz (x * x) + bar z"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
  vim-tests/haskell-ts-insert-bang-1a
  :action
  (execute-kbd-macro (kbd "C-v h h h h I ! <escape>"))
