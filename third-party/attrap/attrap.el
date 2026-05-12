@@ -1384,6 +1384,9 @@ Error is given as MSG and reported between POS and END."
                   (("Data.Text.Internal")
                    "Data.Text"
                    ("Text"))
+                  (("Data.Tuple.Solo")
+                   "Data.Tuple"
+                   ("Solo"))
                   (("GHC.Internal.Base")
                    "Data.Void"
                    ("Void")))
