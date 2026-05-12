@@ -836,8 +836,9 @@
                 (save-excursion
                   (goto-char bol-pos)
                   (cond
+                    ((smart-operators--on-empty-line?)
+                     (haskell-ts-indent--make-trivial-computed-indent parent))
                     ((or (looking-at-p (rx "\"\"\"" eol))
-                         (smart-operators--on-empty-line?)
                          (and (eq (char-after) ?\\)
                               (save-excursion
                                 (forward-line 0)

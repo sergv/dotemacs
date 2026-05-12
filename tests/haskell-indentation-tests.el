@@ -8880,6 +8880,138 @@ have different input states."
   "    \"\"\""
   "  )"))
 
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-string-3a
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: (String, String)"
+    "foo ="
+    "  \"\"\""
+    "_|_"
+    "  \"\"\""
+    "  ==> "
+    "  []"
+    ""))
+  (:name
+   haskell-indentation-tests--test-string-3b
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: (String, String)"
+    "foo ="
+    "  \"\"\""
+    "                _|_"
+    "  \"\"\""
+    "  ==> "
+    "  []"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: (String, String)"
+  "foo ="
+  "  \"\"\""
+  "  _|_"
+  "  \"\"\""
+  "  ==> "
+  "  []"
+  ""))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-string-4a
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: (String, String)"
+    "foo ="
+    "  [ (\"\", \"\")"
+    "  , \"\"\""
+    "_|_"
+    "    \"\"\""
+    "    ==> "
+    "    []"
+    "  ]"
+    ""))
+  (:name
+   haskell-indentation-tests--test-string-4b
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: (String, String)"
+    "foo ="
+    "  [ (\"\", \"\")"
+    "  , \"\"\""
+    "                  _|_"
+    "    \"\"\""
+    "    ==> "
+    "    []"
+    "  ]"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: (String, String)"
+  "foo ="
+  "  [ (\"\", \"\")"
+  "  , \"\"\""
+  "    _|_"
+  "    \"\"\""
+  "    ==> "
+  "    []"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-string-5a
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: (String, String)"
+    "foo ="
+    "  ( (\"\", \"\")"
+    "  , \"\"\""
+    "_|_"
+    "    \"\"\""
+    "    ==> "
+    "    []"
+    "  )"
+    ""))
+  (:name
+   haskell-indentation-tests--test-string-5b
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: (String, String)"
+    "foo ="
+    "  ( (\"\", \"\")"
+    "  , \"\"\""
+    "                  _|_"
+    "    \"\"\""
+    "    ==> "
+    "    []"
+    "  )"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: (String, String)"
+  "foo ="
+  "  ( (\"\", \"\")"
+  "  , \"\"\""
+  "    _|_"
+  "    \"\"\""
+  "    ==> "
+  "    []"
+  "  )"
+  ""))
+
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--quasi-quote-1a
  :contents
