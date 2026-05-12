@@ -278,6 +278,16 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-getters--qualified-id (node)
+  (cl-assert (string= (treesit-node-type node) "qualified"))
+  (let ((result (treesit-node-child-by-field-name node "id")))
+    (cl-assert result
+               nil
+               "No id in qualified node, node = %s, parent = %s"
+               node
+               (treesit-node-parent node))
+    result))
+
 (provide 'haskell-ts-getters)
 
 ;; Local Variables:
