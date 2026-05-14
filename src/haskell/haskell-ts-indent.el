@@ -168,6 +168,7 @@
   (save-excursion
     (let ((prev2 nil)
           (prev1 node)
+          (prev1-type (treesit-node-type node))
           (curr parent)
           (tmp nil))
       (catch 'term
@@ -298,10 +299,24 @@
                       (prev2
                        (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev2))))))
                  (t
-                  (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))))))
-          (setq prev2 prev1
-                prev1 curr
-                curr (treesit-node-parent curr)))))))
+                  (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))))
+              ;; curr is not standalone node here and further.
+              ((and (string= "data_constructors" curr-type)
+                    (string= "data_constructor" prev1-type)
+                    (setf tmp (treesit-node-prev-sibling curr))
+                    (string= "=" (treesit-node-type tmp))
+                    (haskell-ts--is-standalone-node? tmp))
+               (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev1)))
+              ((and (string= "data_type" curr-type)
+                    (string= "data_constructor" prev1-type)
+                    (setf tmp (treesit-node-prev-sibling curr))
+                    (string= "|" (treesit-node-type tmp))
+                    (haskell-ts--is-standalone-node? tmp))
+               (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev1))))
+            (setq prev2 prev1
+                  prev1 curr
+                  prev1-type curr-type
+                  curr (treesit-node-parent curr))))))))
 
 ;; This is the most general of the lot and thus is a reasonable default.
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update (node parent bol)
