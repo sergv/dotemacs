@@ -3613,6 +3613,104 @@ have different input states."
   "  deriving (Eq)"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-6
+ :contents
+ (tests-utils--multiline
+  ""
+  "data MutableByteMap s a"
+  "  = SmallByteMap"
+  "       _|_{ bmMask       :: {-# UNPACK #-} !Word256"
+  "        -- Up to 10 items."
+  "      , bmItemsSmall :: {-# UNPACK #-} !(SmallMutableArray s a)"
+  "      }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data MutableByteMap s a"
+  "  = SmallByteMap"
+  "      _|_{ bmMask       :: {-# UNPACK #-} !Word256"
+  "        -- Up to 10 items."
+  "      , bmItemsSmall :: {-# UNPACK #-} !(SmallMutableArray s a)"
+  "      }"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-6a
+ :contents
+ (tests-utils--multiline
+  ""
+  "data MutableByteMap s a"
+  "  = Bar"
+  "      { foo :: a"
+  "      }"
+  "  | Foo"
+  "         _|_{ bar :: a "
+  "      }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data MutableByteMap s a"
+  "  = Bar"
+  "      { foo :: a"
+  "      }"
+  "  | Foo"
+  "      _|_{ bar :: a "
+  "      }"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-6b
+ :contents
+ (tests-utils--multiline
+  ""
+  "data MutableByteMap s a"
+  "  = Bar"
+  "      { foo :: a"
+  "      }"
+  "  | Foo"
+  "      { bar :: a "
+  "              _|_}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data MutableByteMap s a"
+  "  = Bar"
+  "      { foo :: a"
+  "      }"
+  "  | Foo"
+  "      { bar :: a "
+  "      _|_}"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-6c
+ :contents
+ (tests-utils--multiline
+  ""
+  "data MutableByteMap s a"
+  "  = Bar"
+  "      { foo :: a"
+  "      }"
+  "  |    Foo"
+  "             _|_{ bar :: a "
+  "      }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data MutableByteMap s a"
+  "  = Bar"
+  "      { foo :: a"
+  "      }"
+  "  |    Foo"
+  "         _|_{ bar :: a "
+  "      }"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-gadt-1
  :contents
  (tests-utils--multiline
