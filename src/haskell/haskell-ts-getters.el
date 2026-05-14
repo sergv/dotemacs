@@ -288,6 +288,21 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-getters--data-type-equals (node)
+  (cl-assert (string= (treesit-node-type node) "data_type"))
+  (let* ((idx-candidates '(2 3))
+         (result
+          (--some (when-let ((equals (treesit-node-child node it nil)))
+                    (when (string= "=" (treesit-node-type equals))
+                      equals))
+                  idx-candidates)))
+    (cl-assert result
+               nil
+               "No = in data_type node, node = %s, parent = %s"
+               node
+               (treesit-node-parent node))
+    result))
+
 (provide 'haskell-ts-getters)
 
 ;; Local Variables:
