@@ -12,25 +12,34 @@
 
 (require 'flycheck-haskell)
 
-(cl-defstruct haskell-ext-tracking-known-exts
+(cl-defstruct (haskell-ext-tracking-known-exts
+               (:conc-name haskell-ext-tracking-known-exts/))
   magic-hash
-  import-qualified-post)
+  import-qualified-post
+  unboxed-tuples)
 
 (defsubst haskell-ext-tracking-have-magic-hash? ()
-  (haskell-ext-tracking-known-exts-magic-hash haskell-ext-tracking-known-exts--store))
+  (haskell-ext-tracking-known-exts/magic-hash haskell-ext-tracking-known-exts--store))
 
 (defsubst haskell-ext-tracking-have-import-qualified-post? ()
-  (haskell-ext-tracking-known-exts-import-qualified-post haskell-ext-tracking-known-exts--store))
+  (haskell-ext-tracking-known-exts/import-qualified-post haskell-ext-tracking-known-exts--store))
+
+(defsubst haskell-ext-tracking-have-unboxed-tuples? ()
+  (haskell-ext-tracking-known-exts/unboxed-tuples haskell-ext-tracking-known-exts--store))
 
 (defun haskell-ext-tracking-known-exts--default ()
   (make-haskell-ext-tracking-known-exts
    :magic-hash nil
-   :import-qualified-post nil))
+   :import-qualified-post nil
+   :unboxed-tuples nil))
 
 (defvar haskell-ext-tracking-known-exts--store (haskell-ext-tracking-known-exts--default))
 
 (defun haskell-ext-tracking-enable-magic-hash! ()
-  (setf (haskell-ext-tracking-known-exts-magic-hash haskell-ext-tracking-known-exts--store) t))
+  (setf (haskell-ext-tracking-known-exts/magic-hash haskell-ext-tracking-known-exts--store) t))
+
+(defun haskell-ext-tracking-enable-unboxed-tuples! ()
+  (setf (haskell-ext-tracking-known-exts/unboxed-tuples haskell-ext-tracking-known-exts--store) t))
 
 (defun haskell-ext-tracking--update! ()
   (with-no-narrowing
@@ -49,7 +58,8 @@
                                               (rx (+? anything)
                                                   symbol-start
                                                   (or (group-n 1 "MagicHash")
-                                                      (group-n 2 "ImportQualifiedPost"))
+                                                      (group-n 2 "ImportQualifiedPost")
+                                                      (group-n 3 "UnboxedTuples"))
                                                   symbol-end)))
                                     end
                                     t)
@@ -57,7 +67,9 @@
               ((match-beginning 1)
                (haskell-ext-tracking-enable-magic-hash!))
               ((match-beginning 2)
-               (setf (haskell-ext-tracking-known-exts-import-qualified-post haskell-ext-tracking-known-exts--store) t)))))))))
+               (setf (haskell-ext-tracking-known-exts/import-qualified-post haskell-ext-tracking-known-exts--store) t))
+              ((match-beginning 3)
+               (haskell-ext-tracking-enable-unboxed-tuples!)))))))))
 
 ;;;###autoload
 (define-minor-mode haskell-ext-tracking-mode
@@ -74,12 +86,14 @@
           (let ((buf (current-buffer)))
             (when-let ((config (flycheck-haskell-get-configuration-for-buf buf (eproj-get-project-for-buf-lax buf))))
               (let-alist-static config (extensions languages)
-                (setf (haskell-ext-tracking-known-exts-magic-hash haskell-ext-tracking-known-exts--store)
+                (setf (haskell-ext-tracking-known-exts/magic-hash haskell-ext-tracking-known-exts--store)
                       (member "MagicHash" extensions)
-                      (haskell-ext-tracking-known-exts-import-qualified-post haskell-ext-tracking-known-exts--store)
+                      (haskell-ext-tracking-known-exts/import-qualified-post haskell-ext-tracking-known-exts--store)
                       (or (member "ImportQualifiedPost" extensions)
                           (member "GHC2021" languages)
-                          (member "GHC2024" languages))))))
+                          (member "GHC2024" languages))
+                      (haskell-ext-tracking-known-exts/unboxed-tuples haskell-ext-tracking-known-exts--store)
+                      (member "UnboxedTuples" extensions)))))
           (haskell-ext-tracking--update!)
           (dolist (hook '(after-save-hook after-revert-hook))
             (add-hook hook
