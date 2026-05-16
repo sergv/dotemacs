@@ -884,7 +884,8 @@ Error is given as MSG and reported between POS and END."
                       (and (eq (char-before) ?#)
                            (is-open-paren? (char-before (- (point) 1)))
                            (extended-whitespace-char? (char-before (- (point) 2))))))
-           (list (attrap-insert-language-pragma "UnboxedTuples")))
+           (list (attrap-insert-language-pragma "UnboxedTuples"
+                   (haskell-ext-tracking-enable-unboxed-tuples!))))
          (when (s-matches? (rx (or "Illegal symbol ‘forall’ in type"
                                    (seq "Perhaps you intended to use"
                                         (* anything)

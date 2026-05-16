@@ -419,32 +419,42 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-hash ()
   "Smart insertion of #."
   (interactive "*")
-  (let ((pt-before (save-excursion
-                     (skip-syntax-backward " ")
+  (let* ((pt-before (save-excursion
+                      (skip-syntax-backward " ")
+                      (point)))
+         (pt-after (save-excursion
+                     (skip-syntax-forward " ")
                      (point)))
-        (pt-after (save-excursion
-                    (skip-syntax-forward " ")
-                    (point))))
+         (before (char-before pt-before))
+         (after (char-after pt-after)))
     (cl-destructuring-bind
         (pt-pragma-start pt-pragma-end is-surrounded-for-pragma?)
-        (smart-operators--point-surrounded-by2--impl pt-before pt-after ?\{ ?- ?- ?\})
+        (smart-operators--point-surrounded-by2--impl pt-before pt-after before after ?\{ ?- ?- ?\})
       (cl-destructuring-bind
-          (pt-c2hs-start pt-c2hs-end _is-before? _is-after? is-surrounded-for-c2hs?)
-          (smart-operators--point-surrounded-by--impl pt-before pt-after ?\{ ?\})
-        (cond (is-surrounded-for-pragma?
-               (delete-region (- pt-pragma-start 2) (+ pt-pragma-end 2))
-               (haskell-abbrev+--insert-pragma nil))
-              ;; for c2hs
-              (is-surrounded-for-c2hs?
-               (delete-region pt-c2hs-start pt-c2hs-end)
-               (insert "##")
-               (forward-char -1))
-              ;; Don't surround with #includes, #lang/#opts abbrevs, etc with spaces
-              ((= (point)
-                  (line-beginning-position))
-               (insert-char ?\#))
-              (t
-               (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)))))))
+          (_start _end _is-before? _is-after? is-surrounded-for-c2hs?)
+          (smart-operators--point-surrounded-by--impl pt-before pt-after before after ?\{ ?\})
+        (cl-destructuring-bind
+            (_start _end _is-before? _is-after? is-surrounded-for-unboxed-tuple?)
+            (smart-operators--point-surrounded-by--impl pt-before pt-after before after ?\( ?\))
+          (cond (is-surrounded-for-pragma?
+                 (delete-region (- pt-pragma-start 2) (+ pt-pragma-end 2))
+                 (haskell-abbrev+--insert-pragma nil))
+                ;; for c2hs
+                (is-surrounded-for-c2hs?
+                 (delete-region pt-before pt-after)
+                 (insert "##")
+                 (forward-char -1))
+                ((and is-surrounded-for-unboxed-tuple?
+                      (haskell-ext-tracking-have-unboxed-tuples?))
+                 (delete-region pt-before pt-after)
+                 (insert "#  #")
+                 (forward-char -2))
+                ;; Don't surround with #includes, #lang/#opts abbrevs, etc with spaces
+                ((= (point)
+                    (line-beginning-position))
+                 (insert-char ?\#))
+                (t
+                 (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-exclamation-mark (&optional insert-literal?)
