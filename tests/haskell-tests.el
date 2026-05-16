@@ -2427,6 +2427,76 @@ Entries should be a list of of elements of the form
 
 (haskell-tests--test-buffer-contents*
  :name
+ haskell-tests/haskell-smart-operators--hash-unboxed-tuple-1a
+ :action
+ (progn
+   (should (haskell-ext-tracking-have-unboxed-tuples?))
+   (haskell-smart-operators-hash))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE UnboxedTuples #-}"
+  ""
+  "foo x = case x of"
+  "  (_|_)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE UnboxedTuples #-}"
+  ""
+  "foo x = case x of"
+  "  (# _|_ #)"
+  "")
+ :fresh-buffer t
+ :initialise-after-content t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--hash-unboxed-tuple-1b
+ :action
+ (progn
+   (should (haskell-ext-tracking-have-unboxed-tuples?))
+   (haskell-smart-operators-hash))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE UnboxedTuples #-}"
+  ""
+  "foo x = case x of"
+  "  ( _|_      )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE UnboxedTuples #-}"
+  ""
+  "foo x = case x of"
+  "  (# _|_ #)"
+  "")
+ :fresh-buffer t
+ :initialise-after-content t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--hash-unboxed-tuple-1c
+ :action
+ (progn
+   (should-not (haskell-ext-tracking-have-unboxed-tuples?))
+   (haskell-smart-operators-hash))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  ( _|_      )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  (#_|_      )"
+  "")
+ :fresh-buffer t
+ :initialise-after-content t)
+
+(haskell-tests--test-buffer-contents*
+ :name
  haskell-tests/haskell-smart-operators--dot-1
  :action
  (haskell-smart-operators-dot)
