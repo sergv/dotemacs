@@ -265,6 +265,7 @@ Returns list of triples
     "PatternGuards"
     "PatternSynonyms"
     "PolyKinds"
+    "QualifiedDo"
     "QuantifiedConstraints"
     "RankNTypes"
     "RecordWildCards"
