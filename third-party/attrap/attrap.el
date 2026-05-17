@@ -897,6 +897,19 @@ Error is given as MSG and reported between POS and END."
                                         "language extension to enable explicit-forall syntax")))
                            normalized-msg)
            (list (attrap-insert-language-pragma "ScopedTypeVariables")))
+         ;; There’s no good error for missing ExtendedLiterals extension when
+         ;; extended literal like 0xFF#Word8 is used. So capture the error we
+         ;; actually observe and confirm the fix applies by checking that actual
+         ;; buffer text is an extended literal number.
+         (when (string-match-p (rx (ghc-error "01928")) normalized-msg)
+           (let ((buf-text (buffer-substring-no-properties pos end)))
+             (when (string-match-p (rx (+ (any (?0 . ?9) (?a . ?f) (?A . ?F)))
+                                       "#"
+                                       (or "Int" "Word")
+                                       (? (or "8" "16" "32" "64"))
+                                       eos)
+                                   buf-text)
+               (list (attrap-insert-language-pragma "ExtendedLiterals")))))
          (when-let (match (s-match (rx "Fields of " (identifier 1) " not initialised: "
                                        (group-n 2 (+ (not (any "•")))) "•")
                                    msg
