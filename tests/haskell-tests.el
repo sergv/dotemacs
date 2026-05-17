@@ -10318,6 +10318,40 @@ Entries should be a list of of elements of the form
                   :end-str ")"
                   :entries '("(/\\)")))))
 
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-9a ()
+  (should (equal (haskell-sort-imports--parse-import-list
+                  (tests-utils--multiline
+                   "  ( Word64Array#"
+                   "  -- , Unit(..)"
+                   "  , new"
+                   ""
+                   "  , read"
+                   "  , write"
+                   "  )"))
+                 (make-haskell-import-list
+                  :start-str "  ( "
+                  :sep "\n  , "
+                  :longest-sep "\n\n  , "
+                  :end-str "\n  )"
+                  :entries '("Word64Array#" "\n  -- , Unit(..)" "\n  , " "new" "\n\n  , " "read" "\n  , " "write")))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-9b ()
+  (should (equal (haskell-sort-imports--parse-import-list
+                  (tests-utils--multiline
+                   "  ( Word64Array#"
+                   "  , new"
+                   "  -- , Unit(..)"
+                   ""
+                   "  , read"
+                   "  , write"
+                   "  )"))
+                 (make-haskell-import-list
+                  :start-str "  ( "
+                  :sep "\n  , "
+                  :longest-sep "\n\n  , "
+                  :end-str "\n  )"
+                  :entries '("Word64Array#" "\n  , " "new" "\n  -- , Unit(..)" "\n\n  , " "read" "\n  , " "write")))))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-1
     (haskell-misc--add-new-import "Foo" nil nil nil nil)
@@ -11010,6 +11044,45 @@ Entries should be a list of of elements of the form
   "import System.IO"
   ""
   "main = undefined_|_"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell--export-ident-10
+ :action
+ (haskell--export-ident "popCount")
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( Word64Array#"
+  "  -- , Unit(..)"
+  "  , new"
+  "  , read"
+  "  , write"
+  "  ) where"
+  ""
+  "import System.IO"
+  ""
+  "_|_popCount :: Word64Array# s -> ST# s Word64#"
+  "popCount = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( Word64Array#"
+  "  -- , Unit(..)"
+  "  , new"
+  "  , read"
+  "  , write"
+  "  , popCount"
+  "  ) where"
+  ""
+  "import System.IO"
+  ""
+  "_|_popCount :: Word64Array# s -> ST# s Word64#"
+  "popCount = undefined"
   ""))
 
 (ert-deftest haskell-tests/haskell-misc--is-operator?-1 ()
