@@ -886,6 +886,10 @@ Error is given as MSG and reported between POS and END."
                            (extended-whitespace-char? (char-before (- (point) 2))))))
            (list (attrap-insert-language-pragma "UnboxedTuples"
                    (haskell-ext-tracking-enable-unboxed-tuples!))))
+         (when (string-match-p (rx "Perhaps you intended to use the ‘UnboxedTuples’ extension")
+                               normalized-msg)
+           (list (attrap-insert-language-pragma "UnboxedTuples"
+                   (haskell-ext-tracking-enable-unboxed-tuples!))))
          (when (s-matches? (rx (or "Illegal symbol ‘forall’ in type"
                                    (seq "Perhaps you intended to use"
                                         (* anything)
