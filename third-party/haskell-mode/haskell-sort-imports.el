@@ -182,6 +182,13 @@ within that region."
     (modify-syntax-entry ?\\ "." tbl)
     (modify-syntax-entry ?\( "\(\)" tbl)
     (modify-syntax-entry ?\) "\)\(" tbl)
+
+    ;; For skipping comments, not really tested
+    ;; (modify-syntax-entry ?\{  "(}1nb" tbl)
+    ;; (modify-syntax-entry ?\}  "){4nb" tbl)
+    ;; (modify-syntax-entry ?-  ". 123" tbl)
+    ;; (modify-syntax-entry ?\n ">" tbl)
+
     tbl))
 
 (defun haskell-sort-imports--parse-import-list-in-buffer (start end)
@@ -196,78 +203,86 @@ entities. Entities must be valid Haskell import/export names. E.g.
 , decombobulate
 , Fizz(Buzz, Quux)
 )
+
+( Foo
+-- , decombobulate
+, Fizz(Buzz, Quux)
+)
 "
   (cl-flet*
       ((skip-whitespace ()
-         (skip-chars-forward " \t\n\r" ))
+         ;; (forward-comment (buffer-size))
+         (skip-chars-forward " \t\n\r"))
        (skip-whitespace-backward ()
-         (skip-chars-backward " \t\n\r"))
-       (malformed-input-error ()
-         (error "Malformed import list ‘%s’, cannot recognize the part: ‘%s’"
-                str
-                (buffer-substring-no-properties (point) (point-max))))
-       (advance-char (c)
-         (unless (eq (char-after) c)
-           (malformed-input-error))
-         (forward-char)))
-    (save-restriction
-      (narrow-to-region start end)
-      (with-syntax-table haskell-sort-imports--parens-syntax-table
-        (goto-char start)
-        (let ((open-start (point)))
-          (skip-whitespace)
-          (advance-char 40 ;; ?(
-                        )
-          (skip-whitespace)
+         ;; (forward-comment (- (buffer-size)))
+         (skip-chars-backward " \t\n\r")))
+    (let ((header "module Foo ")
+          (footer " where")
+          (orig-buf (current-buffer)))
+      (with-temp-buffer
+        (insert header)
+        (insert-buffer-substring orig-buf start end)
+        (insert footer)
+        (let* ((root (treesit-parser-root-node
+                      (treesit-parser-create 'haskell)))
+               (raw-entries
+                (treesit-node-children (treesit-node-child-by-field-name (treesit-node-child root 0) "exports")))
+               (entries nil)
+               (first-sep nil)
+               (longest-sep nil)
+               (start-str nil)
+               (end-str nil)
+               (last-end nil))
 
-          (let ((open-end (point))
-                (first-sep nil)
-                (longest-sep nil)
-                (entries nil)
+          (narrow-to-region (+ (point-min) (length header)) (- (point-max) (length footer)))
+          (with-syntax-table haskell-sort-imports--parens-syntax-table
 
-                (continue t)
-                (result nil))
+            (let ((first (car raw-entries)))
+              (unless (string= "(" (treesit-node-type first))
+                (error "First entry of import list is not opening paren: %s"
+                       (with-current-buffer orig-bug
+                         (buffer-substring-no-properties start end))))
 
-            (while continue
-              (skip-whitespace)
+              (setf raw-entries (cdr raw-entries))
+              (goto-char (treesit-node-start first))
+              (skip-whitespace-backward)
+              (let ((open-start (point)))
+                (goto-char (treesit-node-end first))
+                (skip-whitespace)
+                (setf start-str (buffer-substring open-start (point))
+                      last-end (point))))
 
-              (let ((entry-start (point)))
-                (skip-chars-forward "^,()")
+            (dolist (entry raw-entries)
+              (let ((typ (treesit-node-type entry)))
+                (cond
+                  ((string= ")" typ)
+                   (setf end-str (buffer-substring (if entries last-end (treesit-node-start entry))
+                                                   (point-max))))
+                  ((string= "," typ)
+                   (goto-char (treesit-node-end entry))
+                   (skip-whitespace)
+                   (let* ((sep-end (point))
+                          (sep (buffer-substring last-end sep-end)))
+                     (setf last-end sep-end)
+                     (push sep entries)
+                     (unless first-sep
+                       (setf first-sep sep))
+                     (if longest-sep
+                         (when (< (length longest-sep)
+                                  (length sep))
+                           (setf longest-sep sep))
+                       (setf longest-sep sep))))
+                  (t
+                   (let ((end (treesit-node-end entry)))
+                     (push (buffer-substring last-end end) entries)
+                     (setf last-end end))))))
 
-                (when (eq (char-after) ?\()
-                  (forward-sexp 1))
-
-                (skip-whitespace-backward)
-
-                (when (< entry-start (point))
-                  (push (buffer-substring entry-start (point)) entries))
-
-                (let ((ws-before-end (point)))
-                  (skip-whitespace)
-                  (pcase (char-after)
-                    (?,
-                     (advance-char ?,)
-                     (skip-whitespace)
-                     (let ((sep (buffer-substring ws-before-end (point))))
-                       (push sep entries)
-                       (unless first-sep
-                         (setf first-sep sep))
-                       (if longest-sep
-                           (when (< (length longest-sep)
-                                    (length sep))
-                             (setf longest-sep sep))
-                         (setf longest-sep sep))))
-                    (41 ;; ?)
-                     (setf continue nil
-                           result
-                           (make-haskell-import-list
-                            :start-str   (buffer-substring open-start open-end)
-                            :sep         first-sep
-                            :longest-sep longest-sep
-                            :end-str     (buffer-substring (if entries ws-before-end (point)) (point-max))
-                            :entries     (nreverse entries))))))))
-
-            result))))))
+            (make-haskell-import-list
+             :start-str   start-str
+             :sep         first-sep
+             :longest-sep longest-sep
+             :end-str     end-str
+             :entries     (nreverse entries))))))))
 
 (defun haskell-sort-imports--parse-import-list (str)
   (with-temp-buffer
