@@ -3507,6 +3507,42 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/enable-unboxed-tuples-2
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-19590]"
+  "    • Illegal unboxed tuple type as function argument:"
+  "      (# State# s, Word64Array# s #)"
+  "    • In the expansion of type synonym ‘ST#’"
+  "      In the type signature: new :: Int -> ST# s (Word64Array# s)"
+  "    Suggested fix:"
+  "      Perhaps you intended to use the ‘UnboxedTuples’ extension"
+  "      You may enable this language extension in GHCi with:"
+  "        :set -XUnboxedTuples")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo where"
+  ""
+  "new :: _|_Int -> ST# s (Word64Array# s)"
+  "new (I# n) = \s1 ->"
+  "  newByteArray# (n *# ADD_HASH(SIZEOF_HSWORD)) s1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE UnboxedTuples #-}"
+  ""
+  "module Foo where"
+  ""
+  "new :: _|_Int -> ST# s (Word64Array# s)"
+  "new (I# n) = \s1 ->"
+  "  newByteArray# (n *# ADD_HASH(SIZEOF_HSWORD)) s1"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/remove-bang-1
  :modes (haskell-ts-mode)
  :error-message
