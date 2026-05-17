@@ -3635,6 +3635,51 @@
   "import Network.Socket (Socket, PortNumber, AddrInfo(..), defaultHints, _|_SocketType(Stream), AddrInfoFlag(..))"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/enable-extended-literals-1
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-01928]"
+  "    • Data constructor out of scope: ‘Word64’."
+  "      NB: the type constructor ‘Word64’ cannot appear in this position."
+  "    • In the second argument of ‘UW64#’, namely ‘Word64’"
+  "      In the second argument of ‘WA64.write’, namely ‘(UW64# 0# Word64)’"
+  "      In a stmt of a 'do' block:"
+  "        WA64.write (UI# 0#) (UW64# 0# Word64) arr"
+  "    Suggested fix:"
+  "      Perhaps use one of these:"
+  "        variable ‘eqWord64’ (imported from GHC.Word),"
+  "        variable ‘geWord64’ (imported from GHC.Word),"
+  "        variable ‘gtWord64’ (imported from GHC.Word)")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "mkEmptyByteSet :: ST# s (ByteSet s)"
+  "mkEmptyByteSet = UST.do"
+  "  arr <- WA64.new 4"
+  "  WA64.write (UI# 0#) (UW64# _|_0#Word64) arr"
+  "  WA64.write (UI# 1#) (UW64# 0#Word64) arr"
+  "  WA64.write (UI# 2#) (UW64# 0#Word64) arr"
+  "  WA64.write (UI# 3#) (UW64# 0#Word64) arr"
+  "  UST.pure (ByteSet arr)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ExtendedLiterals #-}"
+  ""
+  "mkEmptyByteSet :: ST# s (ByteSet s)"
+  "mkEmptyByteSet = UST.do"
+  "  arr <- WA64.new 4"
+  "  WA64.write (UI# 0#) (UW64# _|_0#Word64) arr"
+  "  WA64.write (UI# 1#) (UW64# 0#Word64) arr"
+  "  WA64.write (UI# 2#) (UW64# 0#Word64) arr"
+  "  WA64.write (UI# 3#) (UW64# 0#Word64) arr"
+  "  UST.pure (ByteSet arr)"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
