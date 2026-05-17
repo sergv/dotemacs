@@ -1362,13 +1362,6 @@ Error is given as MSG and reported between POS and END."
                    "Data.Coerce"
                    ("Coercible"
                     "coerce"))
-                  (("GHC.Internal.Word")
-                   "Data.Word"
-                   ("Word"
-                    "Word8"
-                    "Word16"
-                    "Word32"
-                    "Word64"))
                   (("GHC.IO" "GHC.Internal.IO")
                    "Control.Exception"
                    ("evaluate"))
@@ -1422,7 +1415,8 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Stack" . "GHC.Stack")
                          ("GHC.Internal.System.Exit" . "System.Exit")
                          ("GHC.Internal.Text.Read" . "Text.Read")
-                         ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce"))))))))))
+                         ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
+                         ("GHC.Internal.Word" . "GHC.Word"))))))))))
 
 (defun attrap-haskell-import--fix-module-name (identifier mod-name)
   "Returns cons: (NEW-MODULE-NAME IS-AUTHORITATIVE?). If any of the results are authoritative
