@@ -277,7 +277,6 @@ entities. Entities must be valid Haskell import/export names. E.g.
 (cl-defstruct haskell-import-group-key
   mod-name
   qualified-as ;; may be nil
-  ;; is-wildcard?
   )
 
 (defun haskell-sort-imports--derive-import-group-key (import)
@@ -286,10 +285,7 @@ entities. Entities must be valid Haskell import/export names. E.g.
    :mod-name (haskell-import-mod-name import)
    :qualified-as (when (haskell-import-is-qualified? import)
                    (or (haskell-import-qualified-as-name import)
-                       (haskell-import-mod-name import)))
-   ;; :is-wildcard? (or (haskell-import-is-hiding? import)
-   ;;                   (not (haskell-import-import-list-pos import)))
-   ))
+                       (haskell-import-mod-name import)))))
 
 (defun haskell-sort-imports--parse-import-statement (str)
   (cl-assert (stringp str))
