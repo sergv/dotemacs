@@ -303,6 +303,26 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-getters--let-local-binds (node)
+  (cl-assert (member (treesit-node-type node) '("let" "let_in")))
+  (let ((result (treesit-node-child-by-field-name node "binds")))
+    (cl-assert result
+               nil
+               "No binds in let node, node = %s, parent = %s"
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-getters--local-binds-first-binding (node)
+  (cl-assert (string= (treesit-node-type node) "local_binds"))
+  (let ((result (treesit-node-child-by-field-name node "decl")))
+    (cl-assert result
+               nil
+               "No decl in local_binds node, node = %s, parent = %s"
+               node
+               (treesit-node-parent node))
+    result))
+
 (provide 'haskell-ts-getters)
 
 ;; Local Variables:

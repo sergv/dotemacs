@@ -1783,6 +1783,80 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-12a
+ :contents
+ (tests-utils--multiline
+  ""
+  "properties :: TestTree"
+  "properties = testGroup \"QuickCheck properties\""
+  "  [ localOption (QC.QuickCheckTests 10000) $"
+  "    QC.testProperty \"Data.Btree.fromList\" $"
+  "      \\(items :: [(Int, Int)]) ->"
+  "        let btree = BTR.fromList items"
+  "_|_"
+  "        in"
+  "          QC.conjoin"
+  "            [ BTR.toList btree QC.=== M.toList m"
+  "            , all (\\(k, _) -> BTR.lookup k btree QC.=== M.lookup k m)"
+  "            ]"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "properties :: TestTree"
+  "properties = testGroup \"QuickCheck properties\""
+  "  [ localOption (QC.QuickCheckTests 10000) $"
+  "    QC.testProperty \"Data.Btree.fromList\" $"
+  "      \\(items :: [(Int, Int)]) ->"
+  "        let btree = BTR.fromList items"
+  "            _|_"
+  "        in"
+  "          QC.conjoin"
+  "            [ BTR.toList btree QC.=== M.toList m"
+  "            , all (\\(k, _) -> BTR.lookup k btree QC.=== M.lookup k m)"
+  "            ]"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-12b
+ :contents
+ (tests-utils--multiline
+  ""
+  "properties :: TestTree"
+  "properties = testGroup \"QuickCheck properties\""
+  "  [ localOption (QC.QuickCheckTests 10000) $"
+  "    QC.testProperty \"Data.Btree.fromList\" $"
+  "      \\(items :: [(Int, Int)]) ->"
+  "        let btree = BTR.fromList items"
+  "_|_ -- foo"
+  "        in"
+  "          QC.conjoin"
+  "            [ BTR.toList btree QC.=== M.toList m"
+  "            , all (\\(k, _) -> BTR.lookup k btree QC.=== M.lookup k m)"
+  "            ]"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "properties :: TestTree"
+  "properties = testGroup \"QuickCheck properties\""
+  "  [ localOption (QC.QuickCheckTests 10000) $"
+  "    QC.testProperty \"Data.Btree.fromList\" $"
+  "      \\(items :: [(Int, Int)]) ->"
+  "        let btree = BTR.fromList items"
+  "            _|_-- foo"
+  "        in"
+  "          QC.conjoin"
+  "            [ BTR.toList btree QC.=== M.toList m"
+  "            , all (\\(k, _) -> BTR.lookup k btree QC.=== M.lookup k m)"
+  "            ]"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-record-1a
  :contents
  (tests-utils--multiline
