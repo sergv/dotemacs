@@ -614,6 +614,10 @@ end of END-LINE in current buffer."
   (interactive "*")
   (insert (format-time-string "%A, %e %B %Y")))
 
+(defun iso-date-to-absolute-date (year month day)
+  "The number of days elapsed between the Gregorian date 1BC-12-31 and specified date."
+  (calendar-absolute-from-gregorian (list month day year)))
+
 ;;;
 
 ;; may be useful someday
