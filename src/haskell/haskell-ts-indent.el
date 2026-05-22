@@ -901,11 +901,15 @@
                    (or (node-is "local_binds" "comment")
                        no-node))
               ,(lambda (node parent bol-pos)
-                 (if node
-                     (treesit-node-prev-sibling node)
-                   (if-let ((child (treesit-node-first-child-for-pos parent bol-pos)))
-                       (treesit-node-prev-sibling child)
-                     parent)))
+                 (let ((anchor
+                        (if node
+                            (treesit-node-prev-sibling node)
+                          (if-let ((child (treesit-node-first-child-for-pos parent bol-pos)))
+                              (treesit-node-prev-sibling child)
+                            parent))))
+                   (if (string= (treesit-node-type anchor) "local_binds")
+                       (haskell-ts-getters--local-binds-first-binding anchor)
+                     anchor)))
               ,(lambda (node parent bol-pos)
                  (lambda (matched-anchor)
                    (if (string= (treesit-node-type matched-anchor) "let")
