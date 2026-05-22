@@ -478,7 +478,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (preceded-by-arrow?
             (save-excursion
               (goto-char p-before-ws)
-              (preceded-by2 ?- ?>)))
+              (preceded-by2 ?> ?-)))
            (preceded-by-operator?
             (save-excursion
               (goto-char p-before-ws)
@@ -533,8 +533,9 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                        (string= field-name "right_operand")))))))))))
 
            (inside-gadt-constructor?
-            (when (and (not (and (not preceded-by-double-colon?)
-                                 preceded-by-operator?))
+            (when (and (or preceded-by-arrow?
+                           (not (and (not preceded-by-double-colon?)
+                                     preceded-by-operator?)))
                        (derived-mode-p 'haskell-ts-base-mode))
               (treesit-utils-find-topmost-parent
                (nanothunk-force p-node)
@@ -544,13 +545,20 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 
            (gadt-field
             (when inside-gadt-constructor?
-              (treesit-utils-find-topmost-parent
-               (nanothunk-force p-node)
-               (lambda (x)
-                 (and (awhen (treesit-node-parent x)
-                        (string= (treesit-node-type it) "function"))
-                      (string= (treesit-node-field-name x) "parameter")
-                      (treesit-haskell--is-inside-node? p x))))))
+              (or (treesit-utils-find-topmost-parent
+                   (nanothunk-force p-node)
+                   (lambda (x)
+                     (and (awhen (treesit-node-parent x)
+                            (string= (treesit-node-type it) "function"))
+                          (string= (treesit-node-field-name x) "parameter")
+                          (treesit-haskell--is-inside-node? p x))))
+                  (treesit-utils-find-topmost-parent
+                   (nanothunk-force p-node)
+                   (lambda (x)
+                     (and (awhen (treesit-node-parent x)
+                            (string= (treesit-node-type it) "function"))
+                          (string= (treesit-node-field-name x) "result")
+                          (treesit-haskell--is-inside-node? p x)))))))
 
            (ts-inside-pattern?
             (when (and (not (and (not preceded-by-double-colon?)
