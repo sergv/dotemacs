@@ -3345,7 +3345,7 @@ Entries should be a list of of elements of the form
 
 (haskell-tests--test-buffer-contents*
  :name
- haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-9a
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-9aa
  :action
  (haskell-smart-operators-exclamation-mark)
  :contents
@@ -3364,6 +3364,31 @@ Entries should be a list of of elements of the form
   "  Foo"
   "    :: Int"
   "    -> !(Ba_|_r a)"
+  "    -> Foo a"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-9ab
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo a where"
+  "  Foo"
+  "    :: Int"
+  "    -> _|_Bar a"
+  "    -> Foo a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo a where"
+  "  Foo"
+  "    :: Int"
+  "    -> !(_|_Bar a)"
   "    -> Foo a"
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
@@ -3469,6 +3494,101 @@ Entries should be a list of of elements of the form
   "    -> Bar a"
   "#endif"
   "    -> Foo a"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-11a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Tree (n :: Nat) k v where"
+  "  Node2 :: _|_Tree n k v -> k -> v                         -> Tree n k v -> Tree (n + 1) k v"
+  "  Node3 :: Tree n k v -> k -> v -> Tree n k v -> k -> v -> Tree n k v -> Tree (n + 1) k v"
+  "  Leaf  ::                                                               Tree 0       k v"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Tree (n :: Nat) k v where"
+  "  Node2 :: !(_|_Tree n k v) -> k -> v                         -> Tree n k v -> Tree (n + 1) k v"
+  "  Node3 :: Tree n k v -> k -> v -> Tree n k v -> k -> v -> Tree n k v -> Tree (n + 1) k v"
+  "  Leaf  ::                                                               Tree 0       k v"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-11b
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Tree (n :: Nat) k v where"
+  "  Node2 :: Tree n k v -> k -> v                         -> Tree n k v -> Tree (n + 1) k v"
+  "  Node3 :: Tree n k v -> k -> v -> Tree n k v -> k -> v -> _|_Tree n k v -> Tree (n + 1) k v"
+  "  Leaf  ::                                                               Tree 0       k v"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Tree (n :: Nat) k v where"
+  "  Node2 :: Tree n k v -> k -> v                         -> Tree n k v -> Tree (n + 1) k v"
+  "  Node3 :: Tree n k v -> k -> v -> Tree n k v -> k -> v -> !(_|_Tree n k v) -> Tree (n + 1) k v"
+  "  Leaf  ::                                                               Tree 0       k v"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-11c
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Tree (n :: Nat) k v where"
+  "  Node2 :: Tree n k v -> k -> v                         -> Tree n k v -> Tree (n + 1) k v"
+  "  Node3 :: Tree n k v -> k -> v -> Tree n k v -> _|_k -> v -> Tree n k v -> Tree (n + 1) k v"
+  "  Leaf  ::                                                               Tree 0       k v"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Tree (n :: Nat) k v where"
+  "  Node2 :: Tree n k v -> k -> v                         -> Tree n k v -> Tree (n + 1) k v"
+  "  Node3 :: Tree n k v -> k -> v -> Tree n k v -> !_|_k -> v -> Tree n k v -> Tree (n + 1) k v"
+  "  Leaf  ::                                                               Tree 0       k v"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+;; Partial input
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-12
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Insert n k v where"
+  "  FoundSpace :: k -> _|_v ->"
+  ""
+  "insert :: forall n k v. Ord k => k -> v -> Tree n k v -> Either (Tree n k v) (Tree (n + 1) k v)"
+  "insert k v = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Insert n k v where"
+  "  FoundSpace :: k -> !_|_v ->"
+  ""
+  "insert :: forall n k v. Ord k => k -> v -> Tree n k v -> Either (Tree n k v) (Tree (n + 1) k v)"
+  "insert k v = undefined"
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
 
