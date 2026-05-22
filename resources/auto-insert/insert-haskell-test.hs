@@ -20,7 +20,6 @@ import Test.Tasty.HUnit
 import Test.Tasty.Options qualified as Tasty
 import Test.Tasty.QuickCheck qualified as QC
 import Test.Tasty.Runners qualified as Tasty
-import Test.Tasty.SmallCheck qualified as SC
 
 -- import Data.Bimap (Bimap)
 -- import Data.Bimap qualified as BM
@@ -122,22 +121,7 @@ tests :: TestTree
 tests = testGroup "Tests" [properties, unitTests]
 
 properties :: TestTree
-properties = testGroup "Properties" [scProps, qcProps]
-
-scProps :: TestTree
-scProps = testGroup "(checked by SmallCheck)"
-  [ SC.testProperty "sort == sort . reverse" $
-      \list -> L.sort (list :: [Int]) == L.sort (reverse list)
-  , SC.testProperty "Fermat's little theorem" $
-      \x -> ((x :: Integer)^7 - x) `mod` 7 == 0
-  -- the following property does not hold
-  , SC.testProperty "Fermat's last theorem" $
-      \x y z n ->
-        (n :: Integer) >= 3 SC.==> x^n + y^n /= (z^n :: Integer)
-  ]
-
-qcProps :: TestTree
-qcProps = testGroup "(checked by QuickCheck)"
+properties = testGroup "QuickCheck properties"
   [ QC.testProperty "sort == sort . reverse" $
       \list -> L.sort (list :: [Int]) == L.sort (reverse list)
   , QC.testProperty "Fermat's little theorem" $
