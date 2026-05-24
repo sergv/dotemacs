@@ -44,7 +44,8 @@
          :action
          (progn
            ,(when (eq mode 'haskell-ts-mode)
-              `(let ((fallback-indentations (haskell-indentation-find-indentations)))
+              `(let* ((treesit--indent-verbose nil)
+                      (fallback-indentations (haskell-indentation-find-indentations)))
                  ;; Mostly test that it doesn’t throw an error. Should always
                  ;; produce some entries because it would include treesitter
                  ;; indentation which these tests are expected to always have.
@@ -3802,6 +3803,341 @@ have different input states."
   "   YYY :: a -> Foo2 a"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-2a
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Tree (c :: Color) (bh :: Nat) k v where"
+  "  Leaf :: Tree 'B 0 k v"
+  "  Node"
+  "        _|_:: ValidColors c cl cr ~ 'True => SColor c -> Tree cl bh k v -> k -> v -> Tree cr bh k v -> Tree c (IncBlackHeight c bh) k v"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Tree (c :: Color) (bh :: Nat) k v where"
+  "  Leaf :: Tree 'B 0 k v"
+  "  Node"
+  "    _|_:: ValidColors c cl cr ~ 'True => SColor c -> Tree cl bh k v -> k -> v -> Tree cr bh k v -> Tree c (IncBlackHeight c bh) k v"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-2b
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Tree (c :: Color) (bh :: Nat) k v where"
+  "  Leaf :: Tree 'B 0 k v"
+  "  Node :: ValidColors c cl cr ~ 'True"
+  "                   _|_=> SColor c -> Tree cl bh k v -> k -> v -> Tree cr bh k v -> Tree c (IncBlackHeight c bh) k v"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Tree (c :: Color) (bh :: Nat) k v where"
+  "  Leaf :: Tree 'B 0 k v"
+  "  Node :: ValidColors c cl cr ~ 'True"
+  "       _|_=> SColor c -> Tree cl bh k v -> k -> v -> Tree cr bh k v -> Tree c (IncBlackHeight c bh) k v"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-2c
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Tree (c :: Color) (bh :: Nat) k v where"
+  "  Leaf :: Tree 'B 0 k v"
+  "  Node :: ValidColors c cl cr ~ 'True"
+  "       => SColor c"
+  "                          _|_-> Tree cl bh k v -> k -> v -> Tree cr bh k v -> Tree c (IncBlackHeight c bh) k v"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Tree (c :: Color) (bh :: Nat) k v where"
+  "  Leaf :: Tree 'B 0 k v"
+  "  Node :: ValidColors c cl cr ~ 'True"
+  "       => SColor c"
+  "       _|_-> Tree cl bh k v -> k -> v -> Tree cr bh k v -> Tree c (IncBlackHeight c bh) k v"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-2d
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Tree (c :: Color) (bh :: Nat) k v where"
+  "  Leaf :: Tree 'B 0 k v"
+  "  Node :: ValidColors c cl cr ~ 'True"
+  "       => SColor c"
+  "       -> Tree cl bh k v"
+  "                          _|_-> k -> v -> Tree cr bh k v -> Tree c (IncBlackHeight c bh) k v"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Tree (c :: Color) (bh :: Nat) k v where"
+  "  Leaf :: Tree 'B 0 k v"
+  "  Node :: ValidColors c cl cr ~ 'True"
+  "       => SColor c"
+  "       -> Tree cl bh k v"
+  "       _|_-> k -> v -> Tree cr bh k v -> Tree c (IncBlackHeight c bh) k v"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-3
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    :: P A B"
+  "    -> f (PB c d)"
+  "    -> Either"
+  "         Msg"
+  "         ("
+  "               [Int] ->"
+  "                _|_Bar"
+  "                 Quux"
+  "         , Fizz"
+  "         )")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    :: P A B"
+  "    -> f (PB c d)"
+  "    -> Either"
+  "         Msg"
+  "         ("
+  "               [Int] ->"
+  "                 _|_Bar"
+  "                 Quux"
+  "         , Fizz"
+  "         )"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-4
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "       ("
+  "            Foo w Int =>"
+  "              Bar w s Int ->"
+  "                    _|_ST s ()"
+  "       )"
+  "    -> Int"
+  "    -> Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "       ("
+  "            Foo w Int =>"
+  "              Bar w s Int ->"
+  "                _|_ST s ()"
+  "       )"
+  "    -> Int"
+  "    -> Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-5a
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "             _|_:: Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    _|_:: Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-5b
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "             _|_:: forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    _|_:: forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-5c
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "                _|_forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "       _|_forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-5d
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo ::"
+  "                _|_forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo ::"
+  "    _|_forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-6a
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "      forall a."
+  "        Foo a =>"
+  "               _|_a ->"
+  "          b -> c")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "      forall a."
+  "        Foo a =>"
+  "          _|_a ->"
+  "          b -> c"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-6b
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "        Foo a =>"
+  "               _|_a ->"
+  "          b -> c")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "        Foo a =>"
+  "          _|_a ->"
+  "          b -> c"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-6c
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "      forall a."
+  "               _|_a ->"
+  "          b -> c")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "      forall a."
+  "        _|_a ->"
+  "          b -> c"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-7a
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    :: forall a."
+  "         a ->"
+  "           b ->"
+  "                        _|_Foo")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    :: forall a."
+  "         a ->"
+  "           b ->"
+  "             _|_Foo"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-7b
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    :: forall a."
+  "         a ->"
+  "                _|_b ->"
+  "                        Foo")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    :: forall a."
+  "         a ->"
+  "           _|_b ->"
+  "                        Foo"))
+
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-8
+ :contents
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "         _|_a ->"
+  "           b ->"
+  "                        Foo")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo where"
+  "  Foo"
+  "    ::"
+  "       _|_a ->"
+  "           b ->"
+  "                        Foo"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-haddock-1
  :contents
  (tests-utils--multiline
@@ -5867,6 +6203,54 @@ have different input states."
   "               Quux"
   "       , Fizz"
   "       )"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-22a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ::"
+  "                _|_forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ::"
+  "  _|_forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-22b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "                _|_forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "     _|_forall a. Foo a =>"
+  "       a ->"
+  "         b b ->"
+  "           C"
   "foo = undefined"
   ""))
 
