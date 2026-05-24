@@ -102,7 +102,57 @@
     (cl-assert (or (null result)
                    (string= "::" (treesit-node-type result)))
                nil
-               "Not a double colon: %s, node = %s, parent = %s"
+               "Not a double colon in signature: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-gadt-constructor-name (node)
+  (cl-assert (string= "gadt_constructor" (treesit-node-type node)))
+  (let ((result ((treesit-node-child-by-field-name node "name"))))
+    (cl-assert (string= "name" (treesit-node-type result))
+               nil
+               "Unexpected gadt_constructor name: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-gadt-constructor-double-colon (node)
+  "Get ‘::’ from a gadt_constructor NODE."
+  (cl-assert (string= "gadt_constructor" (treesit-node-type node)))
+  (let ((result (treesit-node-child node 1)))
+    (cl-assert (or (null result)
+                   (string= "::" (treesit-node-type result)))
+               nil
+               "Not a double colon in gadt_construcotr: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-gadt-constructor-forall (node)
+  "Get ‘::’ from a gadt_constructor NODE."
+  (cl-assert (string= "gadt_constructor" (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "forall")))
+    (cl-assert (or (null result)
+                   (string= "forall" (treesit-node-type result)))
+               nil
+               "Not a forall in gadt_construcotr: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-gadt-constructor-context (node)
+  "Get ‘::’ from a gadt_constructor NODE."
+  (cl-assert (string= "gadt_constructor" (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "context")))
+    (cl-assert (or (null result)
+                   (string= "context" (treesit-node-type result)))
+               nil
+               "Not a forall in gadt_construcotr: %s, node = %s, parent = %s"
                result
                node
                (treesit-node-parent node))

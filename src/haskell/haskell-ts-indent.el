@@ -467,10 +467,10 @@
   (cl-assert (treesit-node-p node))
   (let ((result nil))
     (while (and node
-                (not (member (treesit-node-type node) '("function" "context" "forall"))))
+                (not (member (treesit-node-type node) '("function" "context" "forall" "gadt_constructor"))))
       (setf node (treesit-node-parent node)))
     ;; Go up only one level to not traverse through nested functions.
-    (dolist (target '("function" "context" "forall"))
+    (dolist (target '("function" "context" "forall" "gadt_constructor"))
       (when (and node
                  (string= (treesit-node-type node) target))
         (setf result node
@@ -483,40 +483,43 @@
       (cond
         ((string= candidate-type "context")
          (haskell-ts-indent--get-context-context candidate))
+        ((string= candidate-type "gadt_constructor")
+         (haskell-ts-indent--get-gadt-constructor-double-colon candidate))
         (t
          candidate)))))
 
 (defun haskell-ts-indent--function-arrow-indent (node parent bol)
   (lambda (matched-anchor)
-    (if-let* ((anchor-paren-context
-               (when-let* ((p (when-let* ((pp (treesit-node-parent matched-anchor)))
-                                (if (string= (treesit-node-type pp) "context")
-                                    (treesit-node-parent pp)
-                                  pp)))
-                           (p-type (treesit-node-type p))
-                           ((or (string= "parens" p-type)
-                                (string= "tuple" p-type)
-                                (string= "unboxed_tuple" p-type)
-                                (string= "list" p-type))))
-                 p)))
-
-        ;; Check that there’s enough space to put ‘->’ back like this
-        ;; (      Foo
-        ;;     -> Bar
-        ;; )
-        ;;
-        ;; (  Foo
-        ;; -> Bar
-        ;; )
-        (let ((open-paren (haskell-ts-getters--get-opening-generic-paren
-                           anchor-paren-context)))
-          (if (<= 2
-                  (- (treesit-node-start matched-anchor)
-                     (treesit-node-end open-paren)))
-              -3
-            (- (treesit-node-start open-paren)
-               (treesit-node-start matched-anchor))))
-      -3)))
+    (if (string= "::" (treesit-node-type matched-anchor))
+        0
+      (if-let* ((anchor-paren-context
+                 (when-let* ((p (when-let* ((pp (treesit-node-parent matched-anchor)))
+                                  (if (string= (treesit-node-type pp) "context")
+                                      (treesit-node-parent pp)
+                                    pp)))
+                             (p-type (treesit-node-type p))
+                             ((or (string= "parens" p-type)
+                                  (string= "tuple" p-type)
+                                  (string= "unboxed_tuple" p-type)
+                                  (string= "list" p-type))))
+                   p)))
+          ;; Check that there’s enough space to put ‘->’ back like this
+          ;; (      Foo
+          ;;     -> Bar
+          ;; )
+          ;;
+          ;; (  Foo
+          ;; -> Bar
+          ;; )
+          (let ((open-paren (haskell-ts-getters--get-opening-generic-paren
+                             anchor-paren-context)))
+            (if (<= 2
+                    (- (treesit-node-start matched-anchor)
+                       (treesit-node-end open-paren)))
+                -3
+              (- (treesit-node-start open-paren)
+                 (treesit-node-start matched-anchor))))
+        -3))))
 
 (defun haskell-ts-indent--type-function-anchor--impl
     (node parent bol consider-spaces-after-open-paren? consider-context?)
@@ -541,7 +544,12 @@
              (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
                (throw 'term (if (haskell-ts--is-standalone-node? double-colon)
                                 double-colon
-                              (haskell-ts-indent--get-signature-name curr))))))
+                              (haskell-ts-indent--get-signature-name curr)))))
+            ((string= curr-type "gadt_constructor")
+             (when-let ((double-colon (haskell-ts-indent--get-gadt-constructor-double-colon curr)))
+               (throw 'term (if (haskell-ts--is-standalone-node? double-colon)
+                                double-colon
+                              (haskell-ts-indent--get-gadt-constructor-name curr))))))
           (setf prev curr
                 curr (treesit-node-parent curr)))))))
 
@@ -578,20 +586,49 @@
                 above-forall
               above-param)))))))
 
+(defun haskell-ts-indent--type-function-in-context-first-arg-anchor--impl (context forall)
+  (cl-assert (not (null context)))
+  (cl-assert (string= (treesit-node-type context) "context"))
+  (let ((ctx-arrow (haskell-ts-indent--get-context-arrow context)))
+    (if (haskell-ts--is-standalone-node? ctx-arrow)
+        ctx-arrow
+      (let ((ctx-contents (haskell-ts-indent--get-context-context context)))
+        (if (haskell-ts--is-standalone-node? ctx-contents)
+            ctx-contents
+          (if-let* (((not (null forall)))
+                    ((string= "forall" (treesit-node-type forall))))
+              forall
+            ctx-contents))))))
+
+(defun haskell-ts-indent--gadt-type-function-in-context-first-arg-anchor (node parent bol)
+  (let* ((gp (treesit-node-parent parent))
+         (gp-type (treesit-node-type gp)))
+    (cl-assert (string= gp-type "prefix"))
+
+    (let* ((ggp (treesit-node-parent gp))
+           (ggp-type (treesit-node-type ggp)))
+      (cl-assert (string= ggp-type "gadt_constructor"))
+
+      (let ((context (haskell-ts-indent--get-gadt-constructor-context ggp))
+            (forall (haskell-ts-indent--get-gadt-constructor-forall ggp)))
+        (cond
+          (context
+           (haskell-ts-indent--type-function-in-context-first-arg-anchor--impl context forall))
+          (forall
+           forall)
+          (t
+           (haskell-ts-indent--type-function-context-anchor node parent bol)))))))
+
 (defun haskell-ts-indent--type-function-in-context-first-arg-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
-  (let ((context (treesit-node-parent parent)))
-    (cl-assert (string= (treesit-node-type context) "context"))
-    (let ((ctx-arrow (haskell-ts-indent--get-context-arrow context)))
-      (if (haskell-ts--is-standalone-node? ctx-arrow)
-          ctx-arrow
-        (let ((ctx-contents (haskell-ts-indent--get-context-context context)))
-          (if (haskell-ts--is-standalone-node? ctx-contents)
-              ctx-contents
-            (if-let* ((forall (treesit-node-parent context))
-                      ((string= "forall" (treesit-node-type forall))))
-                forall
-              ctx-contents)))))))
+
+  (let* ((gp (treesit-node-parent parent))
+         (gp-type (treesit-node-type gp))
+         (context gp)
+         (forall (treesit-node-parent context)))
+
+    (cl-assert (string= gp-type "context"))
+    (haskell-ts-indent--type-function-in-context-first-arg-anchor--impl context forall)))
 
 (defun haskell-ts-indent--type-function-result-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
@@ -633,12 +670,26 @@
   (pcase (treesit-node-type anchor)
     ("signature"
      (haskell-ts-indent--get-signature-double-colon anchor))
+    ("gadt_constructor"
+     (haskell-ts-indent--get-gadt-constructor-double-colon anchor))
     ("parens"
      anchor)
     (_
      (error "Unhandled anchor: %s" anchor))))
 
-(defun haskell-ts-indent--context-arrow-anchor (node parent bol)
+(defun haskell-ts-indent--forall-anchor (parent)
+  (let ((double-colon (pcase (treesit-node-type parent)
+                        ("signature"
+                         (haskell-ts-indent--get-signature-double-colon parent))
+                        ("gadt_constructor"
+                         (haskell-ts-indent--get-gadt-constructor-double-colon parent))
+                        (_
+                         (error "Unhandled parent of forall node: %s" x)))))
+    (if (haskell-ts--is-standalone-node? double-colon)
+        double-colon
+      parent)))
+
+(defun _haskell-ts-indent--context-arrow-anchor (node parent bol)
   (cl-assert (string= (treesit-node-type node) "=>"))
   (cl-assert (string= (treesit-node-type parent) "context"))
   (let* ((p (treesit-node-parent parent))
@@ -1095,9 +1146,28 @@
               haskell-ts-indent--context-dot-anchor
               haskell-ts-indent--function-indent)
 
-             ((n-p-gp "::" "signature" nil)
+             ((n-p-gp "forall" '("signature" "gadt_constructor") nil)
+              ,(lambda (_ parent _)
+                (haskell-ts-indent--forall-anchor parent))
+              ,(lambda (_ _ _)
+                 (lambda (matched-anchor)
+                   (if (string= "::" (treesit-node-type matched-anchor))
+                       (+ haskell-indent-offset 1)
+                     haskell-indent-offset))))
+
+             ((n-p-gp "::" '("signature" "gadt_constructor") nil)
               parent
               haskell-indent-offset)
+
+             ;; NB "prefix" is for GADTs.
+             ((and (n-p-gp nil "function" "prefix")
+                   (field-is "parameter"))
+              haskell-ts-indent--gadt-type-function-in-context-first-arg-anchor
+              ,(lambda (node parent _)
+                 (lambda (matched-anchor)
+                   (if (member (treesit-node-type matched-anchor) '("=>" "::"))
+                       (+ haskell-indent-offset 1)
+                     haskell-indent-offset))))
 
              ((and (n-p-gp nil "function" "context")
                    (field-is "parameter"))
@@ -1133,7 +1203,7 @@
                     (field-is "type"))
                ;; No context, try to catch fist argument of a vanilla
                ;; function
-               (and (n-p-gp nil "function" '("forall" "parens" "signature" "context"))
+               (and (n-p-gp nil "function" '("forall" "parens" "signature" "context" "prefix"))
                     (field-is "parameter")))
               haskell-ts-indent--type-function-first-arg-anchor
               ,(lambda (node parent _)
