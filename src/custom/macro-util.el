@@ -582,10 +582,30 @@ opened in some buffer, then reuse it, and insert its contents in temporary
 buffer if no such buffer exists."
   (declare (indent 1))
   (let ((buf-var '#:buf)
+        (fname-var '#:fname)
+        (buf-modified-var '#:buf-modified?)
         (exec-func '#:exec-func))
-    `(let ((,exec-func (lambda () ,@body)))
-       (if-let (,buf-var (get-file-buffer ,filename))
+    `(let ((,exec-func (lambda () ,@body))
+           (,fname-var ,filename))
+       (if-let* ((,buf-var (get-file-buffer ,fname-var)))
            (with-current-buffer ,buf-var
+             (when (not (verify-visited-file-modtime ,buf-var))
+               (let ((,buf-modified-var (buffer-modified-p ,buf-var)))
+                 (when (or
+                        ;; Revert silently without query.
+                        (and (not ,buf-modified-var)
+                             (let ((revertible? nil))
+                               (dolist (re revert-without-query)
+                                 (when (string-match-p re ,fname-var)
+                                   (setf revertible? t)))
+                               revertible?))
+                        ;; Query for revert
+                        (y-or-n-p
+                         (format (if ,buf-modified-var
+                                     "File %s changed on disk. Discard your edits?"
+                                   "File %s changed on disk. Reread from disk?")
+                                 ,fname-var)))
+                   (revert-buffer t t))))
              (save-excursion
                (funcall ,exec-func)))
          (with-temp-buffer
