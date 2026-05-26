@@ -1049,12 +1049,18 @@
               grand-parent
               haskell-indent-offset)
 
+             ((n-p-gp "pragma" '("class" "instance") nil)
+              parent
+              haskell-indent-offset)
+
              ;; where
              ((lambda (node _ _)
                 (let ((n (treesit-node-prev-sibling node)))
                   (while (string= "comment" (treesit-node-type n))
                     (setq n (treesit-node-prev-sibling n)))
-                  (string= "where" (treesit-node-type n))))
+                  (and (string= "where" (treesit-node-type n))
+                       (when-let* ((p (treesit-node-parent n)))
+                         (not (member (treesit-node-type p) '("class" "instance")))))))
               (lambda (node parent _bol)
                 ;; In situation
                 ;; ```
