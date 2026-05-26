@@ -1148,6 +1148,49 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-class-3
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Measurable a where"
+  "          _|_{-# INLINE foo #-}"
+  "    foo :: a -> Int"
+  "    bar :: a -> Int"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Measurable a where"
+  "  _|_{-# INLINE foo #-}"
+  "    foo :: a -> Int"
+  "    bar :: a -> Int"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-instance-1
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance Measurable Foo where"
+  "          _|_{-# INLINE foo #-}"
+  "    foo :: Foo -> Int"
+  "    foo _ = 25"
+  "    bar :: Foo -> Int"
+  "    bar _ = 25"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance Measurable Foo where"
+  "  _|_{-# INLINE foo #-}"
+  "    foo :: Foo -> Int"
+  "    foo _ = 25"
+  "    bar :: Foo -> Int"
+  "    bar _ = 25"
+  "")
+ )
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-let-1
  :contents
  (tests-utils--multiline
