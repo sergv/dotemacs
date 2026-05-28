@@ -409,6 +409,7 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
   (lsp-isar-output-replace-regexp-all-occs "\\\\<\\(\\w*\\)>" "<emacs_isabelle_symbol>\\1</emacs_isabelle_symbol>")
   ;; remove line breaks at beginning
   (lsp-isar-output-replace-regexp-all-occs "\\`\n*<body>\n" "<body>")
+  (lsp-isar-output-replace-regexp-all-occs "^\\$" "")
   ;; protect spaces and line breaks
   (lsp-isar-output-replace-regexp-all-occs "\s\s\s\s\s"
                                            "  ")
