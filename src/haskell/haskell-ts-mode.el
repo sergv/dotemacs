@@ -82,7 +82,7 @@
   "How to fontify ! and ~ in strictness contexts."
   :group 'haskell-appearance)
 
-(defun haskell-ts-mode--name-not-within-infix? (node)
+(defun haskell-ts-mode--name-not-within-infix-treesit-query-pred (node)
   (let ((p1 (treesit-node-parent node)))
     (if p1
         (and (not (string= "infix_id" (treesit-node-type p1)))
@@ -170,7 +170,7 @@
            ("pattern" @haskell-ts-keyword-face))
 
           ((variable) @haskell-ts-keyword-face
-           (:equal "_" @haskell-ts-keyword-face))
+           (:eq? "_" @haskell-ts-keyword-face))
 
           ([
             "forall"
@@ -261,16 +261,16 @@
 
           ;; Handles all types
           (((name) @haskell-ts-type-face)
-           (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-type-face))
+           (:pred? haskell-ts-mode--name-not-within-infix-treesit-query-pred @haskell-ts-type-face))
           (((qualified (module) (name)) @haskell-ts-type-face)
-           (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-type-face))
+           (:pred? haskell-ts-mode--name-not-within-infix-treesit-query-pred @haskell-ts-type-face))
 
           ;; constructor
           (((constructor) @haskell-ts-constructor-face)
-           (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-constructor-face))
+           (:pred? haskell-ts-mode--name-not-within-infix-treesit-query-pred @haskell-ts-constructor-face))
           ((qualified (module) @haskell-ts-type-face
                       [(constructor) (constructor_operator)] @haskell-ts-constructor-face)
-           (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-constructor-face))
+           (:pred? haskell-ts-mode--name-not-within-infix-treesit-query-pred @haskell-ts-constructor-face))
 
           ([(unit) (list "[" !element "]") (constructor_operator)] @haskell-ts-constructor-face)
 
@@ -332,7 +332,7 @@
      ;; ((comment) @comment)
      ;; ((haddock) @comment)
      ([(operator) (constructor_operator)] @operator
-      (:match "--" @operator)))))
+      (:match? "--" @operator)))))
 
 (defun haskell-ts-syntax-propertize (begin end)
   "Basically finds all operators (e.g. -->) that contain comment delimiter, -- that should
