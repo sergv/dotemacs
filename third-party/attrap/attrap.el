@@ -1325,6 +1325,10 @@ Error is given as MSG and reported between POS and END."
                    "GHC.Generics"
                    ("Generic"))
 
+                  (("Data.Functor.Classes.Generic.Internal")
+                   "Data.Coerce"
+                   ("coerce"))
+
                   (("GHC.Internal.ForeignPtr")
                    "Foreign.ForeignPtr"
                    ("ForeignPtr"
