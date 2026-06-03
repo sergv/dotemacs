@@ -328,6 +328,13 @@
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t nil t))
 
+(defun haskell-ts-indent--match-parent-anchor (node parent bol)
+  (cl-assert (string= "match" (treesit-node-type parent)))
+  (if-let* ((match-first-node (haskell-ts-indent--get-match-equals parent))
+            ((haskell-ts--is-standalone-node? match-first-node)))
+      match-first-node
+    (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent node parent bol)))
+
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t nil))
 
@@ -1110,7 +1117,7 @@
               0)
 
              ((parent-is "match")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent
+              haskell-ts-indent--match-parent-anchor
               haskell-indent-offset)
 
              ((parent-is "comment" "imports" "haskell" "declarations") column-0 0)
