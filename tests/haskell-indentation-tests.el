@@ -644,6 +644,95 @@ have different input states."
   "  )"
   ""))
 
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-apply-17a
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo (Foo x y)"
+    "  ="
+    "      _|_bar"
+    "      (Baz"
+    "      <$> quux x"
+    "      <*> frobnicate y)"
+    ""))
+  (:name
+   haskell-indentation-tests--test-treesitter-apply-17b
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo (Foo x y)"
+    "  ="
+    "                        _|_bar"
+    "      (Baz"
+    "      <$> quux x"
+    "      <*> frobnicate y)"
+    ""))
+  (:name
+   haskell-indentation-tests--test-treesitter-apply-17c
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo (Foo x y)"
+    "  ="
+    "   _|_bar"
+    "      (Baz"
+    "      <$> quux x"
+    "      <*> frobnicate y)"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo (Foo x y)"
+  "  ="
+  "    _|_bar"
+  "      (Baz"
+  "      <$> quux x"
+  "      <*> frobnicate y)"
+  ""))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-apply-18a
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo (Foo x y)"
+    "  ="
+    "                                _|_{-# SCC \"test\" #-}"
+    "      bar"
+    "      (Baz"
+    "      <$> quux x"
+    "      <*> frobnicate y)"
+    ""))
+  (:name
+   haskell-indentation-tests--test-treesitter-apply-18b
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo (Foo x y)"
+    "  ="
+    "  _|_{-# SCC \"test\" #-}"
+    "      bar"
+    "      (Baz"
+    "      <$> quux x"
+    "      <*> frobnicate y)"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo (Foo x y)"
+  "  ="
+  "    _|_{-# SCC \"test\" #-}"
+  "      bar"
+  "      (Baz"
+  "      <$> quux x"
+  "      <*> frobnicate y)"
+  ""))
+
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-comment-1
  :contents
