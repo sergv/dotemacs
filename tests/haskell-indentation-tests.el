@@ -6298,6 +6298,25 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-23
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: ("
+  "  _|_)"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: ("
+  "     _|_)"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-guard-1a
  :contents
  (tests-utils--multiline

@@ -1255,6 +1255,10 @@
               parent
               haskell-indent-offset)
 
+             ((n-p-gp ")" "unit" nil)
+              parent
+              0)
+
              ;; No backup - we would like to default to something else.
              ;; ;; Backup
              ;; (catch-all parent haskell-indent-offset)
