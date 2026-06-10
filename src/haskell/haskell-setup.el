@@ -130,9 +130,7 @@ With prefix argument puts symbol at point also in substitute part"
          (lines2 (if (string= (car lines) "active package flags:")
                      (cdr lines)
                    lines)))
-    (--map (replace-regexp-in-string
-            haskell-regexen/package-version
-            ""
+    (--map (haskell-misc--strip-package-version
             (strip-string-prefix "  -package-id " it))
            lines2)))
 
@@ -258,9 +256,13 @@ regexps to not be confused by the instance location."
                 ;; Other times :i only provides us with a module name which is still
                 ;; useful to narrow down tag search.
                 ((string-match haskell-regexen/ghci-info-definition-site info)
-                 (let* ((mod-name (match-string-no-properties 1 info))
-                        (packages (lcr-call dante-async-call ":show packages"))
-                        (pkgs-without-versions (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages)))
+                 (let* ((mod-name (match-string-no-properties 2 info))
+                        (pkg-name (haskell-misc--strip-package-version (match-string-no-properties 1 info)))
+                        ;; (packages (lcr-call dante-async-call ":show packages"))
+                        (pkgs-without-versions
+                         ;; Can narrow search down to a single package.
+                         ;; (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages)
+                         (list pkg-name)))
                    (funcall wrap-func
                             #'haskell-go-to-symbol-home--jump-to-filtered-tags
                             (list identifier
