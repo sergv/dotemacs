@@ -462,7 +462,7 @@ value is a list which is appended to the result of
 
          (filtered-by-module
           (--filter
-           (s-contains-p filename-stem-no-ext (eproj-tag/file (cl-second it)))
+           (s-contains-p filename-stem-no-ext (eproj-tag/file (eproj-matching-tag/tag it)))
            filtered-tags))
 
          (parent-name
@@ -470,7 +470,7 @@ value is a list which is appended to the result of
                      ;; When there’s only one candidate
                      ((null (cdr filtered-by-module)))
                      (tag-entry (car filtered-by-module))
-                     (tag (cl-second tag-entry)))
+                     (tag (eproj-matching-tag/tag tag-entry)))
             (attrap-haskell-import--resolve-tag-parent-name tag))))
 
     (attrap-add-to-import--impl identifier parent-name line col)))
@@ -1476,14 +1476,17 @@ then all non-authoritative results from that collection should be ignored."
       (when (assq effective-major-mode (eproj-project/tags proj))
         (save-match-data
           (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj))
-        (eproj-get-matching-tags proj effective-major-mode identifier nil)))))
+        (eproj-get-matching-tags proj effective-major-mode identifier nil nil)))))
 
 (defun attrap-haskell-import--filter-tags-by-type (candidate-tags is-constructor? is-type-or-class?)
   (cond
     (is-constructor?
-     (--filter (memq (eproj-tag/type (cl-second it)) '(?C ?p)) candidate-tags))
+     (--filter (let ((typ (eproj-tag/type (eproj-matching-tag/tag it))))
+                 (or (eq typ ?C)
+                     (eq typ ?p)))
+               candidate-tags))
     (is-type-or-class?
-     (--filter (let ((typ (eproj-tag/type (cl-second it))))
+     (--filter (let ((typ (eproj-tag/type (eproj-matching-tag/tag it))))
                  (or (eq typ ?t)
                      (eq typ ?c)))
                candidate-tags))
@@ -1492,8 +1495,10 @@ then all non-authoritative results from that collection should be ignored."
 
 (defun attrap-haskell-import--resolve-tag-parent-name (tag)
   (cl-assert (eproj-tag-p tag))
+  ;; Parent schema is: (<name-string> . <type-character>)
   (when-let ((tag-parent (eproj-tag/get-prop 'parent tag)))
     (let ((parent-type (cdr tag-parent)))
+      (cl-assert (characterp parent-type))
       ;; When type is not class.
       (unless (eq parent-type ?c)
         (car tag-parent)))))
@@ -1507,7 +1512,7 @@ then all non-authoritative results from that collection should be ignored."
          (tags-with-fixed-mod-names
           (--map (cons (attrap-haskell-import--fix-module-name
                         identifier
-                        (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it))))
+                        (haskell-misc--file-name-to-module-name (eproj-tag/file (eproj-matching-tag/tag it))))
                        it)
                  filtered-tags))
          (any-authoritative-renamings?
@@ -1542,8 +1547,10 @@ then all non-authoritative results from that collection should be ignored."
                       module-names))))
          (mod-name (car entry))
          (candidate-entry (cdr entry))
-         (tag (cl-second candidate-entry))
-         (import-from-current-project? (eq proj (cl-third candidate-entry)))
+         (tag (eproj-matching-tag/tag candidate-entry))
+         (import-from-current-project?
+          (eq proj
+              (eproj-matching-tag/proj candidate-entry)))
          (parent (attrap-haskell-import--resolve-tag-parent-name tag)))
     (haskell-misc--add-new-import mod-name
                                   identifier
