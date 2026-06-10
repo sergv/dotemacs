@@ -17,7 +17,7 @@
 ;; use this to debug type errors
 ;; (cl-defstruct (eproj-tag
 ;;                (:conc-name eproj-tag/))
-;;   symbol ;; == name - string
+;;   ;; symbol ;; == name - string <- not present in the struct
 ;;   file   ;; string
 ;;   line   ;; number
 ;;   properties)
