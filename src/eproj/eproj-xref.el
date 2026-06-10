@@ -18,7 +18,7 @@
         (xrefs (funcall fetcher)))
     (eproj-symbnav/choose-location-to-jump-to
      "some item"
-     ;; NB no tag name is available, see ‘eproj-xref-symbnav--xref->eproj-tag-quadruple’.
+     ;; NB no tag name is available, see ‘eproj-xref-symbnav--xref->eproj-matching-tag’.
      (lambda (_proj _tag-name tag _mode)
        (cl-assert (null _tag-name))
        (eproj-xref-symbnav--tag->string tag))
@@ -26,7 +26,7 @@
      (eproj-symbnav-get-file-name)
      proj
      (eproj-symbnav-current-home-entry)
-     (-map #'eproj-xref-symbnav--xref->eproj-tag-quadruple xrefs)
+     (-map #'eproj-xref-symbnav--xref->eproj-matching-tag xrefs)
      enable-shortcut?
      "Choose\n\n")))
 
@@ -51,7 +51,7 @@
 (defun eproj-xref-symbnav-show-xrefs (fetcher aux-info)
   (eproj-xref-symbnav-show-xrefs--impl fetcher aux-info nil))
 
-(defun eproj-xref-symbnav--xref->eproj-tag-quadruple (xref)
+(defun eproj-xref-symbnav--xref->eproj-matching-tag (xref)
   (with-slots (summary location) xref
     (let ((name nil)
           (proj nil)
@@ -62,11 +62,12 @@
                                  t
                                  (list (cons 'column column)
                                        (cons 'summary summary))))))
-      (list name
-            tag
-            proj
-            ;; No mode for disambiguation.
-            nil))))
+      (make-eproj-matching-tag
+       :name name
+       :tag tag
+       :proj proj
+       ;; No mode for disambiguation.
+       :major-mode nil))))
 
 (provide 'eproj-xref)
 
