@@ -95,7 +95,7 @@
   (if use-regexp?
       (let* ((re (read-regexp "enter regexp to search for"))
              (lsp-tags
-              (-map #'lsp-symbnav--symbol-information->eproj-tag-quadruple
+              (-map #'lsp-symbnav--symbol-information->eproj-matching-tag
                     (lsp-request "workspace/symbol" `(:query ,re)))))
         (if lsp-tags
             (lsp-haskell-symbnav/go-to-symbol-home-impl re lsp-tags)
@@ -195,10 +195,12 @@
             (eproj-get-matching-tags proj
                                      effective-major-mode
                                      unqual-identifier
-                                     nil))
+                                     nil
+                                     t))
            (filtered-tags
-            (--filter (and (not (eq ?m (eproj-tag/type (cadr it))))
-                           (string-match-p filter-re (eproj-tag/file (cadr it))))
+            (--filter (let ((tag (eproj-matching-tag/tag it)))
+                        (and (not (eq ?m (eproj-tag/type tag)))
+                             (string-match-p filter-re (eproj-tag/file tag))))
                       candidate-tags))
 
            (lang (aif (gethash effective-major-mode eproj/languages-table)
