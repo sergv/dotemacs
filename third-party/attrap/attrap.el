@@ -1496,9 +1496,8 @@ then all non-authoritative results from that collection should be ignored."
 (defun attrap-haskell-import--resolve-tag-parent-name (tag)
   (cl-assert (eproj-tag-p tag))
   ;; Parent schema is: (<name-string> . <type-character>)
-  (when-let ((tag-parent (eproj-tag/get-prop 'parent tag)))
-    (let ((parent-type (cdr tag-parent)))
-      (cl-assert (characterp parent-type))
+  (when-let ((tag-parent (eproj-thaskell/tag-get-parent tag)))
+    (let ((parent-type (eproj-haskell/tag-parent-type tag-parent)))
       ;; When type is not class.
       (unless (eq parent-type ?c)
         (car tag-parent)))))
