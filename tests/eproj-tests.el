@@ -131,6 +131,9 @@ under ROOT directory."
 (defconst eproj-tests/project-with-navigation-file-construction
   (expand-file-name (concat eproj-tests/project-dir "/navigation-file-construction")))
 
+(defconst eproj-tests/haskell-project-with-type-that-overrides-constructor
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-type-that-overrides-constructor")))
+
 (eproj-tests--define-tests
     "eproj-tests/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
@@ -277,7 +280,8 @@ under ROOT directory."
         (should-not (eproj-get-matching-tags proj
                                              'haskell-mode
                                              "IdentityM"
-                                             nil))
+                                             nil
+                                             t))
 
         (should (equal
                  (list (list ">>>="
@@ -286,11 +290,14 @@ under ROOT directory."
                                              ?o
                                              t
                                              nil)))
-                 (-map (lambda (x) (list (first x) (second x)))
+                 (-map (lambda (x)
+                         (list (eproj-matching-tag/name x)
+                               (eproj-matching-tag/tag x)))
                        (eproj-get-matching-tags proj
                                                 'haskell-mode
                                                 ">>>="
-                                                nil))))
+                                                nil
+                                                t))))
 
         ;; This is only present in the tags file
         (should (equal
@@ -300,11 +307,14 @@ under ROOT directory."
                                              ?f
                                              t
                                              nil)))
-                 (-map (lambda (x) (list (first x) (second x)))
+                 (-map (lambda (x)
+                         (list (eproj-matching-tag/name x)
+                               (eproj-matching-tag/tag x)))
                        (eproj-get-matching-tags proj
                                                 'haskell-mode
                                                 "outdated"
-                                                nil))))))))
+                                                nil
+                                                t))))))))
 
 (eproj-tests--define-tests
     "eproj-tests/project-with-file-list"
@@ -335,7 +345,8 @@ under ROOT directory."
      (should (eproj-get-matching-tags proj
                                       'haskell-mode
                                       "IdentityM"
-                                      nil))
+                                      nil
+                                      t))
      (should (equal
               (list (list "distributionTest1"
                           (make-eproj-tag distribution-test-path
@@ -343,11 +354,14 @@ under ROOT directory."
                                           ?f
                                           t
                                           nil)))
-              (-map (lambda (x) (list (first x) (second x)))
+              (-map (lambda (x)
+                      (list (eproj-matching-tag/name x)
+                            (eproj-matching-tag/tag x)))
                     (eproj-get-matching-tags proj
                                              'haskell-mode
                                              "distributionTest1"
-                                             nil))))
+                                             nil
+                                             t))))
      (should (equal
               (list (list "distributionTest2"
                           (make-eproj-tag distribution-test-path
@@ -355,15 +369,19 @@ under ROOT directory."
                                           ?f
                                           t
                                           nil)))
-              (-map (lambda (x) (list (first x) (second x)))
+              (-map (lambda (x)
+                      (list (eproj-matching-tag/name x)
+                            (eproj-matching-tag/tag x)))
                     (eproj-get-matching-tags proj
                                              'haskell-mode
                                              "distributionTest2"
-                                             nil))))
+                                             nil
+                                             t))))
      (should-not (eproj-get-matching-tags proj
                                           'haskell-mode
                                           "IgnoredM"
-                                          nil)))))
+                                          nil
+                                          t)))))
 
 (eproj-tests--define-tests
  "eproj-tests/haskell-project-with-manually-configured-default-projects"
@@ -378,17 +396,17 @@ under ROOT directory."
 
      (should (memq 'haskell-mode (eproj-project/no-default-project-for proj)))
 
-     (should (eproj-get-matching-tags proj 'haskell-mode "foo" nil))
-     (should (eproj-get-matching-tags proj 'haskell-mode "bar" nil))
-     (should-not (eproj-get-matching-tags proj 'haskell-mode "baz" nil))
+     (should (eproj-get-matching-tags proj 'haskell-mode "foo" nil t))
+     (should (eproj-get-matching-tags proj 'haskell-mode "bar" nil t))
+     (should-not (eproj-get-matching-tags proj 'haskell-mode "baz" nil t))
 
      (let ((related-proj (eproj-get-project-for-path (concat path "/related"))))
        (should (not (null related-proj)))
        (should (null (eproj-project/no-default-project-for related-proj)))
 
-       (should-not (eproj-get-matching-tags related-proj 'haskell-mode "foo" nil))
-       (should (eproj-get-matching-tags related-proj 'haskell-mode "bar" nil))
-       (should (eproj-get-matching-tags related-proj 'haskell-mode "baz" nil))))))
+       (should-not (eproj-get-matching-tags related-proj 'haskell-mode "foo" nil t))
+       (should (eproj-get-matching-tags related-proj 'haskell-mode "bar" nil t))
+       (should (eproj-get-matching-tags related-proj 'haskell-mode "baz" nil t))))))
 
 (eproj-tests--define-tests
     "eproj-tests/eproj-related-project-files-are-not-included-into-main-project"
@@ -453,7 +471,7 @@ under ROOT directory."
                           related-roots))
 
                  (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
-                   (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
+                   (should (eproj-get-matching-tags proj 'haskell-mode name nil t)))))))
 
         (funcall run-check)
         (eproj-update-projects)
@@ -491,7 +509,7 @@ under ROOT directory."
                           related-roots))
 
                  (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
-                   (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
+                   (should (eproj-get-matching-tags proj 'haskell-mode name nil t)))))))
 
         (funcall run-check)
         (eproj-update-projects)
@@ -529,7 +547,7 @@ under ROOT directory."
                           related-roots))
 
                  (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
-                   (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
+                   (should (eproj-get-matching-tags proj 'haskell-mode name nil t)))))))
 
         (funcall run-check)
         (eproj-update-projects)
@@ -568,7 +586,7 @@ under ROOT directory."
                      (eproj-tests/sort-file-list expected-navigation-files))))
 
     (dolist (name '("foobar" "subfoo" "subbar" "prefixFoo"))
-      (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))
+      (should (eproj-get-matching-tags proj 'haskell-mode name nil t)))))
 
 (eproj-tests--define-tests
     "eproj-tests/haskell-project-authoritative"
@@ -583,19 +601,20 @@ under ROOT directory."
                      ("FooConstructor" . 17)))
       (let ((name (car entry))
             (authoritative-line (cdr entry)))
-        (let ((authoritative-tags (eproj-get-matching-tags authoritative-proj 'haskell-mode name nil)))
+        (let ((authoritative-tags (eproj-get-matching-tags authoritative-proj 'haskell-mode name nil t)))
           (should (equal (length authoritative-tags) 1))
-          (let ((tag (cadr (car authoritative-tags))))
+          (let ((tag (eproj-matching-tag/tag (car authoritative-tags))))
             (should (string= (eproj-tag/file tag) "src/Foo.hs"))
             (should (equal (eproj-tag/line tag) authoritative-line))))
 
-        (let ((non-authoritative-tags (eproj-get-matching-tags non-authoritative-proj 'haskell-mode name nil)))
+        (let ((non-authoritative-tags (eproj-get-matching-tags non-authoritative-proj 'haskell-mode name nil t)))
           (should (equal (length non-authoritative-tags)
                          2))
-          (should (--all? (not (equal (eproj-tag/line (cadr it))
+          (should (--all? (not (equal (eproj-tag/line (eproj-matching-tag/tag it))
                                       authoritative-line))
                           non-authoritative-tags))
-          (should (--all? (equal (eproj-tag/file (cadr it)) "src/Foo.hs")
+          (should (--all? (equal (eproj-tag/file (eproj-matching-tag/tag it))
+                                 "src/Foo.hs")
                           non-authoritative-tags)))))))
 
 (eproj-tests--define-tests
@@ -609,7 +628,9 @@ under ROOT directory."
       (let ((lang (aif (gethash mode eproj/languages-table)
                       it
                     (error "unsupported language ‘%s’" mode))))
-        (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
+        (should (equal (--map (list (eproj-matching-tag/name it)
+                                    (eproj-matching-tag/tag it)
+                                    (eproj-matching-tag/major-mode it))
                               (eproj-get-matching-and-related-tags proj mode lang "foo" nil))
                        (list (list "foo"
                                    (make-eproj-tag "Test1.java"
@@ -619,7 +640,9 @@ under ROOT directory."
                                                    '((access . "public")
                                                      (class . "Test1")))
                                    'java-mode))))
-        (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
+        (should (equal (--map (list (eproj-matching-tag/name it)
+                                    (eproj-matching-tag/tag it)
+                                    (eproj-matching-tag/major-mode it))
                               (eproj-get-matching-and-related-tags proj mode lang "bar" nil))
                        (list (list "bar"
                                    (make-eproj-tag "Test2.kt"
@@ -751,6 +774,59 @@ under ROOT directory."
         (should (--all? (file-name-absolute-p (cdr it)) navigation-entries))
         (should (equal (eproj-tests/sort-file-list (-map #'car navigation-entries))
                        expected-navigation))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/haskell-project-with-type-that-overrides-constructor"
+  (unless eproj-tests/faster-richer-tags-exe
+    (ert-skip "faster-richer-tags not available"))
+  (let* ((path eproj-tests/haskell-project-with-type-that-overrides-constructor)
+         (eproj/default-projects (make-hash-table :test #'eq))
+         (proj (eproj-get-project-for-path path)))
+
+    (should (eproj-get-matching-tags proj 'haskell-mode "Bar" nil t))
+
+    (should (equal
+             (list (list "Foo"
+                         (make-eproj-tag "src/Types.hs"
+                                         9
+                                         ?t
+                                         t
+                                         nil)))
+             (-map (lambda (x)
+                     (list (eproj-matching-tag/name x)
+                           (eproj-matching-tag/tag x)))
+                   (eproj-get-matching-tags proj
+                                            'haskell-mode
+                                            "Foo"
+                                            nil
+                                            t))))
+
+    (let ((entries-with-duplicates
+           (-map (lambda (x)
+                   (list (eproj-matching-tag/name x)
+                         (eproj-matching-tag/tag x)))
+                 (eproj-get-matching-tags proj
+                                          'haskell-mode
+                                          "Foo"
+                                          nil
+                                          nil))))
+      (should (= 2 (length entries-with-duplicates)))
+      (should (member
+               (list "Foo"
+                     (make-eproj-tag "src/Types.hs"
+                                     10
+                                     ?C
+                                     t
+                                     '((parent "Foo" . ?t))))
+               entries-with-duplicates))
+      (should (member
+               (list "Foo"
+                     (make-eproj-tag "src/Types.hs"
+                                     9
+                                     ?t
+                                     t
+                                     nil))
+               entries-with-duplicates)))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
