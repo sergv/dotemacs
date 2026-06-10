@@ -783,8 +783,6 @@ under ROOT directory."
          (eproj/default-projects (make-hash-table :test #'eq))
          (proj (eproj-get-project-for-path path)))
 
-    (should (eproj-get-matching-tags proj 'haskell-mode "Bar" nil t))
-
     (should (equal
              (list (list "Foo"
                          (make-eproj-tag "src/Types.hs"
@@ -826,7 +824,61 @@ under ROOT directory."
                                      ?t
                                      t
                                      nil))
-               entries-with-duplicates)))))
+               entries-with-duplicates)))
+
+    (let ((entries-with-duplicates
+           (-map (lambda (x)
+                   (list (eproj-matching-tag/name x)
+                         (eproj-matching-tag/tag x)))
+                 (eproj-get-matching-tags proj
+                                          'haskell-mode
+                                          "Bar"
+                                          nil
+                                          nil))))
+      (should (= 2 (length entries-with-duplicates)))
+      (should (member
+               (list "Bar"
+                     (make-eproj-tag "src/Types.hs"
+                                     11
+                                     ?C
+                                     t
+                                     '((parent "Foo" . ?t))))
+               entries-with-duplicates))
+      (should (member
+               (list "Bar"
+                     (make-eproj-tag "src/Types.hs"
+                                     13
+                                     ?t
+                                     t
+                                     nil))
+               entries-with-duplicates)))
+
+    (let ((entries-without-duplicates
+           (-map (lambda (x)
+                   (list (eproj-matching-tag/name x)
+                         (eproj-matching-tag/tag x)))
+                 (eproj-get-matching-tags proj
+                                          'haskell-mode
+                                          "Bar"
+                                          nil
+                                          t))))
+      (should (= 2 (length entries-without-duplicates)))
+      (should (member
+               (list "Bar"
+                     (make-eproj-tag "src/Types.hs"
+                                     11
+                                     ?C
+                                     t
+                                     '((parent "Foo" . ?t))))
+               entries-without-duplicates))
+      (should (member
+               (list "Bar"
+                     (make-eproj-tag "src/Types.hs"
+                                     13
+                                     ?t
+                                     t
+                                     nil))
+               entries-without-duplicates)))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
