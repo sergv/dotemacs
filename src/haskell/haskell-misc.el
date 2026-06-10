@@ -1636,6 +1636,15 @@ with dante."
                                    t)
           (attrap-do-insert-language-pragma pragma))))))
 
+(defun haskell-misc--strip-package-version (x)
+  "E.g.
+
+aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d -> aeson
+aeson-2.0.3.0 -> aeson
+"
+  (cl-assert (stringp x))
+  (replace-regexp-in-string haskell-regexen/package-version "" x))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
