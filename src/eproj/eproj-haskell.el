@@ -320,6 +320,27 @@ spaces if they’re quoted with double quotes, e.g. \"foobar\"."
       (t
        nil))))
 
+(defun eproj-haskell/deduplicate-matched-tags (tags)
+  (let ((known-names (make-hash-table :test #'equal)))
+    (dolist (entry tags)
+      (puthash (list (eproj-matching-tag/name entry)
+                     (eproj-tag/type (eproj-matching-tag/tag entry)))
+               t
+               known-names))
+    (--filter (let* ((entry it)
+                     (tag (eproj-matching-tag/tag entry)))
+                (if-let* ((tag-parent (eproj-tag/get-prop 'parent tag)))
+                    (let ((parent-type (cdr tag-parent)))
+                      (cl-assert (characterp parent-type))
+                      ;; Check that parent with the same name as we
+                      ;; hasn’t been added. If it was then prefer it
+                      ;; to us by removing our entry.
+                      (not (gethash (list (eproj-matching-tag/name entry)
+                                          parent-type)
+                                    known-names)))
+                  t))
+              tags)))
+
 (provide 'eproj-haskell)
 
 ;; Local Variables:
