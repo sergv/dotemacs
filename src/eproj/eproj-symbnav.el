@@ -273,7 +273,8 @@ as accepted by `bounds-of-thing-at-point'.")
              (eproj-get-matching-tags proj
                                       effective-major-mode
                                       identifier
-                                      use-regexp?)
+                                      use-regexp?
+                                      t)
              t
              "Choose symbol\n\n")))))))
 
@@ -306,7 +307,7 @@ as accepted by `bounds-of-thing-at-point'.")
      current-buffer-file-name
      current-proj ;; may be nil
      current-home-entry
-     tag-entries ;; list of (tag-name tag-struct tag-proj tag-major-mode-or-nil) quadruples
+     tag-entries ;; list of eproj-matching-tag structs
      enable-shortcut? ;; Jump to destination if there’s only one tag
      preamble
      )
@@ -393,8 +394,10 @@ as accepted by `bounds-of-thing-at-point'.")
              entry-sort-token
              #'equal
              (-map (lambda (tag-entry)
-                     (cl-destructuring-bind (tag-name tag tag-proj mode)
-                         tag-entry
+                     (let ((tag-name (eproj-matching-tag/name tag-entry))
+                           (tag (eproj-matching-tag/tag tag-entry))
+                           (tag-proj (eproj-matching-tag/proj tag-entry))
+                           (mode (eproj-matching-tag/major-mode tag-entry)))
                        (cl-assert (stringp tag-name))
                        (cl-assert (eproj-tag-p tag))
                        (cl-assert (or (null tag-proj) (eproj-project-p tag-proj)))
