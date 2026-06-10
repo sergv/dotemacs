@@ -208,7 +208,7 @@
   (if use-regexp?
       (let* ((re (read-regexp "enter regexp to search for"))
              (lsp-tags
-              (-map #'lsp-symbnav--symbol-information->eproj-tag-quadruple
+              (-map #'lsp-symbnav--symbol-information->eproj-matching-tag
                     (lsp-request "workspace/symbol" `(:query ,re)))))
         (lsp-symbnav/go-to-symbol-home-impl re lsp-tags))
     (lsp-symbnav/go-to-symbol-home-no-regexp)))
@@ -217,7 +217,11 @@
   (interactive)
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
          (lsp-tags
-          (--map (list identifier it nil nil)
+          (--map (make-eproj-matching-tag
+                  :name identifier
+                  :tag it
+                  :proj nil
+                  :major-mode nil)
                  (lsp-symbnav--locations->eproj-tags
                   identifier
                   (lsp-request "textDocument/definition"
@@ -250,7 +254,11 @@
   (interactive "P")
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
          (tag-quadruples
-          (--map (list identifier it nil nil)
+          (--map (make-eproj-matching-tag
+                  :name identifier
+                  :tag it
+                  :proj nil
+                  :major-mode nil)
                  (lsp-symbnav--locations->eproj-tags
                   identifier
                   (lsp-request "textDocument/references"
@@ -273,7 +281,11 @@
   (interactive)
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
          (tag-quadruples
-          (--map (list identifier it nil nil)
+          (--map (make-eproj-matching-tag
+                  :name identifier
+                  :tag it
+                  :proj nil
+                  :major-mode nil)
                  (lsp-symbnav--locations->eproj-tags
                   identifier
                   (lsp-request "textDocument/implementation"
@@ -293,7 +305,7 @@
        (concat "Implementations for " identifier "\n\n")))))
 
 ;; sync with `lsp--symbol-information-to-xref’
-(lsp-defun lsp-symbnav--symbol-information->eproj-tag-quadruple
+(lsp-defun lsp-symbnav--symbol-information->eproj-matching-tag
   ((&SymbolInformation :kind :name :deprecated?
                        :location (&Location :uri :range (&Range :start
                                                                 (&Position :line :character)))))
@@ -305,15 +317,17 @@
         (tag-line line)
         (tag-column character)
         (tag-path (lsp--uri-to-path uri)))
-    (list tag-name
-          (make-eproj-tag tag-path
-                          tag-line
-                          tag-kind
-                          t
-                          (list (cons 'column tag-column)))
-          nil
-          ;; No mode for disambiguation.
-          nil)))
+    (make-eproj-matching-tag
+     :name tag-name
+     :tag
+     (make-eproj-tag tag-path
+                     tag-line
+                     tag-kind
+                     t
+                     (list (cons 'column tag-column)))
+     :proj nil
+     ;; No mode for disambiguation.
+     :major-mode nil)))
 
 ;; sync with `lsp--locations-to-xref-items’
 (lsp-defun lsp-symbnav--locations->eproj-tags (identifier locations)

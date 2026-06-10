@@ -144,6 +144,12 @@
   ;; non-authoritative ones.
   authoritative-key-func
 
+  ;; Either nil or function that takes a list of
+  ;; (tag-name tag-struct tag-project major-mode)
+  ;; entries and returns potentially smaller list by removing
+  ;; irrelevant entries within one project.
+  deduplicate-matched-tags-func
+
   ;; Possibly strip unneeded information before performing navigation
   normalise-identifier-before-navigation-procedure
   ;; List of strings - globs for files to consider during quick navigation.
@@ -160,6 +166,7 @@
                               show-tag-kind-procedure
                               tag->string-func
                               authoritative-key-func
+                              deduplicate-matched-tags-func
                               synonym-modes
                               normalise-identifier-before-navigation-procedure
                               extra-navigation-globs
@@ -196,6 +203,13 @@
              nil
              "Invalid authoritative-key-func: %s"
              authoritative-key-func)
+  (cl-assert (or (null deduplicate-matched-tags-func)
+                 (functionp deduplicate-matched-tags-func)
+                 (autoload-p deduplicate-matched-tags-func)
+                 (subr-native-elisp-p deduplicate-matched-tags-func))
+             nil
+             "Invalid deduplicate-matched-tags-func: %s"
+             deduplicate-matched-tags-func)
   (cl-assert (listp synonym-modes))
   (cl-assert (-all? #'symbolp synonym-modes))
   (cl-assert (or (null normalise-identifier-before-navigation-procedure)
@@ -220,6 +234,7 @@
    :tag->string-func tag->string-func
    :authoritative-key-func (or authoritative-key-func
                                #'eproj/default-authoritative-key-func)
+   :deduplicate-matched-tags-func deduplicate-matched-tags-func
    :synonym-modes synonym-modes
    :extra-navigation-globs extra-navigation-globs
    :related-modes related-modes
@@ -259,6 +274,8 @@
                      uuag-mode)
     :normalise-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification
+    :deduplicate-matched-tags-func
+    #'eproj-haskell/deduplicate-matched-tags
     :extra-navigation-globs
     (eval-when-compile
       (append '("*.cabal"
@@ -1501,29 +1518,43 @@ or `default-directory', if no file is visited."
    eproj/buffer-directory
    #'stringp))
 
+(cl-defstruct (eproj-matching-tag
+               (:conc-name eproj-matching-tag/))
+  name
+  tag
+  proj
+  major-mode)
+
 (defun eproj-get-matching-and-related-tags (proj tag-major-mode lang identifier search-with-regexp?)
-  "Returns list of (tag-name tag-struct tag-project major-mode) lists."
+  "Returns list of eproj-matching-tag structs."
   (cl-assert (eproj-language-p lang))
   (let ((related (eproj-language/related-modes lang)))
     (if related
         (--mapcat (eproj-get-matching-tags proj
                                            it
                                            identifier
-                                           search-with-regexp?)
+                                           search-with-regexp?
+                                           t)
                   (cons tag-major-mode related))
       (eproj-get-matching-tags proj
                                tag-major-mode
                                identifier
-                               search-with-regexp?))))
+                               search-with-regexp?
+                               t))))
 
-(defun eproj-get-matching-tags (current-proj tag-major-mode identifier search-with-regexp?)
+(defun eproj-get-matching-tags (current-proj tag-major-mode identifier search-with-regexp? deduplicate?)
   "Get all tags from PROJ and its related projects from mode TAG-MAJOR-MODE
 whose name equals IDENTIFIER or matches regexp IDENTIFIER if SEARCH-WITH-REGEXP?
 is non-nil.
 
-Returns list of (tag-name tag-struct tag-project major-mode) lists."
+Returns list of eproj-matching-tag structs."
   (let* ((has-authoritative-projects? nil)
          (curr-root (eproj-project/root current-proj))
+         (lang (aif (gethash tag-major-mode eproj/languages-table)
+                   it
+                 (error "unsupported language %s" tag-major-mode)))
+         (deduplicate-matched-tags-func
+          (eproj-language/deduplicate-matched-tags-func lang))
          (matched-tags
           (mapcan (lambda (proj)
                     (aif (cdr (assq tag-major-mode (eproj-project/tags proj)))
@@ -1544,36 +1575,54 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
                                 (if search-with-regexp?
                                     (mapcan (lambda (key-and-tags)
                                               (let ((key (car key-and-tags)))
-                                                (-map (lambda (tag) (list is-authoritative? key tag proj tag-major-mode))
+                                                (-map (lambda (tag)
+                                                        (cons is-authoritative?
+                                                              (make-eproj-matching-tag
+                                                               :name key
+                                                               :tag tag
+                                                               :proj proj
+                                                               :major-mode tag-major-mode)))
                                                       (cdr key-and-tags))))
                                             (eproj-tag-index-values-where-key-matches-regexp identifier all-tags))
-                                  (mapcar (lambda (x) (list is-authoritative? identifier x proj tag-major-mode))
+                                  (mapcar (lambda (x)
+                                            (cons is-authoritative?
+                                                  (make-eproj-matching-tag
+                                                   :name identifier
+                                                   :tag x
+                                                   :proj proj
+                                                   :major-mode tag-major-mode)))
                                           (eproj-tag-index-get identifier all-tags nil)))))
                           (when matched-tags
                             (setf has-authoritative-projects? (or has-authoritative-projects?
                                                                   is-authoritative-non-current?)))
                           matched-tags)
                       nil))
-                  (eproj-get-all-related-projects-for-mode current-proj tag-major-mode))))
-    (mapcar #'cdr ;; drop is-authoritative? first entry
-            (if has-authoritative-projects?
-                (let* ((tbl (make-hash-table :test #'equal))
-                       (lang (aif (gethash tag-major-mode eproj/languages-table)
-                                 it
-                               (error "unsupported language %s" tag-major-mode)))
-                       (mk-authoritative-key (eproj-language/authoritative-key-func lang)))
-                  (dolist (entry matched-tags)
-                    (let* ((identifier (cadr entry))
-                           (tag (caddr entry))
-                           (key (funcall mk-authoritative-key identifier tag)))
-                      (puthash key (cons entry (gethash key tbl nil)) tbl)))
-                  (let ((result nil))
-                    (maphash (lambda (_k vs)
-                               (let ((filtered (--filter (car it) vs)))
-                                 (setf result (nconc (or filtered vs) result))))
-                             tbl)
-                    result))
-              matched-tags))))
+                  (eproj-get-all-related-projects-for-mode current-proj tag-major-mode)))
+
+         (resolved-tags
+          (mapcar #'cdr ;; drop is-authoritative? first entry
+                  (if has-authoritative-projects?
+                      (let ((tbl (make-hash-table :test #'equal))
+                            (mk-authoritative-key (eproj-language/authoritative-key-func lang)))
+                        (dolist (entry matched-tags)
+                          (let* ((maching-tag (cdr entry))
+                                 (identifier (eproj-matching-tag/name maching-tag))
+                                 (tag (eproj-matching-tag/tag maching-tag))
+                                 (key (funcall mk-authoritative-key identifier tag)))
+                            (puthash key (cons entry (gethash key tbl nil)) tbl)))
+                        (let ((result nil))
+                          (maphash (lambda (_k vs)
+                                     (let ((filtered (--filter (car it) vs)))
+                                       (setf result (nconc (or filtered vs) result))))
+                                   tbl)
+                          result))
+                    matched-tags))))
+    (aif (and deduplicate?
+              deduplicate-matched-tags-func)
+        (progn
+          (cl-assert (functionp deduplicate-matched-tags-func))
+          (funcall it resolved-tags))
+      resolved-tags)))
 
 (cl-defstruct eproj--cached-files-for-navigation
   ;; List of relative file names.

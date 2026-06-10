@@ -208,7 +208,12 @@ regexps to not be confused by the instance location."
                              (eproj-symbnav-get-file-name)
                              proj
                              (eproj-symbnav-current-home-entry)
-                             (--map (list identifier it proj effective-major-mode) ghci-tags)
+                             (--map (make-eproj-matching-tag
+                                     :name identifier
+                                     :tag it
+                                     :proj proj
+                                     :major-mode effective-major-mode)
+                                    ghci-tags)
                              t
                              "Choose symbol\n\n")))
           (let* ((_load-message (lcr-call dante-async-load-current-buffer t nil))
