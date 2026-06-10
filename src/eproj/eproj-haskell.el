@@ -320,24 +320,40 @@ spaces if they’re quoted with double quotes, e.g. \"foobar\"."
       (t
        nil))))
 
+(defun eproj-thaskell/tag-get-parent (x)
+  (eproj-tag/get-prop 'parent x))
+
+(defun eproj-haskell/tag-parent-name (x)
+  (cl-assert (consp x))
+  (let ((res (car x)))
+    (cl-assert (stringp res))
+    res))
+
+(defun eproj-haskell/tag-parent-type (x)
+  (cl-assert (consp x))
+  (let ((res (cdr x)))
+    (cl-assert (characterp res))
+    res))
+
 (defun eproj-haskell/deduplicate-matched-tags (tags)
   (let ((known-names (make-hash-table :test #'equal)))
     (dolist (entry tags)
-      (puthash (list (eproj-matching-tag/name entry)
+      (puthash (cons (eproj-matching-tag/name entry)
                      (eproj-tag/type (eproj-matching-tag/tag entry)))
                t
                known-names))
     (--filter (let* ((entry it)
                      (tag (eproj-matching-tag/tag entry)))
-                (if-let* ((tag-parent (eproj-tag/get-prop 'parent tag)))
-                    (let ((parent-type (cdr tag-parent)))
-                      (cl-assert (characterp parent-type))
+                (if-let* ((tag-parent (eproj-thaskell/tag-get-parent tag)))
+                    (let* ((parent-type (eproj-haskell/tag-parent-type tag-parent))
+                           (entry-name (eproj-matching-tag/name entry))
+                           (shadowing-entry (cons entry-name parent-type)))
                       ;; Check that parent with the same name as we
                       ;; hasn’t been added. If it was then prefer it
                       ;; to us by removing our entry.
-                      (not (gethash (list (eproj-matching-tag/name entry)
-                                          parent-type)
-                                    known-names)))
+                      (not (and (gethash shadowing-entry known-names)
+                                (string= (eproj-haskell/tag-parent-name tag-parent)
+                                         entry-name))))
                   t))
               tags)))
 
