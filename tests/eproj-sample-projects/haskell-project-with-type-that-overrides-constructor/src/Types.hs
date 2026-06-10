@@ -9,3 +9,5 @@ module Types where
 data Foo
   = Foo Int
   | Bar
+
+data Bar = Quux Int Int
