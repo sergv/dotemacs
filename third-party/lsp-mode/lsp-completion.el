@@ -1,6 +1,6 @@
 ;;; lsp-completion.el --- LSP completion -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020-2025 emacs-lsp maintainers
+;; Copyright (C) 2020-2026 emacs-lsp maintainers
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -180,6 +180,13 @@ See #2675"
     (when (lsp-member? data :import_for_trait_assoc_item)
       (unless (lsp-get data :import_for_trait_assoc_item)
         (lsp-put data :import_for_trait_assoc_item :json-false)))
+    (when (lsp-member? data :imports)
+      (when-let* ((imports (lsp-get data :imports)))
+        (->> imports
+             (mapc (lambda (import)
+                     (when (lsp-member? import :as_underscore)
+                       (unless (lsp-get import :as_underscore)
+                         (lsp-put import :as_underscore :json-false))))))))
     (when (lsp-member? data :for_ref)
       (unless (lsp-get data :for_ref)
          (lsp-put data :for_ref :json-false)))))
@@ -597,9 +604,10 @@ Returns resolved completion item details."
                                      "textDocument/completion"
                                      (plist-put (lsp--text-document-position-params)
                                                 :context (lsp-completion--get-context trigger-chars same-session?))))
-                              (completed (and resp
-                                              (not (and (lsp-completion-list? resp)
-                                                        (lsp:completion-list-is-incomplete resp)))))
+                              ;; If resp is nil (e.g. no server responded), we treat it as complete
+                              ;; to prevent an infinite retry loop.
+                              (completed (not (and (lsp-completion-list? resp)
+                                                   (lsp:completion-list-is-incomplete resp))))
                               (items (lsp--while-no-input
                                        (--> (cond
                                              ((lsp-completion-list? resp)
@@ -657,7 +665,7 @@ Returns resolved completion item details."
        :company-prefix-length
        (save-excursion
          (let (
-               ;; 2 is a heuristic number to make sure we look futher back than
+               ;; 2 is a heuristic number to make sure we look further back than
                ;; the bounds-start, which can be different from the actual start
                ;; of the symbol
                (bounds-left (max (line-beginning-position) (- bounds-start 2)))
