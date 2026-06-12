@@ -1,6 +1,7 @@
 ;;; lsp-generate-settings.el --- Functions for generating settings  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019  Ivan Yonchovski
+;; Copyright (C) 2019-2026 lsp-mode maintainers
 
 ;; Author: Ivan Yonchovski <yyoncho@gmail.com>
 ;; Keywords:
@@ -57,8 +58,13 @@ FILE-NAME is path to package.json vscode manifest."
          cl-rest
          (assoc 'configuration)
          cl-rest
-         (assoc 'properties)
-         cl-rest
+         (funcall
+          (lambda (configs)
+            (if (alist-get 'properties configs)
+                (list configs)
+              configs)))
+         (--map (alist-get 'properties it))
+         (apply #'append)
          (-keep
           (-lambda ((prop-name . (&alist 'type 'default 'enum 'description 'markdownDescription)))
             (let ((type (lsp--convert-type type enum))
