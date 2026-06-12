@@ -39,4 +39,9 @@
   `(lsp-test--wait-for '(progn ,form)))
 
 (provide 'lsp-test-utils)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-test-utils.el ends here

@@ -660,4 +660,10 @@
             (replace-match "foobar")))
         (deferred:sync!))))
 
+(provide 'lsp-integration-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-integration-test.el ends here
