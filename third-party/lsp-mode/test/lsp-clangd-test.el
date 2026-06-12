@@ -154,4 +154,10 @@ and starts lsp. After the test BODY runs - tidy up."
 
     (deferred:sync!))))
 
+(provide 'lsp-clangd-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-clangd-test.el ends here

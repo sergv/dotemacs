@@ -25,7 +25,7 @@
 ;;; Code:
 (require 'lsp-mode)
 (require 'filenotify)
-(require 'test-helper)
+(require 'lsp-test-helper)
 
 (ert-deftest lsp-file-watch--recursive ()
   :tags '(no-win)
@@ -410,5 +410,11 @@
 
     (should (null lsp--test-events))
     (should (ht-empty? (lsp-session-watches)))))
+
+(provide 'lsp-file-watch-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
 
 ;;; lsp-file-watch-test.el ends here

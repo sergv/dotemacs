@@ -244,4 +244,10 @@
     (should (lsp-f-ancestor-of? "test\\tmp" "test/tmp/a"))
     (should-not (lsp-f-ancestor-of? "test\\tmp" "test\\tmp-a"))))
 
+(provide 'lsp-common-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-common-test.el ends here
