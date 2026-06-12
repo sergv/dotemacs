@@ -8965,6 +8965,19 @@ When ALL is t, erase all log buffers of the running session."
             (let ((inhibit-read-only t))
               (erase-buffer))))))))
 
+(defun lsp--erase-log-buffer-above (&optional all)
+  "Delete contents of current lsp log buffer.
+When ALL is t, erase all log buffers of the running session."
+  (interactive)
+  (let* ((workspaces (lsp--session-workspaces (lsp-session)))
+         (current-log-buffer (current-buffer)))
+    (dolist (w workspaces)
+      (let ((b (lsp--get-log-buffer-create w)))
+        (when (or all (eq b current-log-buffer))
+          (with-current-buffer b
+            (let ((inhibit-read-only t))
+              (delete-region (point-min) (point)))))))))
+
 (defun lsp--erase-session-log-buffers ()
   "Erase log buffers of the running session."
   (interactive)
