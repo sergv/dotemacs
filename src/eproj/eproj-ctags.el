@@ -64,6 +64,21 @@
      "--language-force=kotlin"
      "--kotlin-kinds=+picomTCv"
      "--fields=+kia")
+    (scala-mode
+     "--langdef=scala"
+     "--langmap=scala:.scala"
+     "--regex-scala=/^[ \t]*((abstract|final|sealed|implicit|lazy)[ \t]*)*(private|protected)?[ \t]*class[ \t]+([a-zA-Z0-9_]+)/\\4/c,classes/"
+     "--regex-scala=/^[ \t]*((abstract|final|sealed|implicit|lazy)[ \t]*)*(private|protected)?[ \t]*object[ \t]+([a-zA-Z0-9_]+)/\\4/o,objects/"
+     "--regex-scala=/^[ \t]*((abstract|final|sealed|implicit|lazy)[ \t]*)*(private|protected)?[ \t]*case[ \t]+class[ \t]+([a-zA-Z0-9_]+)/\\4/c,classes/"
+     "--regex-scala=/^[ \t]*((abstract|final|sealed|implicit|lazy)[ \t]*)*(private|protected)?[ \t]*case[ \t]+object[ \t]+([a-zA-Z0-9_]+)/\\4/o,objects/"
+     "--regex-scala=/^[ \t]*((abstract|final|sealed|implicit|lazy)[ \t]*)*(private|protected)?[ \t]*trait[ \t]+([a-zA-Z0-9_]+)/\\4/T,traits/"
+     "--regex-scala=/^[ \t]*type[ \t]+([a-zA-Z0-9_]+)/\\1/t,types/"
+     "--regex-scala=/^[ \t]*((abstract|final|sealed|implicit|lazy)[ \t]*)*def[ \t]+([a-zA-Z0-9_]+)/\\3/m,methods/"
+     "--regex-scala=/^[ \t]*((abstract|final|sealed|implicit|lazy)[ \t]*)*val[ \t]+([a-zA-Z0-9_]+)/\\3/C,constants/"
+     "--regex-scala=/^[ \t]*((abstract|final|sealed|implicit|lazy)[ \t]*)*var[ \t]+([a-zA-Z0-9_]+)/\\3/v,variables/"
+     "--regex-scala=/^[ \t]*package[ \t]+([a-zA-Z0-9_.]+)/\\1/p,packages/"
+     "--language-force=scala"
+     "--scala-kinds=+pocTtmvC")
     (rust-mode
      "--language-force=rust"
      "--fields=+k")))
@@ -367,6 +382,44 @@ BUFFER is expected to contain output of ctags command."
   (concat tag-name
           " ["
           (eproj/kotlin-tag-kind tag mode)
+          "]\n"
+          (awhen (or (eproj-tag/get-prop 'class tag)
+                     (eproj-tag/get-prop 'object tag))
+            (concat it
+                    "."
+                    tag-name
+                    "\n"))
+          (eproj/format-tag-path-and-line proj tag tag-from-current-proj?)
+          "\n"
+          (when (eproj-tag/line tag)
+            (concat (eproj/extract-tag-line proj tag)
+                    "\n"))))
+
+(defun eproj/scala-tag-kind (tag _mode)
+  (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
+  (aif (eproj-tag/type tag)
+      (concat
+       (pcase it
+         (?p "package")
+         (?o "object")
+         (?c "class")
+         (?T "trait")
+         (?t "type")
+         (?m "method")
+         (?v "variable")
+         (?C "constant")
+         (invalid
+          (error "Invalid Scala tag type %c" invalid)))
+       (awhen (eproj-tag/get-prop 'access tag)
+         (concat "/" it)))
+    "Unknown"))
+
+;;;###autoload
+(defun eproj/scala-tag->string (proj tag-name tag mode tag-from-current-proj?)
+  (cl-assert (eproj-tag-p tag))
+  (concat tag-name
+          " ["
+          (eproj/scala-tag-kind tag mode)
           "]\n"
           (awhen (or (eproj-tag/get-prop 'class tag)
                      (eproj-tag/get-prop 'object tag))

@@ -125,6 +125,9 @@ under ROOT directory."
 (defconst eproj-tests/java-kotlin-combined
   (expand-file-name (concat eproj-tests/project-dir "/java-kotlin-combined-project")))
 
+(defconst eproj-tests/scala-simple
+  (expand-file-name (concat eproj-tests/project-dir "/scala-simple-project")))
+
 (defconst eproj-tests/project-with-ignored-dirs
   (expand-file-name (concat eproj-tests/project-dir "/project-with-ignored-dirs")))
 
@@ -651,6 +654,26 @@ under ROOT directory."
                                                    t
                                                    nil)
                                    'kotlin-mode))))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/scala-simple"
+  (unless (cached-executable-find "universal-ctags")
+    (ert-skip "universal-ctags not available"))
+  (let* ((path eproj-tests/scala-simple)
+         (proj (eproj-get-project-for-path path)))
+    (should (not (null proj)))
+
+    (should (equal (--map (list (eproj-matching-tag/name it)
+                                (eproj-matching-tag/tag it)
+                                (eproj-matching-tag/major-mode it))
+                          (eproj-get-matching-tags proj 'scala-mode "main" nil t))
+                   (list (list "main"
+                               (make-eproj-tag "HW.scala"
+                                               5
+                                               ?m
+                                               t
+                                               nil)
+                               'scala-mode))))))
 
 (eproj-tests--define-tests
     "eproj-tests/project-with-ignored-dirs"
