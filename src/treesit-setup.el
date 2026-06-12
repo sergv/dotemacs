@@ -36,6 +36,9 @@
   (when (treesit-language-available-p 'kotlin)
     (add-to-list 'major-mode-remap-alist
                  '(kotlin-mode . kotlin-ts-mode)))
+  (when (treesit-language-available-p 'scala)
+    (add-to-list 'major-mode-remap-alist
+                 '(scala-mode . scala-ts-mode)))
   (when (treesit-language-available-p 'bash)
     (add-to-list 'major-mode-remap-alist
                  '(sh-mode . bash-ts-mode))))
