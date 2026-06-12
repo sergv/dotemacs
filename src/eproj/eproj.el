@@ -346,7 +346,7 @@
    (mk-eproj-lang
     :mode 'java-mode
     :extensions '("java")
-    :related-modes '(kotlin-mode)
+    :related-modes '(kotlin-mode scala-mode)
     :create-tags-procedure
     (lambda (proj project-files-thunk parse-tags-proc)
       (eproj/load-ctags-project 'java-mode proj project-files-thunk parse-tags-proc))
@@ -374,6 +374,18 @@
     '("*.gradle"
       "*.gradle.kts"
       "proguard.cfg"))
+   (mk-eproj-lang
+    :mode 'scala-mode
+    :extensions '("scala")
+    :related-modes '(java-mode)
+    :create-tags-procedure
+    (lambda (proj project-files-thunk parse-tags-proc)
+      (eproj/load-ctags-project 'scala-mode proj project-files-thunk parse-tags-proc))
+    :parse-tags-procedure
+    #'eproj/ctags-get-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/scala-tag-kind
+    :tag->string-func #'eproj/scala-tag->string
+    :synonym-modes '(scala-ts-mode))
    (mk-eproj-lang
     :mode 'emacs-lisp-mode
     :extensions '("el")
