@@ -399,4 +399,10 @@ should work without the latter."
                                  :placeholder "_"))))
           (should (equal '((1 . 12) . "_") (lsp--get-symbol-to-rename))))))))
 
+(provide 'lsp-methods-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-methods-test.el ends here

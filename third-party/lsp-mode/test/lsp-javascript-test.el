@@ -107,4 +107,10 @@
   (should-not (lsp-typescript-javascript-tsx-jsx-activate-p "abc.tsxx"))
   (should-not (lsp-typescript-javascript-tsx-jsx-activate-p "abc.jss")))
 
+(provide 'lsp-javascript-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-clients-test.el ends here
