@@ -1,0 +1,104 @@
+#!/bin/bash -e
+
+# This is an integration test to generally check the quality of parsing.
+
+SCALA_SCALA_LIBRARY_EXPECTED=100
+SCALA_SCALA_COMPILER_EXPECTED=100
+DOTTY_COMPILER_EXPECTED=93
+LILA_MODULES_EXPECTED=99
+SYNTAX_COMPLEXITY_CEILING=1800
+PARSER_MAX_SIZE_MB=33
+
+if [ ! -d "$SCALA_SCALA_DIR" ]; then
+  echo "\$SCALA_SCALA_DIR must be set"
+  exit 1
+fi
+
+if [ ! -d "$DOTTY_DIR" ]; then
+  echo "\$DOTTY_DIR must be set"
+  exit 1
+fi
+
+check_parser_size () {
+  local max_size_mb=$1
+  local max_size=$(($max_size_mb * 1024 * 1024))
+  local actual_size=$(stat -c%s src/parser.c)
+  local actual_size_mb=$(echo "scale=2; $actual_size / 1024 / 1024" | bc)
+  if [ "$actual_size" -gt "$max_size" ]; then
+    echo -e "::error file=src/parser.c::Parser size (${actual_size_mb}M) exceeds maximum allowed size (${max_size_mb}M)"
+    failed=$((failed + 1))
+  else
+    echo -e "::notice file=src/parser.c::Parser size: ${actual_size_mb}M / ${max_size_mb}M"
+  fi
+}
+
+failed=0
+
+run_tree_sitter () {
+  local source_dir=$1
+  local expected=$2
+  local name=$3
+  local files=$(find "$source_dir" -name '*.scala' -type f | tr '\n' ' ')
+  cmd="npm exec -c 'tree-sitter parse $files --quiet --stat' | sort | sed 's%$source_dir%%g'"
+  echo
+  echo "Parse $source_dir: $cmd"
+  out=$( (eval "$cmd") || true)
+
+  if [ ! -e "$PRODUCE_REPORTS" ]; then
+    local report_file="report-$name.txt"
+    echo "$out" | sed G | sed -E 's/([0-9]+) ms//' | grep -v 'success percentage' > "report-$name.txt"
+    echo "Report written to $report_file"
+  fi
+
+  actual=$(echo "$out" | grep 'success percentage:' | rev | cut -d' ' -f5 | rev | sed 's/;//g' | sed 's/%//g' )
+  echo "$actual"
+  if (( $(echo "$actual >= $expected" |bc -l) )); then
+    # See https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-creating-an-annotation-for-an-error
+    echo -e "::notice file=grammar.js,line=1::ok, ${source_dir}: ${actual}%, expected at least $expected%"
+  else
+    echo -e "::error file=grammar.js,line=1::${source_dir}: expected ${expected}, but got ${actual} instead"
+    failed=$((failed + 1))
+  fi
+}
+
+check_complexity () {
+  local expected=$1
+  name="complexity"
+  cmd="npm exec -c 'tree-sitter generate --report-states-for-rule compilation_unit' 2>&1 >/dev/null"
+  echo
+  echo "Checking syntax complexity: $cmd"
+  out=$( (eval "$cmd") || true)
+
+  if [ ! -e "$PRODUCE_REPORTS" ]; then
+    local report_file="report-$name.txt"
+    echo "$out" > "report-$name.txt"
+    echo "Report written to $report_file"
+  fi
+
+  out1=$(echo "$out" | grep -v "ExperimentalWarning" | grep -v "experimental" | grep -v "node")
+  top=$(echo "$out1" | head -n 1 | sed 's/ \+/ /g')
+  top_definition=$(echo "$top" | cut -d' ' -f1)
+  top_definition_line=$(grep -n "$top_definition:" grammar.js | head -n 1 | cut -d : -f 1)
+  actual=$(echo "$top" | cut -d' ' -f2)
+  echo "$top_definition $actual"
+  if (( $(echo "$actual < $expected" |bc -l) )); then
+    # See https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-creating-an-annotation-for-an-error
+    echo -e "::notice file=grammar.js,line=$top_definition_line::ok, complexity of the most complex definition ${top_definition}: ${actual}, lower than the allowed ceiling $expected"
+  else
+    echo -e "::error file=grammar.js,line=$top_definition_line::complexity of the most complex definition ${top_definition}: ${actual}, higher than the allowed ceiling $expected"
+    failed=$((failed + 1))
+  fi
+}
+
+check_parser_size $PARSER_MAX_SIZE_MB
+
+run_tree_sitter "$SCALA_SCALA_DIR/src/library/"  $SCALA_SCALA_LIBRARY_EXPECTED   scala2-library
+run_tree_sitter "$SCALA_SCALA_DIR/src/compiler/" $SCALA_SCALA_COMPILER_EXPECTED  scala2-compiler
+run_tree_sitter "$DOTTY_DIR/compiler/"           $DOTTY_COMPILER_EXPECTED        dotty-compiler
+run_tree_sitter "$LILA_DIR/modules/"             $LILA_MODULES_EXPECTED          lila-modules
+
+check_complexity $SYNTAX_COMPLEXITY_CEILING
+
+if (( failed > 0 )); then
+  exit 1
+fi
