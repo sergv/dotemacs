@@ -1,6 +1,7 @@
 ;;; lsp-volar.el --- A lsp-mode client for Vue3 -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2021 JadeStrong
+;; Copyright (C) 2021-2026 lsp-mode maintainers
 ;;
 ;; Author: JadeStrong <https://github.com/jadestrong>
 ;; Maintainer: JadeStrong <jadestrong@163.com>
@@ -9,7 +10,6 @@
 ;; Version: 0.0.1
 ;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
 ;; Homepage: https://github.com/jadestrong/lsp-volar
-;; Package-Requires: ((emacs "25.1"))
 ;;
 ;; This file is not part of GNU Emacs.
 
@@ -45,7 +45,7 @@
 (defcustom lsp-volar-typescript-server-id 'ts-ls
   "The server id of the typescript language server to use."
   :group 'lsp-volar
-  :package-version '(lsp-mode . "9.0.1")
+  :package-version '(lsp-mode . "10.0.0")
   :type 'symbol)
 
 (defcustom lsp-volar-support-vue2 nil
@@ -54,8 +54,16 @@
 Volar is dropping Vue 2 and vue-class-component Support in v3.1.
 Reference: https://github.com/vuejs/language-tools/discussions/5455"
   :group 'lsp-volar
-  :package-version '(lsp-mode . "9.0.1")
+  :package-version '(lsp-mode . "10.0.0")
   :type 'boolean)
+
+(defcustom lsp-volar-location-for-typescript-plugin :auto
+  "Location of vue package used by typescript plugin.
+Specify a manual value if automatic detection does not work."
+  :group 'lsp-volar
+  :package-version '(lsp-mode . "10.0.0")
+  :type '(choice (const :tag "Automatic detection" :auto)
+                 (directory :tag "Manual value")))
 
 (defun lsp-volar--activate-p (filename &optional _)
   "Check if the volar-language-server should be enabled base on FILENAME."
@@ -67,16 +75,19 @@ Reference: https://github.com/vuejs/language-tools/discussions/5455"
                        :version (lambda () (when lsp-volar-support-vue2 "~3.0"))))
 
 ;; Set lsp-clients-typescript-plugins
-(condition-case nil
-  (when-let* ((vue-language-server-path (lsp-package-path 'volar-language-server)))
-    (let ((vue-plugin (list :name "@vue/typescript-plugin"
-                        :location (f-join vue-language-server-path "../.." "lib/node_modules/@vue/language-server/")
-                        :languages (vector "vue")
-                        :configNamespace "typescript"
-                        :enableForWorkspaceTypeScriptVersions t)))
-      (setq lsp-clients-typescript-plugins
-        (vconcat lsp-clients-typescript-plugins (vector vue-plugin)))))
-  (error nil))
+(when-let* ((package-path (ignore-errors (lsp-package-path 'volar-language-server)))
+            (location (if (eq lsp-volar-location-for-typescript-plugin :auto)
+                          (cl-find-if #'file-directory-p
+                                      `(,(f-join package-path "../.." "lib/node_modules/@vue/language-server/")
+                                        ,(f-join (file-chase-links package-path) "../../")))
+                        lsp-volar-location-for-typescript-plugin))
+            (vue-plugin (list :name "@vue/typescript-plugin"
+                              :location location
+                              :languages (vector "vue")
+                              :configNamespace "typescript"
+                              :enableForWorkspaceTypeScriptVersions t)))
+  (setq lsp-clients-typescript-plugins
+        (vconcat lsp-clients-typescript-plugins (vector vue-plugin))))
 
 (defun lsp-volar--send-notify (workspace method params)
   "Send notification to WORKSPACE with METHOD PARAMS."
