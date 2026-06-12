@@ -214,6 +214,10 @@
   ("M-h" next-complete-history-element)
   ("M-t" previous-complete-history-element))
 
+(def-keys-for-map minibuffer-mode-map
+  ("C-t" previous-history-element)
+  ("C-h" next-history-element))
+
 (def-keys-for-map (minibuffer-mode-map
                    ivy-minibuffer-map)
   ("C-'"  typopunct-insert-single-quotation-mark)
