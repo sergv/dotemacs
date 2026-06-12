@@ -415,7 +415,12 @@ _l_ens                             %`lsp-lens-mode
                :smerge        nil)
   (setq-local hs-allow-nesting t)
   (setup-indent-size 2)
-  (setup-hideshow-yafolding t nil))
+  (setup-hideshow-yafolding t nil)
+
+  (def-keys-for-map vim-normal-mode-local-keymap
+    (("C-h" "<down>") lsp-log-io-next)
+    (("C-t" "<up>")   lsp-log-io-prev)
+    ("C-SPC"          lsp--erase-log-buffer-above)))
 
 ;; Evaluate to enable log collection.
 ;; (setf lsp-log-io t)
