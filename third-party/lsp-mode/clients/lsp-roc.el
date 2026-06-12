@@ -1,6 +1,6 @@
 ;;; lsp-roc.el --- lsp-mode roc integration    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 lsp-mode maintainers
+;; Copyright (C) 2025-2026 lsp-mode maintainers
 
 ;; Keywords: languages
 
@@ -29,7 +29,7 @@
   "LSP support for Roc, using roc_language_server"
   :group 'lsp-mode
   :link '(url-link "https://github.com/roc-lang/roc/tree/main/crates/language_server")
-  :package-version `(lsp-mode . "9.0.1"))
+  :package-version `(lsp-mode . "10.0.0"))
 
 (lsp-register-client (make-lsp-client :new-connection (lsp-stdio-connection "roc_language_server")
                                       :activation-fn (lsp-activate-on "roc")

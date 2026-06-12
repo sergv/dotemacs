@@ -1,6 +1,7 @@
 ;;; lsp-sql.el --- SQL Client settings.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2024  Shen, Jen-Chieh
+;; Copyright (C) 2024-2026 lsp-mode maintainers
 
 ;; This file is not part of GNU Emacs.
 
@@ -30,7 +31,7 @@
   "LSP support for SQL, using sql-language-server."
   :group 'lsp-mode
   :link '(url-link "https://github.com/joe-re/sql-language-server")
-  :package-version `(lsp-mode . "9.0.1"))
+  :package-version `(lsp-mode . "10.0.0"))
 
 (defcustom lsp-sql-server-path nil
   "Path points for SQL language server.
