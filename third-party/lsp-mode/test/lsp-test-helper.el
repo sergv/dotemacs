@@ -48,5 +48,10 @@ both batch and interactive contexts."
     (while (< (float-time) deadline)
       (read-event nil nil 0.05))))
 
-(provide 'test-helper)
-;;; test-helper.el ends here
+(provide 'lsp-test-helper)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
+;;; lsp-test-helper.el ends here

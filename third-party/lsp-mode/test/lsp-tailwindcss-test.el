@@ -88,4 +88,10 @@
   (should-not (lsp-tailwindcss--version-v4-p "latest"))
   (should-not (lsp-tailwindcss--version-v4-p "next")))
 
+(provide 'lsp-tailwindcss-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-tailwindcss-test.el ends here

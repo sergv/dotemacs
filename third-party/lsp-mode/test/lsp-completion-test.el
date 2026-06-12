@@ -131,4 +131,10 @@
       (should (equal (do-test-trigger-kind t t) 2))) ;; and the session is the same: expect a new trigger-character completion
     ))
 
+(provide 'lsp-completion-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-completion-test.el ends here
