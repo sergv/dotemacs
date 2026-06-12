@@ -195,6 +195,8 @@ Intended to be used with comment-util-mode."
               java-mode
               kotlin-mode
               kotlin-ts-mode
+              scala-mode
+              scala-ts-mode
               groovy-mode
               js2-mode
               js-mode
