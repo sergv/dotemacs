@@ -237,4 +237,10 @@ without `Eager macro-expansion failure' errors."
                     (lsp-inline-completion-context? ctx)))
               (_ nil)))))
 
+(provide 'lsp-protocol-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-protocol-test.el ends here

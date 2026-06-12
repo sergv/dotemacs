@@ -1054,4 +1054,10 @@ line 3 words here and here
     [])  ; No code actions available
    (should-error (lsp-execute-code-action-by-kind-buffer-wide "source.fixAll"))))
 
+(provide 'lsp-mock-server-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-mock-server-test.el ends here
