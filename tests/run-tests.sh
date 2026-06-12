@@ -35,9 +35,12 @@ if [[ -z "$tests" ]]; then
     done
         # tests="$tests (require '$(basename "${x%%.el}"))"
 
+    # "lsp-mode/test"
     for y in "haskell-mode/tests" "nix-mode/tests" "f.el/test" "rainbow-delimiters" "poly-mode/tests"; do
         for x in "$EMACS_ROOT/third-party/$y"/*.el; do
-            tests="$tests (require '$(basename "${x%%.el}"))"
+            if [[ $(basename "$x") != "mock-lsp-server.el" ]]; then
+                tests="$tests (require '$(basename "${x%%.el}"))"
+            fi
             # tests="$tests -l $x"
         done
     done
@@ -75,6 +78,7 @@ requires=$(cat <<EOF
 EOF
 )
 
+      # -L "$EMACS_ROOT/third-party/lsp-mode/test" \
 "$emacs" -Q --batch \
       -L "$EMACS_ROOT/compiled" \
       "${load_elc[@]}" \
