@@ -89,6 +89,7 @@
     (require 'prev-buffer-tracking)
 
     (require 'messages-buffer-setup)
+    (require 'special-setup)
 
     (require 'haskell-syntax-table)
     (require 'nix-syntax-table)
