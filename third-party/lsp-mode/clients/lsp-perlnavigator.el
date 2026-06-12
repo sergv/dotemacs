@@ -1,6 +1,7 @@
 ;;; lsp-perlnavigator.el --- Integrates the Perl Navigator LSP Server with lsp-mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022  Matthew Feinberg
+;; Copyright (C) 2022-2026 emacs-lsp maintainers
 
 ;; Author: Matthew Feinberg <matthew.feinberg@gmail.com>
 ;; Keywords: lsp, perl
@@ -142,7 +143,7 @@ default to ~/.perlcriticrc. (no aliases, .bat files or ~/)."
   :type 'file)
 
 (defvar lsp-perlnavigator--os-suffix
-  (let ((x86_64 (eq (string-match "^x86_64" system-configuration) 0)))
+  (let ((x86_64 (eq (string-match-p "^x86_64" system-configuration) 0)))
     (cond ((and x86_64 (eq system-type 'windows-nt))
            "-win-x86_64")
 

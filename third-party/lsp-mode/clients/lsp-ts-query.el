@@ -1,6 +1,6 @@
 ;;; lsp-ts-query.el --- LSP client for tree-sitter query  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024  emacs-lsp maintainers
+;; Copyright (C) 2024-2026  emacs-lsp maintainers
 
 ;; This file is not part of GNU Emacs.
 
@@ -42,7 +42,7 @@ executable with variable `exec-path'."
   :type 'string)
 
 (defcustom lsp-ts-query-parser-install-directories
-  (cl-remove-if #'nil
+  (cl-remove-if #'null
                 (vector (expand-file-name (locate-user-emacs-file "tree-sitter"))
                         (and (featurep 'tree-sitter-langs)
                              (tree-sitter-langs--bin-dir))))

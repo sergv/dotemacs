@@ -55,6 +55,7 @@ nav:
     - AWK: page/lsp-awk.md
     - Bash: page/lsp-bash.md
     - Beancount: page/lsp-beancount.md
+    - Biome: page/lsp-biome.md
     - Buf/Protocol Buffers (Buf CLI): page/lsp-buf.md
     - Buf/Protocol Buffers (Buf Language Server): page/lsp-bufls.md
     - Camel: page/lsp-camel.md
@@ -67,6 +68,7 @@ nav:
     - Clojure: page/lsp-clojure.md
     - CMake: page/lsp-cmake.md
     - COBOL: page/lsp-cobol.md
+    - Crates: page/lsp-crates.md
     - Crystal: page/lsp-crystal.md
     - CSS/LessCSS/SASS/SCSS: page/lsp-css.md
     - Cucumber: page/lsp-cucumber.md
@@ -81,10 +83,13 @@ nav:
     - Emacs Lisp (Ellsp): https://github.com/elisp-lsp/ellsp
     - Emacs Lisp (Elsa): https://github.com/emacs-elsa/Elsa
     - Emmet: page/lsp-emmet.md
-    - Erlang: page/lsp-erlang.md
+    - Erlang (Erlang Language Server): page/lsp-erlang-ls.md
+    - Erlang (ELP): page/lsp-erlang-elp.md
     - ESLint: page/lsp-eslint.md
     - F#: page/lsp-fsharp.md
-    - Fortran: page/lsp-fortran.md
+    - Fish (fish-lsp): page/lsp-fish.md
+    - Fortran (fortls): page/lsp-fortran.md
+    - Fortran (fortitude): page/lsp-fortitude.md
     - Futhark: page/lsp-futhark.md
     - GDScript: page/lsp-gdscript.md
     - GitHub Copilot: page/lsp-copilot.md
@@ -108,6 +113,7 @@ nav:
     - Json: page/lsp-json.md
     - Jsonnet: page/lsp-jsonnet.md
     - Julia: page/lsp-julia.md
+    - Just: page/lsp-just.md
     - Kotlin: page/lsp-kotlin.md
     - LanguageTool (LTEX): page/lsp-ltex.md
     - LanguageTool (LTEX+): page/lsp-ltex-plus.md
@@ -151,12 +157,13 @@ nav:
     - Python (Pyright): https://emacs-lsp.github.io/lsp-pyright
     - Python (Microsoft): https://emacs-lsp.github.io/lsp-python-ms
     - Python (Ruff): page/lsp-ruff.md
-    - Python (ty): https://github.com/astral-sh/ty
+    - Python (ty): page/lsp-python-ty.md
     - QML: page/lsp-qml.md
     - R: page/lsp-r.md
     - Racket (jeapostrophe): page/lsp-racket-langserver.md
     - Racket (Theia): page/lsp-racket-language-server.md
     - Roc: page/lsp-roc.md
+    - RON: page/ron-lsp.md
     - RPM Spec: page/lsp-rpm-spec.md
     - Ruby (RuboCop): page/lsp-rubocop.md
     - Ruby (ruby-lsp): page/lsp-ruby-lsp.md
@@ -175,6 +182,7 @@ nav:
     - Standard ML (Millet): page/lsp-sml.md
     - Svelte: page/lsp-svelte.md
     - Swift: https://emacs-lsp.github.io/lsp-sourcekit
+    - Tailwind CSS: page/lsp-tailwindcss.md
     - Terraform (terraform-lsp): page/lsp-terraform.md
     - Terraform (terraform-ls): page/lsp-terraform-ls.md
     - TeX, LaTeX, etc (digestif): page/lsp-tex.md
@@ -187,6 +195,7 @@ nav:
     - Trunk: page/lsp-trunk.md
     - TTCN3: page/lsp-ttcn3.md
     - TypeSpec: page/lsp-typespec.md
+    - Typst: page/lsp-typst.md
     - V: page/lsp-v.md
     - Vala: page/lsp-vala.md
     - Verilog/SystemVerilog (hdl-checker): page/lsp-verilog.md
@@ -196,6 +205,7 @@ nav:
     - Vimscript: page/lsp-vimscript.md
     - Vue 2: page/lsp-vetur.md
     - Vue 3: page/lsp-volar.md
+    - WebAssembly: page/lsp-wasm-language-tools.md
     - wgsl: page/lsp-wgsl.md
     - XML: page/lsp-xml.md
     - YAML: page/lsp-yaml.md
@@ -215,7 +225,7 @@ nav:
       - 'React JavaScript Tutorial in Emacs': tutorials/reactjs-tutorial.md
       - 'Configuring Emacs as a Clojure IDE': tutorials/clojure-guide.md
       - 'Debugging Clojurescript': tutorials/debugging-clojure-script.md
-      - 'Python, debbuging with poetry + pyenv': https://emacs-lsp.github.io/dap-mode/page/python-poetry-pyenv/
+      - 'Python, debugging with poetry + pyenv': https://emacs-lsp.github.io/dap-mode/page/python-poetry-pyenv/
       - 'Configuring Emacs as a Crystal IDE': tutorials/crystal-guide.md
   - Blog:
       - 2020:
