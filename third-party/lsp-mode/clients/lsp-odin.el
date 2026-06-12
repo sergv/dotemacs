@@ -1,6 +1,7 @@
 ;;; lsp-odin.el --- Description -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2025 Sam Precious
+;; Copyright (C) 2025-2026 Sam Precious
+;; Copyright (C) 2025-2026 emacs-lsp maintainers
 ;;
 ;; Author: Sam Precious <samwdp@gmail.com>
 ;; Keywords: lsp, odin
@@ -71,7 +72,7 @@
             ('windows-nt
              "ols-x86_64-pc-windows-msvc.exe")
             ('darwin
-             (if (string-match "aarch64-.*" system-configuration)
+             (if (string-match-p "aarch64-.*" system-configuration)
                  "ols-arm64-darwin"
                "ols-x86_64-darwin"))
             (_

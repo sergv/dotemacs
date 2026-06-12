@@ -1,6 +1,6 @@
 ;;; mock-lsp-server.el --- Mock LSP server                       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024-2025 emacs-lsp maintainers
+;; Copyright (C) 2024-2026 emacs-lsp maintainers
 
 ;; Author: Arseniy Zaostrovnykh
 ;; Package-Requires: ((emacs "28.1"))
@@ -84,7 +84,7 @@
                                 :codeActionProvider t
                                 :declarationProvider t
                                 :definitionProvider t
-                                :inlayHintProvider t
+                                :inlayHintProvider (:resolveProvider t)
                                 :codeLensProvider (:resolveProvider ()))
   "Capabilities of the server.")
 
@@ -169,11 +169,11 @@ The response is not removed to cover for potential plural requests."
   "Read and handle one line of te input from the LSP client."
   (let ((line (read-string "")))
     (cond
-     ((string-match "method\":\"initialize\"" line)
+     ((string-match-p "method\":\"initialize\"" line)
       (princ (greeting (get-id line))))
-     ((string-match "method\":\"exit" line)
+     ((string-match-p "method\":\"exit" line)
       (kill-emacs 0))
-     ((string-match "method\":\"shutdown" line)
+     ((string-match-p "method\":\"shutdown" line)
       (princ (respond (get-id line) nil)))
      ((is-notification line)
       ;; No need to acknowledge a notification
@@ -184,12 +184,12 @@ The response is not removed to cover for potential plural requests."
       (princ (respond
               (get-id line)
               (get-response-for-request (get-method line)))))
-     ((or (string-match "Content-Length" line)
-          (string-match "Content-Type" line))
+     ((or (string-match-p "Content-Length" line)
+          (string-match-p "Content-Type" line))
       ;; Ignore header
       )
-     ((or (string-match "^\r$" line)
-          (string-match "^$" line))
+     ((or (string-match-p "^\r$" line)
+          (string-match-p "^$" line))
       ;; Ignore empty lines and header/content separators
       )
      (t (error "unexpected input '%s'" line)))))

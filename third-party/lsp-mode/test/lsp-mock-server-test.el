@@ -1,6 +1,6 @@
 ;;; lsp-mock-server-test.el --- Unit test utilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2024-2025 emacs-lsp maintainers
+;; Copyright (C) 2024-2026 emacs-lsp maintainers
 
 ;; Author: Arseniy Zaostrovnykh
 ;; Package-Requires: ((emacs "28.1"))
@@ -410,6 +410,36 @@ line 3 words here and here
                   (lsp-test-range-make (buffer-string)
                                        "line 1 unique word broming + common"
                                        "                   ^^^^^^^         "))))))
+
+(ert-deftest lsp-mock-server-clears-diags-after-workspace-edit ()
+  "Test ensuring diagnostics are cleared after workspace edits.
+
+Diagnostics should be cleared after workspace edits (like organize
+imports) to prevent stale diagnostics from appearing at wrong line
+numbers. This test verifies the fix for issue #3888."
+  (lsp-mock-run-with-mock-server
+   ;; There are no diagnostics at first
+   (should (eq (length (gethash lsp-test-sample-file (lsp-diagnostics t))) 0))
+
+   ;; Server found diagnostic
+   (lsp-test-command-send-diags lsp-test-sample-file (buffer-string) "broming")
+   (lsp-test-sync-wait (progn (should (lsp-workspaces))
+                              (gethash lsp-test-sample-file (lsp-diagnostics t))))
+   (should (eq (length (gethash lsp-test-sample-file (lsp-diagnostics t))) 1))
+
+   ;; Simulate workspace edit (like organize imports) by running the hook
+   (run-hook-with-args 'lsp-after-apply-edits-hook 'code-action)
+
+   ;; After the hook runs, diagnostics should be cleared
+   (should (null (gethash lsp-test-sample-file (lsp-diagnostics t))))
+
+   ;; Server sent new diagnostics
+   (lsp-test-command-send-diags lsp-test-sample-file (buffer-string) "broming")
+   (lsp-test-sync-wait (progn (should (lsp-workspaces))
+                              (gethash lsp-test-sample-file (lsp-diagnostics t))))
+
+   ;; Now the diagnostic is available again
+   (should (eq (length (gethash lsp-test-sample-file (lsp-diagnostics t))) 1))))
 
 (defun lsp-test-xref-loc-to-range (xref-loc)
   "Convert XREF-LOC to a range p-list.
@@ -845,6 +875,91 @@ line 3 words here and here
           (should (equal (line-number-at-pos) (1+ hint-line)))
           (should (equal (current-column) hint-col))))))))
 
+(ert-deftest lsp-mock-server-inlay-hint-stores-data ()
+  "Inlay hint overlays store the full hint data for later resolve/accept."
+  (let ((lsp-inlay-hint-enable t)
+        (hint-line 2)
+        (hint-col 10))
+    (lsp-mock-run-with-mock-server
+     (lsp-mock-with-temp-window
+      (current-buffer)
+      (lambda ()
+        (lsp-test-schedule-response
+         "textDocument/inlayHint"
+         (vconcat (list `(:kind 1
+                          :position (:line ,hint-line :character ,hint-col)
+                          :paddingLeft ()
+                          :label "my_type"
+                          :textEdits [(:range (:start (:line ,hint-line :character ,hint-col)
+                                               :end (:line ,hint-line :character ,hint-col))
+                                       :newText ": my_type")]))))
+        (run-hooks 'lsp-on-idle-hook)
+        (lsp-test-sync-wait (progn (should (lsp-workspaces))
+                                   (lsp-test-all-overlays 'lsp-inlay-hint)))
+        (let* ((hints (lsp-test-all-overlays 'lsp-inlay-hint))
+               (hint-overlay (car hints))
+               (hint-data (overlay-get hint-overlay 'lsp-inlay-hint-data)))
+          (should (eq (length hints) 1))
+          (should hint-data)
+          (should (lsp:inlay-hint-text-edits? hint-data))))))))
+
+(ert-deftest lsp-mock-server-inlay-hint-label-parts ()
+  "Inlay hints with label parts render per-part text properties."
+  (let ((lsp-inlay-hint-enable t)
+        (hint-line 2)
+        (hint-col 10))
+    (lsp-mock-run-with-mock-server
+     (lsp-mock-with-temp-window
+      (current-buffer)
+      (lambda ()
+        (lsp-test-schedule-response
+         "textDocument/inlayHint"
+         (vconcat (list `(:kind 1
+                          :position (:line ,hint-line :character ,hint-col)
+                          :paddingLeft ()
+                          :label [(:value "Vec" :tooltip "A vector type")
+                                  (:value "<" )
+                                  (:value "String")
+                                  (:value ">")]))))
+        (run-hooks 'lsp-on-idle-hook)
+        (lsp-test-sync-wait (progn (should (lsp-workspaces))
+                                   (lsp-test-all-overlays 'lsp-inlay-hint)))
+        (let* ((hints (lsp-test-all-overlays 'lsp-inlay-hint))
+               (hint-overlay (car hints))
+               (before-str (overlay-get hint-overlay 'before-string)))
+          (should (eq (length hints) 1))
+          ;; The before-string should contain the concatenated parts
+          (should (string-match-p "Vec" before-str))
+          (should (string-match-p "String" before-str))
+          ;; First part "Vec" should have help-echo from its tooltip
+          (should (get-text-property 0 'help-echo before-str))))))))
+
+(ert-deftest lsp-mock-server-inlay-hint-has-keymap ()
+  "Inlay hint overlays have a mouse keymap for click interaction."
+  (let ((lsp-inlay-hint-enable t)
+        (hint-line 2)
+        (hint-col 10))
+    (lsp-mock-run-with-mock-server
+     (lsp-mock-with-temp-window
+      (current-buffer)
+      (lambda ()
+        (lsp-test-schedule-response
+         "textDocument/inlayHint"
+         (vconcat (list `(:kind 2
+                          :position (:line ,hint-line :character ,hint-col)
+                          :paddingLeft ()
+                          :label "param"))))
+        (run-hooks 'lsp-on-idle-hook)
+        (lsp-test-sync-wait (progn (should (lsp-workspaces))
+                                   (lsp-test-all-overlays 'lsp-inlay-hint)))
+        (let* ((hints (lsp-test-all-overlays 'lsp-inlay-hint))
+               (hint-overlay (car hints))
+               (before-str (overlay-get hint-overlay 'before-string))
+               (keymap (get-text-property 0 'keymap before-str)))
+          (should (eq (length hints) 1))
+          (should keymap)
+          (should (keymapp keymap))))))))
+
 (ert-deftest lsp-mock-server-provides-code-lens ()
   "lsp-mode accepts code lenses from the server and displays them."
   (let ((line 2))
@@ -863,5 +978,80 @@ line 3 words here and here
                                (overlay-get (car lenses) 'after-string)))
        (goto-char (overlay-start (car lenses)))
        (should (equal (line-number-at-pos) (+ line 1)))))))
+
+(ert-deftest lsp-mock-server-fix-all-applies-buffer-wide ()
+  "Test ensuring that lsp-fix-all applies source.fixAll action buffer-wide."
+  (lsp-mock-run-with-mock-server
+   (lsp-test-schedule-response
+    "textDocument/codeAction"
+    (vconcat (list `(:title "Fix all issues"
+                     :kind "source.fixAll"
+                     :isPreferred t
+                     :edit
+                     (:changes
+                      ((,(concat "file://" lsp-test-sample-file)
+                        .
+                        ,(lsp-test-make-edits
+                          "Line 0 unique word fegam and common
+line 1 unique word broming + common
+line 2 unique word normalw common here
+line 3 words here and here
+"))))))))
+   (lsp-fix-all)
+   (should (equal (buffer-string)
+                  "Line 0 unique word fegam and common
+line 1 unique word broming + common
+line 2 unique word normalw common here
+line 3 words here and here
+"))))
+
+(ert-deftest lsp-mock-server-fix-all-no-action-available ()
+  "Test ensuring that lsp-fix-all handles missing source.fixAll gracefully."
+  (lsp-mock-run-with-mock-server
+   (lsp-test-schedule-response
+    "textDocument/codeAction"
+    [])  ; No code actions available
+   ;; Should not error when called non-interactively
+   (lsp-fix-all)
+   ;; Buffer should remain unchanged
+   (should (equal (buffer-string)
+                  "Line 0 unique word fegam and common
+line 1 unique word broming + common
+line 2 unique word normalw common here
+line 3 words here and here
+"))))
+
+(ert-deftest lsp-mock-server-execute-code-action-by-kind-buffer-wide ()
+  "Test ensuring that lsp-execute-code-action-by-kind-buffer-wide works correctly."
+  (lsp-mock-run-with-mock-server
+   (lsp-test-schedule-response
+    "textDocument/codeAction"
+    (vconcat (list `(:title "Organize imports"
+                     :kind "source.organizeImports"
+                     :edit
+                     (:changes
+                      ((,(concat "file://" lsp-test-sample-file)
+                        .
+                        ,(lsp-test-make-edits
+                          "#### 0 unique word fegam and common
+line 1 unique word broming + common
+line 2 unique word normalw common here
+line 3 words here and here
+"))))))))
+   (lsp-execute-code-action-by-kind-buffer-wide "source.organizeImports")
+   (should (equal (buffer-string)
+                  " 0 unique word fegam and common
+line 1 unique word broming + common
+line 2 unique word normalw common here
+line 3 words here and here
+"))))
+
+(ert-deftest lsp-mock-server-execute-code-action-by-kind-buffer-wide-no-match ()
+  "Test that lsp-execute-code-action-by-kind-buffer-wide signals error when no action."
+  (lsp-mock-run-with-mock-server
+   (lsp-test-schedule-response
+    "textDocument/codeAction"
+    [])  ; No code actions available
+   (should-error (lsp-execute-code-action-by-kind-buffer-wide "source.fixAll"))))
 
 ;;; lsp-mock-server-test.el ends here
