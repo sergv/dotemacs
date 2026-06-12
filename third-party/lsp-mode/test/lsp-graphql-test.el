@@ -43,4 +43,10 @@
   (should-not (lsp-graphql-activate-p "js.hs"))
   (should-not (lsp-graphql-activate-p "/path/to/graphql/test.go")))
 
+(provide 'lsp-graphql-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-graphql-test.el ends here
