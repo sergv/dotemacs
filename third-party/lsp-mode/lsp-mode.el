@@ -272,7 +272,7 @@ following `projectile'/`project.el' conventions."
                  (const auto-restart)
                  (const ignore)))
 
-(defcustom lsp-session-file (expand-file-name (locate-user-emacs-file ".lsp-session-v1"))
+(defcustom lsp-session-file nil
   "File where session information is stored."
   :group 'lsp-mode
   :type 'file)
@@ -9736,13 +9736,14 @@ The library folders are defined by each client for each of the active workspace.
 
 (defun lsp--persist-session (session)
   "Persist SESSION to `lsp-session-file'."
-  (if lsp-session-file
-      (lsp--persist lsp-session-file (make-lsp-session
-                                      :folders (lsp-session-folders session)
-                                      :folders-blocklist (lsp-session-folders-blocklist session)
-                                      :server-id->folders
-                                      (lsp-session-server-id->folders session)))
-    (message "lsp-session-file is nil, not persisting session.")))
+  ;; (if lsp-session-file
+  ;;     (lsp--persist lsp-session-file (make-lsp-session
+  ;;                                     :folders (lsp-session-folders session)
+  ;;                                     :folders-blocklist (lsp-session-folders-blocklist session)
+  ;;                                     :server-id->folders
+  ;;                                     (lsp-session-server-id->folders session)))
+  ;;   (message "lsp-session-file is nil, not persisting session."))
+  )
 
 (defun lsp--try-project-root-workspaces (ask-for-client ignore-multi-folder)
   "Try create opening file as a project file.
