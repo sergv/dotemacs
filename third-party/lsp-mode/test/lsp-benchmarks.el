@@ -76,4 +76,10 @@
                  lsp-benchmark-data))
     (garbage-collect)))
 
+(provide 'lsp-benchmarks)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-benchmarks.el ends here

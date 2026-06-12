@@ -201,4 +201,10 @@ The response is not removed to cover for potential plural requests."
   (run-command-from-file-if-any)
   (handle-lsp-client-input))
 
+(provide 'mock-lsp-server)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; mock-lsp-server.el ends here

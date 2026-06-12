@@ -493,4 +493,10 @@ lambda synchronously so decompression callbacks are observable within the test."
                               :store-path "/tmp/lsp-s" :decompress :targz))
       (should targz-called))))
 
+(provide 'lsp-mode-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; lsp-mode-test.el ends here
