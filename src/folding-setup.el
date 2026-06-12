@@ -252,7 +252,7 @@ function; and adjust-block-beginning function."
     (el-patch-swap
       (if (and (bound-and-true-p comment-start)
                (bound-and-true-p comment-end))
-          (let* ((lookup (assoc major-mode hs-special-modes-alist))
+          (let* ((lookup ((el-patch-swap assoc assq) major-mode hs-special-modes-alist))
                  (start-elem (or (nth 1 lookup) "\\s(")))
             (if (listp start-elem)
                 ;; handle (START-REGEXP MDATA-SELECT)
