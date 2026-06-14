@@ -43,6 +43,21 @@ _r_ename
   (when-let (buf-file (buffer-file-name))
     (lsp-isar-progress--get buf-file)))
 
+(defun isabelle-wrap-dquotes ()
+  "Wrap region in \"...\"."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\" ?\" nil))
+
+(defun isabelle-wrap-cartouche ()
+  "Wrap region in \"...\"."
+  (interactive)
+  (with-region-bounds-unadj start end
+    (save-excursion
+      (goto-char end)
+      (insert "\\<close>")
+      (goto-char start)
+      (insert "\\<open>"))))
+
 ;;;###autoload
 (defun isar-setup ()
   (unless (memq buffer-file-coding-system '(utf-8 utf-8-unix utf-8-dos))
@@ -71,6 +86,10 @@ _r_ename
   (def-keys-for-map vim-normal-mode-local-keymap
     ("\\"  flycheck-force-run)
     ("-"   hydra-isabelle-lsp/body))
+
+  (def-keys-for-map vim-visual-mode-local-keymap
+    ("\"" isabelle-wrap-dquotes)
+    ("C-\"" isabelle-wrap-cartouche))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
