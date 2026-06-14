@@ -957,7 +957,7 @@ one.  This a performance critical function."
 
 (defun lsp-isar-decorations-update-and-reprint (_workspace params)
   "Reprint all decorations as given by Isabelle in PARAMS."
-  (declare (cl-optimize (speed 3) (safety 3)))
+  (declare (cl-optimize (speed 3) (safety 0)))
   (lsp-isar-decorations-update-cached-decorations-overlays params))
 
 
@@ -971,7 +971,7 @@ one.  This a performance critical function."
              (> lsp-isar-decorations-full-clean-after-inactivity 0))
     (setq lsp-isar-decorations--cleaner-timer
 	  (run-with-idle-timer lsp-isar-decorations-full-clean-after-inactivity t
-			       'lsp-isar-decorations-kill-all-unused-overlays))))
+                               #'lsp-isar-decorations-kill-all-unused-overlays))))
 
 (defun lsp-isar-decorations--print-delayed-buffer-decorations (file params)
   "Prints the decorations from buffer FILE that were not printed so far."
@@ -985,12 +985,12 @@ one.  This a performance critical function."
 
 (defun lsp-isar-decorations--print-delayed-buffers-decorations ()
   "Prints the decorations that were not printed so far."
-  (maphash 'lsp-isar-decorations--print-delayed-buffer-decorations lsp-isar-decorations--delayed-overlays))
+  (maphash #'lsp-isar-decorations--print-delayed-buffer-decorations lsp-isar-decorations--delayed-overlays))
 
 (defun lsp-isar-decorations-activate-delayed-printing ()
   "Activate delayed printing."
   (when lsp-isar-decorations-delayed-printing
-    (add-to-list 'window-configuration-change-hook #'lsp-isar-decorations--print-delayed-buffers-decorations)))
+    (add-hook 'window-configuration-change-hook #'lsp-isar-decorations--print-delayed-buffers-decorations)))
 
 (provide 'lsp-isar-decorations)
 
