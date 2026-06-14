@@ -312,6 +312,11 @@ This macro is similar to `vim:do-motion'."
   (interactive)
   (paredit-setup--wrap-or-insert ?\" ?\" t))
 
+(defun vim-wrap-dquotes ()
+  "Wrap region in \"...\"."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\" ?\" t))
+
 (defun vim-wrap-typographical-single-quotes ()
   "Wrap region in ‘...’."
   (interactive)
