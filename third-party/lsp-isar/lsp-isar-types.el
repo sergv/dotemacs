@@ -58,7 +58,9 @@ the end of the overlay."
  (lsp-isar:Decorations (:uri :entries) nil))
 
 (lsp-interface
- (lsp-isar:DynamicOutput (:content) nil))
+ (lsp-isar:DynamicOutput (:content :decorations) nil)
+ (lsp-isar:DecorationEntry (:type :content) nil)
+ (lsp-isar:Decoration (:uri :entries) nil))
 
 (lsp-interface
  (lsp-isar:Progress (:nodes-status) nil)
