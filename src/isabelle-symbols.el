@@ -119,6 +119,8 @@
        ("in"       . "elem")
        ("notin"    . "notElem")
        ("subseteq" . "isSubsetOf")
+       ("union"    . ?⋃)
+       ("inter"    . ?⋂)
 
        ;; These two should be taller than n-ary conjunction character (?⋀)
        ("And"      . "&&")
