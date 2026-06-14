@@ -61,7 +61,8 @@ _r_ename
 ;;;###autoload
 (defun isar-setup ()
   (unless (memq buffer-file-coding-system '(utf-8 utf-8-unix utf-8-dos))
-    (set-buffer-file-coding-system 'utf-8))
+    (with-silent-modifications
+      (set-buffer-file-coding-system 'utf-8)))
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula t
