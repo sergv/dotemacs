@@ -47,13 +47,13 @@
                          t)
                 (progn
                   (goto-char (match-end 0))
-                  (if (or (and (not (eq (char-before) ?\n))
+                  (if (or (and (not (eq (preceding-char) ?\n))
                                (comment-util--on-commented-line? fmt))
                           ;; (and enable-alex-heuristinc?
                           ;;      (save-excursion
                           ;;        (goto-char (match-beginning 0))
                           ;;        (skip-whitespace-backward)
-                          ;;        (eq (char-before) ?>)))
+                          ;;        (eq (preceding-cha) ?>)))
                           )
                       (goto-char (if search-forward?
                                      (line-end-position)
@@ -80,9 +80,9 @@
 
 (defun poly-alex-happy-find-tail (_direction)
   (skip-chars-backward " \t\r\n%")
-  (when-let ((prev (char-before)))
+  (when-let ((prev (preceding-char)))
     (when (and (eq prev ?\{)
-               (not (eq (char-after) ?-)))
+               (not (eq (following-char) ?-)))
       (forward-char -1)
       (with-syntax-table haskell-blocks-default-syntax-table
         (let ((parse-sexp-lookup-properties nil))

@@ -740,7 +740,8 @@ for more information."
         (cond ((< column nasm-basic-offset)
                (delete-char 1)
                (insert-char ?\t))
-              ((and (= column nasm-basic-offset) (eql ?: (char-before)))
+              ((and (eq column nasm-basic-offset)
+                    (eq ?: (preceding-char)))
                (delete-char 1))))
     (nasm-indent-line)))
 

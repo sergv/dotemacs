@@ -7081,7 +7081,7 @@ of a simple name.  Called before EXPR has a parent node."
   (if (match-beginning 2)
       (if (save-excursion
             (goto-char (match-beginning 2))
-            (= (char-after) ?{))
+            (eq (following-char) ?{))
           (js2-set-face (1+ (match-beginning 2))
                         (1- (match-end 2))
                         'js2-jsdoc-type)
@@ -12295,7 +12295,7 @@ PARSE-STATUS is as documented in `parse-partial-sexp'."
                 (eolp)
                 (save-excursion
                   (skip-chars-forward " \t\r\n")
-                  (not (eq (char-after) ?*))))))
+                  (not (eq (following-char) ?*))))))
     (delete-horizontal-space)
     (insert "\n")
     (cond
@@ -12323,7 +12323,7 @@ Also moves past comment delimiters when inside comments."
       (back-to-indentation))
      ((looking-at "//")
       (skip-chars-forward "/ \t"))
-     ((and (eq (char-after) ?*)
+     ((and (eq (following-char) ?*)
            (setq node (js2-comment-at-point))
            (memq (js2-comment-node-format node) '(jsdoc block))
            (save-excursion
