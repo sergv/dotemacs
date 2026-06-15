@@ -154,7 +154,7 @@ of continued expressions.")
             ((nth 7 parse)
              (forward-line))
             ((or (nth 4 parse)
-                 (and (eq (char-before) ?\/) (eq (char-after) ?\*)))
+                 (and (eq (preceding-char) ?\/) (eq (following-char) ?\*)))
              (re-search-forward "\\*/"))
             (t
              (setq count (1- count))))
@@ -191,7 +191,7 @@ and comments have been removed."
             ((nth 7 parse)
              (goto-char (nth 8 parse)))
             ((or (nth 4 parse)
-                 (and (eq (char-before) ?/) (eq (char-after) ?*)))
+                 (and (eq (preceding-char) ?/) (eq (following-char) ?*)))
              (re-search-backward "/\\*"))
             (t
              (setq count (1- count))))))
@@ -218,16 +218,16 @@ and comments have been removed."
   "Return non-nil if text after point is a non-comma operator."
   (defvar js2-mode-identifier-re)
   (and (looking-at js2-indent-operator-re)
-       (or (not (eq (char-after) ?:))
+       (or (not (eq (following-char) ?:))
            (save-excursion
              (and (js2-re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
-                  (eq (char-after) ??))))
+                  (eq (following-char) ??))))
        (not (and
-             (eq (char-after) ?/)
+             (eq (following-char) ?/)
              (save-excursion
                (eq (nth 3 (syntax-ppss)) ?/))))
        (not (and
-             (eq (char-after) ?*)
+             (eq (following-char) ?*)
              ;; Generator method (possibly using computed property).
              (looking-at (concat "\\* *\\(?:\\[\\|"
                                  js2-mode-identifier-re
@@ -243,7 +243,7 @@ and comments have been removed."
   (save-excursion
     (back-to-indentation)
     (if (js2-looking-at-operator-p)
-        (or (not (memq (char-after) '(?- ?+)))
+        (or (not (memq (following-char) '(?- ?+)))
             (progn
               (forward-comment (- (point)))
               (not (memq (char-before) '(?, ?\[ ?\()))))
@@ -346,7 +346,7 @@ In particular, return the buffer position of the first `for' kwd."
               (let (forward-sexp-function) ; use Lisp version
                 (forward-sexp)             ; skip destructuring form
                 (js2-forward-sws)
-                (if (and (/= (char-after) ?,) ; regular array
+                (if (and (/= (following-char) ?,) ; regular array
                          (looking-at "for"))
                     (match-beginning 0)))
             ;; to skip arbitrary expressions we need the parser,
@@ -582,7 +582,7 @@ Currently, JSX indentation supports the following styles:
          (while (and (not tag-start-pos)
                      (setq last-pos (js2--jsx-find-before-tag)))
            (while (forward-comment 1))
-           (when (= (char-after) 60) ; <
+           (when (eq (following-char) 60) ; <
              (setq before-tag-pos last-pos
                    tag-start-pos (point)))
            (goto-char last-pos))
@@ -632,7 +632,7 @@ Currently, JSX indentation supports the following styles:
            (cond
             ((and (>= paren tag-start-pos)
                   ;; Curly bracket indicates the start of an embedded expression
-                  (= (char-after paren) 123) ; {
+                  (eq (char-after paren) ?\{)
                   ;; The first line of the expression is indented like sgml
                   (> current-line (line-number-at-pos paren))
                   ;; Check if within a closing curly bracket (if any)

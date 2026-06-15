@@ -185,7 +185,7 @@ KEYWORDS a list of strings to match as Nix keywords."
                                                    nil limit)))
         (when (and pos (not (> pos limit)))
           (goto-char pos)
-          (let ((char (char-after pos)))
+          (let ((char (following-char)))
             (pcase char
               (`?{
                (forward-char 1)
@@ -546,10 +546,10 @@ STRING-TYPE type of string based off of Emacs syntax table types"
 (defun nix-smie--skip-angle-path-forward ()
   "Skip forward a path enclosed in angle brackets, e.g <nixpkgs>."
   (let ((start (point)))
-    (when (eq (char-after) ?<)
+    (when (eq (following-char) ?<)
       (forward-char)
       (if (and (nix-smie--skip-path 'forward t)
-               (eq (char-after) ?>))
+               (eq (following-char) ?>))
           (progn
             (forward-char)
             (buffer-substring-no-properties start (point)))
@@ -558,10 +558,10 @@ STRING-TYPE type of string based off of Emacs syntax table types"
 (defun nix-smie--skip-angle-path-backward ()
   "Skip backward a path enclosed in angle brackets, e.g <nixpkgs>."
   (let ((start (point)))
-    (when (eq (char-before) ?>)
+    (when (eq (preceding-char) ?>)
       (backward-char)
       (if (and (nix-smie--skip-path 'backward t)
-               (eq (char-before) ?<))
+               (eq (preceding-char) ?<))
           (progn
             (backward-char)
             (buffer-substring-no-properties start (point)))
@@ -670,7 +670,7 @@ STRING-TYPE type of string based off of Emacs syntax table types"
             ;; If the opening paren is not the last token on its line,
             ;; and it's either '[' or '{', align to the opening paren's
             ;; position. Otherwise, align its line's anchor.
-            (if (and (memq (char-after) '(?\[ ?{))
+            (if (and (memq (following-char) '(?\[ ?{))
                      (not (save-excursion (forward-char) (nix-smie--eol-p))))
                 (current-column-fixed)
               (nix-smie--anchor)))

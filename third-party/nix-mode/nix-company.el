@@ -31,11 +31,10 @@ ARG company argument"
 
 (defun nix-grab-attr-path ()
   "Get Nix attribute path at point."
-  (if (looking-at "[^a-zA-Z0-9'\\-_\\.]")
+  (if (looking-at-p "[^a-zA-Z0-9'\\-_\\.]")
       (buffer-substring (point) (save-excursion (skip-chars-backward "a-zA-Z0-9'\\-_\\.")
                                                 (point)))
-    (and (char-after)
-         (string-match "[a-zA-Z0-9'\\-_]" (char-to-string (char-after)))
+    (and (string-match-p "[a-zA-Z0-9'\\-_]" (char-to-string (following-char)))
          "")))
 
 (defun nix--get-company-buffer (&optional buffer)
