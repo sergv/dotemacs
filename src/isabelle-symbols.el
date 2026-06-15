@@ -38,10 +38,10 @@
                (syntaxes-end (if (memq (char-syntax end-char) '(?w ?_))
                                  '(?w ?_)
                                '(?. ?\\)))
-               (following-char (or (char-after end) ?\s)))
+               (next-char (or (char-after end) ?\s)))
           (and (not (memq (char-syntax (or (char-before start) ?\s)) syntaxes-beg))
-               (or (eq following-char ?,)
-                   (not (memq (char-syntax following-char) syntaxes-end)))
+               (or (eq next-char ?,)
+                   (not (memq (char-syntax next-char) syntaxes-end)))
                ;; Enable ligatures in both strings and comments for now - keep the below commented.
                ;; (let ((syn (syntax-ppss)))
                ;;   (if (nth 8 syn) ;; If in string or comment...

@@ -629,8 +629,8 @@ be used only for vim-visual-mode of the vim-mode package."
         (cl-incf lines -1)
         (while (< 0 lines)
           ;; Is on empty line?
-          (if (and (eq (char-before) ?\n)
-                   (eq (char-after) ?\n))
+          (if (and (eq (preceding-char) ?\n)
+                   (eq (following-char) ?\n))
               (progn
                 (indent-to col)
                 (insert comment-str))

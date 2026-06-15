@@ -163,16 +163,16 @@ call (MERGE old-val VALUE) to produce a new value."
         (res def))
     (while (and tr
                 continue)
-      (if-let ((c (char-before)))
-          (progn
-            (setf tr (trie-lookup-node-char c tr))
-            (forward-char -1)
-            (let ((val (trie-node--value tr)))
-              (unless (eq val trie--unbound)
-                (setf continue nil
-                      res val))))
-        ;; End of buffer
-        (setf continue nil)))
+      (if (bobp)
+          ;; Start of buffer
+          (setf continue nil)
+        (let ((c (preceding-char)))
+          (setf tr (trie-lookup-node-char c tr))
+          (forward-char -1)
+          (let ((val (trie-node--value tr)))
+            (unless (eq val trie--unbound)
+              (setf continue nil
+                    res val))))))
     res))
 
 (defun trie-matches-string-suffix? (tr str &optional def)

@@ -88,7 +88,7 @@
             xmltok-attributes
             xmltok-namespace-attributes)
 
-        (when (eq (char-after) ?<) (forward-char))
+        (when (eq (following-char) ?<) (forward-char))
         (nxml-up-element 1)
         (setq end2 (point))
 

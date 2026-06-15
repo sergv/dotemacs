@@ -834,15 +834,15 @@ Error is given as MSG and reported between POS and END."
                   (let ((sexp-end
                          (save-excursion
                            (skip-chars-forward "\r\n\t ")
-                           (when (eq (char-after) ?\() ; skip the import list if any
+                           (when (eq (following-char) 40) ; skip the import list if any
                              (forward-sexp)
                              (skip-chars-forward "\t ")
                              (point)))))
                     (when sexp-end
                       (goto-char sexp-end)))
-                  (when (eq (char-after) ?\r)
+                  (when (eq (following-char) ?\r)
                     (forward-char 1))
-                  (when (eq (char-after) ?\n)
+                  (when (eq (following-char) ?\n)
                     (forward-char 1))
                   (point))))))
          (when (string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
@@ -873,7 +873,7 @@ Error is given as MSG and reported between POS and END."
                     (save-excursion
                       (goto-char end)
                       (skip-chars-backward "#")
-                      (haskell-smart-operators--is-valid-to-preceed-magic-hash? (char-before))))
+                      (haskell-smart-operators--is-valid-to-preceed-magic-hash? (preceding-char))))
            (list (attrap-insert-language-pragma "MagicHash"
                    (haskell-ext-tracking-enable-magic-hash!))))
          (when (and (string-match-p (rx (ghc-error "72516")
@@ -882,7 +882,7 @@ Error is given as MSG and reported between POS and END."
                                     normalized-msg)
                     (save-excursion
                       (goto-char end)
-                      (and (eq (char-before) ?#)
+                      (and (eq (preceding-char) ?#)
                            (is-open-paren? (char-before (- (point) 1)))
                            (extended-whitespace-char? (char-before (- (point) 2))))))
            (list (attrap-insert-language-pragma "UnboxedTuples"
@@ -1152,7 +1152,7 @@ Error is given as MSG and reported between POS and END."
                    normalized-msg)
               (attrap-one-option "remove bang"
                 (goto-char pos)
-                (let ((c (char-before)))
+                (let ((c (preceding-char)))
                   (if (eq c ?!)
                       (delete-char -1)
                     (error "Previous character is not ‘!’: ‘%c’" c)))))
@@ -1585,7 +1585,7 @@ then all non-authoritative results from that collection should be ignored."
            (skip-whitespace-forward))
           ((looking-at-p "[ \t]*{-[ \t]*\\(?:cabal\\|project\\)[ \t]*:")
            (goto-char (pseudovim-motion-jump-item-to-pos (point) nil))
-           (when (eq (char-after) ?\})
+           (when (eq (following-char) ?\})
              (forward-char))
            (skip-whitespace-forward))
           ((and (not (eobp))

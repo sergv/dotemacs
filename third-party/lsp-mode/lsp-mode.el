@@ -4490,7 +4490,7 @@ Set per-buffer based on the negotiated position encoding.")
         (goal column))
     (goto-char bol)
     (while (and (> goal 0) (< (point) eol))
-      (when (<= #x10000 (char-after) #x10ffff)
+      (when (<= #x10000 (following-char) #x10ffff)
         (setq goal (1- goal)))           ; supplementary char = 2 UTF-16 units
       (forward-char 1)
       (setq goal (1- goal)))

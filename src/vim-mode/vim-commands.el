@@ -238,7 +238,7 @@ and switches to insert-mode."
      ;; deal with cw and cW
      (when (and (not (null vim--current-motion))
                 (not (eobp))
-                (not (member (char-after) '(?\s ?\r ?\n ?\t))))
+                (not (member (following-char) '(?\s ?\r ?\n ?\t))))
        (let ((cnt (* (or vim--current-cmd-count 1)
                      (or vim--current-motion-count 1))))
          (pcase vim--current-motion
@@ -539,7 +539,7 @@ and switches to insert-mode."
          (vim:motion-first-non-blank:wrapper)))
 
       (`vim--yank-block-handler
-       (let ((next (char-after)))
+       (let ((next (following-char)))
          (unless (or (eq next ?\n)
                      (eq next ?\r))
            (forward-char)))
@@ -548,7 +548,7 @@ and switches to insert-mode."
       (_
        (when (and adjust?
                   (not (eobp))
-                  (let ((next (char-after)))
+                  (let ((next (following-char)))
                     (not (or (eq next ?\n)
                              (eq next ?\r)))))
          (forward-char))
@@ -827,7 +827,7 @@ block motions."
     (setf start (point))
     (save-excursion
       (skip-chars-backward vim:cmd-inc-dec-at-point--signs)
-      (when (not (vim:cmd-inc-dec-at-point--is-number-char? (char-before)))
+      (when (not (vim:cmd-inc-dec-at-point--is-number-char? (preceding-char)))
         (setf start (point))))
     (goto-char mid)
     (when (eq mid start)

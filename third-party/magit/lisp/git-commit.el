@@ -701,8 +701,8 @@ comment and anything below the cut line (\"--- >8 ---\")."
     (flyspell-region (point-min) end)))
 
 (defun git-commit-flyspell-verify ()
-  (not (= (char-after (line-beginning-position))
-          (aref comment-start 0))))
+  (not (eq (char-after (line-beginning-position))
+           (aref comment-start 0))))
 
 (defun git-commit-finish-query-functions (force)
   (run-hook-with-args-until-failure
@@ -826,7 +826,7 @@ Save current message first."
       (goto-char (point-min))
       (flush-lines flush)
       (goto-char (point-max))
-      (unless (eq (char-before) ?\n)
+      (unless (eq (preceding-char) ?\n)
         (insert ?\n))
       (setq str (buffer-string)))
     (and (not (string-match "\\`[ \t\n\r]*\\'" str))
@@ -972,7 +972,7 @@ completion candidates.  The input must have the form \"NAME <EMAIL>\"."
        ((re-search-backward (git-commit--trailer-regexp) nil t)
         (end-of-line)
         (insert ?\n string)
-        (unless (= (char-after) ?\n)
+        (unless (eq (following-char) ?\n)
           (insert ?\n)))
        ;; Or place the new trailer right before the first non-leading
        ;; comments.
@@ -982,7 +982,7 @@ completion candidates.  The input must have the form \"NAME <EMAIL>\"."
         (unless (looking-back "\n\n" nil)
           (insert ?\n))
         (insert string ?\n))))
-    (unless (or (eobp) (= (char-after) ?\n))
+    (unless (or (eobp) (eq (following-char) ?\n))
       (insert ?\n))))
 
 ;;; Font-Lock
@@ -1134,8 +1134,8 @@ Added to `font-lock-extend-region-functions'."
                (fboundp 'markdown-fill-paragraph))
       (setq-local fill-paragraph-function
                   (lambda (&optional justify)
-                    (and (not (= (char-after (line-beginning-position))
-                                 (aref comment-start 0)))
+                    (and (not (eq (char-after (line-beginning-position))
+                                  (aref comment-start 0)))
                          (markdown-fill-paragraph justify)))))
     (setq-local git-commit--branch-name-regexp
                 ;; When using cygwin git, we may end up in a

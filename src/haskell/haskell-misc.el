@@ -493,12 +493,12 @@ extensions as a list of strings. Leaves point at the end of pragma"
                 (skip-chars-backward word-chars)
               ;; Not followed by a word so if also not preceded by a word then try
               ;; to detect operator.
-              (when (or (string-contains? (char-after)
+              (when (or (string-contains? (following-char)
                                           haskell-smart-operators--operator-chars-str)
                         (zerop (skip-chars-backward word-chars)))
                 (skip-chars-backward haskell-smart-operators--operator-chars-str)
                 ;; To get qualified part
-                (when (= (char-after) ?.)
+                (when (eq (following-char) ?.)
                   (skip-chars-backward word-chars))))
             (unless include-quotes?
               (skip-chars-forward "'"))
@@ -608,8 +608,7 @@ a single entity."
                    ;;  "[^ ]" (line-end-position) t 1)
                    (skip-to-indentation)
                    (point))))
-       (when (or (eobp)
-                 (not (eq ?\s (char-after))))
+       (when (not (eq ?\s (following-char)))
          (- end start))))))
 
 (defun haskell--simple-indent-newline-indent ()
@@ -637,7 +636,7 @@ a single entity."
                    "\\case")))))
       nil)
      ;; Now point is before the construct that trie just matched backtwards.
-     (let ((before (char-before)))
+     (let ((before (preceding-char)))
        (or (eq before ?\s)
            (eq before ?\n)
            (eq before ?\t))))))
@@ -828,7 +827,7 @@ a single entity."
              (let ((prev-char-is-equals?
                     (save-excursion
                       (skip-syntax-backward " ")
-                      (eq (char-before) ?=))))
+                      (eq (preceding-char) ?=))))
                (haskell--simple-indent-newline-same-col)
                (insert-char ?\s
                             (+ 4
@@ -841,7 +840,7 @@ a single entity."
                         (<= (skip-chars-backward " \t") -1)))
                  (when is-ts-mode?
                    (when-let* ((node (treesit-node-at
-                                      (advance-pos-over-whitespace (point))))
+                                      (advance-pos-over-space-characters (point))))
                                (parent (treesit-node-parent node)))
                      (or (string= "::" (treesit-node-type node))
                          (let* ((argument-parethesized? (member (treesit-node-type node) '("(" "[" "{")))
@@ -863,8 +862,7 @@ a single entity."
              (delete-spaces-forward)
              (haskell--simple-indent-newline-indent)
              (when (and is-ts-mode?
-                        (when-let* ((after (char-after)))
-                          (not (whitespace-char? after))))
+                        (not (whitespace-char? (following-char))))
                (haskell-ts-indent-line)))
             (t
              (haskell--simple-indent-newline-same-col))))))))
@@ -877,9 +875,7 @@ a single entity."
            (beginning-of-line)
            ;; skip whitespace
            (skip-syntax-forward "-")
-           (let ((c (char-after)))
-             (and c
-                  (char= c ?:))))))
+           (eq (following-char) ?:))))
     (if entering-command?
         (self-insert-command prefix)
       (haskell-smart-operators-hyphen))))
@@ -1133,13 +1129,12 @@ value section should have if it is to be properly indented."
   (haskell-indentation-goto-zero-column)
 
   ;; (beginning-of-line)
-  ;; (let ((c (char-after)))
+  ;; (let ((c (following-char)))
   ;;   (while (and (not (bobp))
-  ;;               (or (and c
-  ;;                        (whitespace-char? c))
+  ;;               (or (whitespace-char? c)
   ;;                   (haskell-on-blank-line?)))
   ;;     (forward-line -1)
-  ;;     (setf c (char-after))))
+  ;;     (setf c (following-char))))
   )
 
 (defun haskell-on-blank-line? ()
@@ -1147,7 +1142,7 @@ value section should have if it is to be properly indented."
   (cl-assert (= 0 (current-column-fixed-uncached)))
   (or
    ;; Skip preprocessor lines
-   (eq (char-after) ?#)
+   (eq (following-char) ?#)
    (indent-on-blank-line?)))
 
 (defun haskell-on-blank-line-from-any-column? ()
@@ -1264,9 +1259,9 @@ value section should have if it is to be properly indented."
                 (if-let* ((paren-end (match-end 1)))
                     (let ((start (1- paren-end)))
                       (goto-char start)
-                      (cl-assert (is-open-paren? (char-after)))
+                      (cl-assert (is-open-paren? (following-char)))
                       (forward-sexp)
-                      (cl-assert (is-close-paren? (char-after (1- (point)))))
+                      (cl-assert (is-close-paren? (preceding-char)))
                       (let* ((end (point))
                              (parsed (haskell-sort-imports--parse-import-list-in-buffer start end)))
                         (pcase (haskell-import-list-entries parsed)

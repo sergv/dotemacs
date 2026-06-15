@@ -74,8 +74,8 @@
 character found"
   (interactive "*")
   (let ((start (point)))
-    (while (and (not (eobp))
-                (space-char? (char-after))
+    (while (and (space-char? (following-char))
+                (not (eobp))
                 (not (get-char-property (1+ (point)) 'read-only)))
       (forward-char 1))
     (delete-region start (point))))
@@ -85,8 +85,8 @@ character found"
 character found"
   (interactive "*")
   (let ((start (point)))
-    (while (and (not (eobp))
-                (whitespace-char? (char-after))
+    (while (and (whitespace-char? (following-char))
+                (not (eobp))
                 (not (get-char-property (1+ (point)) 'read-only)))
       (forward-char 1))
     (delete-region start (point))))
@@ -98,7 +98,7 @@ character found. Returns t if any whitespace was actually deleted."
   (let ((any-deleted? nil)
         (start (point)))
     (while (and (not (bobp))
-                (whitespace-char? (char-before))
+                (whitespace-char? (preceding-char))
                 (not (get-char-property (1- (point)) 'read-only)))
       (forward-char -1)
       (setf any-deleted? t))
@@ -112,12 +112,21 @@ character found. Returns t if any whitespace was actually deleted."
 (defun skip-whitespace-backward ()
   (skip-chars-backward " \t\v\f\r\n"))
 
-(defun advance-pos-over-whitespace (pos)
+(defun advance-pos-over-space-characters (pos)
   "Keep incrementing POS while it points to whitespace in current buffer
 and return new value."
   (let ((end (point-max)))
     (while (and (< pos end)
                 (space-char? (char-after pos)))
+      (setf pos (+ pos 1)))
+    pos))
+
+(defun advance-pos-over-whitespacespace-characters (pos)
+  "Keep incrementing POS while it points to whitespace in current buffer
+and return new value."
+  (let ((end (point-max)))
+    (while (and (< pos end)
+                (whitespace-char? (char-after pos)))
       (setf pos (+ pos 1)))
     pos))
 

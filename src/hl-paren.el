@@ -70,7 +70,7 @@ is currently done. The state will be created when there’s highlighting to show
 (defun hl-paren-highlight-matching-paren-at-point ()
   "Highlight paren that is matching for symbol at point.
 Turn off highlighting if character at point is not parentheses."
-  (if (memq (char-after) hl-paren-parentheses)
+  (if (memq (following-char) hl-paren-parentheses)
       (if-let ((matching-pos (pseudovim-motion-jump-item-to-pos (point) 10000)))
           (if hl-paren-state
               (progn

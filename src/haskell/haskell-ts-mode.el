@@ -305,12 +305,7 @@
   (haskell-ts-mode--fontify-first-char ?~ node))
 
 (defun haskell-ts-mode--fontify-first-char (char node)
-  (let* ((p (treesit-node-start node))
-         (c (char-after p)))
-    (while (and c
-                (whitespace-char? c))
-      (setf p (+ p 1)
-            c (char-after p)))
+  (let ((p (advance-pos-over-whitespacespace-characters (treesit-node-start node))))
     (when (eq (char-after p) char)
       (put-text-property p (1+ p) 'face 'haskell-ts-strictness-face))))
 
