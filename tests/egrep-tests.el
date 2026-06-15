@@ -47,12 +47,12 @@
 
 (defconst egrep-tests--bar-matches
   (vector
-   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     5 6 "  int " "hello" " = x + y;" 52)
-   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 9 "  return " "hello" ";" 76)))
+   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     5 6 "  int " "hello" " = x + y;" 51)
+   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 9 "  return " "hello" ";" 75)))
 
 (defconst egrep-tests--foo-matches
   (vector
-   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 5 "void " "hello" "(char const * name)" 26)))
+   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 5 "void " "hello" "(char const * name)" 25)))
 
 (grep-tests--define-tests "egrep-tests-1/%s"
     regexp
