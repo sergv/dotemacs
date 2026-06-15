@@ -335,7 +335,7 @@ post-self-insert-hook, so handler creation should be skipped."
   (with-temp-buffer
     (insert "a\U0001F600b")
     (lsp--move-to-utf-16-column 3)       ; past 'a' (1) + emoji (2)
-    (should (= (char-after) ?b))))
+    (should (= (following-char) ?b))))
 
 (ert-deftest lsp--utf-32-column-supplementary ()
   "UTF-32 column counts each character as 1 regardless of plane."
@@ -356,7 +356,7 @@ post-self-insert-hook, so handler creation should be skipped."
   (with-temp-buffer
     (insert "aéb")                         ; a(1) + é(2) + b(1)
     (lsp--move-to-utf-8-column 3)         ; 1 + 2 = byte offset of 'b'
-    (should (= (char-after) ?b))))
+    (should (= (following-char) ?b))))
 
 (ert-deftest lsp--set-position-encoding-utf-16 ()
   "Setting encoding to utf-16 installs the correct functions."
@@ -379,7 +379,7 @@ post-self-insert-hook, so handler creation should be skipped."
     (lsp--set-position-encoding "utf-16")
     ;; line 0, character 3 (UTF-16 units: a=1, emoji=2) → point at 'b'
     (let ((pt (lsp--line-character-to-point 0 3)))
-      (should (= (char-after pt) ?b)))))
+      (should (eq (following-char pt) ?b)))))
 
 (ert-deftest lsp--move-to-column-clamps-to-eol ()
   "Column beyond line length clamps to end of line."

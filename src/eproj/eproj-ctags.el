@@ -209,7 +209,7 @@ BUFFER is expected to contain output of ctags command."
               (goto-char (match-end 0))
               ;; now we're past ;"
               (skip-chars-forward "\t")
-              (let* ((type (char-after (point)))
+              (let* ((type (following-char))
                      (line-end-pos (line-end-position))
                      (fields nil))
                 (forward-char)

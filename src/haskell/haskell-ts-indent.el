@@ -912,11 +912,11 @@
                     ((smart-operators--on-empty-line?)
                      (haskell-ts-indent--make-trivial-computed-indent parent))
                     ((or (looking-at-p (rx "\"\"\"" eol))
-                         (and (eq (char-after) ?\\)
+                         (and (eq (following-char) ?\\)
                               (save-excursion
                                 (forward-line 0)
                                 (skip-chars-backward " \t\n\r")
-                                (eq (char-before) ?\\))))
+                                (eq (preceding-char) ?\\))))
                      (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent
                       node
                       parent

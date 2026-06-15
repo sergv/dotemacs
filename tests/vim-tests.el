@@ -1887,8 +1887,7 @@
  (progn
    (execute-kbd-macro (kbd "h h h o <escape> <tab>"))
    (when (eq major-mode 'text-mode)
-     (while (and (char-after)
-                 (char= (char-after) ?\s))
+     (while (eq (following-char) ?\s)
        (delete-char 1))))
  :contents
  (tests-utils--multiline

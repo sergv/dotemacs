@@ -59,7 +59,7 @@ end1 and end2 should be exclusive ends of tags.")
 
 ;;;###autoload
 (defun my-nxml-forward-element (n)
-  (let ((c (char-after)))
+  (let ((c (following-char)))
     (if (memq c '(?\( ?\[ ?\{))
         (let ((forward-sexp-function nil))
           (forward-sexp n)
@@ -90,9 +90,9 @@ if such tag can be found."
 of the matching tag, else fallback to `vim:motion-jump-item'."
   (cl-macrolet ((inside? (x low high)
                          `(and (<= ,low ,x) (< ,x ,high))))
-    (if (let ((synt (char-syntax (char-after))))
-          (or (char=? synt ?\()
-              (char=? synt ?\))))
+    (if (let ((synt (char-syntax (following-char))))
+          (or (eq synt ?\()
+              (eq synt ?\))))
         (vim:motion-jump-item:wrapper)
       (let ((tag-start (point))
             (type nil)
@@ -168,9 +168,9 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (vim-defmotion vim:motion-jump-html-tag (inclusive raw-result)
   "If point is positioned inside tag then jump to the beginning
 of the matching tag, else fallback to `vim:motion-jump-item'."
-  (if (let ((synt (char-syntax (char-after))))
-        (or (char=? synt ?\()
-            (char=? synt ?\))))
+  (if (let ((synt (char-syntax (following-char))))
+        (or (eq synt ?\()
+            (eq synt ?\))))
       (vim:motion-jump-item:wrapper)
     (web-mode-navigate)))
 
