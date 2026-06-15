@@ -6745,12 +6745,12 @@ have different input states."
   "  pure res"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-guard-4a
+ :name haskell-indentation-tests--test-treesitter-guard-4aa
  :contents
  (tests-utils--multiline
   ""
   "fixChar :: Char# -> Word8#"
-  "fixChar = \case"
+  "fixChar = \\case"
   "  -- These should not be translated since Alex knows about them"
   "  '→'#    -> reservedSym"
   "  c# -> case ord# c# of"
@@ -6764,7 +6764,7 @@ have different input states."
  (tests-utils--multiline
   ""
   "fixChar :: Char# -> Word8#"
-  "fixChar = \case"
+  "fixChar = \\case"
   "  -- These should not be translated since Alex knows about them"
   "  '→'#    -> reservedSym"
   "  c# -> case ord# c# of"
@@ -6776,12 +6776,43 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-guard-4b
+ :name haskell-indentation-tests--test-treesitter-guard-4ab
  :contents
  (tests-utils--multiline
   ""
   "fixChar :: Char# -> Word8#"
-  "fixChar = \case"
+  "fixChar = case"
+  "  -- These should not be translated since Alex knows about them"
+  "  '→'#    -> reservedSym"
+  "  c# -> case ord# c# of"
+  "    c2# | isTrue# (c2# <=# 0x7f#) ->"
+  "          wordToWord8# (int2Word# c2#) -- Plain ascii needs no fixing."
+  "        | otherwise   ->"
+  "                  _|_case generalCategory (C# c#) of"
+  "                    UppercaseLetter -> undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fixChar :: Char# -> Word8#"
+  "fixChar = case"
+  "  -- These should not be translated since Alex knows about them"
+  "  '→'#    -> reservedSym"
+  "  c# -> case ord# c# of"
+  "    c2# | isTrue# (c2# <=# 0x7f#) ->"
+  "          wordToWord8# (int2Word# c2#) -- Plain ascii needs no fixing."
+  "        | otherwise   ->"
+  "          _|_case generalCategory (C# c#) of"
+  "                    UppercaseLetter -> undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-4ba
+ :contents
+ (tests-utils--multiline
+  ""
+  "fixChar :: Char# -> Word8#"
+  "fixChar = \\case"
   "  -- These should not be translated since Alex knows about them"
   "  '→'#    -> reservedSym"
   "  c# -> case ord# c# of"
@@ -6795,7 +6826,38 @@ have different input states."
  (tests-utils--multiline
   ""
   "fixChar :: Char# -> Word8#"
-  "fixChar = \case"
+  "fixChar = \\case"
+  "  -- These should not be translated since Alex knows about them"
+  "  '→'#    -> reservedSym"
+  "  c# -> case ord# c# of"
+  "    c2# | isTrue# (c2# <=# 0x7f#) ->"
+  "          _|_wordToWord8# (int2Word# c2#) -- Plain ascii needs no fixing."
+  "        | otherwise   ->"
+  "                  case generalCategory (C# c#) of"
+  "                    UppercaseLetter -> undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-4bb
+ :contents
+ (tests-utils--multiline
+  ""
+  "fixChar :: Char# -> Word8#"
+  "fixChar = case"
+  "  -- These should not be translated since Alex knows about them"
+  "  '→'#    -> reservedSym"
+  "  c# -> case ord# c# of"
+  "    c2# | isTrue# (c2# <=# 0x7f#) ->"
+  "            _|_wordToWord8# (int2Word# c2#) -- Plain ascii needs no fixing."
+  "        | otherwise   ->"
+  "                  case generalCategory (C# c#) of"
+  "                    UppercaseLetter -> undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fixChar :: Char# -> Word8#"
+  "fixChar = case"
   "  -- These should not be translated since Alex knows about them"
   "  '→'#    -> reservedSym"
   "  c# -> case ord# c# of"
