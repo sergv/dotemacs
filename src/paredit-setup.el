@@ -25,12 +25,12 @@
 
 (defun paredit-forward-slurp-sexp--remove-initial-whitespace (&optional _)
   (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
-             (whitespace-char? (char-after)))
+             (whitespace-char? (following-char)))
     (delete-whitespace-forward)))
 
 (defun paredit-backward-slurp-sexp--remove-initial-whitespace (&optional _)
   (when (and (lisp-pos-is-end-of-sexp? (point))
-             (whitespace-char? (char-before)))
+             (whitespace-char? (preceding-char)))
     (delete-whitespace-backward)))
 
 
@@ -263,9 +263,9 @@ This macro is similar to `vim:do-motion'."
        ;; insert pair at point instead.
        (goto-char p)
        (insert open close))
-      ((and (= start end)
-            (= open close)
-            (= (char-after) close))
+      ((and (eq start end)
+            (eq open close)
+            (eq (following-char) close))
        ;; Advance over closing delimiter
        (forward-char))
       (t

@@ -137,7 +137,7 @@
                      process nix-repl-completion-output-timeout
                      comint-redirect-finished-regexp)
                 (beginning-of-line)
-                (if (eq (char-after) ?\r)
+                (if (eq (following-char) ?\r)
                     (cdr
                      (split-string
                       (buffer-substring-no-properties
@@ -145,7 +145,7 @@
                       "[ \f\t\n\r\v]+" t))
                   (search-forward "" nil t)
                   (backward-char)
-                  (if (eq (char-before) ?\a)
+                  (if (eq (preceding-char) ?\a)
                       nil
                     (list (buffer-substring-no-properties (line-beginning-position) (point))))))))
         (set-process-filter process original-filter-fn)))))

@@ -77,7 +77,7 @@ stick it to the previous operator on line."
                                                       (eq char-before-spaces ?/)))
             (insert-char char)
           (let ((whitespace-deleted? nil)
-                (after (char-after (point))))
+                (after (following-char)))
             ;; Delete spaces backwards if there's operator or open
             ;; paren char before the spaces.
             (when-let ((delete-whitespace?
@@ -128,8 +128,8 @@ stick it to the previous operator on line."
               (setf whitespace-deleted? (delete-whitespace-backward)))
 
             (let* ((pt (point))
-                   (before (char-before pt))
-                   (after (char-after pt))
+                   (before (preceding-char))
+                   (after (following-char))
                    (at-beginning-of-buffer? (null before))
                    (at-beginning-of-line? (or at-beginning-of-buffer?
                                               (eq before ?\n)))
@@ -158,7 +158,7 @@ stick it to the previous operator on line."
                                    (cond
                                      ((bobp)
                                       nil)
-                                     ((eq (char-before) ?\()
+                                     ((eq (preceding-char) ?\()
                                       nil)
                                      (t
                                       t)))))
@@ -223,7 +223,7 @@ stick it to the previous operator on line."
                 (when insert-space-before-char?
                   (insert-char ?\s)))
 
-              (let ((before-insert (char-before)))
+              (let ((before-insert (preceding-char)))
                 (insert-char char)
 
                 (when (and insert-space-after

@@ -161,7 +161,7 @@ Point is not changed."
          (and (looking-at "(\\(\\s_+\\))") (match-string-no-properties 1))
          ;; General case.
          (if (looking-at
-              (if (eq ?\( (char-after))
+              (if (eq ?\( (following-char))
                   ;; Skip paranthesised expression.
                   (progn
                     (forward-sexp)

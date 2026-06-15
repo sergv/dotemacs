@@ -102,7 +102,7 @@
 (defun c-preprocessor-hideshow-forward-sexp (&optional arg)
   "Special version of `forward-sexp' for hideshow in c-mode and others where C
 preprocessor may be used."
-  (if (eq (char-syntax (char-after)) ?\()
+  (if (eq (char-syntax (following-char)) ?\()
       (forward-sexp arg)
     (let ((start (point))
           (case-fold-search nil))

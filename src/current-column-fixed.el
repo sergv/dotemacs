@@ -51,7 +51,7 @@ or when using tabs for indentation."
        ;; Not clear how to cleanly fill up with tabs considering that we want
        ;; to only count characters and not give tab any special meaning.
        ;; (if (and indent-tabs-mode
-       ;;          (eq (char-before) ?\t))
+       ;;          (eq (preceding-char) ?\t))
        ;;     (let ((remaining (- dest (point))))
        ;;       ;; Insert some tabs to not overshoot our destination and fill the rest with spaces.
        ;;       (insert-char ?\t (/ remaining tab-width))

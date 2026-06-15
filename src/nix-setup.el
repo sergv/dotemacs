@@ -61,8 +61,7 @@
                          (goto-char start)
                          (skip-to-indentation)
                          (point))))
-             (when (or (eobp)
-                       (not (eq ?\s (char-after))))
+             (when (not (eq ?\s (following-char)))
                (- end start))))))
     (insert-char ?\n)
     (when indent-size

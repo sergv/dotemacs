@@ -159,7 +159,7 @@ negative ARG.  Handles bird style literate Haskell too."
       (while (< (point) end-marker)
         (let ((ci (haskell-indentation-current-indentation)))
           (when (and t
-                     (eq (char-after) ?>))
+                     (eq (following-char) ?>))
             (forward-char 1))
           (skip-syntax-forward "-")
           (unless (eolp)
@@ -182,7 +182,7 @@ negative ARG.  Handles bird style literate Haskell too."
        (or (< (current-column-fixed) 2)
            (save-excursion
              (beginning-of-line)
-             (not (eq (char-after) ?>))))))
+             (not (eq (following-char) ?>))))))
 
 (defun haskell-indentation-newline-and-indent ()
   "Insert newline and indent."
@@ -417,7 +417,7 @@ and indent when all of the following are true:
   (if (haskell-indentation-bird-p)
       (catch 'return
         (while t
-          (when (not (eq (char-after) ?>))
+          (when (not (eq (following-char) ?>))
             (forward-line)
             (forward-char 2)
             (throw 'return nil))
@@ -1465,7 +1465,7 @@ line."
   (forward-comment (buffer-size))
   (while (and (haskell-indentation-bird-p)
               (bolp)
-              (eq (char-after) ?>))
+              (eq (following-char) ?>))
     (forward-char)
     (forward-comment (buffer-size))))
 

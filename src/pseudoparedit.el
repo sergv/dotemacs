@@ -35,7 +35,7 @@
          (insert-char ?\s))
        (insert-char open)
        (insert-char close)
-       (let ((after (char-after)))
+       (let ((after (following-char)))
          (if (or (not (if (functionp insert-space-after?)
                           (funcall insert-space-after? after)
                         insert-space-after?))
@@ -70,7 +70,7 @@
   (cond
     (literal-insertion?
      (insert-char ?\"))
-    ((eq (char-after) ?\")
+    ((eq (following-char) ?\")
      (forward-char))
     (t
      (pseudoparedit--insert-pair ?\" ?\" t nil nil nil))))
@@ -79,14 +79,14 @@
 (defun pseudoparedit-backspace (&optional count)
   (interactive "*p")
   (dotimes (_ (or count 1))
-    (let* ((before (char-before))
+    (let* ((before (preceding-char))
            (start (1- (point)))
            (end nil)
            (after (save-excursion
                     (skip-chars-forward " \t\n\r")
                     (unless (eobp)
                       (setq end (1+ (point))))
-                    (char-after))))
+                    (following-char))))
       (if (and end
                (eq after (cdr (assq before '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?\" . ?\"))))))
           (delete-region start end)

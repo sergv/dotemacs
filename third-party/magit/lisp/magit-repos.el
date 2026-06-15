@@ -216,7 +216,7 @@ marked with that character."
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
-        (setq c (char-after))
+        (setq c (following-char))
         (unless (eq c ?\s)
           (if char
               (when (eq c char)

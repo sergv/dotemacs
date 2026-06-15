@@ -964,7 +964,7 @@ Pad the left side of STRING so that it aligns with the text area."
     (while (search-forward "%" nil t)
       (cond
        ;; Quoted percent sign.
-       ((eq (char-after) ?%)
+       ((eq (following-char) ?%)
         (delete-char 1))
        ;; Valid format spec.
        ((looking-at "\\([-0-9.]*\\)\\([a-zA-Z]\\)")
