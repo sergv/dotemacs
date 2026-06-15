@@ -3860,7 +3860,7 @@ be used to populate the title attribute when converted to XHTML."
       (when (let ((case-fold-search t))
               (search-forward "Local Variables:" nil :move))
         (beginning-of-line 0)
-        (when (eq (char-before) ?\n) (backward-char))))
+        (when (eq (preceding-char) ?\n) (backward-char))))
     (unless (or (markdown-cur-line-blank-p)
                 (thing-at-point-looking-at markdown-regex-reference-definition))
       (insert "\n"))
@@ -8671,7 +8671,7 @@ position."
 (defun markdown--edit-indirect-after-commit-function (_beg end)
   "Ensure trailing newlines at the END of code blocks."
   (goto-char end)
-  (unless (eq (char-before) ?\n)
+  (unless (eq (preceding-char) ?\n)
     (insert "\n")))
 
 (defun markdown-edit-code-block ()

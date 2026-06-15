@@ -856,7 +856,7 @@ to make output that `read' can handle, whenever this is possible."
        (save-excursion
          (backward-char 1)
          (skip-chars-backward "'`#^")
-         (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+         (when (and (not (bobp)) (memq (preceding-char) '(?\s ?\t ?\n)))
            (delete-region
             (point)
             (progn (skip-chars-backward " \t\n") (point)))
