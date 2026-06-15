@@ -230,6 +230,18 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-indent--get-match-equals-or-guard-pipe-or-arrow (node)
+  (cl-assert (string= "match" (treesit-node-type node)))
+  (let ((result (treesit-node-child node 0)))
+    (cl-assert (or (null result)
+                   (member (treesit-node-type result) '("=" "|" "->")))
+               nil
+               "Not an ‘=’, ‘|’, or ‘->’: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (defun haskell-ts-indent--get-lambda-arrow (node)
   "Get ‘->’ from a lambda NODE."
   (cl-assert (string= "lambda" (treesit-node-type node)))
