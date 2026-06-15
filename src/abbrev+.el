@@ -274,8 +274,7 @@ expansion was performed."
                       (delete-region (1- found-pt) start)
                       (let* ((insert-space? (abbrev+--perform-substitution found predicate-result)))
                         (when (and insert-space?
-                                   (or (eobp)
-                                       (not (eq (char-after) ?\s))))
+                                   (not (eq (following-char) ?\s)))
                           (insert ?\s))
                         ;; substitution was succesfull
                         t)))))

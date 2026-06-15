@@ -621,7 +621,7 @@ KEYMAP is a keymap that will be put on the popup contents."
           (setq w (+ popup-width (length prefix)))
           (while (and (not (eolp)) (> w 0))
             (setq dangle nil)
-            (cl-decf w (char-width (char-after)))
+            (cl-decf w (char-width (following-char)))
             (forward-char))
           (if (< w 0)
               (setq postfix (make-string (- w) ? )))

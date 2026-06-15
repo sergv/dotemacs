@@ -166,7 +166,7 @@ See also `indent-relative-maybe'."
   (save-excursion
     (move-to-column 0)
     (skip-indentation-forward)
-    (let ((c (char-after)))
+    (let ((c (following-char)))
       ;; Check that we’re at line end.
       (or (eq c ?\r)
           (eq c ?\n)
