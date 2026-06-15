@@ -354,13 +354,18 @@
   (save-excursion
     (let ((curr parent)
           (prev1 node)
-          (prev2 nil))
+          (prev2 nil)
+          (tmp nil))
       (catch 'term
         (while curr
           (let ((curr-type (treesit-node-type curr)))
             (awhen (haskell-ts-indent--select-parens-anchor curr-type curr prev1 t)
               (throw 'term it))
             (cond
+              ((and (string= curr-type "lambda")
+                    (haskell-ts--is-standalone-node?
+                     (setf tmp (haskell-ts-indent--get-lambda-arrow curr))))
+               (throw 'term tmp))
               ((member curr-type '("list" "tuple" "unboxed_tuple"))
                (throw 'term prev1))
               ((and (string= "match" curr-type)
