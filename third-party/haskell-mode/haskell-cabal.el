@@ -225,7 +225,8 @@
     "url"
     "version"
     "virtual-modules"
-    "visibility"))
+    "visibility"
+    "x-revision"))
 
 (defconst haskell-cabal-project--valid-fields
   '("active-repositories"
