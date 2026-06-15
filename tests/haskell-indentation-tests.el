@@ -3634,6 +3634,75 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-13a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foobar :: [Foo]"
+  "foobar"
+  "  = map (\\quux"
+  "    _|_-> map foo xs"
+  "    ++ map bar ys)"
+  "  $ decombobulate zs"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foobar :: [Foo]"
+  "foobar"
+  "  = map (\\quux"
+  "          _|_-> map foo xs"
+  "    ++ map bar ys)"
+  "  $ decombobulate zs"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-13b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foobar :: [Foo]"
+  "foobar"
+  "  = map (\\quux"
+  "          -> map foo xs"
+  "    _|_++ map bar ys)"
+  "  $ decombobulate zs"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foobar :: [Foo]"
+  "foobar"
+  "  = map (\\quux"
+  "          -> map foo xs"
+  "          _|_++ map bar ys)"
+  "  $ decombobulate zs"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-13c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foobar :: [Foo]"
+  "foobar"
+  "  = map (\\quux"
+  "          -> map foo xs"
+  "          ++ map bar ys)"
+  "      _|_$ decombobulate zs"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foobar :: [Foo]"
+  "foobar"
+  "  = map (\\quux"
+  "          -> map foo xs"
+  "          ++ map bar ys)"
+  "  _|_$ decombobulate zs"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-vertical-op-1
  :contents
  (tests-utils--multiline
