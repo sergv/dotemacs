@@ -198,7 +198,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                                                           match-prefix
                                                                           match-text
                                                                           match-suffix
-                                                                          (position-bytes match-start))
+                                                                          (bufferpos-to-filepos match-start))
                                                         nil)))))
                            ;; Jump to end of line in order to show at most one match per
                            ;; line.
@@ -264,7 +264,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                (let ((match-entry (car entry))
                      (orig-str (cadr entry)))
                  (cl-assert (stringp orig-str))
-                 (goto-char (- (byte-to-position (egrep-match-offset match-entry))
+                 (goto-char (- (filepos-to-bufferpos (egrep-match-offset match-entry))
                                (length (egrep-match-matched-prefix match-entry))))
                  (let ((current-str
                         (buffer-substring-no-properties (point)
