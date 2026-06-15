@@ -107,17 +107,24 @@ you can decide at startup what you want."
   "Initialise all Isar-related informations."
   (when (eq major-mode 'isar-mode)
 
-    (lsp-isar-open-output-and-progress-right-two-columns!)
+    (let ((buf (current-buffer)))
 
-    ;; delayed decoration printing
-    (lsp-isar-caret-activate-caret-update)
-    (lsp-isar-decorations-activate-delayed-printing)
+      (lsp-isar-open-output-and-progress-right-two-columns!)
 
-    (unless lsp-isar-already-initialised
-      (lsp-isar-progress-activate-progress-update)
-      (setq lsp-isar-already-initialised t))
+      ;; delayed decoration printing
 
-    (lsp-isar-decorations--init-decorations)))
+      ;; Run in the buffer we’re opening because
+      ;; ‘lsp-isar-open-output-and-progress-right-two-columns!’ tends to
+      ;; reshuffle buffers around.
+      (with-current-buffer buf
+        (lsp-isar-caret-activate-caret-update)
+        (lsp-isar-decorations-activate-delayed-printing)
+
+        (unless lsp-isar-already-initialised
+          (lsp-isar-progress-activate-progress-update)
+          (setq lsp-isar-already-initialised t))
+
+        (lsp-isar-decorations--init-decorations)))))
 
 ;; lsp-after-initialize-hook might look like the right macro.  However, the
 ;; workspace (lsp--cur-workspace) is not opened yet.
