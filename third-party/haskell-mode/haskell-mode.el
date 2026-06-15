@@ -405,7 +405,7 @@ comment.  May return a qualified name."
                    (not (bolp)))
           (backward-char))
         (when (and (not (eobp))
-                   (eq (char-syntax (char-after)) ? ))
+                   (eq (char-syntax (following-char)) ?\s))
           (skip-chars-backward " \t")
           (backward-char))
         ;; Now let's try to go left.
@@ -455,7 +455,7 @@ comment.  May return a qualified name."
 (defun haskell-mode--looking-at-varsym ()
   "Return t when point stands at operator symbol."
   (unless (eobp)
-    (let ((lex (haskell-lexeme-classify-by-first-char (char-after))))
+    (let ((lex (haskell-lexeme-classify-by-first-char (following-char))))
       (or (eq lex 'varsym)
           (eq lex 'consym)))))
 
@@ -467,7 +467,7 @@ Returns beginning position of qualified part or nil if no qualified part found."
                (looking-at-p (rx bol)))
     (let ((case-fold-search nil)
           pos)
-      (while (and (eq (char-before) ?.)
+      (while (and (eq (preceding-char) ?.)
                   (progn (backward-char)
                          (not (zerop (skip-syntax-backward "w'"))))
                   (skip-syntax-forward "'")

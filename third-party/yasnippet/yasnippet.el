@@ -4707,7 +4707,7 @@ SAVED-QUOTES is the in format returned by `yas--save-backquotes'."
   (setq yas--indent-markers (nreverse yas--indent-markers)))
 
 (defun yas--scan-for-field-end ()
-  (let* ((start-char (char-after))
+  (let* ((start-char (following-char))
          (re (pcase start-char
                (`?\(
                 (rx (or (seq "$" (group-n 1

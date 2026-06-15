@@ -857,7 +857,7 @@ Each predicate should examine only text before/after the point if ENDP is
   ;; close when want an open the string or an open when we want to
   ;; close the string), do insert a space.
   (and (not (if endp (eobp) (bobp)))
-       (let ((c (char-syntax (if endp (char-after) (char-before)))))
+       (let ((c (char-syntax (if endp (following-char) (preceding-char)))))
          (or (eq c ?w)
              (eq c ?_)
              (eq c ?\")
@@ -911,7 +911,7 @@ Each predicate should examine only text before/after the point if ENDP is
   (save-excursion
     (paredit-handle-sexp-errors (backward-up-list)
       (error "Not inside a list."))
-    (let ((open (char-after)))
+    (let ((open (following-char)))
       (paredit-handle-sexp-errors (progn (forward-sexp) nil)
         open))))
 
@@ -919,7 +919,7 @@ Each predicate should examine only text before/after the point if ENDP is
   ;; This assumes that we're on the closing delimiter already.
   (save-excursion
     (backward-char)
-    (while (let ((syn (char-syntax (char-before))))
+    (while (let ((syn (char-syntax (preceding-char))))
              (and (or (eq syn ?\ ) (eq syn ?-))     ; whitespace syntax
                   ;; The above line is a perfect example of why the
                   ;; following test is necessary.
@@ -1174,7 +1174,7 @@ If a list begins on the line after the point but ends on a different
                             (throw 'exit nil))))
                     ((save-excursion
                        (paredit-skip-trailing-whitespace (point-at-eol))
-                       (or (eolp) (eobp) (eq (char-after) ?\;)))
+                       (or (eolp) (eobp) (eq (following-char) ?\;)))
                      ;; Can't move further, but there's no closing
                      ;; delimiter we're about to clobber -- either
                      ;; it's on the next line or we're at the end of
@@ -1340,9 +1340,9 @@ This is expected to be called only in `paredit-comment-dwim'; do not
           ((paredit-in-char-p)            ; Escape -- delete both chars.
            (delete-char -1 kill-flag)
            (delete-char +1 kill-flag))
-          ((eq (char-after) ?\\ )         ; ditto
+          ((eq (following-char) ?\\ )         ; ditto
            (delete-char +2 kill-flag))
-          ((let ((syn (char-syntax (char-after))))
+          ((let ((syn (char-syntax (following-char))))
              (or (eq syn ?\( )
                  (eq syn ?\" )))
            (if (save-excursion
@@ -1352,13 +1352,13 @@ This is expected to be called only in `paredit-comment-dwim'; do not
              (message "Deleting spurious opening delimiter.")
              (delete-char +1 kill-flag)))
           ((and (not (paredit-in-char-p (1- (point))))
-                (eq (char-syntax (char-after)) ?\) )
-                (eq (char-before) (matching-paren (char-after))))
+                (eq (char-syntax (following-char)) ?\) )
+                (eq (preceding-char) (matching-paren (following-char))))
            (delete-char -1 kill-flag) ; Empty list -- delete both
            (delete-char +1 kill-flag))         ;   delimiters.
           ((setf comment-end-pos (paredit-comment-start-at? (point) t))
            (paredit-forward-delete-comment-start comment-end-pos kill-flag))
-          ((eq (char-syntax (char-after)) ?\) )
+          ((eq (char-syntax (following-char)) ?\) )
            (if (paredit-handle-sexp-errors
                    (save-excursion (forward-char) (backward-sexp) t)
                  nil)
@@ -1429,7 +1429,7 @@ without regard for delimiter balancing."
                   ;; We're right after the backslash, so backward
                   ;; delete it before deleting the escaped character.
                   (delete-char -1 kill-flag))
-                 ((eq (char-after) ?\\ )
+                 ((eq (following-char) ?\\ )
                   ;; If we're not in a string escape, but we are on a
                   ;; backslash, it must start the escape for the next
                   ;; character, so delete the backslash before deleting
@@ -1495,7 +1495,7 @@ without regard for delimiter balancing."
            (delete-char +1 kill-flag))
           ((paredit-in-char-p (1- (point)))
            (delete-char -2 kill-flag)) ; ditto
-          ((let ((syn (char-syntax (char-before))))
+          ((let ((syn (char-syntax (preceding-char))))
              (or (eq syn ?\) )
                  (eq syn ?\" )))
            (if (save-excursion
@@ -1504,13 +1504,13 @@ without regard for delimiter balancing."
                (backward-char)
              (message "Deleting spurious closing delimiter.")
              (delete-char -1 kill-flag)))
-          ((and (eq (char-syntax (char-before)) ?\( )
-                (eq (char-after) (matching-paren (char-before))))
+          ((and (eq (char-syntax (preceding-char)) ?\( )
+                (eq (following-char) (matching-paren (preceding-char))))
            (delete-char -1 kill-flag) ; Empty list -- delete both
            (delete-char +1 kill-flag))         ;   delimiters.
           ((bolp)
            (paredit-backward-delete-maybe-comment-end kill-flag))
-          ((eq (char-syntax (char-before)) ?\( )
+          ((eq (char-syntax (preceding-char)) ?\( )
            (if (paredit-handle-sexp-errors
                    (save-excursion (backward-char) (forward-sexp) t)
                  nil)
@@ -1767,8 +1767,8 @@ In that case, ensure there is at least one space between the
          (paredit-indent-line))
         ((eobp) nil)       ; Protect the CHAR-SYNTAX below against NIL.
         ;; Insert a space to avoid invalid joining if necessary.
-        ((let ((syn-before (char-syntax (char-before)))
-               (syn-after  (char-syntax (char-after))))
+        ((let ((syn-before (char-syntax (preceding-char)))
+               (syn-after  (char-syntax (following-char))))
            (and (memq syn-before '(?\) ?\" ?_ ?w))
                 (memq syn-after '(?\( ?\" ?_ ?w))))
          (save-excursion (insert-char ?\s)))))
@@ -1788,9 +1788,9 @@ word-syntaxes - list of characters denoting syntaxes."
     (goto-char beginning)
     (skip-syntax-forward " -")
     (let* ((parse-state (paredit-current-parse-state))
-           (state (paredit-kill-word-state parse-state 'char-after)))
+           (state (paredit-kill-word-state parse-state #'following-char)))
       (while (not (or (eobp)
-                      (member (char-syntax (char-after))
+                      (member (char-syntax (following-char))
                               word-syntaxes)))
         (setq parse-state
               (progn (forward-char 1) (paredit-current-parse-state))
@@ -1799,7 +1799,7 @@ word-syntaxes - list of characters denoting syntaxes."
               )
         (let* ((old-state state)
                (new-state
-                (paredit-kill-word-state parse-state 'char-after)))
+                (paredit-kill-word-state parse-state #'following-char)))
           (unless (eq old-state new-state)
             (setq parse-state
                   (paredit-kill-word-hack old-state
@@ -1807,7 +1807,7 @@ word-syntaxes - list of characters denoting syntaxes."
                                           parse-state))
             (setq state
                   (paredit-kill-word-state parse-state
-                                           'char-after))
+                                           #'following-char))
 
             (setq beginning (point))))))
     beginning))
@@ -1822,13 +1822,13 @@ Also see `paredit-skip-forward-for-kill'."
   (save-excursion
     (goto-char beginning)
     (unless (or (bobp)
-                (memq (char-syntax (char-before)) word-syntaxes))
+                (memq (char-syntax (preceding-char)) word-syntaxes))
       (let ((end (point)))
         (funcall backward-word 1)
         (funcall forward-word 1)
         (goto-char (min end (point)))
         (let* ((parse-state (paredit-current-parse-state))
-               (state (paredit-kill-word-state parse-state 'char-before)))
+               (state (paredit-kill-word-state parse-state #'preceding-char)))
           (while (and (< (point) end)
                       (progn
                         (setq parse-state
@@ -1836,11 +1836,11 @@ Also see `paredit-skip-forward-for-kill'."
                                                   nil nil parse-state))
                         (or (eq state
                                 (paredit-kill-word-state parse-state
-                                                         'char-before))
+                                                         #'preceding-char))
                             (progn (backward-char 1) nil)))))
           (when (and (eq state 'comment)
-                     (eq ?\# (char-after (point)))
-                     (eq ?\| (char-before (point))))
+                     (eq ?\# (following-char))
+                     (eq ?\| (preceding-char)))
             (backward-char 1)))))
     (point)))
 
@@ -1887,8 +1887,8 @@ Also see `paredit-skip-forward-for-kill'."
     (cond ((and (not (eq old-state 'comment))
                 (not (eq new-state 'comment))
                 (not (paredit-in-string-escape-p (point)))
-                (eq ?\# (char-before))
-                (eq ?\| (char-after)))
+                (eq ?\# (preceding-char))
+                (eq ?\| (following-char)))
            (forward-char 1)
            (paredit-current-parse-state)
            ;;          (parse-partial-sexp (point) (1+ (point))
@@ -2215,7 +2215,7 @@ With a prefix argument N, encompass all N S-expressions forward."
 
 (defun paredit-find-next-string-start (horizontal-direction limit)
   (let ((buffer-limit-p (if (< 0 horizontal-direction) 'eobp 'bobp))
-        (next-char (if (< 0 horizontal-direction) 'char-after 'char-before))
+        (next-char (if (< 0 horizontal-direction) #'following-char #'preceding-char))
         (pastp (if (< 0 horizontal-direction) '> '<)))
     (paredit-handle-sexp-errors
         (save-excursion
@@ -2491,9 +2491,9 @@ With a prefix argument N, move up N lists before wrapping."
                (prog1 (buffer-substring (point) end)
                  (backward-up-list)
                  (save-excursion (forward-sexp)
-                                 (setq close (char-before))
+                                 (setq close (preceding-char))
                                  (delete-char -1))
-                 (setq open (char-after))
+                 (setq open (following-char))
                  (delete-region (point) end)
                  ;; I'm not sure this makes sense...
                  (unless (eolp)
@@ -2589,7 +2589,7 @@ If in a string, move the opening double-quote forward by one
   (let ((nestedp nil))
     (save-excursion
       (up-list)                        ; Up to the end of the list to
-      (let ((close (char-before)))     ;   save and delete the closing
+      (let ((close (preceding-char)))     ;   save and delete the closing
         (delete-char -1)               ;   delimiter.
         (let ((start (point)))
           (catch 'return                ; Go to the end of the desired
@@ -2604,7 +2604,7 @@ If in a string, move the opening double-quote forward by one
                 (setq nestedp t)
                 (up-list)
                 (setq close                ; adjusting for mixed
-                      (prog1 (char-before) ;   delimiters as necessary,
+                      (prog1 (preceding-char) ;   delimiters as necessary,
                         (delete-char -1)
                         (insert-char close))))))
           (insert-char close)                ;  to insert that delimiter.
@@ -2625,7 +2625,7 @@ If in a string, move the opening double-quote forward by one
     ;; Signal any errors that we might get first, before mucking with
     ;; the buffer's contents.
     (save-excursion (forward-sexp))
-    (let ((close (char-before)))
+    (let ((close (preceding-char)))
       ;; Skip intervening whitespace if we're slurping into an empty
       ;; string.  XXX What about nonempty strings?
       (if (and (= (+ start 2) end)
@@ -2655,7 +2655,7 @@ Automatically reindent the newly barfed S-expression with respect to
       (let ((start (point)) (end nil))
         (save-excursion
           (up-list)                       ; Up to the end of the list to
-          (let ((close (char-before)))    ;   save and delete the closing
+          (let ((close (preceding-char)))    ;   save and delete the closing
             (delete-char -1)              ;   delimiter.
             (setq end (point))
             (paredit-ignore-sexp-errors   ; Go back to where we want to
@@ -2721,7 +2721,7 @@ If in a string, move the opening double-quote backward by one
   (let ((nestedp nil))
     (save-excursion
       (backward-up-list)
-      (let ((open (char-after)))
+      (let ((open (following-char)))
         (delete-char +1)
         (catch 'return
           (while t
@@ -2735,7 +2735,7 @@ If in a string, move the opening double-quote backward by one
               (setq nestedp t)
               (backward-up-list)
               (setq open
-                    (prog1 (char-after)
+                    (prog1 (following-char)
                       (save-excursion (insert-char open) (delete-char +1)))))))
         (insert-char open))
       ;; Reindent the line at the beginning of wherever we inserted the
@@ -2761,7 +2761,7 @@ If in a string, move the opening double-quote backward by one
     ;; Signal any errors that we might get first, before mucking with
     ;; the buffer's contents.
     (save-excursion (backward-sexp))
-    (let ((open (char-after))
+    (let ((open (following-char))
           (target (point)))
       ;; Skip intervening whitespace if we're slurping into an empty
       ;; string.  XXX What about nonempty strings?
@@ -2793,7 +2793,7 @@ Automatically reindent the barfed S-expression and the form from which
         (set-marker end (point))
         (save-excursion
           (backward-up-list)
-          (let ((open (char-after)))
+          (let ((open (following-char)))
             (delete-char +1)
             (paredit-ignore-sexp-errors
               (paredit-forward-and-indent
@@ -2839,8 +2839,8 @@ Automatically reindent the barfed S-expression and the form from which
                (paredit-in-char-p))
            (error "Invalid context for splitting S-expression."))
           (t
-           (let ((open (save-excursion (backward-up-list) (char-after)))
-                 (close (save-excursion (up-list) (char-before))))
+           (let ((open (save-excursion (backward-up-list) (following-char)))
+                 (close (save-excursion (up-list) (preceding-char))))
              (delete-horizontal-space)
              (insert-char close)
              (save-excursion
@@ -2900,8 +2900,8 @@ Both must be lists, strings, or atoms; error if there is a mismatch."
                 (paredit-comment-start-at? (point) nil)))
          ;; (foo)|(bar) => (foo| bar), not (foo|bar).
          (and (= left-point right-point)
-              (not (or (eq ?\  (char-syntax (char-before)))
-                       (eq ?\  (char-syntax (char-after)))))))
+              (not (or (eq ?\  (char-syntax (preceding-char)))
+                       (eq ?\  (char-syntax (following-char)))))))
         (insert-char ?\  ))))
 
 ;++ How ought paredit-join to handle comments intervening symbols or strings?

@@ -92,7 +92,7 @@
     (goto-char begin)
     (while (<= (point) end)
       (skip-chars-forward "^{" end)
-      (when (char=? (char-after) ?\{)
+      (when (eq (following-char) ?\{)
         (hs-show-block t)
         (skip-chars-forward "}"))))
   ;; turn visual mode off
@@ -107,7 +107,7 @@
     (goto-char begin)
     (while (progn
              (skip-chars-forward "^{" end)
-             (and (char=? (char-after) ?\{)
+             (and (eq (following-char) ?\{)
                   (<= (point) end)))
       (hs-hide-block t)        ;; hide and reposition at the end
       (skip-chars-forward "}") ;; close delimiters
@@ -363,7 +363,7 @@ function; and adjust-block-beginning function."
   (yafolding-show-all))
 
 (defun folding-outline-on-sexp-or-commented? ()
-  (or (when-let (next (char-after))
+  (or (when-let (next (following-char))
         (let ((syn (char-syntax next)))
           (or (eq syn ?\()
               (eq syn ?\))
@@ -371,7 +371,7 @@ function; and adjust-block-beginning function."
       (save-excursion
         (skip-to-indentation)
         (or (looking-at-p hs-block-start-regexp)
-            (when-let (next (char-after))
+            (when-let (next (following-char))
               (let ((syn (char-syntax next)))
                 (or (eq syn ?\()
                     (eq syn ?\))

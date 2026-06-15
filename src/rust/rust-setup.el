@@ -83,10 +83,9 @@ which is suitable for most programming languages such as C or Lisp."
                   (save-excursion
                     (goto-char start)
                     (skip-syntax-backward " >")
-                    (awhen (char-before)
-                      (or (memq it '(?\( ?, ?\{ ?=))
-                          (text-before-matches? "move")
-                          (text-before-matches? "return"))))))
+                    (or (memq (preceding-char) '(?\( ?, ?\{ ?=))
+                        (text-before-matches? "move")
+                        (text-before-matches? "return")))))
              (and (not is-closure?)
                   (or (char= start-char ?\n)
                       (char= (char-syntax start-char) ?\ ))
