@@ -85,7 +85,7 @@ stick it to the previous operator on line."
          (line-start-pos (line-beginning-position))
 
          (pt (point))
-         (prev-char (char-before pt))
+         (prev-char (preceding-char))
          (at-beginning-of-buffer? (null prev-char))
 
          (prev-prev-char (unless at-beginning-of-buffer?
@@ -105,7 +105,7 @@ stick it to the previous operator on line."
             (save-excursion
               (skip-syntax-backward " ")
               (setf pt-before-ws (point))
-              (let* ((before-ws (char-before pt-before-ws))
+              (let* ((before-ws (preceding-char))
                      (pt-before-ws2 (1- pt-before-ws)))
                 (when (and before-ws
                            (let ((before-ws2 (char-before pt-before-ws2)))
@@ -166,7 +166,7 @@ stick it to the previous operator on line."
                                 (let ((c (save-excursion
                                            (goto-char before-pt)
                                            (skip-chars-backward haskell-smart-operators--operator-chars-str)
-                                           (char-before))))
+                                           (preceding-char))))
                                   (or (null c)
                                       (haskell-smart-operators--is-whitespace-char? c)
                                       (and (eq c ?')
@@ -180,10 +180,10 @@ stick it to the previous operator on line."
             (memq char '(?^ ?|)))
        (delete-region pt-before-ws (point))
        (let ((before-pt (point))
-             (before (char-before)))
+             (before (preceding-char)))
          (insert-char ?\s)
          (insert-char char)
-         (funcall insert-trailing-space nil nil before-pt before (char-after))))
+         (funcall insert-trailing-space nil nil before-pt before (following-char))))
       ;; Must check for arrows here because otherwise
       ;; `haskell-smart-operators--literal-insertion?' will treat '--'
       ;; as a comment and not allow to do any meaningful work.
@@ -192,9 +192,9 @@ stick it to the previous operator on line."
             (memq char '(?< ?> ?-)))
        (delete-region pt-before-ws (point))
        (let ((before-pt (point))
-             (before (char-before)))
+             (before (preceding-char)))
          (insert-char char)
-         (funcall insert-trailing-space nil nil before-pt before (char-after))))
+         (funcall insert-trailing-space nil nil before-pt before (following-char))))
       ((or disable-smart-operators?
            (haskell-smart-operators--literal-insertion?)
            (not (gethash char haskell-smart-operators--operator-chars)))
@@ -204,7 +204,7 @@ stick it to the previous operator on line."
              (whitespace-inserted? nil)
              (before-pt nil)
              (before nil)
-             (after (char-after)))
+             (after (following-char)))
          ;; Decide whether to insert space before the operator.
          (if (and (not (smart-operators--on-empty-line?))
                   ;; If inserting hash then we should not add a space
@@ -242,7 +242,7 @@ stick it to the previous operator on line."
                                       (save-excursion
                                         (with-syntax-table haskell-quasiquoter-name-syntax-table
                                           (skip-syntax-backward "w" (line-beginning-position))
-                                          (let ((before-far (char-before)))
+                                          (let ((before-far (preceding-char)))
                                             (eq before-far ?\[)))))))
                            (if (and (eq prev-char ?')
                                     prev-prev-is-whitespace?
@@ -255,7 +255,7 @@ stick it to the previous operator on line."
                            (not (gethash prev-char haskell-smart-operators--operator-chars)))))
              (progn
                (setq before-pt (point)
-                     before (char-before)
+                     before (preceding-char)
                      whitespace-inserted? t)
                (insert-char ?\s))
            ;; Delete spaces backwards if there's operator or open paren char
@@ -264,7 +264,7 @@ stick it to the previous operator on line."
                   (save-excursion
                     (skip-syntax-backward " ")
                     (let* ((pt-before-ws (point))
-                           (char-before-spaces (char-before pt-before-ws))
+                           (char-before-spaces (preceding-char))
                            (char-before-char-before-spaces (char-before (1- pt-before-ws))))
                       (and char-before-spaces ;; not at beginning of buffer
                            (if (eq char-before-spaces ?#)
@@ -275,7 +275,7 @@ stick it to the previous operator on line."
                                        (and (eq char ?#)
                                             (save-excursion
                                               (let ((hashes-count 0))
-                                                (while (eq (char-before) ?#)
+                                                (while (eq (preceding-char) ?#)
                                                   (setf hashes-count (+ hashes-count 1))
                                                   (forward-char -1))
                                                 (when (< hashes-count 2)
@@ -319,7 +319,7 @@ stick it to the previous operator on line."
                ;; (setf whitespace-deleted? t)
                )
              (setq before-pt (point)
-                   before (char-before))))
+                   before (preceding-char))))
          ;; Insert operator char.
          (insert-char char)
          (funcall insert-trailing-space whitespace-deleted? whitespace-inserted? before-pt before after))))))
@@ -341,16 +341,16 @@ stick it to the previous operator on line."
         (strip-next-parens?
          (save-excursion
            (skip-syntax-backward " ")
-           (not (eq (char-before) ?\<))))
+           (not (eq (preceding-char) ?\<))))
         (paren-start-pos nil))
     (when (and strip-next-parens?
                (save-excursion
                  (skip-syntax-forward " ")
-                 (when (and (eq (char-after) ?\()
+                 (when (and (eq (following-char) ?\()
                             (save-excursion
                               (forward-char 1)
                               (skip-syntax-forward " ")
-                              (not (eq (char-after) ?\`))))
+                              (not (eq (following-char) ?\`))))
                    (setf paren-start-pos (point))
                    t)))
       (goto-char paren-start-pos)
@@ -399,18 +399,18 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-dot ()
   "Insert comma followed by space."
   (interactive "*")
-  (let* ((pos-before-spaces
-          (save-excursion
-            (skip-syntax-backward " ")
-            (point)))
-         (preceded-by-operator?
-          (awhen (char-before pos-before-spaces)
-            (gethash it haskell-smart-operators--operator-chars))))
+  (let (pos-before-spaces
+        preceded-by-operator?)
+    (save-excursion
+      (skip-syntax-backward " ")
+      (setf preceded-by-operator?
+            (gethash (preceding-char) haskell-smart-operators--operator-chars)
+            pos-before-spaces (point)))
     (when preceded-by-operator?
       (delete-region pos-before-spaces (point)))
     (insert-char ?\.)
     (when (and preceded-by-operator?
-               (let ((next-char (char-after)))
+               (let ((next-char (following-char)))
                  (and (not (memq next-char '(?\s ?\) ?\] ?\})))
                       (not (gethash next-char haskell-smart-operators--operator-chars)))))
       (insert-char ?\s))))
@@ -419,14 +419,19 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-hash ()
   "Smart insertion of #."
   (interactive "*")
-  (let* ((pt-before (save-excursion
-                      (skip-syntax-backward " ")
-                      (point)))
-         (pt-after (save-excursion
-                     (skip-syntax-forward " ")
-                     (point)))
-         (before (char-before pt-before))
-         (after (char-after pt-after)))
+  (let (pt-before
+        pt-after
+        before
+        after)
+    (save-excursion
+      (skip-syntax-backward " ")
+      (setf pt-before (point)
+            before (preceding-char)))
+    (save-excursion
+      (skip-syntax-forward " ")
+      (setf pt-after (point)
+            after (following-char)))
+
     (cl-destructuring-bind
         (pt-pragma-start pt-pragma-end is-surrounded-for-pragma?)
         (smart-operators--point-surrounded-by2--impl pt-before pt-after before after ?\{ ?- ?- ?\})
@@ -482,12 +487,12 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (preceded-by-operator?
             (save-excursion
               (goto-char p-before-ws)
-              (gethash (char-before) haskell-smart-operators--operator-chars)))
+              (gethash (preceding-char) haskell-smart-operators--operator-chars)))
            (followed-by-operator?
             (save-excursion
               (goto-char p-after-ws)
 
-              (gethash (char-after) haskell-smart-operators--operator-chars)))
+              (gethash (following-char) haskell-smart-operators--operator-chars)))
 
            (p-node (nanothunk-delay (treesit-node-at p)))
 
@@ -640,7 +645,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
           ts-closest-pattern-name))
 
         (preceded-by-double-colon?
-         (unless (eq (char-before) ?\s)
+         (unless (eq (preceding-char) ?\s)
            (insert-char ?\s))
          (insert-char ?!))
         (t
@@ -672,7 +677,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                   (insert-char ?\)))
                 (goto-char start)
                 (when (and preceded-by-double-colon?
-                           (not (eq (char-before) ?\s)))
+                           (not (eq (preceding-char) ?\s)))
                   (insert-char ?\s))
                 (insert-char ?!)
                 (when should-add-parens?
@@ -699,7 +704,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
     ((haskell-smart-operators--literal-insertion?)
      (typography-smart-insert-single-quote))
     (t
-     (let ((prev-char (char-before)))
+     (let ((prev-char (preceding-char)))
        (insert-char ?\')
        (when (or (not prev-char)
                  (not (or (eq (char-syntax prev-char) ?w)
@@ -783,7 +788,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
     (when is-hsc?
       (save-excursion
         (when (and (not (zerop (skip-chars-backward " \t")))
-                   (eq (char-before) ?#))
+                   (eq (preceding-char) ?#))
           (delete-region (point) p))))
     (smart-operators--insert-pair ?\{
                                   ?\}

@@ -54,7 +54,7 @@ of random numbers from RANDOM-GEN."
                                 t))))
 
       (delete-region begin end)
-      (when (= (char-after) ?\n)
+      (when (eq (following-char) ?\n)
         (delete-char 1))
       (random-shuffle lines)
       (goto-char begin)
@@ -1061,7 +1061,7 @@ trailing newline"
   (beginning-of-line)
   (let ((start (point)))
     (while (and (not (eobp))
-                (not (char= ?\n (char-after))))
+                (not (eq ?\n (following-char))))
       (forward-char 1))
     (unless (eobp)
       (forward-char 1))
@@ -1559,15 +1559,15 @@ and cdr is a boolean whether any element was let out."
   "Return t if STR contains character C."
   (let* ((i 0)
          (len (length str))
-         (continue (and c
-                        (< i len)))
+         (continue? (and c
+                         (< i len)))
          (res nil))
-    (while continue
+    (while continue?
       (if (eq c (aref str i))
-          (setf continue nil
+          (setf continue? nil
                 res t)
         (setf i (+ i 1)
-              continue (< i len))))
+              continue? (< i len))))
     res))
 
 (defun append-plists-uniq (new-props old-props)
