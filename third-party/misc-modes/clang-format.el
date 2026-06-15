@@ -93,8 +93,8 @@ of the buffer."
     (list replacements cursor (string= incomplete-format "true"))))
 
 (defun clang-format--replace (offset length &optional text)
-  (let ((start (byte-to-position (1+ offset)))
-        (end (byte-to-position (+ 1 offset length))))
+  (let ((start (filepos-to-bufferpos offset))
+        (end (filepos-to-bufferpos (+ offset length))))
     (goto-char start)
     (delete-region start end)
     (when text
@@ -113,9 +113,9 @@ is no active region.  If no style is given uses `clang-format-style'."
   (unless style
     (setq style clang-format-style))
 
-  (let ((start (1- (position-bytes char-start)))
-        (end (1- (position-bytes char-end)))
-        (cursor (1- (position-bytes (point))))
+  (let ((start (bufferpos-to-filepos char-start))
+        (end (bufferpos-to-filepos char-end))
+        (cursor (bufferpos-to-filepos (point)))
         (temp-buffer (generate-new-buffer " *clang-format-temp*"))
         (temp-file (make-temp-file "clang-format")))
     (unwind-protect
@@ -156,7 +156,7 @@ is no active region.  If no style is given uses `clang-format-style'."
                       (apply #'clang-format--replace rpl))
                     replacements))
             (when cursor
-              (goto-char (byte-to-position (1+ cursor))))
+              (goto-char (filepos-to-bufferpos cursor)))
             (message "%s" incomplete-format)
             (if incomplete-format
                 (message "clang-format: incomplete (syntax errors)%s" stderr)
