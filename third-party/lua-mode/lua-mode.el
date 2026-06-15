@@ -803,8 +803,8 @@ This function replaces previous prefix-key binding with a new one."
 Emacs syntax framework does not consider comment delimiters as
 part of the comment itself, but for this package it is useful to
 consider point as inside comment when it is between the two hyphens"
-  (and (eql (char-before) ?-)
-       (eql (char-after) ?-)
+  (and (eq (preceding-char) ?-)
+       (eq (following-char) ?-)
        (1- (point))))
 
 (defun lua-comment-start-pos (&optional parsing-state)
@@ -2141,8 +2141,8 @@ Return nil if C is nil. See `lua-funcname-at-point'."
 
 (defun lua-funcname-at-point ()
   "Get current Name { '.' Name } sequence."
-  (when (or (lua--funcname-char-p (char-before))
-            (lua--funcname-char-p (char-after)))
+  (when (or (lua--funcname-char-p (preceding-char))
+            (lua--funcname-char-p (following-char)))
     (save-excursion
       (save-match-data
         (re-search-backward "\\`\\|[^A-Za-z_.]")
