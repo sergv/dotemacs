@@ -330,7 +330,7 @@
 
 (defun haskell-ts-indent--match-parent-anchor (node parent bol)
   (cl-assert (string= "match" (treesit-node-type parent)))
-  (if-let* ((match-first-node (haskell-ts-indent--get-match-equals parent))
+  (if-let* ((match-first-node (haskell-ts-indent--get-match-equals-or-guard-pipe-or-arrow parent))
             ((haskell-ts--is-standalone-node? match-first-node)))
       match-first-node
     (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent node parent bol)))
