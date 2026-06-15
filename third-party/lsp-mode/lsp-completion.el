@@ -671,7 +671,7 @@ Returns resolved completion item details."
                (bounds-left (max (line-beginning-position) (- bounds-start 2)))
                triggered-by-char?)
            (while (and (> (point) bounds-left)
-                       (not (equal (char-after) ?\s))
+                       (not (eq (following-char) ?\s))
                        (not triggered-by-char?))
              (setq triggered-by-char? (lsp-completion--looking-back-trigger-characterp trigger-chars))
              (goto-char (1- (point))))

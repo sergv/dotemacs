@@ -45,10 +45,10 @@
   "Insert a dashes, an en-dash or an em-dash."
   (interactive "P")
   (if typopunct-typographical-dashes-enabled?
-      (cond ((eq (char-before) ?-)
+      (cond ((eq (preceding-char) ?-)
 	     (delete-char -1)
 	     (insert-char typopunct-en-dash))
-	    ((eq (char-before) typopunct-en-dash)
+	    ((eq (preceding-char) typopunct-en-dash)
 	     (delete-char -1)
 	     (insert-char typopunct-em-dash))
 	    (t (insert-char ?-)))
@@ -191,7 +191,7 @@ The language assumed is either the value of the text property
 	     (not (and pfunc
 		       (funcall pfunc))))
 	(if (or (bobp)
-		(memq (char-syntax (char-before))
+		(memq (char-syntax (preceding-char))
 		      typopunct-opening-quote-syntax-list))
 	    ;; After whitespace etc.: Opening quotation mark.
 	    (setq qmark (if single

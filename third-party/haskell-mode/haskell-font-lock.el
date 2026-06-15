@@ -242,7 +242,7 @@ Regexp match data 0 points to the chars."
 
 (defun haskell-font-lock--match-char (group)
   (let ((start (match-beginning group)))
-    (when (= 1 (- (match-end group) start))
+    (when (eq 1 (- (match-end group) start))
       (char-after start))))
 
 (defun haskell-font-lock--forward-type (&optional ignore)

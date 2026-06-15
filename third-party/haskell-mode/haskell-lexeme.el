@@ -116,7 +116,7 @@ the unqualified part (if any)."
 
           ;; Check is MagicHash is present at the end of the token.
           (goto-char end)
-          (while (eq (char-after) ?#)
+          (while (eq (following-char) ?#)
             (forward-char 1))
           (setq end (point))
 

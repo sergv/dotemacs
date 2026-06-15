@@ -30,9 +30,7 @@
   (save-excursion
     (goto-char pos)
     (skip-syntax-forward " >")
-    (let ((c (char-after)))
-      (and (characterp c)
-           (char=? c ?$)))))
+    (eq (following-char) ?$)))
 
 (defun haskell--quote-string-for-template-insertion (str)
   (replace-regexp-in-string "\"" "\\\\\"" str))
@@ -413,7 +411,7 @@ then Bar would be the result."
 
 (defun haskell-abbrev+--at-start-of-line? ()
   "Check that the point is at the start of the line."
-  (let ((c (char-before (point))))
+  (let ((c (preceding-char)))
     ;; By this point we’re assured that we’re
     ;; not in a string or comment via
     ;; ‘abbrev+-do-not-expand-predicate’.
@@ -523,7 +521,7 @@ then Bar would be the result."
        (insert (pcase predicate-result
                  (`within-import "{-# SOURCE #-}")
                  (`within-data   "{-# UNPACK #-}")))
-       (awhen (char-after)
+       (awhen (following-char)
          (when (not (whitespace-char? it))
            (save-excursion
              (insert-char ?\s)))))

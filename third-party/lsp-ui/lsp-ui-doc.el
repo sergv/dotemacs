@@ -713,7 +713,7 @@ FN is the function to call on click."
       (when (get-text-property next 'markdown-hr)
         (goto-char next)
         (setq bolp (bolp)
-              before (char-before))
+              before (preceding-char))
         (delete-region (point) (save-excursion (forward-visible-line 1) (point)))
         (setq after (char-after (1+ (point))))
         (insert
@@ -1131,7 +1131,7 @@ Argument WIN is current applying window."
            (or (< point (car lsp-ui-doc--bounds))
                (> point (cdr lsp-ui-doc--bounds))
                (not same-win)
-               (equal (char-after point) ?\n))
+               (eq (following-char) ?\n))
            (lsp-ui-doc--hide-frame))
       (when same-win
         (setq lsp-ui-doc--last-event point
