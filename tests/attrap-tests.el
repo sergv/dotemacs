@@ -3680,6 +3680,94 @@
   "  UST.pure (ByteSet arr)"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unused-type-variable-1a
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-54180] [-Wunused-foralls]"
+  "    Unused quantified type variable ‘bar’"
+  "    In the type signature for ‘foo’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "foo :: forall _|_bar a. Int -> Int"
+  "foo x = x"
+  "foo = _"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "foo :: forall _|_a. Int -> Int"
+  "foo x = x"
+  "foo = _"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unused-type-variable-1b
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-54180] [-Wunused-foralls]"
+  "    Unused quantified type variable ‘a’"
+  "    In the type signature for ‘foo’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "foo :: forall bar _|_a. Int -> Int"
+  "foo x = x"
+  "foo = _"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "foo :: forall bar_|_. Int -> Int"
+  "foo x = x"
+  "foo = _"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/unused-type-variable-2
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-54180] [-Wunused-foralls]"
+  "    Unused quantified type variable ‘(a :: Type)’"
+  "    In the type signature for ‘foo’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "import Data.Kind"
+  ""
+  "foo :: forall bar _|_(a :: Type). Int -> Int"
+  "foo x = x"
+  "foo = _"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "import Data.Kind"
+  ""
+  "foo :: forall bar_|_. Int -> Int"
+  "foo x = x"
+  "foo = _"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
