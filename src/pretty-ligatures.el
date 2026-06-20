@@ -140,76 +140,116 @@ Regexp match data 0 specifies the characters to be composed."
     (alist->hash-table
      (mapcar
       (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-second x) :width (cl-third x))))
-      '(("<-"   #xe100 2) ;; "<-"
-        ("->"   #xe101 2) ;; "->"
-        ("<="   #xe102 2) ;; "<=", left short double arrow, not used much it since clashes with less-than-or-equal
-        ("=>"   #xe103 2) ;; "=>"
-        ("<->"  #xe104 3) ;; "<->"
-        ("<=>"  #xe105 3) ;; "<=>"
-        ("=="   #xe106 2) ;; "=="
-        ("/="   #xe107 2) ;; "/="
-        ("::"   #xe108 2) ;; "::"
-        ("<<-"  #xe109 3) ;; "<<-"
-        ("->>"  #xe10a 3) ;; "->>"
-        ("<-<"  #xe10b 3) ;; "<-<"
-        (">->"  #xe10c 3) ;; ">->"
-        ("++"   #xe10d 2) ;; "++"
-        ("+++"  #xe10e 3) ;; "+++"
-        ("<>"   #xe10f 2) ;; "<>"
-        ("><"   #xe110 2) ;; "><"
-        ("<<"   #xe111 2) ;; "<<"
-        (">>"   #xe112 2) ;; ">>"
-        ("<|"   #xe113 2) ;; "<|"
-        ("|>"   #xe114 2) ;; "|>"
+      '(("<-"   #xe100 2) ;; "<-", 
+        ("->"   #xe101 2) ;; "->", 
+        ("<="   #xe102 2) ;; "<=", left short double arrow, not used much it since clashes with less-than-or-equal, 
+        ("=>"   #xe103 2) ;; "=>", 
+        ("<->"  #xe104 3) ;; "<->", 
+        ("<=>"  #xe105 3) ;; "<=>", 
+        ("=="   #xe106 2) ;; "==", 
+        ("/="   #xe107 2) ;; "/=", 
+        ("::"   #xe108 2) ;; "::", 
+        ("<<-"  #xe109 3) ;; "<<-", 
+        ("->>"  #xe10a 3) ;; "->>", 
+        ("<-<"  #xe10b 3) ;; "<-<", 
+        (">->"  #xe10c 3) ;; ">->", 
+        ("++"   #xe10d 2) ;; "++", 
+        ("+++"  #xe10e 3) ;; "+++", 
+        ("<>"   #xe10f 2) ;; "<>", 
+        ("><"   #xe110 2) ;; "><", 
+        ("<<"   #xe111 2) ;; "<<", 
+        (">>"   #xe112 2) ;; ">>", 
+        ("<|"   #xe113 2) ;; "<|", 
+        ("|>"   #xe114 2) ;; "|>", 
 
-        ("##"   #xe115 2) ;; "##"
-        ("###"  #xe116 3) ;; "###"
-        ("####" #xe117 4) ;; "####"
+        ("##"   #xe115 2) ;; "##", 
+        ("###"  #xe116 3) ;; "###", 
+        ("####" #xe117 4) ;; "####", 
 
-        ("<--"  #xe118 3) ;; "<--"
-        ("-->"  #xe119 3) ;; "-->"
-        ("<=="  #xe11a 3) ;; "<=="
-        ("==>"  #xe11b 3) ;; "==>"
+        ("<--"  #xe118 3) ;; "<--", 
+        ("-->"  #xe119 3) ;; "-->", 
+        ("<=="  #xe11a 3) ;; "<==", 
+        ("==>"  #xe11b 3) ;; "==>", 
 
-        ("=<<"  #xe11c 3) ;; "=<<"
-        (">>="  #xe11d 3) ;; ">>="
-        ("<=<"  #xe11e 3) ;; "<=<"
-        (">=>"  #xe11f 3) ;; ">=>"
-        ("<<="  #xe120 3) ;; "<<="
-        ("=>>"  #xe121 3) ;; "=>>"
+        ("=<<"  #xe11c 3) ;; "=<<", 
+        (">>="  #xe11d 3) ;; ">>=", 
+        ("<=<"  #xe11e 3) ;; "<=<", 
+        (">=>"  #xe11f 3) ;; ">=>", 
+        ("<<="  #xe120 3) ;; "<<=", 
+        ("=>>"  #xe121 3) ;; "=>>", 
 
-        ("LE"   #xe122 2) ;; "<=", but has width of 2 as opposed to ?≤
-        ("GE"   #xe123 2) ;; ">=", but has width of 2 as opposed to ?≥
-        ("||"   #xe124 2) ;; "||", but is taller than ?⋁
-        ("&&"   #xe125 2) ;; "&&", but is taller than ?⋀
+        ("LE"   #xe122 2) ;; "<=", but has width of 2 as opposed to ?≤, 
+        ("GE"   #xe123 2) ;; ">=", but has width of 2 as opposed to ?≥, 
+        ("||"   #xe124 2) ;; "||", same as ?⋁, 
+        ("&&"   #xe125 2) ;; "&&", same as ?⋀, 
 
-        ("elem"             #xe12b 2) ;; elem, member
-        ("notElem"          #xe12c 2) ;; notElem, notMember
-        ("isSubsetOf"       #xe12f 2) ;; isSubsetOf
+        ("elem"             #xe12b 2) ;; elem, member, 
+        ("notElem"          #xe12c 2) ;; notElem, notMember, 
+        ("isSubsetOf"       #xe12f 2) ;; isSubsetOf, 
         ;; ("isSubsetOf"       #xe12f t) ;; isSubsetOf, 2 but glyph is broken
-        ("isProperSubsetOf" #xe12e 2) ;; isProperSubsetOf
-        ("emptySet"         #xe12a 2) ;; empty, mempty
+        ("isProperSubsetOf" #xe12e 2) ;; isProperSubsetOf, 
+        ("emptySet"         #xe12a 2) ;; empty, mempty, 
 
-        ("bottom"  #xe127 2) ;; error, undefined - bottom
-        ("forall"  #xe128 2) ;; forall, all
-        ("exists"  #xe129 2) ;; exists, any
-        ("nexists" #xe136 2)
-        ("not"     #xe133 2) ;; not
+        ("top"     #xe126 2) ;; truth - top, 
+        ("bottom"  #xe127 2) ;; error, undefined - bottom, 
+        ("forall"  #xe128 2) ;; forall, all, 
+        ("exists"  #xe129 2) ;; exists, any, 
+        ("nexists" #xe136 2) ;; 
+        ("not"     #xe133 2) ;; not, 
 
-        ("-o"      #xe134 2) ;; linear lollipop, -o
+        ("-o"      #xe134 2) ;; linear lollipop, -o, 
 
         ;; These are less elegant and probably should never be used
-        ;; ("union"        #xe130 2) ;; union, but less elegant than ?⋃
-        ;; ("intersection" #xe131 2) ;; intersection, but less elegant than ?⋂
-        ;; ("sum"          #xe12d 2) ;; sum, but less elegant than ?∑ character
-        ;; ("product"      #xe132 2) ;; product, but less elegant than ?∏ character
-        ;; ("coproduct"    #xe135 2) ;; coproduct, but less elegant than ?∐ character
+        ("union"        #xe130 2) ;; union, but more elegant than ?⋃, 
+        ("intersection" #xe131 2) ;; intersection, but more elegant than ?⋂, 
+        ("sum"          #xe12d 2) ;; sum, same as ?∑ character, 
+        ("product"      #xe132 2) ;; product, same as ?∏ character, 
+        ("coproduct"    #xe135 2) ;; coproduct, same as ?∐ character, 
 
-        ("equivalent"    #xe137 2) ;; equivalent, ≡ 
-        ("notEquivalent" #xe138 2) ;; not equivalent, ≢ 
+        ("equivalent"    #xe137 2) ;; equivalent, ≡ , 
+        ("notEquivalent" #xe138 2) ;; not equivalent, ≢ , 
 
-        ("<-->"  #xe138 4) ;; "<-->"
-        ("<==>"  #xe139 4) ;; "<==>"
+        ("<-->"  #xe138 4) ;; "<-->", 
+        ("<==>"  #xe139 4) ;; "<==>", 
+
+        ("|-"    #xe13a 2) ;; 
+        ("-|"    #xe13b 2) ;; 
+
+        ("nabla" #xe13c 2) ;;  
+
+        ("--->" #xe13d 4) ;; 
+        ("===>" #xe13e 4) ;; 
+        ("<---" #xe13f 4) ;; 
+        ("<===" #xe140 4) ;; 
+
+        ("---->" #xe141 5) ;; 
+        ("====>" #xe142 5) ;; 
+        ("<----" #xe143 5) ;; 
+        ("<====" #xe144 5) ;; 
+        ("<--->" #xe145 5) ;; 
+        ("<===>" #xe146 5) ;; 
+
+        ("similar"        #xe147 2) ;; 
+        ("similarFlipped" #xe148 2) ;; 
+        ("similarEq"      #xe149 2) ;; 
+
+        ("unionBig"        #xe14a 2) ;; union, but less elegant than ?⋃, 
+        ("intersectionBig" #xe14b 2) ;; intersection, but less elegant than ?⋂), 
+        ("sumBig"          #xe14c 2) ;; sum, but less elegant than ?∑ character, 
+        ("productBig"      #xe14d 2) ;; product, but less elegant than ?∏ character, 
+        ("coproductBig"    #xe14e 2) ;; coproduct, but less elegant than ?∐ character, 
+
+        ("orBig"           #xe14f 2) ;; 
+        ("andBig"          #xe150 2) ;; 
+
+        ("squareLT"              #xe151 2) ;; 
+        ("squareGT"              #xe152 2) ;; 
+        ("squareLE"              #xe153 2) ;; 
+        ("squareGE"              #xe154 2) ;; 
+        ("squareUnion"           #xe155 2) ;; 
+        ("squareUnionBig"        #xe156 2) ;; 
+        ("squareIntersection"    #xe157 2) ;; 
+        ("squareIntersectionBig" #xe158 2) ;; 
         )))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
