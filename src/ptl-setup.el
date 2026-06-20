@@ -36,6 +36,7 @@ sexps and indentation levels."
   (init-common :use-comment t
                :use-whitespace 'tabs-and-trailing-only)
   (setup-hideshow-yafolding t nil)
+  (setf vim-shift-width tab-width)
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap
