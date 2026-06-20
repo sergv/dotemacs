@@ -404,8 +404,12 @@ return the correct start-position of emacs-ranges, i.e.
   (pcase (vim-motion-type motion)
     (`linewise
      (save-excursion
-       (goto-line-dumb (vim-motion-first-line motion))
-       (line-beginning-position)))
+       (goto-char (min (vim-motion-begin motion) (vim-motion-end motion)))
+       (line-beginning-position)
+       ;; (if (derived-mode-p 'comint-mode)
+       ;;     (comint-line-beginning-position)
+       ;;   (line-beginning-position))
+       ))
     (`block
         (let ((b (min (vim-motion-begin motion) (vim-motion-end motion)))
               (e (max (vim-motion-begin motion) (vim-motion-end motion))))
@@ -428,7 +432,7 @@ return the correct end-position of emacs-ranges, i.e.
   (pcase (vim-motion-type motion)
     (`linewise
      (save-excursion
-       (goto-line-dumb (vim-motion-last-line motion))
+       (goto-char (max (vim-motion-begin motion) (vim-motion-end motion)))
        (line-end-position)))
     (`block
         (let ((b (min (vim-motion-begin motion) (vim-motion-end motion)))
