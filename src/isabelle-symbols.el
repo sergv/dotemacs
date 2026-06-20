@@ -49,33 +49,32 @@
                ;;     t))
                )))))))
 
-(defconst isabelle-arrows
-  '(("leftarrow"          . "<-")
-    ("Leftarrow"          . "<=")
-    ("rightarrow"         . "->")
-    ("Rightarrow"         . "=>")
+(defconst pretty-ligatures--isabelle-arrows
+  '(("leftarrow"              . "<-")
+    ("Leftarrow"              . "<=")
+    ("rightarrow"             . "->")
+    ("Rightarrow"             . "=>")
 
-    ;; These below have width 3
-    ("leftrightarrow"     . "<->")
-    ("Leftrightarrow"     . "<=>")
-    ("longrightarrow"     . "-->")
-    ("Longrightarrow"     . "==>")
-    ("longleftarrow"      . "<--")
-    ("Longleftarrow"      . "<==")
+    ("leftrightarrow"         . "<->")
+    ("Leftrightarrow"         . "<=>")
+    ("longrightarrow"         . "-->")
+    ("Longrightarrow"         . "==>")
+    ("longleftarrow"          . "<--")
+    ("Longleftarrow"          . "<==")
 
-    ;; These below have width 4
-    ("longleftrightarrow" . "<-->")
-    ("Longleftrightarrow" . "<==>")
+    ("longlongrightarrow"     . "--->")
+    ("Longlongrightarrow"     . "===>")
+    ("longlongleftarrow"      . "<---")
+    ("Longlongleftarrow"      . "<===")
+    ("longleftrightarrow"     . "<-->")
+    ("Longleftrightarrow"     . "<==>")
 
-    ("up"                 . ?↑)
-    ("Up"                 . ?⇑)
-    ("down"               . ?↓)
-    ("Down"               . ?⇓)
-    ("updown"             . ?↕)
-    ("Updown"             . ?⇕)
-
-    ("mapsto"             . ?↦)
-    ("longmapsto"         . ?⟼)
+    ("longlonglongrightarrow" . "---->")
+    ("Longlonglongrightarrow" . "====>")
+    ("longlonglongleftarrow"  . "<----")
+    ("Longlonglongleftarrow"  . "<====")
+    ("longlongleftrightarrow" . "<--->")
+    ("Longlongleftrightarrow" . "<===>")
 
     ;; ("mapsto"         . "|->")
     ;; ("longmapsto"     . "|-->")
@@ -84,62 +83,87 @@
 
     ;; ("midarrow" "─")
     ;; ("Midarrow" "═")
-    ;; ("hookleftarrow" "↩")
-    ;; ("hookrightarrow" "↪")
-    ;; ("leftharpoondown" "↽")
-    ;; ("rightharpoondown" "⇁")
-    ;; ("leftharpoonup" "↼")
-    ;; ("rightharpoonup" "⇀")
-    ;; ("rightleftharpoons" "⇌")
-    ;; ("leadsto" "↝")
-    ;; ("downharpoonleft" "⇃")
-    ;; ("downharpoonright" "⇂")
-    ;; ("upharpoonleft" "↿")
-    ;; ("restriction" "↾")
-    ;; ("up" "↑")
-    ;; ("Up" "⇑")
-    ;; ("down" "↓")
-    ;; ("Down" "⇓")
-    ;; ("updown" "↕")
-    ;; ("Updown" "⇕")
-
     ))
 
+(defconst pretty-ligatures--isabelle-arrows-unicode
+  '(("up"                     . ?↑)
+    ("Up"                     . ?⇑)
+    ("down"                   . ?↓)
+    ("Down"                   . ?⇓)
+    ("updown"                 . ?↕)
+    ("Updown"                 . ?⇕)
+    ("mapsto"                 . ?↦)
+    ("longmapsto"             . ?⟼)
+    ("leftrightharpoons"      . ?⇋)
+    ("rightleftharpoons"      . ?⇌)
+    ("rightharpoonup"         . ?⇀)
+    ("rightharpoondown"       . ?⇁)
+    ("leftharpoonup"          . ?↼)
+    ("leftharpoondown"        . ?↽)
+    ("downharpoonleft"        . ?⇃)
+    ("downharpoonright"       . ?⇂)
+    ("upharpoonleft"          . ?↿)
+    ("upharpoonright"         . ?↾)
+    ("hookleftarrow"          . ?↩)
+    ("hookrightarrow"         . ?↪)
+    ("leadsto"                . ?↝)
+    ("up"                     . ?↑)
+    ("Up"                     . ?⇑)
+    ("down"                   . ?↓)
+    ("Down"                   . ?⇓)
+    ("updown"                 . ?↕)
+    ("Updown"                 . ?⇕)))
+
 (defconst pretty-ligatures--isabelle-all-glyphs
-  (eval-when-compile
-    (append
-     isabelle-arrows
-     '(("Colon"    . "::")
-       ("bottom"   . "bottom")
-       ("forall"   . "forall")
-       ("exists"   . "exists")
-       ("nexists"  . "nexists")
-       ("not"      . "not")
-       ("emptyset" . "emptySet")
-       ("in"       . "elem")
-       ("notin"    . "notElem")
-       ("subseteq" . "isSubsetOf")
-       ("union"    . ?⋃)
-       ("inter"    . ?⋂)
+  '(("Colon"     . "::")
+    ("bottom"    . "bottom")
+    ("forall"    . "forall")
+    ("exists"    . "exists")
+    ("nexists"   . "nexists")
+    ("not"       . "not")
+    ("emptyset"  . "emptySet")
+    ("in"        . "elem")
+    ("notin"     . "notElem")
+    ("subseteq"  . "isSubsetOf")
+    ("union"     . "union")
+    ("inter"     . "intersection")
 
-       ;; These two should be taller than n-ary conjunction character (?⋀)
-       ("And"      . "&&")
-       ("Or"       . "||")
+    ;; These two should be taller than n-ary conjunction character (?⋀)
+    ("And"       . "andBig")
+    ("Or"        . "orBig")
 
-       ("noteq"    . "/=")
+    ("noteq"     . "/=")
 
-       ("and"      . ?⋀) ;; Use n-ary character to take 2 symbols and be more distinctive
-       ("or"       . ?⋁)
+    ("and"       . "&&") ;; Use n-ary character to take 2 symbols and be more distinctive
+    ("or"        . "||")
 
-       ("Sum"      . ?∑)
-       ("Prod"     . ?∏)
-       ("Coprod"   . ?∐)
+    ("Union"     . "unionBig")
+    ("Inter"     . "intersectionBig")
+    ("Sum"       . "sumBig")
+    ("Prod"      . "productBig")
+    ("Coprod"    . "coproductBig")
 
-       ("comment"  . ?―)
-       ("infinity" . ?∞)
+    ("comment"   . ?―)
+    ("infinity"  . ?∞)
 
-       ("equiv"    . "equivalent"))))
-  "Mapping to specific ‘Iosevka Slab Lig’ glyphs.")
+    ("equiv"     . "equivalent")
+
+    ("bottom"    . "bottom")
+    ("top"       . "top")
+    ("turnstile" . "|-")
+    ("nabla"     . "nabla")
+    ("sim"       . "similar")
+    ("simeq"     . "similarEq")
+
+    ("squnion"    . "squareUnion")
+    ("Squnion"    . "squareUnionBig")
+    ("sqinter"    . "squareIntersection")
+    ("Sqinter"    . "squareIntersectionBig")
+    ("sqsubset"   . "squareLT")
+    ("sqsupset"   . "squareGT")
+    ("sqsubseteq" . "squareLE")
+    ("sqsupseteq" . "squareGE"))
+  "Mapping from Isabelle commands, e.g. \\<FOO>, to specific ‘Iosevka Slab Lig’ glyphs.")
 
 (defconst pretty-ligatures--isabelle-unicode-ligatures
   '(("alpha"     . ?α)
@@ -240,7 +264,6 @@
     ("dagger"    . ?†)
     ("ddagger"   . ?‡)
 
-    ("nabla"     . ?∇)
     ("partial"   . ?∂)
     ("integral"  . ?∫)
     ("ointegral" . ?∮)
@@ -258,6 +281,9 @@
 
     ("times"     . ?×) ;; ?⨉
     ("cdot"      . ?·)
+    ("star"      . ?⋆)
+
+    ("dots"      . ?…)
 
     ("langle"         . ?\⟨)
     ("rangle"         . ?\⟩)
@@ -272,20 +298,30 @@
     ("lbrace"         . ?\⦃)
     ("rbrace"         . ?\⦄)
     ("guillemotleft"  . ?\«)
-    ("guillemotright" . ?\»)
-    ("bottom"         . ?⊥)
-    ("top"            . ?⊤))
-  "Mapping to regular unicode characters.")
+    ("guillemotright" . ?\»))
+  "Mapping from Isabelle commands, e.g. \\<FOO>, to regular unicode characters.")
+
+(defconst pretty-ligatures--isabelle-vanilla-glyphs
+  '(("::"   . "::")
+    ("##"   . "##")
+    ("###"  . "###")
+    ("####" . "####"))
+  "Mapping of arbitrary buffer stings to ‘Iosevka Slab Lig’ glyph replacements.")
 
 (defconst pretty-ligatures--isabelle-replacements
   (eval-when-compile
     (append
      (--map (cons (concat "\\<" (car it) ">")
                   (pretty-ligatures--make-glyph-composition (cdr it)))
-            pretty-ligatures--isabelle-all-glyphs)
+            (append pretty-ligatures--isabelle-arrows
+                    pretty-ligatures--isabelle-all-glyphs))
      (--map (cons (concat "\\<" (car it) ">")
                   (pretty-ligatures--make-literal-singleton-composition (cdr it)))
-            pretty-ligatures--isabelle-unicode-ligatures))))
+            (append pretty-ligatures--isabelle-arrows-unicode
+                    pretty-ligatures--isabelle-unicode-ligatures))
+     (--map (cons (car it)
+                  (pretty-ligatures--make-glyph-composition (cdr it)))
+            pretty-ligatures--isabelle-vanilla-glyphs))))
 
 ;;;###autoload
 (defun pretty-ligatures-install-isabelle-ligatures! ()
