@@ -3,61 +3,60 @@
     nixpkgs = {
       url = "nixpkgs";
     };
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachSystem ["x86_64-linux" "i686-linux"] (system:
-      let pkgs = nixpkgs.legacyPackages.${system};
+  outputs = { self, nixpkgs }:
+    let systems       = ["x86_64-linux" "i686-linux" "aarch64-linux" "aarch64-darwin"];
+        lib           = nixpkgs.lib;
+        forEachSystem = lib.genAttrs systems;
+    in {
+      devShells = forEachSystem (system:
+        let pkgs   = nixpkgs.legacyPackages."${system}";
+            stdenv = pkgs.stdenv;
+            cc     = stdenv.cc.cc;
+            # hpkgs = pkgs.haskell.packages.ghc961;
+        in {
+          default = pkgs.mkShell {
+            nativeBuildInputs = [
+              # pkgs.tree-sitter
+              cc
+              pkgs.libgccjit
+              # pkgs.nodejs
+              #hpkgs.ghc
+              # pkgs.emacs
+              # pkgs.emacsNativeComp
 
-          stdenv = pkgs.stdenv;
+              ## For running tests
+              #hpkgs.cabal-install
+              #hpkgs.fast-tags
+              #pkgs.universal-ctags
+            ];
 
-          cc = stdenv.cc.cc;
-
-          # hpkgs = pkgs.haskell.packages.ghc961;
-      in {
-        devShell = pkgs.mkShell {
-
-          nativeBuildInputs = [
-            # pkgs.tree-sitter
-            cc
-            pkgs.libgccjit
-            # pkgs.nodejs
-            #hpkgs.ghc
-            # pkgs.emacs
-            # pkgs.emacsNativeComp
-
-            ## For running tests
-            #hpkgs.cabal-install
-            #hpkgs.fast-tags
-            #pkgs.universal-ctags
-          ];
-
-          # For native compilation
-          LIBRARY_PATH=
-            "${pkgs.lib.makeLibraryPath [cc pkgs.glibc]}:${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc/${stdenv.hostPlatform.config}/${pkgs.lib.getVersion cc}";
+            # For native compilation
+            LIBRARY_PATH=
+              "${pkgs.lib.makeLibraryPath [cc pkgs.glibc]}:${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc/${stdenv.hostPlatform.config}/${pkgs.lib.getVersion cc}";
 
 
             # ${pkgs.lib.getVersion pkgs.stdenv.cc.cc}
-         # pkgs.lib.getLib pkgs.stdenv.cc.cc + /lib
-# pkgs.lib.getLib pkgs.stdenv.glibc + /lib
-# pkgs.lib.getLib pkgs.libgccjit + /lib/gcc/x86_64-unknown-linux-gnu/9.3.0
+            # pkgs.lib.getLib pkgs.stdenv.cc.cc + /lib
+            # pkgs.lib.getLib pkgs.stdenv.glibc + /lib
+            # pkgs.lib.getLib pkgs.libgccjit + /lib/gcc/x86_64-unknown-linux-gnu/9.3.0
 
-          # LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeDeps;
+            # LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeDeps;
 
-          # # Add executable packages to the nix-shell environment.
-          # packages = [
-          #   # hpkgs.ghc
-          #   # hpkgs.cabal-install
-          #   pkgs.zlib
-          # ];
+            # # Add executable packages to the nix-shell environment.
+            # packages = [
+            #   # hpkgs.ghc
+            #   # hpkgs.cabal-install
+            #   pkgs.zlib
+            # ];
 
-          # Add build dependencies of the listed derivations to the nix-shell environment.
-          # inputsFrom = [ pkgs.hello pkgs.gnutar ];
+            # Add build dependencies of the listed derivations to the nix-shell environment.
+            # inputsFrom = [ pkgs.hello pkgs.gnutar ];
 
-          # ... - everything mkDerivation has
-        };
-      });
+            # ... - everything mkDerivation has
+          };
+        }
+      );
+    };
 }
