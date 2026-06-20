@@ -793,7 +793,10 @@ Error is given as MSG and reported between POS and END."
          (when (string-match "Unused quantified type variable ‘\\(.*\\)’" msg)
            (attrap-one-option "delete type variable"
              ;; note there can be a kind annotation, not just a variable.
-             (delete-region (point) (+ (point) (- (match-end 1) (match-beginning 1))))))
+             (delete-region (point) (+ (point) (- (match-end 1) (match-beginning 1))))
+             (if (eq (following-char) ?.)
+                 (delete-whitespace-backward)
+               (delete-whitespace-forward))))
          ;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
          (when-let ((m (s-match (rx "No module named " (identifier 1) " is imported.")
                                 msg
