@@ -206,21 +206,21 @@
   (vim--use-last-column!)
   (let (line-move-visual
         (c (1- (or count 1))))
-    (if (/= 0 c)
-        (forward-line c)
-      (vim-make-motion :has-begin t
-                       :begin (line-beginning-position)
-                       :end (line-end-position)
-                       :type 'linewise))))
+    (if (zerop c)
+        (vim-make-motion :has-begin t
+                         :begin (line-beginning-position)
+                         :end (line-end-position)
+                         :type 'linewise)
+      (forward-line c))))
 
 (vim-defmotion vim:motion-current-line (linewise count raw-result)
   "Moves count - 1 lines down, properly considering the case when point is at
 e.g. shell prompt."
   (vim--use-last-column!)
-  (let (line-move-visual
-        (start (line-beginning-position)))
+  (let (line-move-visual)
+    (backtrace)
     (vim-make-motion :has-begin t
-                     :begin start
+                     :begin (line-beginning-position)
                      :end (line-end-position (or count 1))
                      ;; anything but linewise or block
                      :type 'exclusive)))
