@@ -104,7 +104,8 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
                  ")")
                 (:eval
                  (when (buffer-narrowed-p)
-                   "(Narrowed)"))))
+                   "(Narrowed)"))
+                (:eval (mode-line-show-search-matches))))
   (add-hook 'post-command-hook #'select-mode--update-selected-item nil t)
   ;; (add-hook 'kill-buffer-hook #'select-mode--finish-selection nil t)
   )
