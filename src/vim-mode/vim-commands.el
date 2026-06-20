@@ -159,26 +159,34 @@ and switches to insert-mode."
 (defun vim--cmd-delete-line-impl (count yank?)
   (when yank?
     (vim:cmd-yank-line nil count nil nil nil))
-  (let ((beg (line-beginning-position))
+  (let ((newline-deleted? nil)
+        (beg (line-beginning-position))
         (end (save-excursion
                (let ((n (1- (or count 1))))
                  (when (/= 0 n)
                    (forward-line n)))
                (line-end-position))))
-    (if (= beg (point-min))
-        (if (= end (point-max))
+    (if (eq beg (point-min))
+        (if (eq end (point-max))
             (erase-buffer)
+          ;; Delete trailing newline.
           (delete-region beg (save-excursion
                                (goto-char end)
                                (forward-line)
                                (line-beginning-position))))
-      (delete-region (save-excursion
-                       (goto-char beg)
-                       (forward-line -1)
-                       (line-end-position))
+      ;; Delete preceding newline unless there’s comint prompt.
+      (delete-region (if (derived-mode-p 'comint-mode)
+                         (comint-line-beginning-position)
+                       (progn
+                         (setf newline-deleted? t)
+                         (save-excursion
+                           (goto-char beg)
+                           (forward-line -1)
+                           (line-end-position))))
                      end))
     (goto-char beg)
-    (vim:motion-first-non-blank:wrapper)))
+    (vim:motion-first-non-blank:wrapper)
+    newline-deleted?))
 
 (vim-defcmd vim:cmd-delete (motion)
   "Deletes the characters defined by motion."
@@ -187,7 +195,7 @@ and switches to insert-mode."
 (defun vim--cmd-delete-impl (motion yank?)
   (pcase (vim-motion-type motion)
     (`linewise
-     (goto-line-dumb (vim-motion-first-line motion))
+     (goto-char (vim-motion-begin-pos motion))
      (vim--cmd-delete-line-impl (vim-motion-line-count motion) yank?))
 
     (`block
@@ -218,7 +226,7 @@ and switches to insert-mode."
   "Deletes the characters defined by motion and goes to insert mode."
   (pcase (vim-motion-type motion)
     (`linewise
-     (goto-line-dumb (vim-motion-first-line motion))
+     (goto-char (vim-motion-begin-pos motion))
      (vim:cmd-change-line nil (vim-motion-line-count motion) nil nil nil))
 
     (`block
@@ -255,15 +263,17 @@ and switches to insert-mode."
 (vim-defcmd vim:cmd-change-line (count)
   "Deletes count lines and goes to insert mode."
   (let ((pos (line-beginning-position)))
-    (vim:cmd-delete-line nil count nil nil nil)
-    (if (< (point) pos)
-      (progn
-        (end-of-line)
-        (newline))
-      (progn
-        (beginning-of-line)
-        (newline)
-        (forward-line -1)))
+    (backtrace)
+    (let ((newline-deleted? (vim--cmd-delete-line-impl count t)))
+      (when newline-deleted?
+        (if (< (point) pos)
+            (progn
+              (end-of-line)
+              (newline))
+          (progn
+            (beginning-of-line)
+            (newline)
+            (forward-line -1)))))
     (indent-according-to-mode)
     (if (eolp)
         (vim:cmd-append nil 1 nil nil nil)
@@ -315,7 +325,8 @@ and switches to insert-mode."
   "Saves the next count lines into the kill-ring."
   (let ((beg (line-beginning-position)))
     (save-excursion
-      (forward-line (1- (or count 1)))
+      (unless (eq count 1)
+        (forward-line (1- (or count 1))))
       (let ((txt (concat (buffer-substring-no-properties beg (line-end-position)) "\n")))
         (put-text-property 0
                            (length txt)
@@ -357,8 +368,9 @@ and switches to insert-mode."
   "Saves the characters in motion into the kill-ring."
   (pcase (vim-motion-type motion)
     (`block (vim:cmd-yank-rectangle motion nil nil nil nil))
-    (`linewise (goto-line-dumb (vim-motion-first-line motion))
-               (vim:cmd-yank-line nil (vim-motion-line-count motion) nil nil nil))
+    (`linewise
+     (goto-char (vim-motion-begin-pos motion))
+     (vim:cmd-yank-line nil (vim-motion-line-count motion) nil nil nil))
     (_
      (let ((text (buffer-substring-no-properties
                   (vim-motion-begin-pos motion)
@@ -664,34 +676,32 @@ indented according to the current mode."
 
 (vim-defcmd vim:cmd-join (motion)
   "Join the lines covered by `motion'."
-  (goto-line-dumb (vim-motion-first-line motion))
+  (goto-char (vim-motion-begin-pos motion))
   (vim:cmd-join-lines nil (vim-motion-line-count motion) nil nil nil))
 
-(defun vim:cmd-shift--ident (start-line end-line offset)
+(defun vim:cmd-shift--ident (start-pos line-count offset)
   (save-current-line-column
-    (goto-line-dumb start-line)
+    (goto-char start-pos)
     (beginning-of-line)
-    (let ((i 0))
-      (while (<= (+ start-line i) end-line)
-        (let ((curr-indent (current-indentation))
-              (whitespace-chars 0)
-              (is-empty-line? nil))
-          (save-excursion
-            (setf whitespace-chars (skip-chars-forward " \t"))
-            (setq is-empty-line? (eolp)))
-          (unless is-empty-line?
-              (indent-to (max 0 (+ curr-indent offset)) 0))
-            (delete-region (point) (+ whitespace-chars (point))))
-        (beginning-of-line)
-        (cl-incf i)
-        (forward-line 1)))))
+    (dotimes (_ line-count)
+      (let ((curr-indent (current-indentation))
+            (whitespace-chars 0)
+            (is-empty-line? nil))
+        (save-excursion
+          (setf whitespace-chars (skip-chars-forward " \t"))
+          (setq is-empty-line? (eolp)))
+        (unless is-empty-line?
+          (indent-to (max 0 (+ curr-indent offset)) 0))
+        (delete-region (point) (+ whitespace-chars (point))))
+      (beginning-of-line)
+      (forward-line 1))))
 
 (vim-defcmd vim:cmd-shift-left (motion keep-visual)
   "Shift the lines covered by `motion' leftwards."
   (when (= 0 vim-shift-width)
     (error "vim-shift-width is zero"))
-  (vim:cmd-shift--ident (vim-motion-first-line motion)
-                        (vim-motion-last-line motion)
+  (vim:cmd-shift--ident (vim-motion-begin-pos motion)
+                        (vim-motion-line-count motion)
                         (- vim-shift-width))
   (setf deactivate-mark nil))
 
@@ -699,8 +709,8 @@ indented according to the current mode."
   "Shift the lines covered by `motion' rightwards."
   (when (= 0 vim-shift-width)
     (error "vim-shift-width is zero"))
-  (vim:cmd-shift--ident (vim-motion-first-line motion)
-                        (vim-motion-last-line motion)
+  (vim:cmd-shift--ident (vim-motion-begin-pos motion)
+                        (vim-motion-line-count motion)
                         vim-shift-width)
   (setf deactivate-mark nil))
 
