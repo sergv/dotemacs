@@ -32,7 +32,8 @@
       ("~"    . "\\<not>")
       ("&"    . "\\<and>")
       ("|"    . "\\<or>")
-      ("=="   . "\\<equiv>")))))
+      ("=="   . "\\<equiv>")
+      ("..."  . "\\<dots>")))))
 
 (defun isabelle-abbrev+-setup ()
   (setf abbrev+-abbreviations (isabelle-abbrev+-make-abbrevs)
