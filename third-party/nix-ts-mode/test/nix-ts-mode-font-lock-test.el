@@ -211,7 +211,7 @@ let }
                '(("null" font-lock-constant-face)
                  ("true" font-lock-constant-face)
                  ("false" font-lock-constant-face)
-                 ("builtins" font-lock-constant-face)
+                 ("builtins" font-lock-type-face)
                  ("currentSystem" font-lock-builtin-face))))
 
 (ert-deftest nix-ts-import-keyword ()
