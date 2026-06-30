@@ -292,4 +292,9 @@ let }
                '(("let" font-lock-keyword-face))))
 
 (provide 'nix-ts-mode-font-lock-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; nix-ts-mode-font-lock-test.el ends here
