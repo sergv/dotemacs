@@ -1,0 +1,12 @@
+on:
+  push:
+    branches:
+      - "trunk"
+
+jobs:
+  lint-and-test:
+    uses: ./.github/workflows/lint-and-test.yaml
+    secrets: inherit
+    permissions:
+      contents: read
+      pull-requests: read
