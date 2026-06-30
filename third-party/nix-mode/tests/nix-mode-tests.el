@@ -250,4 +250,9 @@ Related issue: https://github.com/NixOS/nix-mode/issues/94"
   (with-nix-mode-test ("issue-128.nix" :indent 'nix-indent-line)))
 
 (provide 'nix-mode-tests)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; nix-mode-tests.el ends here
