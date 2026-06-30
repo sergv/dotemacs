@@ -39,6 +39,10 @@ if [[ -z "$to_load" ]]; then
     # "lsp-mode/test"
     for y in "haskell-mode/tests" "nix-mode/tests" "nix-ts-mode/test" "f.el/test" "rainbow-delimiters" "poly-mode/tests"; do
         for x in "$EMACS_ROOT/third-party/$y"/*.el; do
+            if [[ ! -f "$x" ]]; then
+                echo "Test file does not exist: '$x'" >&2
+                exit 1
+            fi
             if [[ $(basename "$x") != "mock-lsp-server.el" ]]; then
                 tests="$tests (require '$(basename "${x%%.el}"))"
             fi
