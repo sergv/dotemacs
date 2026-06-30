@@ -41,7 +41,10 @@
                  '(scala-mode . scala-ts-mode)))
   (when (treesit-language-available-p 'bash)
     (add-to-list 'major-mode-remap-alist
-                 '(sh-mode . bash-ts-mode))))
+                 '(sh-mode . bash-ts-mode)))
+  (when (treesit-language-available-p 'nix)
+    (add-to-list 'major-mode-remap-alist
+                 '(nix-mode . nix-ts-mode))))
 
 (defun treesit-parse-file (path language)
   "Parse STRING using a parser for LANGUAGE.

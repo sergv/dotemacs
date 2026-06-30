@@ -145,6 +145,7 @@ Intended to be used with comment-util-mode."
 
             ((org-mode
               nix-mode
+              nix-ts-mode
               makefile-mode
               makefile-gmake-mode
               makefile-automake-mode

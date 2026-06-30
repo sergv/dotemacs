@@ -125,6 +125,11 @@ _a_lign"
   (setq-local vim-shift-width 2
               search-syntax-table nix-search-fixed-syntax-table)
 
+  (when (eq major-mode 'nix-ts-mode)
+    (setq-local treesit-font-lock-level 4)
+    ;; parameter parameter-atpattern
+    (treesit-font-lock-recompute-features nil '(paren-base function-call property)))
+
   (setup-hideshow-yafolding t '(:header-symbol "#" :length-min 3))
 
   (nix-abbrev+-setup)
@@ -167,6 +172,8 @@ _a_lign"
 
 ;;;###autoload
 (add-hook 'nix-mode-hook #'nix-setup)
+;;;###autoload
+(add-hook 'nix-ts-mode-hook #'nix-setup)
 
 ;;;###autoload
 (defun nix-repl-setup ()
