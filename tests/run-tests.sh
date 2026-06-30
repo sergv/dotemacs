@@ -37,7 +37,7 @@ if [[ -z "$to_load" ]]; then
         # tests="$tests (require '$(basename "${x%%.el}"))"
 
     # "lsp-mode/test"
-    for y in "haskell-mode/tests" "nix-mode/tests" "f.el/test" "rainbow-delimiters" "poly-mode/tests"; do
+    for y in "haskell-mode/tests" "nix-mode/tests" "nix-ts-mode/test" "f.el/test" "rainbow-delimiters" "poly-mode/tests"; do
         for x in "$EMACS_ROOT/third-party/$y"/*.el; do
             if [[ $(basename "$x") != "mock-lsp-server.el" ]]; then
                 tests="$tests (require '$(basename "${x%%.el}"))"

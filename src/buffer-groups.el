@@ -48,7 +48,8 @@
                                                            "*"
                                                            (? "<" (+ digit) ">")))
                                                   eos))))
-       (nix-filter `(or (mode . nix-mode)))
+       (nix-filter `(or (mode . nix-mode)
+                        (mode . nix-ts-mode)))
        (hdl-filter `(or (mode . verilog-mode)
                         (mode . vhdl-mode)
                         (mode . ucf-mode)))
