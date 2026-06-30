@@ -18,6 +18,12 @@
 (require 'ert-x)
 (require 'nix-ts-mode)
 
+(defmacro with-nix-ts-mode (&rest body)
+  `(progn
+     (let ((nix-ts-mode-hook nil))
+       (nix-ts-mode))
+     ,@body))
+
 (defmacro with-nix-buffer-contents (&rest body)
   "Run `BODY` in the context of a new buffer set to `nix-ts-mode`."
   `(with-temp-buffer
@@ -38,47 +44,47 @@ output is identical to the given expression."
 
 ;;; Features
 
-(ert-deftest nix-multiline-string ()
+(ert-deftest nix-ts-mode/indent-multiline-string ()
   (ert-test-erts-file (ert-resource-file "indent-multiline-string.erts")
                       (lambda ()
-                        (nix-ts-mode)
-                        (indent-region (point-min) (point-max)))))
+                        (with-nix-ts-mode
+                         (indent-region (point-min) (point-max))))))
 
-(ert-deftest nix-let-in ()
+(ert-deftest nix-ts-mode/indent-let-in ()
   (ert-test-erts-file (ert-resource-file "indent-let-in.erts")
                       (lambda ()
-                        (nix-ts-mode)
-                        (indent-region (point-min) (point-max)))))
+                        (with-nix-ts-mode
+                         (indent-region (point-min) (point-max))))))
 
-(ert-deftest nix-formals ()
+(ert-deftest nix-ts-mode/indent-formals ()
   (ert-test-erts-file (ert-resource-file "indent-formals.erts")
                       (lambda ()
-                        (nix-ts-mode)
-                        (indent-region (point-min) (point-max)))))
+                        (with-nix-ts-mode
+                         (indent-region (point-min) (point-max))))))
 
-(ert-deftest nix-list ()
+(ert-deftest nix-ts-mode/indent-list ()
   (ert-test-erts-file (ert-resource-file "indent-list.erts")
                       (lambda ()
-                        (nix-ts-mode)
-                        (indent-region (point-min) (point-max)))))
+                        (with-nix-ts-mode
+                         (indent-region (point-min) (point-max))))))
 
-(ert-deftest nix-attrset ()
+(ert-deftest nix-ts-mode/indent-attrset ()
   (ert-test-erts-file (ert-resource-file "indent-attrset.erts")
                       (lambda ()
-                        (nix-ts-mode)
-                        (indent-region (point-min) (point-max)))))
+                        (with-nix-ts-mode
+                         (indent-region (point-min) (point-max))))))
 
-(ert-deftest nix-inherit ()
+(ert-deftest nix-ts-mode/indent-inherit ()
   (ert-test-erts-file (ert-resource-file "indent-inherit.erts")
                       (lambda ()
-                        (nix-ts-mode)
-                        (indent-region (point-min) (point-max)))))
+                        (with-nix-ts-mode
+                         (indent-region (point-min) (point-max))))))
 
-(ert-deftest nix-func-expr ()
+(ert-deftest nix-ts-mode/indent-func-expr ()
   (ert-test-erts-file (ert-resource-file "indent-func-expr.erts")
                       (lambda ()
-                        (nix-ts-mode)
-                        (indent-region (point-min) (point-max)))))
+                        (with-nix-ts-mode
+                         (indent-region (point-min) (point-max))))))
 
 (provide 'nix-ts-mode-indent-test)
 
