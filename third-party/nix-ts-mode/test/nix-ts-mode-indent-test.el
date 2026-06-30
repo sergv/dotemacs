@@ -81,3 +81,7 @@ output is identical to the given expression."
                         (indent-region (point-min) (point-max)))))
 
 (provide 'nix-ts-mode-indent-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
