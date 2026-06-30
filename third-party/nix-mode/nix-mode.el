@@ -901,22 +901,23 @@ END where to end the region."
   (interactive (list (region-beginning) (region-end)))
   (save-excursion
     (goto-char start)
-    (while (< (point) end)
-      (or (and (bolp) (eolp))
-          (when (and
-                 ;; Skip if previous line is empty or a comment.
-                 (save-excursion
-                   (let ((line-is-comment-p (nix-is-comment-p)))
-                     (forward-line -1)
-                     (not
-                      (or (and (nix-is-comment-p)
-                               ;; Unless this line is a comment too.
-                               (not line-is-comment-p))
-                          (nix-is-comment-p)))))
-                 ;; Don't mess with strings.
-                 (nix-is-string-p))
-            (funcall nix-indent-function)))
-      (forward-line 1))))
+    (with-marker (end-mark (copy-marker end))
+      (while (< (point) end-mark)
+	(or (and (bolp) (eolp))
+	    (when (and
+                   ;; Skip if previous line is empty or a comment.
+                   (save-excursion
+                     (let ((line-is-comment-p (nix-is-comment-p)))
+                       (forward-line -1)
+                       (not
+			(or (and (nix-is-comment-p)
+				 ;; Unless this line is a comment too.
+				 (not line-is-comment-p))
+                            (nix-is-comment-p)))))
+                   ;; Don't mess with strings.
+		   (not (nix-is-string-p)))
+	      (funcall nix-indent-function)))
+	(forward-line 1)))))
 
 ;;;###autoload
 (defun nix-mode-ffap-nixpkgs-path (str)
