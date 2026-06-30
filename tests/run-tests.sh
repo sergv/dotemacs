@@ -15,20 +15,21 @@ cd "$(dirname "$0")"
 
 emacs="${EMACS:-emacs}"
 
+to_load=""
 tests=""
 matcher="t"
 
 if [[ "$#" -gt 0 ]]; then
     for x in "${@}"; do
         if [[ -f "$x" ]]; then
-            tests="$tests -l $x"
+            to_load="$to_load -l $x"
         else
             matcher="$x"
         fi
     done
 fi
 
-if [[ -z "$tests" ]]; then
+if [[ -z "$to_load" ]]; then
     for x in "$EMACS_ROOT/tests"/*.el; do
         # tests="$tests -l $x"
         tests="$tests (require '$(basename "${x%%.el}"))"
@@ -90,6 +91,7 @@ EOF
       -L "$EMACS_ROOT/third-party/f.el/test" \
       -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
       -L "$EMACS_ROOT/third-party/poly-mode/tests" \
+      $to_load \
       --eval "$requires" \
       -l start \
       --eval "(progn $tests)" \
