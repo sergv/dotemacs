@@ -1,0 +1,29 @@
+Name: simple-formals
+
+=-=
+{
+x,
+y,
+...
+}: 42
+=-=
+{
+  x,
+  y,
+  ...
+}: 42
+=-=-=
+
+Name: formals-leading-comma
+
+=-=
+{ x
+, y
+, ...
+}: 42
+=-=
+{ x
+, y
+, ...
+}: 42
+=-=-=

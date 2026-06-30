@@ -1,0 +1,83 @@
+Name: multiline-string
+
+=-=
+{
+  a = "
+indentation
+ is not stripped
+     in these strings
+so it should
+   not be changed
+      ";
+}
+=-=
+{
+  a = "
+indentation
+ is not stripped
+     in these strings
+so it should
+   not be changed
+      ";
+}
+=-=-=
+
+Name: simple-indented-string
+
+=-=
+{
+  a = ''
+    hi [
+      test
+    ]
+  '';
+}
+=-=
+{
+  a = ''
+    hi [
+      test
+    ]
+  '';
+}
+=-=-=
+
+Name: indented-string-with-interpolations
+
+=-=
+{
+  b = "hi";
+  a = ''
+    ${b}
+    but also
+    bye
+  '';
+}
+=-=
+{
+  b = "hi";
+  a = ''
+    ${b}
+    but also
+    bye
+  '';
+}
+=-=-=
+
+Name: indented-string-with-escaped-interpolations
+
+=-=
+{
+  a = ''
+    what=''${1:-hi}
+    echo "$what"
+  '';
+}
+=-=
+{
+  a = ''
+    what=''${1:-hi}
+    echo "$what"
+  '';
+}
+=-=-=
