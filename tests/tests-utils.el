@@ -74,21 +74,31 @@
 (el-patch-defun ert--pp-with-indentation-and-newline (object)
   "Pretty-print OBJECT, indenting it to the current column of point.
 Ensures a final newline is inserted."
-  (el-patch-wrap 3 0
-    (if (and (consp object)
-             (eq (car object) 'ert-test-failed)
-             (stringp (cdr object)))
-        (progn
-          (delete-region (line-beginning-position) (point))
-          (insert (cdr object) "\n"))
-      (let ((begin (point))
-            (pp-escape-newlines t)
-            (print-escape-control-characters t))
-        (pp object (current-buffer))
-        (unless (bolp) (insert "\n"))
-        (save-excursion
-          (goto-char begin)
-          (indent-sexp))))))
+  (el-patch-wrap 2 0
+    (let ((str (and (consp object)
+                    (eq (car object) 'ert-test-failed)
+                    (or (and (stringp (cdr object))
+                             (cdr object))
+                        (and (listp (cdr object))
+                             (listp (cadr object))
+                             (let ((tmp (cadr object)))
+                               (and (stringp (car tmp))
+                                    (string-prefix-p "Mismatch in test" (car tmp))
+
+                                    (concat (car tmp) "\nActual:\n" (cadr tmp) "\nExpected:\n" (caddr tmp)))))))))
+      (el-patch-wrap 3 0
+        (if str
+            (progn
+              (delete-region (line-beginning-position) (point))
+              (insert str "\n"))
+          (let ((begin (point))
+                (pp-escape-newlines t)
+                (print-escape-control-characters t))
+            (pp object (current-buffer))
+            (unless (bolp) (insert "\n"))
+            (save-excursion
+              (goto-char begin)
+              (indent-sexp))))))))
 
 (cl-defmacro tests-utils--test-buffer-contents
     (&key action
