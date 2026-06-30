@@ -653,6 +653,8 @@
       (dired-broken-symlink :inherit error :bold t)
       (ert-test-result-expected :background ,green-aux-bg)
       (ert-test-result-unexpected :background ,red-aux-bg)
+      (erts-mode-specification-name :foreground ,green)
+      (erts-mode-specification-value :foreground ,blue)
       (flyspell-duplicate :bold t :foreground ,green :underline t)
       (flyspell-incorrect :bold t :foreground ,orange :underline t)
       (font-latex-bold-face :inherit bold)
