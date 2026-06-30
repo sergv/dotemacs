@@ -91,8 +91,9 @@
     "__unsafeDiscardStringContext" "__unsafeGetAttrPos" "__zipAttrsWith"))
 
 (defvar nix-ts--treesit-constants
+  ;; NB Remove ‘builtins’ from the output of this command.
   ;; nix eval --impure --expr 'with builtins; filter (x: !(isFunction builtins.${x} || isBool builtins.${x})) (attrNames builtins)'
-  '("builtins" "currentSystem" "currentTime" "langVersion" "nixPath" "nixVersion" "null" "storeDir"))
+  '("currentSystem" "currentTime" "langVersion" "nixPath" "nixVersion" "null" "storeDir"))
 
 ;; Settings
 (defvar nix-ts-mode--font-lock-settings
