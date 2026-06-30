@@ -267,6 +267,7 @@ to the offending pattern and highlight the pattern."
 
 ;; Debug indentation:
 ;; (setf treesit--indent-verbose t)
+;; (setf treesit--font-lock-verbose t)
 
 ;; (add-to-list 'treesit-simple-indent-presets
 ;;              (cons 'n-p-gp-debug
