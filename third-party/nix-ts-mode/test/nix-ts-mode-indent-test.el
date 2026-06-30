@@ -18,6 +18,8 @@
 (require 'ert-x)
 (require 'nix-ts-mode)
 
+(require 'tests-utils)
+
 (defmacro with-nix-ts-mode (&rest body)
   `(progn
      (let ((nix-ts-mode-hook nil))
