@@ -16,6 +16,7 @@
 (require 'find-files)
 
 (require 'ert)
+(require 'tests-utils)
 
 (defconst eproj-tests/faster-richer-tags-exe
   (cached-executable-find "faster-richer-tags"))
