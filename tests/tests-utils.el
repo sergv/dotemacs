@@ -208,6 +208,10 @@ Ensures a final newline is inserted."
     (sh-mode (sh-mode))
     (bash-ts-mode (bash-ts-mode))))
 
+(defconst vim-tests--all-known-modes-and-init
+  (append '((nix-mode (nix-mode)))
+          tests-utils--modes-and-init))
+
 (cl-defmacro tests-utils--test-buffer-contents-for-inits
     (&key name
           inits
