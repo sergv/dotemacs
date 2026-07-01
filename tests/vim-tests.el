@@ -4719,7 +4719,7 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma-6a
-    (execute-kbd-macro (kbd "i # # SPC SPC <escape>"))
+    (execute-kbd-macro (kbd "i # # SPC <escape>"))
   (tests-utils--multiline
    ""
    "-- Glushkov construction of glob patterns."
