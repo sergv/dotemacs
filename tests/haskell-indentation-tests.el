@@ -3385,7 +3385,8 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-infix-7e
+ :name haskell-indentation-tests--test-treesitter-infix-7ea
+ :modes (haskell-ts-mode)
  :contents
  (tests-utils--multiline
   ""
@@ -3403,6 +3404,28 @@ have different input states."
   "       _|_+ quux"
   "  , y"
   "  #)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-7eb
+ :modes (haskell-hsc-mode)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  (## x"
+  "        _|_+ quux"
+  "  , y"
+  "  ##)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  (## x"
+  "        _|_+ quux"
+  "  , y"
+  "  ##)"
   ""))
 
 (haskell-indentation-tests--test-treesitter
