@@ -16,8 +16,9 @@ cd "$(dirname "$0")"
 emacs="${EMACS:-emacs}"
 
 to_load=""
-tests=""
 matcher="t"
+
+declare -a tests
 
 if [[ "$#" -gt 0 ]]; then
     for x in "${@}"; do
@@ -31,10 +32,10 @@ fi
 
 if [[ -z "$to_load" ]]; then
     for x in "$EMACS_ROOT/tests"/*.el; do
+        tests+=( "$(basename "${x%%.el}")" )
         # tests="$tests -l $x"
-        tests="$tests (require '$(basename "${x%%.el}"))"
-    done
         # tests="$tests (require '$(basename "${x%%.el}"))"
+    done
 
     # "lsp-mode/test"
     for y in "haskell-mode/tests" "nix-mode/tests" "nix-ts-mode/test" "f.el/test" "rainbow-delimiters" "poly-mode/tests"; do
@@ -44,7 +45,8 @@ if [[ -z "$to_load" ]]; then
                 exit 1
             fi
             if [[ $(basename "$x") != "mock-lsp-server.el" ]]; then
-                tests="$tests (require '$(basename "${x%%.el}"))"
+                tests+=( "$(basename "${x%%.el}")" )
+                # tests="$tests (require '$(basename "${x%%.el}"))"
             fi
             # tests="$tests -l $x"
         done
@@ -83,25 +85,49 @@ requires=$(cat <<EOF
 EOF
 )
 
-      # -L "$EMACS_ROOT/third-party/lsp-mode/test" \
-"$emacs" -Q --batch \
-      -L "$EMACS_ROOT/compiled" \
-      "${load_elc[@]}" \
-      -L "$EMACS_ROOT/src" \
-      -L "$EMACS_ROOT/src/custom" \
-      -L "$EMACS_ROOT/tests" \
-      -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
-      -L "$EMACS_ROOT/third-party/nix-mode/tests" \
-      -L "$EMACS_ROOT/third-party/f.el/test" \
-      -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
-      -L "$EMACS_ROOT/third-party/poly-mode/tests" \
-      $to_load \
-      --eval "$requires" \
-      -l start \
-      --eval "(progn $tests)" \
-       --eval "(ert-run-tests-batch-and-exit $matcher)"
+if [[ "$matcher" = "t" ]]; then
 
-      #-f ert-run-tests-batch-and-exit
+    for x in "${tests[@]}"; do
+        echo "$x";
+    done | \
+        xargs -P 1 -n 1 -I INPUT \
+              "$emacs" -Q --batch \
+              -L "$EMACS_ROOT/compiled" \
+              "${load_elc[@]}" \
+              -L "$EMACS_ROOT/src" \
+              -L "$EMACS_ROOT/src/custom" \
+              -L "$EMACS_ROOT/tests" \
+              -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
+              -L "$EMACS_ROOT/third-party/nix-mode/tests" \
+              -L "$EMACS_ROOT/third-party/f.el/test" \
+              -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
+              -L "$EMACS_ROOT/third-party/poly-mode/tests" \
+              $to_load \
+              --eval "$requires" \
+              -l start \
+              --eval "(require 'INPUT)" \
+              --eval "(ert-run-tests-batch-and-exit $matcher)"
+
+else
+    # -L "$EMACS_ROOT/third-party/lsp-mode/test"
+  "$emacs" -Q --batch \
+        -L "$EMACS_ROOT/compiled" \
+        "${load_elc[@]}" \
+        -L "$EMACS_ROOT/src" \
+        -L "$EMACS_ROOT/src/custom" \
+        -L "$EMACS_ROOT/tests" \
+        -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
+        -L "$EMACS_ROOT/third-party/nix-mode/tests" \
+        -L "$EMACS_ROOT/third-party/f.el/test" \
+        -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
+        -L "$EMACS_ROOT/third-party/poly-mode/tests" \
+        $to_load \
+        --eval "$requires" \
+        -l start \
+        --eval "(mapcar #'require '(${tests[*]}))" \
+        --eval "(ert-run-tests-batch-and-exit $matcher)"
+
+fi
 
 exit 0
 
