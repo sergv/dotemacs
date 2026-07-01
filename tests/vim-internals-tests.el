@@ -10,14 +10,13 @@
   (require 'cl-lib))
 
 (require 'dash)
-(require 'tests-utils)
 
 (require 'vim)
 (require 'vim-motions)
 (require 'vim-search)
-(require 'ert)
 
-(require 'vim-tests)
+(require 'ert)
+(require 'tests-utils)
 
 (defmacro vim-internals-tests--test-fresh-buffer-contents-init (init action contents expected-value)
   (declare (indent 2))
