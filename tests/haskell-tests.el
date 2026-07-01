@@ -13484,6 +13484,98 @@ Entries should be a list of of elements of the form
     "  | Bar Foo Foo"
     "  deriving (Eq, Ord, Show)_|_"))))
 
+(haskell-tests--test-results
+    eproj-tests/haskell-extract-block-1
+  :actions-and-values
+  (((progn
+      (goto-line 2)
+      (eproj/haskell-extract-block))
+    "toText :: Builder -> T.Text")
+
+   ((progn
+      (goto-line 3)
+      (eproj/haskell-extract-block))
+    "toText (Builder size f) = T.Text arr 0 size\n  where\n    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr\n\n    foo = 1")
+
+   ((progn
+      (goto-line 4)
+      (eproj/haskell-extract-block))
+    "  where\n    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr\n\n    foo = 1")
+
+   ((progn
+      (goto-line 5)
+      (eproj/haskell-extract-block))
+    "    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr"))
+  :contents
+  "_|_
+toText :: Builder -> T.Text
+toText (Builder size f) = T.Text arr 0 size
+  where
+    arr = TA.run $ do
+      marr <- TA.new size
+      f 0 marr
+      pure marr
+
+    foo = 1")
+
+(haskell-tests--test-result
+    eproj-tests/parse-cabal-project-1
+  :action
+  (eproj-haskell--parse-cabal-projects (current-buffer))
+  :expected-value
+  '("cabal-benchmarks/"
+    "Cabal-tests/"
+    "Cabal-described"
+    "quux with spaces/frob.cabal"
+    "frobnicate.cabal"
+    "Cabal-tree-diff/"
+    "Cabal-QuickCheck/"
+
+    "bar/baz.cabal"
+    "quux with spaces/frob.cabal"
+    "blob.cabal"
+    "buzz.cabal"
+    "decombobulator/decombobulate.cabal"
+
+    "solver-benchmarks/"
+    "cabal-install-solver/"
+    "cabal-install/"
+    "Cabal/"
+    "cabal-testsuite/"
+    "Cabal-syntax/")
+  :contents
+  "
+packages: Cabal/ cabal-testsuite/ Cabal-syntax/
+packages: cabal-install/
+packages: cabal-install-solver/
+packages: solver-benchmarks/
+
+packages:
+  -- foo
+  bar/baz.cabal
+  \"quux with spaces/frob.cabal\"
+  blob.cabal
+   -- fizz.cabal
+  buzz.cabal
+
+  decombobulator/decombobulate.cabal
+
+
+tests: True
+
+packages: Cabal-QuickCheck/
+benchmarks: False
+packages: Cabal-tree-diff/
+packages: Cabal-described \"quux with spaces/frob.cabal\" frobnicate.cabal
+
+
+packages: Cabal-tests/
+packages: cabal-benchmarks/
+
+optional-packages: ./vendored/*/*.cabal
+
+_|_")
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
