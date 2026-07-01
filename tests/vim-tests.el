@@ -10,11 +10,12 @@
   (require 'cl-lib))
 
 (require 'dash)
-(require 'tests-utils)
 
 (require 'vim)
 (require 'vim-search)
+
 (require 'ert)
+(require 'tests-utils)
 
 (defmacro vim-tests--enable-undo (&rest body)
   `(let ((buffer-undo-list nil))
