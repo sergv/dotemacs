@@ -31,7 +31,7 @@
    (save-excursion
      (setq-local treesit-font-lock-level 4)
      (treesit-font-lock-recompute-features)
-     (treesit-font-lock-fontify-region (point-min) (point-max) t))
+     (treesit-font-lock-fontify-region (point-min) (point-max)))
    (dolist (pair pairs)
      (goto-char (point-min))
      (cl-destructuring-bind (string face) pair
@@ -279,7 +279,7 @@ let }
    (save-excursion
      (setq-local treesit-font-lock-level 4)
      (treesit-font-lock-recompute-features)
-     (treesit-font-lock-fontify-region (point-min) (point-max) t))
+     (treesit-font-lock-fontify-region (point-min) (point-max)))
    ;; Find the middle '' which is the dollar_escape
    (goto-char (point-min))
    (search-forward "test ")
