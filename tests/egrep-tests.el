@@ -13,6 +13,7 @@
 (require 'common)
 (require 'egrep)
 (require 'ert)
+(require 'tests-utils)
 
 (defmacro grep-tests--define-tests (test-name-template regexp-var elisp-regexp foreign-regexp &rest body)
   (declare (indent 4))
