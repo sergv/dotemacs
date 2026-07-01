@@ -77,8 +77,8 @@ Ensures a final newline is inserted."
   (el-patch-wrap 2 0
     (let ((str (and (consp object)
                     (eq (car object) 'ert-test-failed)
-                    (or (and (stringp (cdr object))
-                             (cdr object))
+                    (or (and (stringp (cadr object))
+                             (cadr object))
                         (and (listp (cdr object))
                              (listp (cadr object))
                              (let ((tmp (cadr object)))
@@ -136,12 +136,12 @@ Ensures a final newline is inserted."
                         (equal (car expected-lines) (car actual-lines)))
               (pop actual-lines)
               (pop expected-lines))
-            (signal 'ert-test-failed
-                    (format "Mismatch:\nActual:\n%s\nExpected:\n%s\nFirst mismatch in actual:\n%s\nFirst mismatch in expected:\n%s"
-                            actual-contents
-                            expected-contents
-                            (join-lines actual-lines)
-                            (join-lines expected-lines)))))))
+            (ert-fail
+             (format "Mismatch:\nActual:\n%s\nExpected:\n%s\nFirst mismatch in actual:\n%s\nFirst mismatch in expected:\n%s"
+                     actual-contents
+                     expected-contents
+                     (join-lines actual-lines)
+                     (join-lines expected-lines)))))))
     :contents ,contents
     :buffer-id ,buffer-id))
 
