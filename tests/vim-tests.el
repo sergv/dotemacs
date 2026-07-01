@@ -16,10 +16,6 @@
 (require 'vim-search)
 (require 'ert)
 
-(defconst vim-tests--all-known-modes-and-init
-  (append '((nix-mode (nix-mode)))
-          tests-utils--modes-and-init))
-
 (defmacro vim-tests--enable-undo (&rest body)
   `(let ((buffer-undo-list nil))
      ,@body))
