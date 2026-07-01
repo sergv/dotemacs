@@ -347,7 +347,7 @@ and for subsequent lines it's the previous line's indentation."
           bol)))))
 
 (defun nix-ts-mode--prev-sibling-not-comment (node parent bol &rest _)
-  (let ((tmp (treesit-node-prev-sibling node t)))
+  (let ((tmp (treesit-node-prev-sibling node)))
     (while (and tmp
                 (string= "comment" (treesit-node-type tmp)))
       (setf tmp (treesit-node-prev-sibling tmp t)))
@@ -384,7 +384,8 @@ and for subsequent lines it's the previous line's indentation."
      ((parent-is "^if_expression$") parent-bol nix-ts-mode-indent-offset)
      ((parent-is "^inherit\\(_from\\)?$") parent-bol nix-ts-mode-indent-offset)
      ((parent-is "^interpolation$") parent-bol nix-ts-mode-indent-offset)
-     ((parent-is "^let_expression$") parent-bol nix-ts-mode-indent-offset)
+     ((n-p-gp "^binding_set$" "^let_expression$" nil) parent-bol nix-ts-mode-indent-offset)
+     ((parent-is "^let_expression$") nix-ts-mode--prev-sibling-not-comment 0)
      ((parent-is "^list_expression$") parent-bol nix-ts-mode-indent-offset)
      ((parent-is "^parenthesized_expression$") parent-bol nix-ts-mode-indent-offset)
 
