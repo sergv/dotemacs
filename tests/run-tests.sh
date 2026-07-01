@@ -16,7 +16,7 @@ cd "$(dirname "$0")"
 emacs="${EMACS:-emacs}"
 
 to_load=""
-matcher="t"
+matcher=""
 
 declare -a tests
 
@@ -92,7 +92,10 @@ combined='INPUT';
 mod_name="\${combined%,*}"
 m="\${combined#*,}"
 if [[ "\$m" != "nil" ]]; then
+    suffix="-\${m}"
     m="\"\${m}\""
+else
+    suffix=""
 fi
 "$emacs" -Q --batch \\
     -L "$EMACS_ROOT/compiled" \\
@@ -109,18 +112,28 @@ fi
     --eval "$requires" \\
     -l start \
     --eval "(require '\${mod_name})" \\
-    --eval "(ert-run-tests-batch-and-exit \${m})" 2>"$logs_dest/\${mod_name}-\${m}.log"
+    --eval "(ert-run-tests-batch-and-exit \${m})" 2>"$logs_dest/\${mod_name}\${suffix}.log"
 EOF
 )
 
 
-if [[ "$matcher" = "t" ]]; then
+if [[ -z "$matcher" ]]; then
 
     [[ -d "$logs_dest" ]] && rm -f "$logs_dest"/*.log
 
     mkdir -p "$logs_dest"
 
     set +e
+
+    n="1"
+    if [[ -e /proc/cpuinfo ]]; then
+        n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
+    fi
+    if [[ "$n" -gt 5 ]]; then
+        n="5"
+    fi
+
+    echo "Running $(( ${#tests[@]} - 1 )) test modules using $n threads"
 
     for x in "${tests[@]}"; do
         # if [[ "$x" == "vim-tests" ]]; then
@@ -131,7 +144,7 @@ if [[ "$matcher" = "t" ]]; then
         #     echo "$x,nil"
         # fi
         echo "$x,nil"
-    done | xargs -P 5 -I INPUT bash -c "$command"
+    done | xargs -P "$n" -I INPUT bash -c "$command"
 
     "$emacs" -Q --batch -l ert -f ert-summarize-tests-batch-and-exit "$logs_dest"/*.log
 
