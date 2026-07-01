@@ -85,28 +85,55 @@ requires=$(cat <<EOF
 EOF
 )
 
+logs_dest="$TMPDIR/emacs-test-logs"
+
+command=$(cat <<EOF
+combined='INPUT';
+mod_name="\${combined%,*}"
+m="\${combined#*,}"
+if [[ "\$m" != "nil" ]]; then
+    m="\"\${m}\""
+fi
+"$emacs" -Q --batch \\
+    -L "$EMACS_ROOT/compiled" \\
+    ${load_elc[*]} \\
+    -L "$EMACS_ROOT/src" \\
+    -L "$EMACS_ROOT/src/custom" \\
+    -L "$EMACS_ROOT/tests" \\
+    -L "$EMACS_ROOT/third-party/haskell-mode/tests" \\
+    -L "$EMACS_ROOT/third-party/nix-mode/tests" \\
+    -L "$EMACS_ROOT/third-party/f.el/test" \\
+    -L "$EMACS_ROOT/third-party/rainbow-delimiters" \\
+    -L "$EMACS_ROOT/third-party/poly-mode/tests" \\
+    $to_load \\
+    --eval "$requires" \\
+    -l start \
+    --eval "(require '\${mod_name})" \\
+    --eval "(ert-run-tests-batch-and-exit \${m})" 2>"$logs_dest/\${mod_name}-\${m}.log"
+EOF
+)
+
+
 if [[ "$matcher" = "t" ]]; then
 
+    [[ -d "$logs_dest" ]] && rm -f "$logs_dest"/*.log
+
+    mkdir -p "$logs_dest"
+
+    set +e
+
     for x in "${tests[@]}"; do
-        echo "$x";
-    done | \
-        xargs -P 1 -n 1 -I INPUT \
-              "$emacs" -Q --batch \
-              -L "$EMACS_ROOT/compiled" \
-              "${load_elc[@]}" \
-              -L "$EMACS_ROOT/src" \
-              -L "$EMACS_ROOT/src/custom" \
-              -L "$EMACS_ROOT/tests" \
-              -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
-              -L "$EMACS_ROOT/third-party/nix-mode/tests" \
-              -L "$EMACS_ROOT/third-party/f.el/test" \
-              -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
-              -L "$EMACS_ROOT/third-party/poly-mode/tests" \
-              $to_load \
-              --eval "$requires" \
-              -l start \
-              --eval "(require 'INPUT)" \
-              --eval "(ert-run-tests-batch-and-exit $matcher)"
+        # if [[ "$x" == "vim-tests" ]]; then
+        #     for y in text-mode haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode rust-ts-mode c-mode sh-mode bash-ts-mode nix-mode; do
+        #         echo "$x,$y"
+        #     done
+        # else
+        #     echo "$x,nil"
+        # fi
+        echo "$x,nil"
+    done | xargs -P 5 -I INPUT bash -c "$command"
+
+    "$emacs" -Q --batch -l ert -f ert-summarize-tests-batch-and-exit "$logs_dest"/*.log
 
 else
     # -L "$EMACS_ROOT/third-party/lsp-mode/test"
