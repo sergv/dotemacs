@@ -14,6 +14,7 @@
 (require 'macro-util)
 
 (require 'ert)
+(require 'tests-utils)
 
 (ert-deftest common-tests/test-delete-if-with-action! ()
   (let ((make-list
