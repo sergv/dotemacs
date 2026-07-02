@@ -49,7 +49,7 @@ git merge --strategy recursive --strategy-option "subtree=$path" --allow-unrelat
 
 subtree_hash_to_merge_pretty=$(get-ref-hash-pretty "$commit")
 subtree_hash_to_merge=$(get-ref-hash "$commit")
-git commit -m "Merge commit $subtree_hash_to_merge_pretty from '$url' into '$path'"
+git commit --allow-empty -m "Merge commit $subtree_hash_to_merge_pretty from '$url' into '$path'"
 
 hash_after_merge=$(get-ref-hash HEAD)
 
