@@ -353,6 +353,13 @@ overhead if produced structures will only be compared once."
           (list
            (treesit-utils--get-ast-node-soup (treesit-node-child node i)))))))))
 
+(defun treesit-utils-is-standalone-node? (node)
+  (save-excursion
+    (let ((start (treesit-node-start node)))
+      (goto-char start)
+      (skip-chars-backward " \t")
+      (eq (point) (line-beginning-position)))))
+
 ;; (defun treesit-utils-node-texts-in-current-buffer= (x y)
 ;;   (cl-assert (treesit-node-p y))
 ;;   (cl-assert (eq (treesit-node-buffer y) (current-buffer)))
