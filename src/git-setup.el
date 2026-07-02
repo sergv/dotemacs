@@ -36,6 +36,13 @@
       magit-branch-read-upstream-first 'fallback
       magit-enable-zero-context-diffs? t)
 
+;; ;; don't show the diff by default in the commit buffer. Use `C-c C-d' to display it
+;; (setq magit-commit-show-diff nil)
+;; ;; don't show git variables in magit branch
+;; (setq magit-branch-direct-configure nil)
+;; ;; don't automatically refresh the status buffer after running a git command
+;; (setq magit-refresh-status-buffer nil)
+
 (dolist (x '(magit-reset-soft magit-reset-hard magit-reset-head magit-reset magit-reset-index))
   (push (cons x nil) ivy-sort-functions-alist))
 
