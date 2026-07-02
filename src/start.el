@@ -67,6 +67,7 @@
 
 (require 'treesit-setup)
 (require 'undo-tree-setup)
+(require 'tramp-setup)
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes
