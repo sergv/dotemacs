@@ -38,6 +38,7 @@
 ;;; Code:
 
 (require 'treesit)
+(require 'treesit-utils)
 
 (unless (treesit-available-p)
   (error "`nix-ts-mode` requires Emacs to be built with tree-sitter support"))
@@ -390,6 +391,13 @@ and for subsequent lines it's the previous line's indentation."
      ((parent-is "^parenthesized_expression$") parent-bol nix-ts-mode-indent-offset)
 
      ((and (parent-is "^binding_set$") prev-sibling) nix-ts-mode--prev-sibling-not-comment 0)
+
+     ((parent-is "^function_expression$")
+      parent-bol
+      ,(lambda (node parent bol)
+         (if (treesit-utils-is-standalone-node? parent)
+             0
+           nix-ts-mode-indent-offset)))
 
      (catch-all parent-bol 0)))
   "Tree-sitter indent rules for `nix-ts-mode'.")
