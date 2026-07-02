@@ -113,6 +113,21 @@
   "  bar = 1;"
   "}"))
 
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--lambda-body-1
+ :contents
+ (tests-utils--multiline
+  "let"
+  "  foo = x:"
+  "          _|_y;"
+  "in foo")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  foo = x:"
+  "    _|_y;"
+  "in foo"))
+
 (provide 'nix-indentation-tests)
 
 ;; Local Variables:
