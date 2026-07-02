@@ -179,6 +179,7 @@
     (require 'solarized)
     (require 'spell)
     (require 'tar-mode-setup)
+    (require 'tramp-setup)
     (require 'toml-mode-setup)
     (require 'typography-setup)
     ;; (require 'undo-tree-setup)
