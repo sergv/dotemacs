@@ -92,6 +92,7 @@
 
   (def-keys-for-map paredit-mode-map
     ;; ‘fill-paragraph’ is so much better
+    ("\\"        nil)
     ("M-q"       nil)
     ("C-k"       nil)
     ("<return>"  nil)
