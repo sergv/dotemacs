@@ -14,7 +14,7 @@ set -o pipefail
 export EMACS_SKIP_ELC=1
 export EMACS_FORCE_PRISTINE=1
 # export EMACS=emacs-bytecode
-"$(dirname "$(readlink -f "$0")")/tests/run-tests.sh" "${@}"
+"$(dirname "$(readlink -f "$0")")/tests/run-tests.sh" '"t"'
 
 exit 0
 
