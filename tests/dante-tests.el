@@ -11,6 +11,8 @@
   (require 'set-up-platform))
 
 (require 'common)
+(require 'dante)
+
 (require 'ert)
 (require 'tests-utils)
 
