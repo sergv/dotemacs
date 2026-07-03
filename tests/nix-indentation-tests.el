@@ -128,6 +128,60 @@
   "    _|_y;"
   "in foo"))
 
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--if-then-else-1a
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source)"
+  "  {"
+  "    nativeBuildInputs = [];"
+  "  }"
+  "  ''"
+  "    mkdir -p \"$out/bin\""
+  "    ${if builtins.isList dests"
+  "          _|_then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "      else f dests}"
+  "  ''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source)"
+  "  {"
+  "    nativeBuildInputs = [];"
+  "  }"
+  "  ''"
+  "    mkdir -p \"$out/bin\""
+  "    ${if builtins.isList dests"
+  "      _|_then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "      else f dests}"
+  "  ''"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--if-then-else-1b
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source)"
+  "  {"
+  "    nativeBuildInputs = [];"
+  "  }"
+  "  ''"
+  "    mkdir -p \"$out/bin\""
+  "    ${if builtins.isList dests"
+  "        then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "                _|_else f dests}"
+  "  ''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source)"
+  "  {"
+  "    nativeBuildInputs = [];"
+  "  }"
+  "  ''"
+  "    mkdir -p \"$out/bin\""
+  "    ${if builtins.isList dests"
+  "        then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "        _|_else f dests}"
+  "  ''"))
+
 (provide 'nix-indentation-tests)
 
 ;; Local Variables:
