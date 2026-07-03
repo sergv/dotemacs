@@ -40,6 +40,8 @@
 (require 'treesit)
 (require 'treesit-utils)
 
+(require 'nix-ts-getters)
+
 (unless (treesit-available-p)
   (error "`nix-ts-mode` requires Emacs to be built with tree-sitter support"))
 
@@ -372,11 +374,16 @@ and for subsequent lines it's the previous line's indentation."
      ((node-is "^,$") parent-bol 0)
      ((node-is "^]$") parent-bol 0)
      ((node-is "^;$") parent-bol 0)
-     ((node-is "^else$") parent-bol 0)
      ((node-is "^in$") parent-bol 0)
-     ((node-is "^then$") parent-bol 0)
      ((node-is "^}$") parent-bol 0)
      ((match nil "^let_expression" "^body$" nil nil) parent-bol 0)
+
+     ((n-p-gp "^else$" "^if_expression$" nil)
+      (lambda (_ parent _) (treesit-node-start (nix-ts-getters--if-expression-then parent)))
+      0)
+     ((n-p-gp "^then$"  "^if_expression$" nil)
+      (lambda (_ parent _) (treesit-node-start (nix-ts-getters--if-expression-if parent)))
+      0)
 
      ((parent-is "^apply_expression$") parent-bol nix-ts-mode-indent-offset)
      ((parent-is "^attrset_expression$") parent-bol nix-ts-mode-indent-offset)
