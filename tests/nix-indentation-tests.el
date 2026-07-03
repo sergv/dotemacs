@@ -182,6 +182,33 @@
   "        _|_else f dests}"
   "  ''"))
 
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--rec-attrset-1
+ :contents
+ (tests-utils--multiline
+  "rec {"
+  "  hello ="
+  "    world;"
+  ""
+  "       _|_yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "rec {"
+  "  hello ="
+  "    world;"
+  ""
+  "  _|_yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}"))
+
 (provide 'nix-indentation-tests)
 
 ;; Local Variables:
