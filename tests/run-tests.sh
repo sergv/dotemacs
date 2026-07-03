@@ -85,9 +85,12 @@ requires=$(cat <<EOF
 EOF
 )
 
-logs_dest="$TMPDIR/emacs-test-logs"
 
-command=$(cat <<EOF
+if [[ -z "$matcher" ]]; then
+
+    logs_dest="$TMPDIR/emacs-test-logs"
+
+    command=$(cat <<EOF
 combined='INPUT';
 mod_name="\${combined%,*}"
 m="\${combined#*,}"
@@ -116,8 +119,6 @@ fi
 EOF
 )
 
-
-if [[ -z "$matcher" ]]; then
 
     [[ -d "$logs_dest" ]] && rm -f "$logs_dest"/*.log
 
