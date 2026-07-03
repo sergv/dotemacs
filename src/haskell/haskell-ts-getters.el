@@ -11,8 +11,6 @@
   (require 'dash)
   (require 'macro-util))
 
-(defvar haskell-indent-offset)
-
 (require 'common)
 (require 'common-whitespace)
 (require 'haskell-lexeme)
