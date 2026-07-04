@@ -14,6 +14,7 @@
 (require 'hydra-setup)
 (require 'indentation)
 (require 'nix-abbrev+)
+(require 'treesit-utils)
 (require 'vim-setup)
 
 (require 'nix-company)
@@ -90,7 +91,16 @@ sexps and indentation levels."
 (defun nix-up-sexp ()
   "Nix brother of ‘paredit-forward-up’ that considers only sexps for now."
   (interactive)
-  (paredit-forward-up))
+  (if-let* ((str-parent
+             (when (treesit-language-available-p 'nix)
+               (treesit-utils-find-closest-parent
+                (treesit-node-at (point))
+                (lambda (node)
+                  (member (treesit-node-type node)
+                          '("string_expression"
+                            "indented_string_expression")))))))
+      (goto-char (treesit-node-end str-parent))
+    (paredit-forward-up)))
 
 (vimmize-motion nix-up-sexp
                 :name vim:nix-up-sexp

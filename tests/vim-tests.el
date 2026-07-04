@@ -186,14 +186,34 @@
         for entry in names-and-actions
         collect
         (let ((name (car entry))
-              (action (cadr entry)))
+              (action (cdr entry)))
           `(vim-tests--test-fresh-buffer-contents-init-all
             :name
             ,name
             :modes
             ,(-map #'car tests-utils--modes-and-init)
             :action
-            ,action
+            ,(cons 'progn action)
+            :contents
+            ,contents
+            :expected-value
+            ,expected-value)))))
+
+(cl-defmacro vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands* (&key modes names-and-actions contents expected-value)
+  (declare (indent nil))
+  `(progn
+     ,@(cl-loop
+        for entry in names-and-actions
+        collect
+        (let ((name (car entry))
+              (action (cdr entry)))
+          `(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+            :modes
+            ,modes
+            :name
+            ,name
+            :action
+            ,(cons 'progn action)
             :contents
             ,contents
             :expected-value
@@ -8951,6 +8971,35 @@ _|_bar")
   "  };"
   "}"
   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+ :modes
+ (nix-mode)
+ :names-and-actions
+ ((vim-tests/nix-up-sexp-1a (skip-if-no-treesitter!) (execute-kbd-macro (kbd "q")))
+  (vim-tests/nix-up-sexp-1b (skip-if-no-treesitter!) (nix-up-sexp)))
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  _|_bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''_|_"))
 
 (vim-tests--test-fresh-buffer-contents-init-all
  :name
