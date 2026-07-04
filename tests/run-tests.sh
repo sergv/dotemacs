@@ -88,6 +88,10 @@ EOF
 
 if [[ -z "$matcher" ]]; then
 
+    if [[ -z "${TMPDIR:-}" ]]; then
+        export TMPDIR="/tmp"
+    fi
+
     logs_dest="$TMPDIR/emacs-test-logs"
 
     command=$(cat <<EOF
