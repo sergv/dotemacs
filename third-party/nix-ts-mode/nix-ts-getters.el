@@ -18,9 +18,16 @@
 (require 'treesit)
 (require 'treesit-utils)
 
+(defun nix-ts-getters--find-child (node type-to-find)
+  (catch 'result
+    (dotimes (i (treesit-node-child-count node))
+      (let ((child (treesit-node-child node i)))
+        (when (string= type-to-find (treesit-node-type child))
+          (throw 'result child))))))
+
 (defun nix-ts-getters--if-expression-if (node)
   (cl-assert (string= (treesit-node-type node) "if_expression"))
-  (let ((result (treesit-node-child node 0)))
+  (let ((result (nix-ts-getters--find-child node "if")))
     (cl-assert (string= "if" (treesit-node-type result))
                nil
                "Not an ‘if’ node: %s, node = %s, parent = %s"
@@ -31,10 +38,32 @@
 
 (defun nix-ts-getters--if-expression-then (node)
   (cl-assert (string= (treesit-node-type node) "if_expression"))
-  (let ((result (treesit-node-child node 2)))
+  (let ((result (nix-ts-getters--find-child node "then")))
     (cl-assert (string= "then" (treesit-node-type result))
                nil
                "Not a ‘then’ node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun nix-ts-getters--if-expression-else (node)
+  (cl-assert (string= (treesit-node-type node) "if_expression"))
+  (let ((result (nix-ts-getters--find-child node "else")))
+    (cl-assert (string= "else" (treesit-node-type result))
+               nil
+               "Not a ‘then’ node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun nix-ts-getters--let-expression-in (node)
+  (cl-assert (string= (treesit-node-type node) "let_expression"))
+  (let ((result (nix-ts-getters--find-child node "in")))
+    (cl-assert (string= "in" (treesit-node-type result))
+               nil
+               "Not an ‘in’ node: %s, node = %s, parent = %s"
                result
                node
                (treesit-node-parent node))
