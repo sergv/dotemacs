@@ -58,8 +58,8 @@ in z
 =-=
 let
   x = let
-    a = b;
-  in c;
+        a = b;
+      in c;
 in z
 =-=-=
 
@@ -76,9 +76,9 @@ in z
 =-=
 let
   x = let
-    a = b;
-  in
-  c
-  ;
+        a = b;
+      in
+      c
+    ;
 in z
 =-=-=
