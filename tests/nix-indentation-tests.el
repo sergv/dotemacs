@@ -74,6 +74,160 @@
   "}"))
 
 (nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-binding-2
+ :contents
+ (tests-utils--multiline
+  "let foo ="
+  "                _|_bar;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "let foo ="
+  "      _|_bar;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-binding-3
+ :contents
+ (tests-utils--multiline
+  "let bar = pkgs.fetchgit {"
+  "           _|_foo = 1;"
+  "      inherit rev sha256;"
+  "    };"
+  "in 2")
+ :expected-value
+ (tests-utils--multiline
+  "let bar = pkgs.fetchgit {"
+  "      _|_foo = 1;"
+  "      inherit rev sha256;"
+  "    };"
+  "in 2"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-binding-4
+ :contents
+ (tests-utils--multiline
+  "let bar ="
+  "      pkgs.fetchgit {"
+  "           _|_foo = 1;"
+  "        inherit rev sha256;"
+  "      };"
+  "in 2")
+ :expected-value
+ (tests-utils--multiline
+  "let bar ="
+  "      pkgs.fetchgit {"
+  "        _|_foo = 1;"
+  "        inherit rev sha256;"
+  "      };"
+  "in 2"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-expression-1a
+ :contents
+ (tests-utils--multiline
+  "let"
+  "  x = let"
+  "    _|_a = b;"
+  "  in"
+  "  c"
+  "  ;"
+  "in z")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  x = let"
+  "        _|_a = b;"
+  "  in"
+  "  c"
+  "  ;"
+  "in z"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-expression-1b
+ :contents
+ (tests-utils--multiline
+  "let"
+  "  x = let"
+  "        a = b;"
+  "  _|_in"
+  "  c"
+  "  ;"
+  "in z")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  x = let"
+  "        a = b;"
+  "      _|_in"
+  "  c"
+  "  ;"
+  "in z"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-expression-1c
+ :contents
+ (tests-utils--multiline
+  "let"
+  "  x = let"
+  "        a = b;"
+  "      in"
+  "  _|_c"
+  "  ;"
+  "in z")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  x = let"
+  "        a = b;"
+  "      in"
+  "      _|_c"
+  "  ;"
+  "in z"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-expression-1d
+ :contents
+ (tests-utils--multiline
+  "let"
+  "  x = let"
+  "        a = b;"
+  "      in"
+  "      c"
+  "           _|_;"
+  "in z")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  x = let"
+  "        a = b;"
+  "      in"
+  "      c"
+  "    _|_;"
+  "in z"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-expression-2
+ :contents
+ (tests-utils--multiline
+  "let"
+  "      _|_# test"
+  "  x = 1;"
+  "in z")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  _|_# test"
+  "  x = 1;"
+  "in z"))
+
+(nix-indentation-tests--test-treesitter
  :name nix-indentation-tests--let-in-comment-after-binding-1
  :contents
  (tests-utils--multiline
@@ -108,6 +262,27 @@
  (tests-utils--multiline
   "let foo = bar;"
   "    _|_# foo"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-comment-after-binding-3
+ :contents
+ (tests-utils--multiline
+  "let foo = bar;"
+  "            _|_# foo"
+  "    baz = 2;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "let foo = bar;"
+  "    _|_# foo"
+  "    baz = 2;"
   "in"
   "{"
   "  bar = 1;"
@@ -183,6 +358,71 @@
   "  ''"))
 
 (nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--if-then-else-2a
+ :contents
+ (tests-utils--multiline
+  "''"
+  "${if hasDocs"
+  "    then"
+  "             _|_1"
+  "  else"
+  "  2}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "''"
+  "${if hasDocs"
+  "    then"
+  "      _|_1"
+  "  else"
+  "  2}"
+  "''"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--if-then-else-2b
+ :contents
+ (tests-utils--multiline
+  "''"
+  "${if hasDocs"
+  "  then"
+  "             1"
+  "    else"
+  "                _|_2}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "''"
+  "${if hasDocs"
+  "  then"
+  "             1"
+  "    else"
+  "      _|_2}"
+  "''"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--if-then-else-2c
+ :contents
+ (tests-utils--multiline
+  "''"
+  "${if"
+  "               _|_hasDocs"
+  "  then"
+  "             1"
+  "    else"
+  "                2}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "''"
+  "${if"
+  "    _|_hasDocs"
+  "  then"
+  "             1"
+  "    else"
+  "                2}"
+  "''"))
+
+(nix-indentation-tests--test-treesitter
  :name nix-indentation-tests--rec-attrset-1
  :contents
  (tests-utils--multiline
@@ -207,6 +447,202 @@
   ""
   "  pi ="
   "    3;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--attrset-1
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  hello ="
+  "    world;"
+  ""
+  "       _|_yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  hello ="
+  "    world;"
+  ""
+  "  _|_yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--attrset-2
+ :contents
+ (tests-utils--multiline
+  "let foo = 1;"
+  "in"
+  "{"
+  "  hello ="
+  "    world;"
+  ""
+  "       _|_yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "let foo = 1;"
+  "in"
+  "{"
+  "  hello ="
+  "    world;"
+  ""
+  "  _|_yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--attrset-3a
+ :contents
+ (tests-utils--multiline
+  "let foo = 1;"
+  "in {"
+  "  hello ="
+  "    world;"
+  ""
+  "       _|_yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "let foo = 1;"
+  "in {"
+  "  hello ="
+  "    world;"
+  ""
+  "  _|_yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--attrset-3b
+ :contents
+ (tests-utils--multiline
+  "let foo = 1;"
+  "in {"
+  "           _|_hello ="
+  "    world;"
+  ""
+  "  yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "let foo = 1;"
+  "in {"
+  "  _|_hello ="
+  "    world;"
+  ""
+  "  yes ="
+  "    \"no\";"
+  ""
+  "  pi ="
+  "    3;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--attrset-4a
+ :contents
+ (tests-utils--multiline
+  "(if pkgs-cross-win == null"
+  " then {}"
+  " else {"
+  "       _|_cross-win = ghc-win;"
+  "     })")
+ :expected-value
+ (tests-utils--multiline
+  "(if pkgs-cross-win == null"
+  " then {}"
+  " else {"
+  "   _|_cross-win = ghc-win;"
+  "     })"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--attrset-4b
+ :contents
+ (tests-utils--multiline
+  "(if pkgs-cross-win == null"
+  " then {}"
+  " else {"
+  "       cross-win = ghc-win;"
+  "     _|_})")
+ :expected-value
+ (tests-utils--multiline
+  "(if pkgs-cross-win == null"
+  " then {}"
+  " else {"
+  "       cross-win = ghc-win;"
+  " _|_})"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--misc-1a
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo = ("
+  "  _|_z:"
+  "  x: {"
+  "    y = x + z;"
+  "  }"
+  ");"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo = ("
+  "    _|_z:"
+  "  x: {"
+  "    y = x + z;"
+  "  }"
+  ");"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--misc-1b
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo = ("
+  "  z:"
+  "  x: {"
+  "    y = x + z;"
+  "  }"
+  "_|_);"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo = ("
+  "  z:"
+  "  x: {"
+  "    y = x + z;"
+  "  }"
+  "  _|_);"
   "}"))
 
 (provide 'nix-indentation-tests)

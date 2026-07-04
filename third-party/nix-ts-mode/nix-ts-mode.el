@@ -356,6 +356,33 @@ and for subsequent lines it's the previous line's indentation."
       (setf tmp (treesit-node-prev-sibling tmp t)))
     (treesit-node-start tmp)))
 
+(defun nix-ts-mode--find-indent-anchor (node parent bol &rest _)
+  (let ((prev node)
+        (tmp parent))
+    (when-let ((anchor
+                (catch 'result
+                  (while tmp
+                    (when treesit--indent-verbose
+                      (message "nix-ts-mode--find-indent-anchor: tmp = %s, field-name = %s" tmp (treesit-node-field-name tmp)))
+                    (let ((typ (treesit-node-type tmp)))
+                      (cond
+                        ((member typ '("if_expression"
+                                       ;; Don’t want parens to stop anchor search.
+                                       ;; "parenthesized_expression"
+                                       "with_expression"))
+                         (throw 'result tmp))
+                        ((and (string= "let_expression" typ)
+                              (not (string= "body" (treesit-node-field-name prev))))
+                         (throw 'result prev))
+                        ((treesit-utils-is-standalone-node? tmp)
+                         (throw 'result tmp))
+                        (t
+                         (setf prev tmp
+                               tmp (treesit-node-parent tmp)))))))))
+      (when treesit--indent-verbose
+        (message "Found nix indent anchor: %s" anchor))
+      (treesit-node-start anchor))))
+
 (defvar nix-ts-mode-indent-rules
   `((nix
      ((parent-is "^source_code$") column-0 0)
@@ -368,15 +395,15 @@ and for subsequent lines it's the previous line's indentation."
      ((match "^interpolation$" "^indented_string_expression$" nil nil nil) nix-ts-indent-multiline-string 0)
 
      ;; Unlike in every other place, a semicolon in an inherit node should be indented.
-     ((match "^;$" "^inherit\\(_from\\)?$" nil nil nil) parent-bol nix-ts-mode-indent-offset)
+     ((match "^;$" "^inherit\\(_from\\)?$" nil nil nil) nix-ts-mode--find-indent-anchor nix-ts-mode-indent-offset)
 
      ((node-is "^)$") parent-bol 0)
-     ((node-is "^,$") parent-bol 0)
-     ((node-is "^]$") parent-bol 0)
-     ((node-is "^;$") parent-bol 0)
-     ((node-is "^in$") parent-bol 0)
-     ((node-is "^}$") parent-bol 0)
-     ((match nil "^let_expression" "^body$" nil nil) parent-bol 0)
+     ((node-is "^,$") nix-ts-mode--find-indent-anchor 0)
+     ((node-is "^]$") nix-ts-mode--find-indent-anchor 0)
+     ((node-is "^;$") parent nix-ts-mode-indent-offset)
+     ((node-is "^in$") parent 0)
+     ((node-is "^}$") nix-ts-mode--find-indent-anchor 0)
+     ((match nil "^let_expression" "^body$" nil nil) parent 0)
 
      ((n-p-gp "^else$" "^if_expression$" nil)
       (lambda (_ parent _) (treesit-node-start (nix-ts-getters--if-expression-then parent)))
@@ -384,29 +411,55 @@ and for subsequent lines it's the previous line's indentation."
      ((n-p-gp "^then$"  "^if_expression$" nil)
       (lambda (_ parent _) (treesit-node-start (nix-ts-getters--if-expression-if parent)))
       0)
+     ((and (parent-is "^if_expression$")
+           (field-is "condition"))
+      (lambda (_ parent _) (treesit-node-start (nix-ts-getters--if-expression-if parent)))
+      nix-ts-mode-indent-offset)
+     ((and (parent-is "^if_expression$")
+           (field-is "consequence"))
+      (lambda (_ parent _) (treesit-node-start (nix-ts-getters--if-expression-then parent)))
+      nix-ts-mode-indent-offset)
+     ((and (parent-is "^if_expression$")
+           (field-is "alternative"))
+      (lambda (_ parent _) (treesit-node-start (nix-ts-getters--if-expression-else parent)))
+      nix-ts-mode-indent-offset)
 
-     ((parent-is "^apply_expression$") parent-bol nix-ts-mode-indent-offset)
-     ((parent-is "^\\(?:rec_\\)?attrset_expression$") parent-bol nix-ts-mode-indent-offset)
-     ((parent-is "^binding$") parent-bol nix-ts-mode-indent-offset)
-     ((parent-is "^formals$") parent-bol nix-ts-mode-indent-offset)
-     ((parent-is "^if_expression$") parent-bol nix-ts-mode-indent-offset)
-     ((parent-is "^inherit\\(_from\\)?$") parent-bol nix-ts-mode-indent-offset)
-     ((parent-is "^interpolation$") parent-bol nix-ts-mode-indent-offset)
-     ((n-p-gp "^binding_set$" "^let_expression$" nil) parent-bol nix-ts-mode-indent-offset)
+     ((parent-is "^apply_expression$") nix-ts-mode--find-indent-anchor nix-ts-mode-indent-offset)
+     ((parent-is "^\\(?:rec_\\)?attrset_expression$")
+      ;; parent-bol
+      nix-ts-mode--find-indent-anchor
+      nix-ts-mode-indent-offset)
+     ((parent-is "^binding$") nix-ts-mode--find-indent-anchor nix-ts-mode-indent-offset)
+     ((parent-is "^formals$") nix-ts-mode--find-indent-anchor nix-ts-mode-indent-offset)
+     ((parent-is "^if_expression$") nix-ts-mode--find-indent-anchor nix-ts-mode-indent-offset)
+     ((parent-is "^inherit\\(_from\\)?$") nix-ts-mode--find-indent-anchor nix-ts-mode-indent-offset)
+     ((parent-is "^interpolation$") nix-ts-mode--find-indent-anchor nix-ts-mode-indent-offset)
+     ((parent-is "^list_expression$") nix-ts-mode--find-indent-anchor nix-ts-mode-indent-offset)
+     ((parent-is "^parenthesized_expression$")
+      nix-ts-mode--find-indent-anchor
+      nix-ts-mode-indent-offset)
+
+     ((n-p-gp "^binding_set$" "^let_expression$" nil) parent nix-ts-mode-indent-offset)
+     ((n-p-gp "^comment$" "^let_expression$" nil)
+      nix-ts-mode--prev-sibling-not-comment
+      ,(lambda (node parent bol)
+         (let ((sibling (treesit-node-prev-sibling node t)))
+           (if (and (< (treesit-node-start node) (treesit-node-start (nix-ts-getters--let-expression-in parent)))
+                    (not sibling))
+               nix-ts-mode-indent-offset
+             0))))
      ((parent-is "^let_expression$") nix-ts-mode--prev-sibling-not-comment 0)
-     ((parent-is "^list_expression$") parent-bol nix-ts-mode-indent-offset)
-     ((parent-is "^parenthesized_expression$") parent-bol nix-ts-mode-indent-offset)
 
      ((and (parent-is "^binding_set$") prev-sibling) nix-ts-mode--prev-sibling-not-comment 0)
 
      ((parent-is "^function_expression$")
-      parent-bol
+      nix-ts-mode--find-indent-anchor
       ,(lambda (node parent bol)
          (if (treesit-utils-is-standalone-node? parent)
              0
            nix-ts-mode-indent-offset)))
 
-     (catch-all parent-bol 0)))
+     (catch-all nix-ts-mode--find-indent-anchor 0)))
   "Tree-sitter indent rules for `nix-ts-mode'.")
 
 ;; Keymap
