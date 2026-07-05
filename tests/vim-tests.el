@@ -9001,6 +9001,201 @@ _|_bar")
   "    else f dests}"
   "''_|_"))
 
+(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+ :modes
+ (nix-mode)
+ :names-and-actions
+ ((vim-tests/nix-up-sexp-1c (skip-if-no-treesitter!) (execute-kbd-macro (kbd "q")))
+  (vim-tests/nix-up-sexp-1d (skip-if-no-treesitter!) (nix-up-sexp)))
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then _|_builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}_|_"
+  "''"))
+
+(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+ :modes
+ (nix-mode)
+ :names-and-actions
+ ((vim-tests/nix-up-sexp-1e (skip-if-no-treesitter!) (execute-kbd-macro (kbd "q")))
+  (vim-tests/nix-up-sexp-1f (skip-if-no-treesitter!) (nix-up-sexp)))
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map _|_f dests)"
+  "    else f dests}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)_|_"
+  "    else f dests}"
+  "''"))
+
+(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+ :modes
+ (nix-mode)
+ :names-and-actions
+ ((vim-tests/nix-up-sexp-1g (skip-if-no-treesitter!) (execute-kbd-macro (kbd "q")))
+  (vim-tests/nix-up-sexp-1h (skip-if-no-treesitter!) (nix-up-sexp)))
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)_|_"
+  "    else f dests}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}_|_"
+  "''"))
+
+(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+ :modes
+ (nix-mode)
+ :names-and-actions
+ ((vim-tests/nix-up-sexp-1i (skip-if-no-treesitter!) (execute-kbd-macro (kbd "q")))
+  (vim-tests/nix-up-sexp-1j (skip-if-no-treesitter!) (nix-up-sexp)))
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [ 1 2 _|_3 ];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [ 1 2 3 ]_|_;"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''"))
+
+(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+ :modes
+ (nix-mode)
+ :names-and-actions
+ ((vim-tests/nix-up-sexp-1k (skip-if-no-treesitter!) (execute-kbd-macro (kbd "q")))
+  (vim-tests/nix-up-sexp-1l (skip-if-no-treesitter!) (nix-up-sexp)))
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [ 1 2 3 ]_|_;"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source) {"
+  "  nativeBuildInputs = [ 1 2 3 ];"
+  "}_|_ ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''"))
+
+(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+ :modes
+ (nix-mode)
+ :names-and-actions
+ ((vim-tests/nix-up-sexp-1m (skip-if-no-treesitter!) (execute-kbd-macro (kbd "q")))
+  (vim-tests/nix-up-sexp-1n (skip-if-no-treesitter!) (nix-up-sexp)))
+ :contents
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\"_|_ + source) {"
+  "  nativeBuildInputs = [ 1 2 3 ];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''")
+ :expected-value
+ (tests-utils--multiline
+  "pkgs.runCommand (\"wrapped-\" + source)_|_ {"
+  "  nativeBuildInputs = [ 1 2 3 ];"
+  "} ''"
+  "  mkdir -p \"$out/bin\""
+  "  bar = 1"
+  "  ${if builtins.isList dests"
+  "    then builtins.concatStringsSep \"\\n\" (builtins.map f dests)"
+  "    else f dests}"
+  "''"))
+
+(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+ :modes
+ (nix-mode)
+ :names-and-actions
+ ((vim-tests/nix-up-sexp-2a (skip-if-no-treesitter!) (execute-kbd-macro (kbd "q")))
+  (vim-tests/nix-up-sexp-2b (skip-if-no-treesitter!) (nix-up-sexp)))
+ :contents
+ (tests-utils--multiline
+  "let foo = rec {"
+  "      a = _|_1;"
+  "      b = 2;"
+  "    };"
+  "in 2")
+ :expected-value
+ (tests-utils--multiline
+  "let foo = rec {"
+  "      a = 1;"
+  "      b = 2;"
+  "    }_|_;"
+  "in 2"))
+
 (vim-tests--test-fresh-buffer-contents-init-all
  :name
  vim-tests/paredit-semicolon-1
