@@ -273,8 +273,9 @@ Returns list of triples
     "ScopedTypeVariables"
     "StandaloneDeriving"
     "StandaloneKindSignatures"
-                                        ; "StarIsType" ; not a 'cool' extension
+    ;; "StarIsType" ; not a 'cool' extension
     "TemplateHaskell"
+    "TemplateHaskellQuotes"
     "TransformListComp"
     "TupleSections"
     "TypeApplications"
