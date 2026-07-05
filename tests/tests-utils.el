@@ -127,7 +127,9 @@ Ensures a final newline is inserted."
             (expected-contents ,expected-value))
         (unless ,suppress-cursor
           (unless (string-match-p "_|_" expected-contents)
-            (error "Expected buffer contents does not provide point position with _|_")))
+            (error "Expected buffer contents does not provide point position with _|_"))
+          (unless (eq 1 (s-count-matches "_|_" expected-contents))
+            (error "Expected buffer contents must specify cursor exactly once")))
         (let ((actual-lines (split-into-lines actual-contents t))
               (expected-lines (split-into-lines expected-contents t)))
           (unless (equal actual-lines expected-lines)
