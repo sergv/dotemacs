@@ -18,6 +18,8 @@
 (add-to-list 'ivy-re-builders-alist
              '(switch-to-buffer-with-completion . ivy--regex-fuzzy))
 
+(defvar switch-to-buffer-with-completion--history nil)
+
 ;;;###autoload
 (defun switch-to-buffer-with-completion (include-all-buffers?)
   "Switch to another buffer, query user for a buffer to switch to.."
@@ -58,6 +60,7 @@
                              (cdr it)
                            str)))
               :keymap ivy-switch-buffer-map
+              :history 'switch-to-buffer-with-completion--history
               :caller 'switch-to-buffer-with-completion)))
 
 ;;;###autoload
