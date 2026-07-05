@@ -947,7 +947,7 @@ Error is given as MSG and reported between POS and END."
                  (t
                   (error "Unhandled class case: %s" class-name))))))
          (--map (attrap-insert-language-pragma it)
-                (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))
+                (--filter (s-matches? (concat "\\<" it "\\>") normalized-msg) attrap-haskell-extensions))
          ;; warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]
          ;;  Variable not in scope: hPutStrLn :: t0 -> String -> IO a0
          ;;  Suggested fixes:
