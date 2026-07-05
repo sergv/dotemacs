@@ -84,7 +84,7 @@ withOptions opts k =
       bracket
         FFI.rureOptionsNew
         FFI.rureOptionsFree
-        $ \optsPtr -> do
+        $ \ !optsPtr -> do
           traverse_ (FFI.rureOptionsSetSizeLimit optsPtr . fromIntegral) optSizeLimit
           traverse_ (FFI.rureOptionsSetDfaSizeLimit optsPtr . fromIntegral) optDfaSizeLimit
           k optsPtr
@@ -94,15 +94,15 @@ compileRegex
   -> FFI.Flags
   -> Maybe Options
   -> Either BS.ByteString Regex
-compileRegex !pattern !flags opts = unsafePerformIO $
-  BS.useAsCStringLen pattern $ \(patternPtr, patternLen) ->
+compileRegex !pattern !flags !opts = unsafePerformIO $
+  BS.useAsCStringLen pattern $ \ !(!patternPtr, !patternLen) ->
     bracket
       FFI.rureErrorNew
       FFI.rureErrorFree
-      $ \errPtr -> mask_ $ do
-        rePtr <- withOptions opts $ \optsPtr ->
+      $ \ !errPtr -> mask_ $ do
+        !rePtr <- withOptions opts $ \ !optsPtr ->
           FFI.rureCompile (coerce patternPtr) (fromIntegral patternLen) flags optsPtr errPtr
-        msgPtr <- FFI.rureErrorMessage errPtr
+        !msgPtr <- FFI.rureErrorMessage errPtr
         if rePtr == nullPtr
         then Left <$> BS.packCString msgPtr
         else Right . Regex <$> newForeignPtr FFI.ptrRureFree rePtr
@@ -119,10 +119,10 @@ compileRegexSet patterns !flags opts = unsafePerformIO $
     bracket
       FFI.rureErrorNew
       FFI.rureErrorFree
-      $ \errPtr -> do
-        withArrayLen patternPtrs $ \n patternPtrsPtr -> do
-          withArray (map fromIntegral lens) $ \lensPtr -> mask_ $ do
-            rePtr <- withOptions opts $ \optsPtr ->
+      $ \ !errPtr -> do
+        withArrayLen patternPtrs $ \ !n !patternPtrsPtr -> do
+          withArray (map fromIntegral lens) $ \ !lensPtr -> mask_ $ do
+            !rePtr <- withOptions opts $ \ !optsPtr ->
               FFI.rureCompileSet
                 (coerce patternPtrsPtr)
                 lensPtr
@@ -130,7 +130,7 @@ compileRegexSet patterns !flags opts = unsafePerformIO $
                 flags
                 optsPtr
                 errPtr
-            msgPtr <- FFI.rureErrorMessage errPtr
+            !msgPtr <- FFI.rureErrorMessage errPtr
             if rePtr == nullPtr
             then Left <$> BS.packCString msgPtr
             else Right . RegexSet <$> newForeignPtr FFI.ptrRureSetFree rePtr
@@ -142,7 +142,7 @@ isTruthy = (/= CBool 0)
 
 bytestringHasMatch :: Regex -> BS.ByteString -> Bool
 bytestringHasMatch !(Regex re) !haystack = unsafePerformIO $
-  BS.useAsCStringLen haystack $ \(haystackPtr, haystackLen) ->
+  BS.useAsCStringLen haystack $ \ !(!haystackPtr, !haystackLen) ->
     withForeignPtr re $ \rePtr ->
       isTruthy <$> FFI.rureIsMatch rePtr (coerce haystackPtr) (fromIntegral haystackLen) 0
 
@@ -150,7 +150,7 @@ newtype ReversedList a = ReversedList { unReversedList :: [a] }
 
 bytestringAllMatches :: Regex -> BS.ByteString -> ReversedList Match
 bytestringAllMatches re haystack = unsafePerformIO $
-  BS.useAsCStringLen haystack $ \(haystackPtr, haystackLen) ->
+  BS.useAsCStringLen haystack $ \ !(!haystackPtr, !haystackLen) ->
     utf8PtrAllMatchesIO re (coerce haystackPtr) (fromIntegral haystackLen)
 
 utf8PtrAllMatchesIO :: Regex -> Ptr CUInt8 -> CSize -> IO (ReversedList Match)
@@ -159,7 +159,7 @@ utf8PtrAllMatchesIO !(Regex re) !haystackPtr !haystackLen =
     bracket
       (FFI.rureIterNew rePtr)
       FFI.rureIterFree
-      $ \iterPtr ->
+      $ \ !iterPtr ->
         alloca $ \matchPtr -> do
           let go :: [Match] -> IO (ReversedList Match)
               go acc = do
@@ -175,11 +175,11 @@ utf8PtrAllMatchesIO !(Regex re) !haystackPtr !haystackLen =
 
 bytestringHasSetMatch :: RegexSet -> BS.ByteString -> Bool
 bytestringHasSetMatch !reSet !haystack = unsafePerformIO $
-  BS.useAsCStringLen haystack $ \(haystackPtr, haystackLen) ->
+  BS.useAsCStringLen haystack $ \ !(!haystackPtr, !haystackLen) ->
     utf8PtrHasSetMatchIO reSet (coerce haystackPtr) (fromIntegral haystackLen)
 
 utf8PtrHasSetMatchIO :: RegexSet -> Ptr CUInt8 -> CSize -> IO Bool
 utf8PtrHasSetMatchIO !(RegexSet reSet) !haystackPtr !haystackLen =
-  withForeignPtr reSet $ \reSetPtr ->
+  withForeignPtr reSet $ \ !reSetPtr ->
     isTruthy <$> FFI.rureSetIsMatch reSetPtr haystackPtr haystackLen 0
 
