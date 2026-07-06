@@ -158,7 +158,7 @@ running their FOO-mode-hook."
     (if delay-mode-hooks
         ;; Delaying case.
         (dolist (hook hooks)
-	  (push hook delayed-mode-hooks))
+          (push hook delayed-mode-hooks))
       ;; Normal case, just run the hook as before plus any delayed hooks.
       (setq hooks (el-patch-swap
                     (nconc (nreverse delayed-mode-hooks) hooks)
@@ -199,12 +199,12 @@ running their FOO-mode-hook."
                     (and (or buffer-file-name default-directory)
                          (file-symlink-p (or buffer-file-name default-directory)))))
         (let ((file (if buffer-file-name
-		        (expand-file-name buffer-file-name default-directory)
-	              (expand-file-name default-directory))))
+                        (expand-file-name buffer-file-name default-directory)
+                      (expand-file-name default-directory))))
           (setq auto-revert-notify-watch-descriptor
-	        (ignore-errors
-	          (file-notify-add-watch
-	           file
+                (ignore-errors
+                  (file-notify-add-watch
+                   file
                    (if buffer-file-name '(change attribute-change) '(change))
                    'auto-revert-notify-handler))))
         (when auto-revert-notify-watch-descriptor
@@ -289,9 +289,9 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 
 (when-emacs-version (= 28 it)
   (el-patch-defun shell-command-on-region (start end command
-				                 &optional output-buffer replace
-				                 error-buffer display-error-buffer
-				                 region-noncontiguous-p)
+                                                 &optional output-buffer replace
+                                                 error-buffer display-error-buffer
+                                                 region-noncontiguous-p)
     "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer specified
 by `shell-command-buffer-name'; prefix arg means replace the region
@@ -345,29 +345,29 @@ noncontiguous pieces.  The most common example of this is a
 rectangular region, where the pieces are separated by newline
 characters."
     (interactive (let (string)
-		   (unless (mark)
-		     (user-error "The mark is not set now, so there is no region"))
+                   (unless (mark)
+                     (user-error "The mark is not set now, so there is no region"))
                    ;; Do this before calling region-beginning
                    ;; and region-end, in case subprocess output
                    ;; relocates them while we are in the minibuffer.
-		   (setq string (read-shell-command "Shell command on region: "))
+                   (setq string (read-shell-command "Shell command on region: "))
                    ;; call-interactively recognizes region-beginning and
                    ;; region-end specially, leaving them in the history.
-		   (list (region-beginning) (region-end)
-		         string
-		         current-prefix-arg
-		         current-prefix-arg
-		         shell-command-default-error-buffer
-		         t
-		         (region-noncontiguous-p))))
+                   (list (region-beginning) (region-end)
+                         string
+                         current-prefix-arg
+                         current-prefix-arg
+                         shell-command-default-error-buffer
+                         t
+                         (region-noncontiguous-p))))
     (let ((error-file
-	   (if error-buffer
-	       (make-temp-file
-	        (expand-file-name "scor"
-				  (or small-temporary-file-directory
-				      temporary-file-directory)))
-	     nil))
-	  exit-status)
+           (if error-buffer
+               (make-temp-file
+                (expand-file-name "scor"
+                                  (or small-temporary-file-directory
+                                      temporary-file-directory)))
+             nil))
+          exit-status)
       ;; Unless a single contiguous chunk is selected, operate on multiple chunks.
       (if region-noncontiguous-p
           (let ((input (concat (funcall region-extract-function (when replace 'delete)) "\n"))
@@ -414,7 +414,7 @@ characters."
               ;; It is rude to delete a buffer that the command is not using.
               ;; (let ((shell-buffer (get-buffer shell-command-buffer-name)))
               ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
-              ;; 	 (kill-buffer shell-buffer)))
+              ;;         (kill-buffer shell-buffer)))
               ;; Don't muck with mark unless REPLACE says we should.
               (when (and replace swap
                          (not (eq replace 'no-mark)))
@@ -481,7 +481,7 @@ characters."
                 (let ((output
                        (if (and error-file
                                 (< 0 (file-attribute-size
-				      (file-attributes error-file))))
+                                      (file-attributes error-file))))
                            (format "some error output%s"
                                    (if shell-command-default-error-buffer
                                        (format " to the \"%s\" buffer"
@@ -505,25 +505,25 @@ characters."
 
       (when (and error-file (file-exists-p error-file))
         (if (< 0 (file-attribute-size (file-attributes error-file)))
-	    (with-current-buffer (get-buffer-create error-buffer)
+            (with-current-buffer (get-buffer-create error-buffer)
               (goto-char (point-max))
               ;; Insert a separator if there's already text here.
-	      (unless (bobp)
-	        (insert "\f\n"))
+              (unless (bobp)
+                (insert "\f\n"))
               ;; Do no formatting while reading error file,
               ;; because that can run a shell command, and we
               ;; don't want that to cause an infinite recursion.
-	      (format-insert-file error-file nil)
-	      (and display-error-buffer
-		   (display-buffer (current-buffer)))))
+              (format-insert-file error-file nil)
+              (and display-error-buffer
+                   (display-buffer (current-buffer)))))
         (delete-file error-file))
       exit-status)))
 
 (when-emacs-version (= 29 it)
   (el-patch-defun shell-command-on-region (start end command
-				                 &optional output-buffer replace
-				                 error-buffer display-error-buffer
-				                 region-noncontiguous-p)
+                                                 &optional output-buffer replace
+                                                 error-buffer display-error-buffer
+                                                 region-noncontiguous-p)
     "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer specified
 by `shell-command-buffer-name'; prefix arg means replace the region
@@ -580,29 +580,29 @@ noncontiguous pieces.  The most common example of this is a
 rectangular region, where the pieces are separated by newline
 characters."
     (interactive (let (string)
-		   (unless (mark)
-		     (user-error "The mark is not set now, so there is no region"))
-		   ;; Do this before calling region-beginning
-		   ;; and region-end, in case subprocess output
-		   ;; relocates them while we are in the minibuffer.
-		   (setq string (read-shell-command "Shell command on region: "))
-		   ;; call-interactively recognizes region-beginning and
-		   ;; region-end specially, leaving them in the history.
-		   (list (region-beginning) (region-end)
-		         string
-		         current-prefix-arg
-		         current-prefix-arg
-		         shell-command-default-error-buffer
-		         t
-		         (region-noncontiguous-p))))
+                   (unless (mark)
+                     (user-error "The mark is not set now, so there is no region"))
+                   ;; Do this before calling region-beginning
+                   ;; and region-end, in case subprocess output
+                   ;; relocates them while we are in the minibuffer.
+                   (setq string (read-shell-command "Shell command on region: "))
+                   ;; call-interactively recognizes region-beginning and
+                   ;; region-end specially, leaving them in the history.
+                   (list (region-beginning) (region-end)
+                         string
+                         current-prefix-arg
+                         current-prefix-arg
+                         shell-command-default-error-buffer
+                         t
+                         (region-noncontiguous-p))))
     (let ((error-file
-	   (if error-buffer
-	       (make-temp-file
-	        (expand-file-name "scor"
-				  (or small-temporary-file-directory
-				      temporary-file-directory)))
-	     nil))
-	  exit-status)
+           (if error-buffer
+               (make-temp-file
+                (expand-file-name "scor"
+                                  (or small-temporary-file-directory
+                                      temporary-file-directory)))
+             nil))
+          exit-status)
       ;; Unless a single contiguous chunk is selected, operate on multiple chunks.
       (if region-noncontiguous-p
           (let ((input (concat (funcall region-extract-function (when replace 'delete)) "\n"))
@@ -649,7 +649,7 @@ characters."
               ;; It is rude to delete a buffer that the command is not using.
               ;; (let ((shell-buffer (get-buffer shell-command-buffer-name)))
               ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
-              ;; 	 (kill-buffer shell-buffer)))
+              ;;         (kill-buffer shell-buffer)))
               ;; Don't muck with mark unless REPLACE says we should.
               (when (and replace swap
                          (not (eq replace 'no-mark)))
@@ -716,7 +716,7 @@ characters."
                 (let ((output
                        (if (and error-file
                                 (< 0 (file-attribute-size
-				      (file-attributes error-file))))
+                                      (file-attributes error-file))))
                            (format "some error output%s"
                                    (if shell-command-default-error-buffer
                                        (format " to the \"%s\" buffer"
@@ -740,25 +740,25 @@ characters."
 
       (when (and error-file (file-exists-p error-file))
         (if (< 0 (file-attribute-size (file-attributes error-file)))
-	    (with-current-buffer (get-buffer-create error-buffer)
+            (with-current-buffer (get-buffer-create error-buffer)
               (goto-char (point-max))
               ;; Insert a separator if there's already text here.
-	      (unless (bobp)
-	        (insert "\f\n"))
-	      ;; Do no formatting while reading error file,
-	      ;; because that can run a shell command, and we
-	      ;; don't want that to cause an infinite recursion.
-	      (format-insert-file error-file nil)
-	      (and display-error-buffer
-		   (display-buffer (current-buffer)))))
+              (unless (bobp)
+                (insert "\f\n"))
+              ;; Do no formatting while reading error file,
+              ;; because that can run a shell command, and we
+              ;; don't want that to cause an infinite recursion.
+              (format-insert-file error-file nil)
+              (and display-error-buffer
+                   (display-buffer (current-buffer)))))
         (delete-file error-file))
       exit-status)))
 
 (when-emacs-version (<= 30 it)
   (el-patch-defun shell-command-on-region (start end command
-				      &optional output-buffer replace
-				      error-buffer display-error-buffer
-				      region-noncontiguous-p)
+                                      &optional output-buffer replace
+                                      error-buffer display-error-buffer
+                                      region-noncontiguous-p)
   "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer specified
 by `shell-command-buffer-name'; prefix arg means replace the region
@@ -822,29 +822,29 @@ The differences are especially prominent when the region includes
 more than one line, i.e. when piping to a shell commands with embedded
 newlines."
   (interactive (let (string)
-		 (unless (mark)
-		   (user-error "The mark is not set now, so there is no region"))
-		 ;; Do this before calling region-beginning
-		 ;; and region-end, in case subprocess output
-		 ;; relocates them while we are in the minibuffer.
-		 (setq string (read-shell-command "Shell command on region: "))
-		 ;; call-interactively recognizes region-beginning and
-		 ;; region-end specially, leaving them in the history.
-		 (list (region-beginning) (region-end)
-		       string
-		       current-prefix-arg
-		       current-prefix-arg
-		       shell-command-default-error-buffer
-		       t
-		       (region-noncontiguous-p))))
+                 (unless (mark)
+                   (user-error "The mark is not set now, so there is no region"))
+                 ;; Do this before calling region-beginning
+                 ;; and region-end, in case subprocess output
+                 ;; relocates them while we are in the minibuffer.
+                 (setq string (read-shell-command "Shell command on region: "))
+                 ;; call-interactively recognizes region-beginning and
+                 ;; region-end specially, leaving them in the history.
+                 (list (region-beginning) (region-end)
+                       string
+                       current-prefix-arg
+                       current-prefix-arg
+                       shell-command-default-error-buffer
+                       t
+                       (region-noncontiguous-p))))
   (let ((error-file
-	 (if error-buffer
-	     (make-temp-file
-	      (expand-file-name "scor"
-				(or small-temporary-file-directory
-				    temporary-file-directory)))
-	   nil))
-	exit-status)
+         (if error-buffer
+             (make-temp-file
+              (expand-file-name "scor"
+                                (or small-temporary-file-directory
+                                    temporary-file-directory)))
+           nil))
+        exit-status)
     ;; Unless a single contiguous chunk is selected, operate on multiple chunks.
     (if region-noncontiguous-p
         (let ((input (concat (funcall region-extract-function (when replace 'delete)) "\n"))
@@ -891,7 +891,7 @@ newlines."
             ;; It is rude to delete a buffer that the command is not using.
             ;; (let ((shell-buffer (get-buffer shell-command-buffer-name)))
             ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
-            ;; 	 (kill-buffer shell-buffer)))
+            ;;   (kill-buffer shell-buffer)))
             ;; Don't muck with mark unless REPLACE says we should.
             (when (and replace swap
                        (not (eq replace 'no-mark)))
@@ -958,7 +958,7 @@ newlines."
               (let ((output
                      (if (and error-file
                               (< 0 (file-attribute-size
-				    (file-attributes error-file))))
+                                    (file-attributes error-file))))
                          (format "some error output%s"
                                  (if shell-command-default-error-buffer
                                      (format " to the \"%s\" buffer"
@@ -982,17 +982,17 @@ newlines."
 
     (when (and error-file (file-exists-p error-file))
       (if (< 0 (file-attribute-size (file-attributes error-file)))
-	  (with-current-buffer (get-buffer-create error-buffer)
+          (with-current-buffer (get-buffer-create error-buffer)
             (goto-char (point-max))
             ;; Insert a separator if there's already text here.
-	    (unless (bobp)
-	      (insert "\f\n"))
-	    ;; Do no formatting while reading error file,
-	    ;; because that can run a shell command, and we
-	    ;; don't want that to cause an infinite recursion.
-	    (format-insert-file error-file nil)
-	    (and display-error-buffer
-		 (display-buffer (current-buffer)))))
+            (unless (bobp)
+              (insert "\f\n"))
+            ;; Do no formatting while reading error file,
+            ;; because that can run a shell command, and we
+            ;; don't want that to cause an infinite recursion.
+            (format-insert-file error-file nil)
+            (and display-error-buffer
+                 (display-buffer (current-buffer)))))
       (delete-file error-file))
     exit-status)))
 
@@ -1076,30 +1076,30 @@ newlines."
           (with-current-buffer oprocbuf
             (el-patch-wrap 1 0
               (with-disabled-undo
-	       ;; Run preoutput filters
-	       (let ((functions comint-preoutput-filter-functions))
-	         (while (and functions string)
-	           (if (eq (car functions) t)
-		       (let ((functions
+               ;; Run preoutput filters
+               (let ((functions comint-preoutput-filter-functions))
+                 (while (and functions string)
+                   (if (eq (car functions) t)
+                       (let ((functions
                               (default-value 'comint-preoutput-filter-functions)))
-		         (while (and functions string)
-		           (setq string (funcall (car functions) string))
-		           (setq functions (cdr functions))))
-	             (setq string (funcall (car functions) string)))
-	           (setq functions (cdr functions))))
+                         (while (and functions string)
+                           (setq string (funcall (car functions) string))
+                           (setq functions (cdr functions))))
+                     (setq string (funcall (car functions) string)))
+                   (setq functions (cdr functions))))
 
-	       ;; Insert STRING
-	       (let ((inhibit-read-only t)
+               ;; Insert STRING
+               (let ((inhibit-read-only t)
                      ;; The point should float after any insertion we do.
-	             (saved-point (copy-marker (point) t)))
+                     (saved-point (copy-marker (point) t)))
 
-	         ;; We temporarily remove any buffer narrowing, in case the
-	         ;; process mark is outside of the restriction
-	         (save-restriction
-	           (widen)
+                 ;; We temporarily remove any buffer narrowing, in case the
+                 ;; process mark is outside of the restriction
+                 (save-restriction
+                   (widen)
 
-	           (goto-char (process-mark process))
-	           (set-marker comint-last-output-start (point))
+                   (goto-char (process-mark process))
+                   (set-marker comint-last-output-start (point))
 
                    ;; Before we call `comint--mark-as-output' later,
                    ;; redisplay can be called.  We mark the inserted text as
@@ -1107,57 +1107,57 @@ newlines."
                    ;; as input in case of `comint-fontify-input-mode'.
                    (put-text-property 0 (length string) 'field 'output string)
 
-	           ;; insert-before-markers is a bad thing. XXX
-	           ;; Luckily we don't have to use it any more, we use
-	           ;; window-point-insertion-type instead.
-	           (insert string)
+                   ;; insert-before-markers is a bad thing. XXX
+                   ;; Luckily we don't have to use it any more, we use
+                   ;; window-point-insertion-type instead.
+                   (insert string)
 
-	           ;; Advance process-mark
-	           (set-marker (process-mark process) (point))
+                   ;; Advance process-mark
+                   (set-marker (process-mark process) (point))
 
-	           (unless comint-inhibit-carriage-motion
-	             ;; Interpret any carriage motion characters (newline, backspace)
-	             (comint-carriage-motion comint-last-output-start (point)))
+                   (unless comint-inhibit-carriage-motion
+                     ;; Interpret any carriage motion characters (newline, backspace)
+                     (comint-carriage-motion comint-last-output-start (point)))
 
-	           ;; Run these hooks with point where the user had it.
-	           (goto-char saved-point)
-	           (run-hook-with-args 'comint-output-filter-functions string)
-	           (set-marker saved-point (point))
+                   ;; Run these hooks with point where the user had it.
+                   (goto-char saved-point)
+                   (run-hook-with-args 'comint-output-filter-functions string)
+                   (set-marker saved-point (point))
 
-	           (goto-char (process-mark process)) ; In case a filter moved it.
+                   (goto-char (process-mark process)) ; In case a filter moved it.
 
-	           (unless comint-use-prompt-regexp
+                   (unless comint-use-prompt-regexp
                      (comint--mark-as-output comint-last-output-start (point)))
 
-	           ;; Highlight the prompt, where we define `prompt' to mean
-	           ;; the most recent output that doesn't end with a newline.
-	           (let ((prompt-start (save-excursion (forward-line 0) (point)))
-		         (inhibit-read-only t))
-	             (when comint-prompt-read-only
-		       (with-silent-modifications
-		         (or (= (point-min) prompt-start)
-		             (get-text-property (1- prompt-start) 'read-only)
-		             (put-text-property (1- prompt-start)
-					        prompt-start 'read-only 'fence))
-		         (add-text-properties prompt-start (point)
-				              '(read-only t front-sticky (read-only)))))
-	             (when comint-last-prompt
-		       ;; There might be some keywords here waiting for
-		       ;; fontification, so no `with-silent-modifications'.
-		       (font-lock--remove-face-from-text-property
-		        (car comint-last-prompt)
-		        (cdr comint-last-prompt)
-		        'font-lock-face
-		        'comint-highlight-prompt))
-	             (setq comint-last-prompt
-		           (cons (copy-marker prompt-start) (point-marker)))
-	             (font-lock-append-text-property prompt-start (point)
-					             'font-lock-face
-					             'comint-highlight-prompt)
-	             (add-text-properties prompt-start (point)
-	                                  `(rear-nonsticky
-	                                    ,comint--prompt-rear-nonsticky)))
-	           (goto-char saved-point)))))))))))
+                   ;; Highlight the prompt, where we define `prompt' to mean
+                   ;; the most recent output that doesn't end with a newline.
+                   (let ((prompt-start (save-excursion (forward-line 0) (point)))
+                         (inhibit-read-only t))
+                     (when comint-prompt-read-only
+                       (with-silent-modifications
+                         (or (= (point-min) prompt-start)
+                             (get-text-property (1- prompt-start) 'read-only)
+                             (put-text-property (1- prompt-start)
+                                                prompt-start 'read-only 'fence))
+                         (add-text-properties prompt-start (point)
+                                              '(read-only t front-sticky (read-only)))))
+                     (when comint-last-prompt
+                       ;; There might be some keywords here waiting for
+                       ;; fontification, so no `with-silent-modifications'.
+                       (font-lock--remove-face-from-text-property
+                        (car comint-last-prompt)
+                        (cdr comint-last-prompt)
+                        'font-lock-face
+                        'comint-highlight-prompt))
+                     (setq comint-last-prompt
+                           (cons (copy-marker prompt-start) (point-marker)))
+                     (font-lock-append-text-property prompt-start (point)
+                                                     'font-lock-face
+                                                     'comint-highlight-prompt)
+                     (add-text-properties prompt-start (point)
+                                          `(rear-nonsticky
+                                            ,comint--prompt-rear-nonsticky)))
+                   (goto-char saved-point)))))))))))
 
 (eval-after-load "comint" '(comint-init))
 
@@ -1193,7 +1193,7 @@ directory got moved.  This is set to be a pair in the form of:
                                               eln-dest-dir)))
                      (native-comp-unit-set-file
                       cu
-	              (cons
+                      (cons
                        ;; Relative filename from the installed binary.
                        (file-relative-name (expand-file-name
                                             (file-name-nondirectory
@@ -1202,7 +1202,7 @@ directory got moved.  This is set to be a pair in the form of:
                                            load--bin-dest-dir)
                        ;; Relative filename from the built uninstalled binary.
                        (file-relative-name file invocation-directory))))))
-	       comp-loaded-comp-units-h))))
+               comp-loaded-comp-units-h))))
 
 (when-emacs-version (<= 30 it)
   (el-patch-defun shell-command--same-buffer-confirm (action)
@@ -1248,46 +1248,46 @@ Before and after saving the buffer, this function runs
     (save-current-buffer
       ;; In an indirect buffer, save its base buffer instead.
       (if (buffer-base-buffer)
-	  (set-buffer (buffer-base-buffer)))
+          (set-buffer (buffer-base-buffer)))
       (if (or (buffer-modified-p)
-	      ;; Handle the case when no modification has been made but
-	      ;; the file disappeared since visited.
-	      (and buffer-file-name
-		   (not (file-exists-p buffer-file-name))))
-	  (let ((recent-save (recent-auto-save-p))
-	        setmodes)
-	    (or (null buffer-file-name)
+              ;; Handle the case when no modification has been made but
+              ;; the file disappeared since visited.
+              (and buffer-file-name
+                   (not (file-exists-p buffer-file-name))))
+          (let ((recent-save (recent-auto-save-p))
+                setmodes)
+            (or (null buffer-file-name)
                 (verify-visited-file-modtime (current-buffer))
-	        (not (file-exists-p buffer-file-name))
-	        (yes-or-no-p
-	         (format
-		  "%s has changed since visited or saved.  Save anyway? "
-		  (file-name-nondirectory buffer-file-name)))
-	        (user-error "Save not confirmed"))
-	    (save-restriction
-	      (widen)
-	      (save-excursion
-	        (and (> (point-max) (point-min))
-		     (not find-file-literally)
+                (not (file-exists-p buffer-file-name))
+                (yes-or-no-p
+                 (format
+                  "%s has changed since visited or saved.  Save anyway? "
+                  (file-name-nondirectory buffer-file-name)))
+                (user-error "Save not confirmed"))
+            (save-restriction
+              (widen)
+              (save-excursion
+                (and (> (point-max) (point-min))
+                     (not find-file-literally)
                      (null buffer-read-only)
-		     (/= (char-after (1- (point-max))) ?\n)
-		     (not (and (eq selective-display t)
-			       (= (char-after (1- (point-max))) ?\r)))
-		     (or (eq require-final-newline t)
-		         (eq require-final-newline 'visit-save)
-		         (and require-final-newline
-			      (y-or-n-p
-			       (format "Buffer %s does not end in newline.  Add one? "
-				       (buffer-name)))))
-		     (save-excursion
-		       (goto-char (point-max))
-		       (insert ?\n))))
-	      ;; Don't let errors prevent saving the buffer.
-	      (with-demoted-errors "Before-save hook error: %S"
-	        (run-hooks 'before-save-hook))
+                     (/= (char-after (1- (point-max))) ?\n)
+                     (not (and (eq selective-display t)
+                               (= (char-after (1- (point-max))) ?\r)))
+                     (or (eq require-final-newline t)
+                         (eq require-final-newline 'visit-save)
+                         (and require-final-newline
+                              (y-or-n-p
+                               (format "Buffer %s does not end in newline.  Add one? "
+                                       (buffer-name)))))
+                     (save-excursion
+                       (goto-char (point-max))
+                       (insert ?\n))))
+              ;; Don't let errors prevent saving the buffer.
+              (with-demoted-errors "Before-save hook error: %S"
+                (run-hooks 'before-save-hook))
               ;; Give `write-contents-functions' a chance to
               ;; short-circuit the whole process.
-	      (unless (run-hook-with-args-until-success 'write-contents-functions)
+              (unless (run-hook-with-args-until-success 'write-contents-functions)
                 ;; If buffer has no file name, ask user for one.
                 (or buffer-file-name
                     (let ((filename
@@ -1305,50 +1305,50 @@ Before and after saving the buffer, this function runs
                               (error "Canceled"))))
                       (set-visited-file-name filename)))
                 ;; Support VC version backups.
-	        (vc-before-save)
-	        (or (run-hook-with-args-until-success 'local-write-file-hooks)
-	            (run-hook-with-args-until-success 'write-file-functions)
-	            ;; If a hook returned t, file is already "written".
-	            ;; Otherwise, write it the usual way now.
-	            (let ((file (buffer-file-name))
+                (vc-before-save)
+                (or (run-hook-with-args-until-success 'local-write-file-hooks)
+                    (run-hook-with-args-until-success 'write-file-functions)
+                    ;; If a hook returned t, file is already "written".
+                    ;; Otherwise, write it the usual way now.
+                    (let ((file (buffer-file-name))
                           (dir (file-name-directory
-			        (expand-file-name buffer-file-name))))
+                                (expand-file-name buffer-file-name))))
                       ;; Some systems have directories (like /content on
                       ;; Android) in which files can exist without a
                       ;; corresponding parent directory.
-		      (unless (or (file-exists-p file)
+                      (unless (or (file-exists-p file)
                                   (file-exists-p dir))
-		        (if (y-or-n-p
-		             (format-message
+                        (if (y-or-n-p
+                             (format-message
                               "Directory `%s' does not exist; create? " dir))
-		            (make-directory dir t)
-		          (error "Canceled")))
-		      (setq setmodes (basic-save-buffer-1)))))
-	      ;; Now we have saved the current buffer.  Let's make sure
-	      ;; that buffer-file-coding-system is fixed to what
-	      ;; actually used for saving by binding it locally.
+                            (make-directory dir t)
+                          (error "Canceled")))
+                      (setq setmodes (basic-save-buffer-1)))))
+              ;; Now we have saved the current buffer.  Let's make sure
+              ;; that buffer-file-coding-system is fixed to what
+              ;; actually used for saving by binding it locally.
               (when buffer-file-name
-	        (if save-buffer-coding-system
-		    (setq save-buffer-coding-system last-coding-system-used)
-	          (setq buffer-file-coding-system last-coding-system-used))
-	        (setq buffer-file-number
-		      (file-attribute-file-identifier
+                (if save-buffer-coding-system
+                    (setq save-buffer-coding-system last-coding-system-used)
+                  (setq buffer-file-coding-system last-coding-system-used))
+                (setq buffer-file-number
+                      (file-attribute-file-identifier
                        (file-attributes buffer-file-name)))
-	        (if setmodes
-		    (condition-case ()
-		        (progn
-		          (unless
-			      (with-demoted-errors "Error setting file modes: %S"
-			        (set-file-modes buffer-file-name (car setmodes)))
-			    (set-file-extended-attributes buffer-file-name
-						          (nth 1 setmodes))))
-		      (error nil)))
+                (if setmodes
+                    (condition-case ()
+                        (progn
+                          (unless
+                              (with-demoted-errors "Error setting file modes: %S"
+                                (set-file-modes buffer-file-name (car setmodes)))
+                            (set-file-extended-attributes buffer-file-name
+                                                          (nth 1 setmodes))))
+                      (error nil)))
                 ;; Support VC `implicit' locking.
-	        (vc-after-save))
+                (vc-after-save))
               ;; If the auto-save file was recent before this command,
-	      ;; delete it now.
-	      (delete-auto-save-file-if-necessary recent-save))
-	    (run-hooks 'after-save-hook)
+              ;; delete it now.
+              (delete-auto-save-file-if-necessary recent-save))
+            (run-hooks 'after-save-hook)
             ;; Add explicit return value.
             (el-patch-add t))
         (or noninteractive
@@ -1367,7 +1367,7 @@ Before and after saving the buffer, this function runs
             (and archive-file-list-start
                  (>= (point) archive-file-list-start)))
           (count-lines archive-file-list-start
-		       (line-beginning-position))
+                       (line-beginning-position))
         0)))
   (eval-after-load "arg-mode" '(arg-mode-init)))
 
