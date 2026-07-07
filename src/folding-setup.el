@@ -380,7 +380,7 @@ function; and adjust-block-beginning function."
                 (or (eq syn ?\()
                     (eq syn ?\))
                     (eq syn ?\<))))
-            (awhen (comment-util-current-format)
+            (awhen (comment-util-current-format-lax)
               (comment-util--on-commented-line? it))))))
 
 ;;;; Hydras and setups
