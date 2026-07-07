@@ -31,11 +31,11 @@
 
 (defconst dante-test-data/native-flake
   (concat +emacs-config-path+
-          "/native/emacs-native/flake.nix"))
+          "/native/rure-ffi/flake.nix"))
 
 (defconst dante-test-data/native-flake-lock
   (concat +emacs-config-path+
-          "/native/emacs-native/flake.lock"))
+          "/native/rure-ffi/flake.lock"))
 
 (defconst dante-test-data/simple-repl-test-project
   (concat +emacs-config-path+ "/tests/test-data/dante/simple-repl-project"))
