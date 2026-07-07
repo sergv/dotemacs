@@ -3726,6 +3726,19 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-14
+ :contents
+ (tests-utils--multiline
+  "list ("
+  "           _|_foo >>>"
+  "       bar)")
+ :expected-value
+ (tests-utils--multiline
+  "list ("
+  "  _|_foo >>>"
+  "       bar)"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-vertical-op-1
  :contents
  (tests-utils--multiline
