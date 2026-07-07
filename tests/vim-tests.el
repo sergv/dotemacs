@@ -248,7 +248,7 @@
             :expected-value
             ,expected-value)))))
 
-(cl-defmacro vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands* (&key modes names-and-actions contents expected-value)
+(cl-defmacro vim-tests--test-fresh-buffer-contents-equivalent-commands* (&key modes names-and-actions contents expected-value)
   (declare (indent nil))
   `(progn
      ,@(cl-loop
@@ -9013,7 +9013,7 @@ _|_bar")
   "}"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes
  (nix-mode)
  :names-and-actions
@@ -9042,7 +9042,7 @@ _|_bar")
   "    else f dests}"
   "''_|_"))
 
-(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes
  (nix-mode)
  :names-and-actions
@@ -9071,7 +9071,7 @@ _|_bar")
   "    else f dests}_|_"
   "''"))
 
-(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes
  (nix-mode)
  :names-and-actions
@@ -9100,7 +9100,7 @@ _|_bar")
   "    else f dests}"
   "''"))
 
-(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes
  (nix-mode)
  :names-and-actions
@@ -9129,7 +9129,7 @@ _|_bar")
   "    else f dests}_|_"
   "''"))
 
-(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes
  (nix-mode)
  :names-and-actions
@@ -9158,7 +9158,7 @@ _|_bar")
   "    else f dests}"
   "''"))
 
-(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes
  (nix-mode)
  :names-and-actions
@@ -9187,7 +9187,7 @@ _|_bar")
   "    else f dests}"
   "''"))
 
-(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes
  (nix-mode)
  :names-and-actions
@@ -9216,7 +9216,7 @@ _|_bar")
   "    else f dests}"
   "''"))
 
-(vim-tests--test-fresh-buffer-contents-init-selected-modes-equivalent-commands*
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes
  (nix-mode)
  :names-and-actions
