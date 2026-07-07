@@ -85,6 +85,8 @@ Return the root node of the syntax tree."
 (el-patch-defun treesit-indent-region (beg end)
   "Indent the region between BEG and END.
 Similar to `treesit-indent', but indent a region instead."
+  (when (markerp beg) (setq beg (marker-position beg)))
+  (when (markerp end) (setq end (marker-position end)))
   (treesit-update-ranges beg end)
   ;; We indent `treesit--indent-region-batch-size' lines at a time, to
   ;; reduce the number of times the parser needs to re-parse.  In each
@@ -205,14 +207,23 @@ the function."
         ;; `functionp'.
         ((alist-get exp treesit-simple-indent-presets))
         ((functionp exp) exp)
-        ((symbolp exp)
-         (if (null exp)
-             exp
-           ;; Matchers only return lambdas, anchors only return
-           ;; integer, so we should never see a variable.
-           (signal 'treesit-indent-error
-                   (list "Couldn't find the preset corresponding to expression"
-                         exp))))
+        ;; Keep old behaviour with validation, newer emacs remove this case but
+        ;; it seems useful for now.
+        (el-patch-add
+          ((symbolp exp)
+           (if (null exp)
+               exp
+             ;; Matchers only return lambdas, anchors only return
+             ;; integer, so we should never see a variable.
+             (signal 'treesit-indent-error
+                     (list "Couldn't find the preset corresponding to expression"
+                           exp)))))
+        ;; There are higher-order presets that take arguments, like
+        ;; (nth-sibling 1 t), so it's possible for exp to be something
+        ;; other than numbers and functions.  Don't signal an error if
+        ;; exp isn't a function nor a number.  In fact, allow exp to be
+        ;; any symbol or keyword, so users can define higher-order
+        ;; presets that takes keyword or symbol as arguments.
         (t exp)))
 
 (el-patch-defun treesit-query-validate (language query)
@@ -244,9 +255,10 @@ to the offending pattern and highlight the pattern."
              (goto-char (point-min))
              (insert (format "%s: %d\n" message start))
              (forward-char start)))
-         (save-selected-window
-           (pop-to-buffer buf)
-           (view-mode)))))))
+         (el-patch-wrap 1 0
+           (save-selected-window
+             (pop-to-buffer buf)
+             (view-mode))))))))
 
 (defun treesit--named-children (node)
   "Get all children of NODE along with their names, return list of (NAME . CHILD) pairs."
