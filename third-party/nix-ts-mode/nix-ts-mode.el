@@ -486,6 +486,59 @@ Return nil if there is no name or if NODE is not a defun node."
      (treesit-node-text
       (treesit-node-child-by-field-name node "attrpath") t))))
 
+(defconst nix-ts--syntax-propertize-query
+  (treesit-query-compile
+   'nix
+   '(((string_expression
+       "\"" @string-dquote-delimiter))
+     ((indented_string_expression
+       :anchor "''" @string-squote-start
+       "''" @string-squote-end :anchor))
+     ((interpolation
+       "${" @antiquote-delimiter-start
+       "}" @antiquote-delimiter-end)))))
+
+(defun nix-ts-syntax-propertize (begin end)
+  (save-match-data
+    (let ((end-eol
+           (save-excursion
+             (goto-char end)
+             (line-end-position))))
+      (save-excursion
+        (goto-char begin)
+        (let ((beg-bol (line-beginning-position)))
+          (dolist (entry
+                   (treesit-query-capture (treesit-buffer-root-node 'nix)
+                                          nix-ts--syntax-propertize-query
+                                          beg-bol
+                                          end-eol
+                                          nil ;; want capture names
+                                          ))
+            (let* ((node (cdr entry))
+                   (start (treesit-node-start node))
+                   (end (treesit-node-end node))
+                   (propertize-begin nil)
+                   (propertize-end nil))
+              (cl-assert (treesit-node-p node))
+              (pcase (car entry)
+                ((or `string-dquote-delimiter
+                     `string-squote-start
+                     `antiquote-delimiter-start)
+                 (setf propertize-begin start
+                       propertize-end (+ start 1)))
+                (`string-squote-end
+                 (setf propertize-begin (- end 1)
+                       propertize-end end))
+                (`antiquote-delimiter-end
+                 (setf propertize-begin end
+                       propertize-end (+ end 1)))
+                (other
+                 (error "Invalid capture: %s" other)))
+              (put-text-property propertize-begin
+                                 propertize-end
+                                 'syntax-table
+                                 (eval-when-compile (string-to-syntax "|"))))))))))
+
 ;;;###autoload
 (define-derived-mode nix-ts-mode prog-mode "Nix"
   "Major mode for editing Nix expressions, powered by treesitter.
@@ -504,6 +557,8 @@ Return nil if there is no name or if NODE is not a defun node."
                   (string path uri)
                   (number operator definition function-call keyword)
                   (parameter property variable bracket delimiter ellipses punctuation paren-base parameter-atpattern error)))
+
+    (setq-local syntax-propertize-function #'nix-ts-syntax-propertize)
 
     ;; Comments
     (setq-local comment-start "# ")
