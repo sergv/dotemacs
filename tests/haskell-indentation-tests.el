@@ -3726,7 +3726,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-infix-14
+ :name haskell-indentation-tests--test-treesitter-infix-14a
  :contents
  (tests-utils--multiline
   "list ("
@@ -3737,6 +3737,66 @@ have different input states."
   "list ("
   "  _|_foo >>>"
   "       bar)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-14b
+ :contents
+ (tests-utils--multiline
+  "foo = list ("
+  "           _|_quux >>>"
+  "       bar)")
+ :expected-value
+ (tests-utils--multiline
+  "foo = list ("
+  "  _|_quux >>>"
+  "       bar)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-14c
+ :contents
+ (tests-utils--multiline
+  "foo x = list ("
+  "           _|_quux >>>"
+  "       bar)")
+ :expected-value
+ (tests-utils--multiline
+  "foo x = list ("
+  "  _|_quux >>>"
+  "       bar)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-15a
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  "  ["
+  "           _|_quux >>>"
+  "                bar"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  ["
+  "    _|_quux >>>"
+  "                bar"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-15b
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  ["
+  "           _|_quux >>>"
+  "                bar"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  ["
+  "    _|_quux >>>"
+  "                bar"
+  "  ]"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-vertical-op-1
