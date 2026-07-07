@@ -790,6 +790,17 @@
              ((n-p-gp '("then" "else") "conditional" nil) parent 0)
              ((field-is "then" "else") parent haskell-indent-offset)
 
+             ;; list
+             ((node-is "]") parent 0)
+             ((n-p-gp "," "list" nil) parent 0)
+             ((n-p-gp "," "qualifiers" "list_comprehension") grand-parent 0)
+             ((n-p-gp "|" "list_comprehension" nil) parent 0)
+             ((parent-is "list" "list_comprehension") parent haskell-indent-offset)
+             ((or (parent-is "generator")
+                  (grand-parent-is "generator"))
+              haskell-ts-indent--list-generator-anchor
+              haskell-indent-offset)
+
              ((or (parent-is "field_update")
                   (node-is "infix"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent
@@ -816,17 +827,6 @@
                    (if (string= "let_in" (treesit-matched-anchor-node-type matched-anchor))
                        0
                      haskell-indent-offset))))
-
-             ;; list
-             ((node-is "]") parent 0)
-             ((n-p-gp "," "list" nil) parent 0)
-             ((n-p-gp "," "qualifiers" "list_comprehension") grand-parent 0)
-             ((n-p-gp "|" "list_comprehension" nil) parent 0)
-             ((parent-is "list" "list_comprehension") parent haskell-indent-offset)
-             ((or (parent-is "generator")
-                  (grand-parent-is "generator"))
-              haskell-ts-indent--list-generator-anchor
-              haskell-indent-offset)
 
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
              ((n-p-gp "operator" "infix" nil)
