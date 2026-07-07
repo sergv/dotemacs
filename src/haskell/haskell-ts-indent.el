@@ -160,7 +160,10 @@
           ;; If there’s space after parens then what’s within is the anchor.
           ;; If there’s no space then it’s compact and parens are the anchor.
           (if (extended-whitespace-char? (char-after (treesit-node-end open-paren)))
-              prev
+              (if (treesit-utils-is-standalone-node? open-paren)
+                  prev
+                ;; Skip non-standalone parenthesis to find better anchor somewhere else.
+                nil)
             curr))
       curr)))
 
