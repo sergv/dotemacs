@@ -142,6 +142,55 @@
     :expected-value
     ,expected-value))
 
+;; todo: migrate to this
+(cl-defmacro vim-tests--default-test-fresh-buffer-contents*
+    (&key modes
+          name
+          action
+          contents
+          expected-value)
+  (declare (indent 0))
+  (cl-assert (listp modes))
+  (cl-assert (cl-every #'symbolp modes))
+  `(vim-tests--test-fresh-buffer-contents-init-all
+    :name ,name
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value
+    :modes
+    ,(if modes
+         (--filter (memq it modes) (-map #'car vim-tests--all-known-modes-and-init))
+       (-map #'car vim-tests--all-known-modes-and-init))))
+
+(cl-defmacro vim-tests--folding-test-fresh-buffer-contents*
+    (&key modes
+          name
+          action
+          contents
+          expected-value)
+  (declare (indent 0))
+  (cl-assert (listp modes))
+  (cl-assert (cl-every #'symbolp modes))
+  `(vim-tests--default-test-fresh-buffer-contents*
+    :name ,name
+    :modes ,modes
+    :contents ,contents
+    :expected-value ,expected-value
+    :action
+    (progn
+      ,action
+      (save-excursion
+        (let ((to-clean nil))
+          (dolist (ov (overlays-in (point-min) (point-max)))
+            (when (overlay-get ov 'invisible)
+              (push (cons (overlay-start ov) (overlay-end ov)) to-clean)))
+          (dolist (bounds (sort to-clean :key #'car :lessp #'< :reverse t))
+            (let ((start (car bounds))
+                  (end (cdr bounds)))
+              (goto-char start)
+              (delete-region start end)
+              (insert "<INVISIBLE>"))))))))
+
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only (keep-modes name action contents expected-value)
   (declare (indent 3))
   `(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
@@ -9293,6 +9342,36 @@ _|_bar")
   "def"
   "_||_xyz"
   ""))
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/folding-1
+ :modes (text-mode)
+ :action
+ (execute-kbd-macro (kbd "z c"))
+ :contents
+ (tests-utils--multiline
+  "(_|_foo"
+  " bar"
+  " baz)")
+ :expected-value
+ (tests-utils--multiline
+  "(_|_foo<INVISIBLE>)"))
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/folding-2
+ :modes (text-mode)
+ :action
+ (execute-kbd-macro (kbd "z c"))
+ :contents
+ (tests-utils--multiline
+  "_|_foo"
+  "  bar"
+  "  baz"
+  "quux")
+ :expected-value
+ (tests-utils--multiline
+  "_|_foo<INVISIBLE>"
+  "quux"))
 
 (provide 'vim-tests)
 
