@@ -31,6 +31,8 @@
 
 ;;;###autoload
 (el-patch-feature magit)
+;;;###autoload
+(el-patch-feature magit-commit)
 
 (setf magit-completing-read-function 'ivy-completing-read
       magit-branch-read-upstream-first 'fallback
@@ -85,7 +87,7 @@ or \"detached head\" will be substituted for %s."
                      ;; merely to add new commits *after* it.  Try not to
                      ;; ask users whether they really want to edit public
                      ;; commits, when they don't actually intend to do so.
-                     (not (--all-p (magit-rev-equal it commit) branches))))
+                     (not (seq-every-p (##magit-rev-equal % commit) branches))))
         (let ((m1 "Some of these commits have already been published to ")
               (m2 ".\nDo you really want to modify them"))
           (magit-confirm (or magit--rebase-published-symbol 'rebase-published)
@@ -103,7 +105,7 @@ or \"detached head\" will be substituted for %s."
 
 (el-patch-defun magit-commit-amend-assert (&optional commit)
   (el-patch-swap
-    (when-let ((branches (magit-list-publishing-branches commit)))
+    (cond-let--when-let ((branches (magit-list-publishing-branches commit)))
       (let ((m1 "This commit has already been published to ")
             (m2 ".\nDo you really want to modify it"))
         (magit-confirm 'amend-published
