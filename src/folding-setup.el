@@ -178,7 +178,9 @@ Original match data is restored upon return."
                    mode-name)))))
     (setq-local hs-block-start-regexp start
                 hs-block-start-mdata-select (or selector 0)
-                hs-block-end-regexp (or end "\\s)")
+                hs-block-end-regexp (or end
+                                        (rx (syntax 41 ;; ?\)
+                                                    )))
                 hs-c-start-regexp comment-start-regexp
                 hs-forward-sexp-func (or forward-sexp #'forward-sexp)
                 ;; Has good enough default
@@ -200,8 +202,10 @@ Original match data is restored upon return."
        :forward-sexp #'c-preprocessor-hideshow-forward-sexp
        :comments-not-supported comments-not-supported?)
     (hs-minor-mode-initialize
-     :start "\\s("
-     :end "\\s)"
+     :start (rx (syntax 40 ;;?\(
+                        ))
+     :end (rx (syntax 41 ;; ?\)
+                      ))
      :comments-not-supported comments-not-supported?)))
 
 (defun hs-minor-mode-ensure-initialized ()
