@@ -219,14 +219,6 @@
             :expected-value
             ,expected-value)))))
 
-(defmacro vim-tests--test-fresh-buffer-contents (action contents expected-value)
-  (declare (indent 1))
-  `(vim-tests--test-fresh-buffer-contents-init
-       (text-mode)
-       ,action
-     ,contents
-     ,expected-value))
-
 (cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-pair-only
     (keep-modes name contents (name1 action1 expected1) (name2 action2 expected2))
   (declare (indent 3))
