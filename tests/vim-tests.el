@@ -9373,6 +9373,186 @@ _|_bar")
   "_|_foo<INVISIBLE>"
   "quux"))
 
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-1aa (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-1ab (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''$_|_{ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-_|_}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-1ba (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-1bb (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s $_|_{win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter_|_}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-1ca (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-1cb (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = _|_{"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  _|_};"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-1da (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-1db (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "_|_{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "_|_}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-1ea (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-1eb (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "_|_}")
+ :expected-value
+ (tests-utils--multiline
+  "_|_{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  "  bar = {"
+  "    foo = 1;"
+  "    bar = 2;"
+  "  };"
+  "}"))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
