@@ -142,6 +142,7 @@
     :expected-value
     ,expected-value))
 
+;; best default
 ;; todo: migrate to this
 (cl-defmacro vim-tests--default-test-fresh-buffer-contents*
     (&key modes
@@ -248,6 +249,7 @@
             :expected-value
             ,expected-value)))))
 
+;; good default
 (cl-defmacro vim-tests--test-fresh-buffer-contents-equivalent-commands* (&key modes names-and-actions contents expected-value)
   (declare (indent nil))
   `(progn
@@ -9372,6 +9374,129 @@ _|_bar")
  (tests-utils--multiline
   "_|_foo<INVISIBLE>"
   "quux"))
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/folding-3
+ :modes (nix-mode)
+ :action
+ (execute-kbd-macro (kbd "z c"))
+ :contents
+ (tests-utils--multiline
+  "_|_{"
+  "  foo = 1;"
+  "  bar = 2;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "_|_{<INVISIBLE>}"))
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/folding-4
+ :modes (nix-mode)
+ :action
+ (execute-kbd-macro (kbd "z c"))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  ""
+  "  bar = _|_{"
+  "    foo = 1;"
+  ""
+  "    bar = 2;"
+  "  };"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  ""
+  "  bar = _|_{<INVISIBLE>};"
+  "}"))
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/folding-5
+ :modes (nix-mode)
+ :action
+ (execute-kbd-macro (kbd "z c"))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''_|_"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  ""
+  "  bar = {"
+  "    foo = 1;"
+  ""
+  "    bar = 2;"
+  "  };"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      '_|_'<INVISIBLE>"
+  "      '';"
+  ""
+  "  bar = {"
+  "    foo = 1;"
+  ""
+  "    bar = 2;"
+  "  };"
+  "}"))
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/folding-6
+ :modes (nix-mode)
+ :action
+ (execute-kbd-macro (kbd "z c"))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    _|_pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\""
+  "      ''"
+  "        ISERV_ARGS=''${ISERV_ARGS:-}"
+  "        PROXY_ARGS=''${PROXY_ARGS:-}"
+  "        ln -s ${win-iserv-proxy-interpreter}/bin/*.dll \"$REMOTE_ISERV\""
+  "      '';"
+  ""
+  "  bar = {"
+  "    foo = 1;"
+  ""
+  "    bar = 2;"
+  "  };"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    _|_pkgs.pkgsBuildBuild.writeScriptBin \"iserv-wrapper\"<INVISIBLE>"
+  ""
+  "  bar = {"
+  "    foo = 1;"
+  ""
+  "    bar = 2;"
+  "  };"
+  "}"))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes (nix-mode)
