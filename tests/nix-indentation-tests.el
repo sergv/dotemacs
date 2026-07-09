@@ -289,6 +289,75 @@
   "}"))
 
 (nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-comment-after-binding-4
+ :contents
+ (tests-utils--multiline
+  "let foo = bar;"
+  "    # foo"
+  "            _|_# foo"
+  "    baz = 2;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "let foo = bar;"
+  "    # foo"
+  "    _|_# foo"
+  "    baz = 2;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-comment-1a
+ :contents
+ (tests-utils--multiline
+  "let"
+  "    _|_# foo1"
+  "    # foo2"
+  "  foo = bar;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  _|_# foo1"
+  "    # foo2"
+  "  foo = bar;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-comment-1b
+ :contents
+ (tests-utils--multiline
+  "let"
+  "  # foo1"
+  "    _|_# foo2"
+  "  foo = bar;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  # foo1"
+  "  _|_# foo2"
+  "  foo = bar;"
+  "in"
+  "{"
+  "  bar = 1;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
  :name nix-indentation-tests--lambda-body-1
  :contents
  (tests-utils--multiline

@@ -350,11 +350,15 @@ and for subsequent lines it's the previous line's indentation."
           bol)))))
 
 (defun nix-ts-mode--prev-sibling-not-comment (node parent bol &rest _)
-  (let ((tmp (treesit-node-prev-sibling node)))
+  (let ((tmp (treesit-node-prev-sibling node))
+        (prev nil))
     (while (and tmp
                 (string= "comment" (treesit-node-type tmp)))
-      (setf tmp (treesit-node-prev-sibling tmp t)))
-    (treesit-node-start tmp)))
+      (setf prev tmp
+            tmp (treesit-node-prev-sibling tmp t)))
+    (treesit-node-start (if tmp
+                            tmp
+                          prev))))
 
 (defun nix-ts-mode--find-indent-anchor (node parent bol &rest _)
   (let ((prev node)
