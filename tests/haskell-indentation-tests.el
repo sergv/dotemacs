@@ -4083,6 +4083,363 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7aa
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "               _|_Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    _|_Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7ab
+ :contents
+ (tests-utils--multiline
+  "data Foo ="
+  "               _|_Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo ="
+  "  _|_Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7b
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  = -- Comment"
+  "               _|_Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  = -- Comment"
+  "    _|_Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7c
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  = -- | Haddock"
+  "               _|_Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  = -- | Haddock"
+  "    _|_Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7da
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "              _|_-- Comment"
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    _|_-- Comment"
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7db
+ :contents
+ (tests-utils--multiline
+  "data Foo ="
+  "              _|_-- Comment"
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo ="
+  "  _|_-- Comment"
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7e
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "              _|_-- | Haddock"
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    _|_-- | Haddock"
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "  Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7f
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "                        _|_Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "    _|_Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7g
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  | -- Comment"
+  "                        _|_Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  | -- Comment"
+  "    _|_Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7h
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  | -- | Haddock"
+  "                        _|_Baz"
+  "    Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  | -- | Haddock"
+  "    _|_Baz"
+  "    Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7i
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "                         _|_-- Comment"
+  "    Baz"
+  "      Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "    _|_-- Comment"
+  "    Baz"
+  "      Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7j
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "                         _|_-- | Haddock"
+  "    Baz"
+  "      Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  |"
+  "    _|_-- | Haddock"
+  "    Baz"
+  "      Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7k
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "                         _|_-- Comment"
+  "  |"
+  "    Baz"
+  "      Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  _|_-- Comment"
+  "  |"
+  "    Baz"
+  "      Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7l
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "                         _|_-- | Haddock"
+  "  |"
+  "    Baz"
+  "      Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      Int"
+  "  _|_-- | Haddock"
+  "  |"
+  "    Baz"
+  "      Int"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-7m
+ :contents
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "               _|_-- ^ haddock"
+  "      Int"
+  "  |"
+  "    Baz"
+  "      Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo"
+  "  ="
+  "    Bar"
+  "      Int"
+  "      _|_-- ^ haddock"
+  "      Int"
+  "  |"
+  "    Baz"
+  "      Int"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-gadt-1
  :contents
  (tests-utils--multiline
