@@ -381,11 +381,27 @@
                      prev1 curr
                      curr (treesit-node-parent curr))))))))))
 
-(defun haskell-ts-indent--prev-sib (node parent bol)
-  (let ((n (treesit-node-prev-sibling node)))
+(defun haskell-ts-indent--prev-non-comment-sibling (node)
+  (let* ((n (treesit-node-prev-sibling node))
+         (typ (treesit-node-type n)))
     (while (and n
-                (string= "comment" (treesit-node-type n)))
-      (setq n (treesit-node-prev-sibling n)))
+                (treesit-haskell--is-comment-node-type? typ))
+      (setq n (treesit-node-prev-sibling n)
+            typ (treesit-node-type n)))
+    n))
+
+(defun haskell-ts-indent--prev-datatype-delimiter-sibling (node)
+  (let* ((n (treesit-node-prev-sibling node))
+         (typ (treesit-node-type n)))
+    (while (and n
+                (not (or (string= typ "=")
+                         (string= typ "|"))))
+      (setq n (treesit-node-prev-sibling n)
+            typ (treesit-node-type n)))
+    n))
+
+(defun haskell-ts-indent--prev-sib (node parent bol)
+  (let ((n (haskell-ts-indent--prev-non-comment-sibling node)))
     (if (string= "bind" (treesit-node-type n))
         (save-excursion
           (goto-char (treesit-node-start n))
@@ -749,6 +765,43 @@
   (cl-assert (string= "record" (treesit-node-type parent)))
   (haskell-ts-indent--get-record-or-fields-open-brace parent))
 
+(defun haskell-ts-indent--first-data-constructor-anchor--impl (datatype-node)
+  (cl-assert (string= "data_type" (treesit-node-type datatype-node)))
+  (let ((equals (haskell-ts-getters--data-type-equals datatype-node)))
+    (if (treesit-utils-is-standalone-node? equals)
+        equals
+      datatype-node)))
+
+(defun haskell-ts-indent--first-data-constructor-anchor (_ parent _)
+  (cl-assert (string= "data_type" (treesit-node-type parent)))
+  (haskell-ts-indent--first-data-constructor-anchor--impl parent))
+
+(defun haskell-ts-indent--comment-in-datatype-anchor (node parent bol)
+  (let ((typ (treesit-node-type parent)))
+    (cl-assert (member typ '("data_type" "data_constructors")))
+    (let ((prev-sib (treesit-node-prev-sibling node))
+          (datatype-anchor
+           (haskell-ts-indent--first-data-constructor-anchor--impl
+            (if (string= typ "data_constructors")
+                (treesit-node-parent parent)
+              parent))))
+      (if (and prev-sib
+               (member (treesit-node-type prev-sib) '("|" "=")))
+          (haskell-ts-indent--make-trivial-computed-indent
+           (if (treesit-utils-is-standalone-node? prev-sib)
+               prev-sib
+             datatype-anchor))
+        (make-treesit-computed-indent
+         :anchor-node datatype-anchor
+         :flags '(indent-0))))))
+
+(defun haskell-ts-indent--comment-in-datatype-offset (node parent bol)
+  (lambda (matched-anchor)
+    (if (memq 'indent-0
+              (treesit-computed-indent-flags matched-anchor))
+        0
+      haskell-indent-offset)))
+
 (defconst haskell-ts-indent-rules
   (eval-when-compile
     (let ((rules
@@ -1041,6 +1094,15 @@
                      (t
                       0)))))
 
+             ((n-p-gp '("comment" "haddock") '("data_type" "data_constructors") nil)
+              haskell-ts-indent--comment-in-datatype-anchor
+              haskell-ts-indent--comment-in-datatype-offset
+              ;; haskell-indent-offset
+              )
+
+             ;; data_constructors coincides with data_constructor
+             ((node-is "data_constructors") haskell-ts-indent--first-data-constructor-anchor haskell-indent-offset)
+             ((node-is "data_constructor") haskell-ts-indent--prev-sib haskell-indent-offset)
              ((parent-is "data_constructors") grand-parent haskell-indent-offset)
              ((node-is "gadt_constructors") parent haskell-indent-offset)
              ((parent-is "gadt_constructors") grand-parent haskell-indent-offset)
