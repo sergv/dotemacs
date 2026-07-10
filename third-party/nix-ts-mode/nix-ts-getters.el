@@ -69,6 +69,28 @@
                (treesit-node-parent node))
     result))
 
+(defun nix-ts-getters--string-first-delim (node)
+  (cl-assert (member (treesit-node-type node) '("string_expression" "indented_string_expression")))
+  (let ((result (treesit-node-child node 0)))
+    (cl-assert (member (treesit-node-type result) '("\"" "''"))
+               nil
+               "Not string delimiter node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun nix-ts-getters--string-last-delim (node)
+  (cl-assert (member (treesit-node-type node) '("string_expression" "indented_string_expression")))
+  (let ((result (treesit-node-child node -1)))
+    (cl-assert (member (treesit-node-type result) '("\"" "''"))
+               nil
+               "Not string delimiter node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (provide 'nix-ts-getters)
 
 ;; Local Variables:
