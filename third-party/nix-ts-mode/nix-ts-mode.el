@@ -493,14 +493,11 @@ Return nil if there is no name or if NODE is not a defun node."
 (defconst nix-ts--syntax-propertize-query
   (treesit-query-compile
    'nix
-   '(((string_expression
-       "\"" @string-dquote-delimiter))
-     ((indented_string_expression
-       :anchor "''" @string-squote-start
-       "''" @string-squote-end :anchor))
-     ((interpolation
-       "${" @antiquote-delimiter-start
-       "}" @antiquote-delimiter-end)))))
+   '(((string_expression) @str)
+     ((indented_string_expression) @str))))
+
+(defun nix-ts--mark-string! (begin end)
+  (put-text-property begin end 'syntax-table (eval-when-compile (string-to-syntax "|"))))
 
 (defun nix-ts-syntax-propertize (begin end)
   (save-match-data
@@ -511,37 +508,42 @@ Return nil if there is no name or if NODE is not a defun node."
       (save-excursion
         (goto-char begin)
         (let ((beg-bol (line-beginning-position)))
-          (dolist (entry
+          (dolist (str-node
                    (treesit-query-capture (treesit-buffer-root-node 'nix)
                                           nix-ts--syntax-propertize-query
                                           beg-bol
                                           end-eol
-                                          nil ;; want capture names
+                                          t ;; no capture names, only nodes
                                           ))
-            (let* ((node (cdr entry))
-                   (start (treesit-node-start node))
-                   (end (treesit-node-end node))
-                   (propertize-begin nil)
-                   (propertize-end nil))
-              (cl-assert (treesit-node-p node))
-              (pcase (car entry)
-                ((or `string-dquote-delimiter
-                     `string-squote-start
-                     `antiquote-delimiter-start)
-                 (setf propertize-begin start
-                       propertize-end (+ start 1)))
-                (`string-squote-end
-                 (setf propertize-begin (- end 1)
-                       propertize-end end))
-                (`antiquote-delimiter-end
-                 (setf propertize-begin end
-                       propertize-end (+ end 1)))
-                (other
-                 (error "Invalid capture: %s" other)))
-              (put-text-property propertize-begin
-                                 propertize-end
-                                 'syntax-table
-                                 (eval-when-compile (string-to-syntax "|"))))))))))
+
+            (let ((first-delim (nix-ts-getters--string-first-delim str-node))
+                  (last-delim (nix-ts-getters--string-last-delim str-node))
+                  (propertize-first-delimiter? t)
+                  (propertize-last-delimiter? t))
+              (dotimes (i (treesit-node-child-count str-node nil))
+                (let* ((child (treesit-node-child str-node i nil))
+                       (child-type (treesit-node-type child)))
+                  (when (string= "interpolation" child-type)
+                    (let ((child-start (treesit-node-start child))
+                          (child-end (treesit-node-end child)))
+                      (cond
+                        ((and (eq (treesit-node-end first-delim) child-start)
+                              (eq child-end (treesit-node-start last-delim)))
+                         (setf propertize-first-delimiter? nil
+                               propertize-last-delimiter? nil))
+                        ((eq (treesit-node-end first-delim) child-start)
+                         (setf propertize-first-delimiter? nil)
+                         (nix-ts--mark-string! child-end (+ child-end 1)))
+                        ((eq child-end (treesit-node-start last-delim))
+                         (setf propertize-last-delimiter? nil)
+                         (nix-ts--mark-string! child-start (+ child-start 1)))
+                        (t
+                         (nix-ts--mark-string! child-start (+ child-start 1))
+                         (nix-ts--mark-string! child-end (+ child-end 1))))))))
+              (when propertize-first-delimiter?
+                (nix-ts--mark-string! (treesit-node-start first-delim) (+ (treesit-node-start first-delim) 1)))
+              (when propertize-last-delimiter?
+                (nix-ts--mark-string! (- (treesit-node-end last-delim) 1) (treesit-node-end last-delim))))))))))
 
 ;;;###autoload
 (define-derived-mode nix-ts-mode prog-mode "Nix"
