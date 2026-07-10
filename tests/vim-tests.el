@@ -9678,6 +9678,234 @@ _|_bar")
   "  };"
   "}"))
 
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-2a (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-2b (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "_|_{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.\"${system}\";"
+  "        };"
+  "    in bar;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.\"${system}\";"
+  "        };"
+  "    in bar;"
+  "_|_}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-2c (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-2d (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.\"${system}\";"
+  "        };"
+  "    in bar;"
+  "_|_}")
+ :expected-value
+ (tests-utils--multiline
+  "_|_{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.\"${system}\";"
+  "        };"
+  "    in bar;"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-2e (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-2f (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = _|_{"
+  "          baz = quux.\"${system}\";"
+  "        };"
+  "    in bar;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.\"${system}\";"
+  "        _|_};"
+  "    in bar;"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-2g (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-2h (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.\"$_|_{system}\";"
+  "        };"
+  "    in bar;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.\"${system_|_}\";"
+  "        };"
+  "    in bar;"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-3a (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-3b (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "_|_{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.''${system}'';"
+  "        };"
+  "    in bar;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.''${system}'';"
+  "        };"
+  "    in bar;"
+  "_|_}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-3c (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-3d (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.''${system}'';"
+  "        };"
+  "    in bar;"
+  "_|_}")
+ :expected-value
+ (tests-utils--multiline
+  "_|_{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.''${system}'';"
+  "        };"
+  "    in bar;"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-3e (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-3f (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = _|_{"
+  "          baz = quux.''${system}'';"
+  "        };"
+  "    in bar;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.''${system}'';"
+  "        _|_};"
+  "    in bar;"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-3g (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-3h (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.''$_|_{system}'';"
+  "        };"
+  "    in bar;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo ="
+  "    let bar = {"
+  "          baz = quux.''${system_|_}'';"
+  "        };"
+  "    in bar;"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-4a (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-4b (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "let bar = _|_{"
+  "      baz = quux.\"${system}\";"
+  "    };"
+  "in bar")
+ :expected-value
+ (tests-utils--multiline
+  "let bar = {"
+  "      baz = quux.\"${system}\";"
+  "    _|_};"
+  "in bar"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-jump-5a (execute-kbd-macro (kbd "m")))
+  (vim-tests/motion-jump-5b (pseudovim-motion-jump-item)))
+ :contents
+ (tests-utils--multiline
+  "let bar = _|_{"
+  "      LIBRARY_PATH = \"${pkgs.lib.makeLibraryPath [cc pkgs.glibc]}:${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc/${stdenv.hostPlatform.config}/${pkgs.lib.getVersion cc}\";"
+  "    };"
+  "in bar")
+ :expected-value
+ (tests-utils--multiline
+  "let bar = {"
+  "      LIBRARY_PATH = \"${pkgs.lib.makeLibraryPath [cc pkgs.glibc]}:${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc/${stdenv.hostPlatform.config}/${pkgs.lib.getVersion cc}\";"
+  "    _|_};"
+  "in bar"))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
