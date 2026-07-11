@@ -475,6 +475,7 @@ and for subsequent lines it's the previous line's indentation."
 ;; Syntax map
 (defvar nix-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?. "_" table)
     (modify-syntax-entry ?# "< b" table)
     (modify-syntax-entry ?\n "> b" table)
     (modify-syntax-entry ?/ ". 14" table)
