@@ -91,8 +91,8 @@ fi
 
 
 rm -frv "$emacs_dir/eln-cache"
-find -O3 "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
-find -L -O3 "$emacs_dir/compiled" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
+find "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
+find -L "$emacs_dir/compiled" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
 
 inform "Generating compiled/local-autoloads.el"
 update-dir-autoloads \
@@ -131,7 +131,7 @@ if [[ "$native_comp" = "t" ]]; then
     # # Generate config and native-compile trampolines
     # "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
     #
-    # ( seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)" && \
+    # ( seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)" && \
     #       find . -type f -name '*.elc' -print | xargs -n 1 -P "$n" "$emacs" --batch -l "$cfg" -f batch-native-compile
     # ) && rm "$cfg" || rm "$cfg"
 
@@ -139,12 +139,12 @@ if [[ "$native_comp" = "t" ]]; then
     # Preload to native-compile trampolines
     "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
 
-    seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)" && \
-    seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t nil)"
+    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)" && \
+    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t nil)"
 
 
 else
-    seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)"
+    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)"
 fi
 
 exit 0
