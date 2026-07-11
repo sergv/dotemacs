@@ -500,6 +500,10 @@ Return nil if there is no name or if NODE is not a defun node."
   (let ((end (+ begin 1)))
     (put-text-property begin end 'syntax-table (eval-when-compile (string-to-syntax "|")))))
 
+(defun nix-ts--reset-string! (begin)
+  (let ((end (+ begin 1)))
+    (put-text-property begin end 'syntax-table (eval-when-compile (string-to-syntax ".")))))
+
 (defun nix-ts-syntax-propertize (begin end)
   (save-match-data
     (let ((end-eol
@@ -541,10 +545,12 @@ Return nil if there is no name or if NODE is not a defun node."
                         (t
                          (nix-ts--mark-string! child-start)
                          (nix-ts--mark-string! child-end)))))))
-              (when propertize-first-delimiter?
-                (nix-ts--mark-string! (treesit-node-start first-delim)))
-              (when propertize-last-delimiter?
-                (nix-ts--mark-string! (- (treesit-node-end last-delim) 1))))))))))
+              (if propertize-first-delimiter?
+                  (nix-ts--mark-string! (treesit-node-start first-delim))
+                (nix-ts--reset-string! (treesit-node-start first-delim)))
+              (if propertize-last-delimiter?
+                  (nix-ts--mark-string! (- (treesit-node-end last-delim) 1))
+                (nix-ts--reset-string! (- (treesit-node-end last-delim) 1))))))))))
 
 ;;;###autoload
 (define-derived-mode nix-ts-mode prog-mode "Nix"
