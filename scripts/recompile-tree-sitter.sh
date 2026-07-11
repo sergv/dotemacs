@@ -20,7 +20,7 @@ fi
 shared_ext=$((EMACS_FORCE_PRISTINE=1 emacs --batch --eval '(message "%s" (car dynamic-library-suffixes))' 2>&1 || true) | awk '!/Inferior.*exited.*normally/' | tail -n 1)
 
 case "${shared_ext}" in
-    ".dll" | ".so" )
+    ".dll" | ".so" | ".dylib" )
         ;;
     * )
         echo "Invalid shared extension: '$shared_ext'" >&2
