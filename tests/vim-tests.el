@@ -9922,6 +9922,22 @@ _|_bar")
   "  hp2pretty = hlib.justStaticExecutables _|_hpkgs914.hp2pretty;"
   "}"))
 
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/motion-fwd-word-1a (execute-kbd-macro (kbd "w")))
+  (vim-tests/motion-fwd-word-1b (vim:motion-fwd-word:interactive)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  hp2pretty = hlib.justStaticExecutables (hlib.dontCheck _|_hpkgs914.hp2pretty);"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  hp2pretty = hlib.justStaticExecutables (hlib.dontCheck hpkgs914_|_.hp2pretty);"
+  "}"))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
