@@ -9906,6 +9906,22 @@ _|_bar")
   "    _|_};"
   "in bar"))
 
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/raise-sexp-1a (execute-kbd-macro (kbd "M-<up>")))
+  (vim-tests/raise-sexp-1b (vim:raise-sexp:wrapper)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  hp2pretty = hlib.justStaticExecutables (hlib.dontCheck _|_hpkgs914.hp2pretty);"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  hp2pretty = hlib.justStaticExecutables _|_hpkgs914.hp2pretty;"
+  "}"))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
