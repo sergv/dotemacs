@@ -496,8 +496,9 @@ Return nil if there is no name or if NODE is not a defun node."
    '(((string_expression) @str)
      ((indented_string_expression) @str))))
 
-(defun nix-ts--mark-string! (begin end)
-  (put-text-property begin end 'syntax-table (eval-when-compile (string-to-syntax "|"))))
+(defun nix-ts--mark-string! (begin)
+  (let ((end (+ begin 1)))
+    (put-text-property begin end 'syntax-table (eval-when-compile (string-to-syntax "|")))))
 
 (defun nix-ts-syntax-propertize (begin end)
   (save-match-data
@@ -533,17 +534,17 @@ Return nil if there is no name or if NODE is not a defun node."
                                propertize-last-delimiter? nil))
                         ((eq (treesit-node-end first-delim) child-start)
                          (setf propertize-first-delimiter? nil)
-                         (nix-ts--mark-string! child-end (+ child-end 1)))
+                         (nix-ts--mark-string! child-end))
                         ((eq child-end (treesit-node-start last-delim))
                          (setf propertize-last-delimiter? nil)
-                         (nix-ts--mark-string! child-start (+ child-start 1)))
+                         (nix-ts--mark-string! child-start))
                         (t
-                         (nix-ts--mark-string! child-start (+ child-start 1))
-                         (nix-ts--mark-string! child-end (+ child-end 1))))))))
+                         (nix-ts--mark-string! child-start)
+                         (nix-ts--mark-string! child-end)))))))
               (when propertize-first-delimiter?
-                (nix-ts--mark-string! (treesit-node-start first-delim) (+ (treesit-node-start first-delim) 1)))
+                (nix-ts--mark-string! (treesit-node-start first-delim)))
               (when propertize-last-delimiter?
-                (nix-ts--mark-string! (- (treesit-node-end last-delim) 1) (treesit-node-end last-delim))))))))))
+                (nix-ts--mark-string! (- (treesit-node-end last-delim) 1))))))))))
 
 ;;;###autoload
 (define-derived-mode nix-ts-mode prog-mode "Nix"
