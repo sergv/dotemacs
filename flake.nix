@@ -13,7 +13,8 @@
     };
   };
 
-  outputs = { self, nixpkgs, haskell-nixpkgs-improvements }:
+  outputs =
+    { self, nixpkgs, haskell-nixpkgs-improvements }:
     let
       systems = [
         "x86_64-linux"
@@ -29,8 +30,7 @@
         system:
         let
           pkgs         = nixpkgs.legacyPackages."${system}";
-          hlib         = pkgs.haskell.lib;
-          enableFlag   = flag: drv: hlib.enableCabalFlag drv flag;
+          hlib         = pkgs.haskell.lib.compose;
           hutils       =
             haskell-nixpkgs-improvements.lib.make-haskell-utils pkgs;
 
@@ -45,12 +45,12 @@
             builtins.mapAttrs
               (name: x:
                 hutils.onlyApplyToHaskellPackages
-                  (pkg: hlib.appendConfigureFlag pkg "--ghc-option=-fPIC")
+                  (hlib.appendConfigureFlag "--ghc-option=-fPIC")
                   name
-                  (hutils.makeHaskellPackageAttribSmaller name x))
+                  x)
               (old // {
                 emacs-native =
-                  enableFlag "standalone-foreign-lib"
+                  (x: hlib.enableCabalFlag "standalone-foreign-lib" x)
                     (old.callCabal2nix "emacs-native" ./native/emacs-native {});
 
                 rure-ffi = old.callCabal2nix "rure-ffi" ./native/rure-ffi {};
@@ -65,6 +65,9 @@
                     {});
               })
           );
+
+          libemacs-native-so =
+            haskell-pkgs-with-emacs-native.emacs-native + "/lib/ghc-${haskell-pkgs-with-emacs-native.ghc.version}/lib/libemacs-native.so";
 
         in {
           default = haskell-pkgs-with-emacs-native.emacs-native;
