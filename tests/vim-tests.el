@@ -3950,6 +3950,42 @@ _|_bar")
      "printf(\"foo\\n\", bar)_|_;"
      "")))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/nix-abbrev-1
+ :action
+ (execute-kbd-macro (kbd "i SPC foo <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "trace_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "builtins.trace (\"foo = \" + builtins.toString foo) _|_"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/nix-abbrev-2
+ :action
+ (execute-kbd-macro (kbd "i SPC foo <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "builtins.trace_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "builtins.trace (\"foo = \" + builtins.toString foo) _|_"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-import-1
