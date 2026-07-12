@@ -23,7 +23,9 @@ while interactively prompting for variables/messages."
   (interactive)
   (let* ((start
           (lambda ()
-            (insert "builtins.trace (\"")))
+            (if (text-before-matches? "builtins.")
+                (insert "trace (\"")
+              (insert "builtins.trace (\""))))
          (end
           (lambda (_acc)
             (insert ") ")))
