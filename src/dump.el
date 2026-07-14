@@ -41,9 +41,9 @@
 
   (let ((init-file
          (cl-find-if #'file-exists-p
-                     (mapcan (lambda (x) (list (concat emacs-dir "/src/" x)
-                                          (expand-file-name (concat "~/" x))))
-                             '(".emacs")))))
+                     (mapcan (lambda (x) (list (concat emacs-dir "/" x)
+                                          (expand-file-name (concat "~/.emacs.d/" x))))
+                             '("init.el")))))
     ;; (message "Loading start.el...")
     ;; (load-library "start")
     ;; (message "Loading start.el... OK")
