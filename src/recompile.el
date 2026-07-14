@@ -122,9 +122,9 @@ session."
 
   (let ((init-file
          (find-if #'file-exists-p
-                  (mapcan (lambda (x) (list (concat emacs-dir "/src/" x)
-                                       (concat "~/" x)))
-                          '(".emacs")))))
+                  (mapcan (lambda (x) (list (concat emacs-dir "/" x)
+                                       (concat "~/.emacs.d/" x)))
+                          '("init.el")))))
 
     ;; load init file to get path detection from set-up-paths.el
     (load-library init-file)
