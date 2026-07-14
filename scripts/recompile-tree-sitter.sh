@@ -12,6 +12,11 @@ set -o pipefail
 
 set -e
 
+if [[ -z "${TMPDIR:-}" ]]; then
+    echo "TMPDIR not set up" >&2
+    exit 1
+fi
+
 shared_ext=$((EMACS_FORCE_PRISTINE=1 emacs --batch --eval '(message "%s" (car dynamic-library-suffixes))' 2>&1 || true) | awk '!/Inferior.*exited.*normally/' | tail -n 1)
 
 case "${shared_ext}" in
@@ -29,12 +34,19 @@ for x in native/tree-sitter* native/tree-sitter-haskell/hsc; do
     echo "$x"
     name="$(basename "$x")"
     name="${name##tree-sitter-}"
-    if [[ -f "$x/src/scanner.c" ]]; then
-        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$x/src/parser.c" "$x/src/scanner.c" -shared -o "lib/libtree-sitter-$name$shared_ext"
-    elif [[ -f "$x/src/parser.c" ]]; then
-        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$x/src/parser.c" -shared -o "lib/libtree-sitter-$name$shared_ext"
+
+    parser="$TMPDIR/parser.c"
+    if [[ -f "$x/src/parser.c.xz" ]]; then
+        xz --decompress --stdout "$x/src/parser.c.xz" >"$parser"
     else
-        echo "Invalid treesitter library: '$x'" >&2
+        echo "Invalid treesitter library, compressed parser file does not exist: ‘$x/src/parser.c.xz’" >&2
+        exit 1
+    fi
+
+    if [[ -f "$x/src/scanner.c" ]]; then
+        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$parser" "$x/src/scanner.c" -shared -o "lib/libtree-sitter-$name$shared_ext"
+    else
+        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$parser" -shared -o "lib/libtree-sitter-$name$shared_ext"
     fi
 done
 
