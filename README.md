@@ -1,7 +1,9 @@
 This is yet another Emacs configuration among countless alternatives,
 a speck of dust drifting in the ever expanding githubverse...
 
-My daily tool, a treasure trove of things that work most of the time.
+My daily tool, a treasure trove of things that somewhat work most of
+the time and mostly work some of the time. There are many like it, but
+this one is mine.
 
 NOTE: No warranties, either express or implied, are hereby given. All
 software is supplied as is, without guarantee.  The user assumes all
