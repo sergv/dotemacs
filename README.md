@@ -18,3 +18,12 @@ windstorms, the Riders of Nazgul, infuriated chickens, malfunctioning
 mechanical or electrical sexual devices, premature activation of the
 distant early warning system, peasant uprisings, halitosis, artillery
 bombardment, explosions, cave-ins, and/or frogs falling from the sky.
+
+## Environment variables
+- `EMACS_ROOT`          - path
+- `EMACS_WRITABLE_ROOT` - path
+- `EMACS_SYSTEM_TYPE`   - e.g. `(linux home)`
+- `EMACS_ENV_DEFS`      - redirect .bashrc
+- `EMACS_SKIP_ELC`      - `0` or `1`
+- `EMACS_NIX_STORE_DIR` - unused legacy?
+- `EMACS_NIX_STATE_DIR` - unused legacy?
