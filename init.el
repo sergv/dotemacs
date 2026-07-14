@@ -39,17 +39,16 @@
 (unless (featurep 'start)
 
   (let* ((emacs-root (getenv "EMACS_ROOT"))
-         (default-emacs-dir (expand-file-name "~/.emacs.d"))
          (emacs-dir
-          (cond
-            (emacs-root
-             (progn
-               (cl-assert (file-directory-p emacs-root))
-               emacs-root))
-            ((file-directory-p default-src-dir)
-             (add-to-list 'load-path default-src-dir))
-            (t
-             (error "EMACS_ROOT not defined")))))
+          (if emacs-root
+              (progn
+                (cl-assert (file-directory-p emacs-root))
+                emacs-root)
+            (let ((default-emacs-dir (expand-file-name "~/.emacs.d")))
+              (if (file-directory-p default-emacs-dir)
+                  (add-to-list 'load-path default-emacs-dir)
+                (error "EMACS_ROOT not defined and default at ‘%s’ doesn’t exist"
+                       default-emacs-dir))))))
     (dolist (dir '("/compiled"
                    "/compiled/elc"
                    "/src"
