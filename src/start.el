@@ -96,7 +96,7 @@
 (provide 'start)
 
 (unless (featurep 'custom-variables-defined)
-  (load-library ".emacs"))
+  (load-library (concat +emacs-config-path+ "/init.el")))
 
 (load-library "global-setup")
 (load-library "user-info")
