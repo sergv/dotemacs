@@ -22,6 +22,21 @@
 
 (require 'shell-completion-ghc-flags)
 
+(setf pcmpl-gnu-tarfile-regexp
+      (rx
+       ".t"
+       (or (seq "ar"
+                (or ".gz"
+                    ".bz2"
+                    ".Z"
+                    ".xz"
+                    ".zst"
+                    ".zstd"))
+           "gz"
+           (seq "a"
+                (any ?z ?Z))
+           "z2")))
+
 ;;;; Utilities
 
 ;; Use this to debug completion functions
