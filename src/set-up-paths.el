@@ -27,7 +27,14 @@
   "Path to directory with resource files like snippets or templates.")
 
 (defconst +prog-data-path+
-  (concat +emacs-config-path+ "/prog-data")
+  (let ((writable-root (getenv "EMACS_WRITABLE_ROOT")))
+    (if writable-root
+        (progn
+          (when (not (file-directory-p writable-root))
+            (error "Path pointed to by EMACS_WRITABLE_ROOT does not exsit: ‘%s’"
+                   writable-root))
+          (concat writable-root "/prog-data"))
+      (concat +emacs-config-path+ "/prog-data")))
   "Path to directory for storing persintest data like backups.")
 
 (defconst +execs-path+ (concat +emacs-config-path+ "/execs")
