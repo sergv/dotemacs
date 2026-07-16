@@ -9,10 +9,12 @@
 (eval-when-compile
   (require 'cl)
   (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'el-patch))
 
 (require 'common-constants)
 (require 'common)
+(require 'el-patch)
 (require 'set-up-paths)
 
 (require 'ivy)
@@ -53,6 +55,73 @@
                                           (seq (char ?.)
                                                (char ?.)
                                                anything)))))
+
+;;;###autoload
+(el-patch-feature minibuffer)
+
+(el-patch-defun completion-file-name-table (string pred action)
+  "Completion table for file names."
+  (condition-case nil
+      (cond
+       ((eq action 'metadata) '(metadata (category . file)))
+       ((string-match-p "\\`~[^/\\]*\\'" string)
+        (completion-table-with-context "~"
+                                       (mapcar (lambda (u) (concat u "/"))
+                                               (system-users))
+                                       (substring string 1)
+                                       pred action))
+       ((eq (car-safe action) 'boundaries)
+        (let ((start (length (file-name-directory string)))
+              (end (string-search "/" (cdr action))))
+          `(boundaries
+            ;; if `string' is "C:" in w32, (file-name-directory string)
+            ;; returns "C:/", so `start' is 3 rather than 2.
+            ;; Not quite sure what is The Right Fix, but clipping it
+            ;; back to 2 will work for this particular case.  We'll
+            ;; see if we can come up with a better fix when we bump
+            ;; into more such problematic cases.
+            ,(min start (length string)) . ,end)))
+
+       ((eq action 'lambda)
+        (if (zerop (length string))
+            nil          ;Not sure why it's here, but it probably doesn't harm.
+          (funcall (or pred 'file-exists-p) string)))
+
+       (t
+        (let* ((name (file-name-nondirectory string))
+               (specdir (file-name-directory string))
+               (realdir (or specdir default-directory)))
+          (cond
+           ((null action)
+            (let ((comp (file-name-completion name realdir pred)))
+              (if (stringp comp)
+                  (concat specdir comp)
+                comp)))
+
+           ((eq action t)
+            (el-patch-wrap 2 0
+              (unless (member (strip-trailing-slash realdir) '("/nix/store"))
+                (let ((all (file-name-all-completions name realdir)))
+
+                  ;; Check the predicate, if necessary.
+                  (unless (memq pred '(nil file-exists-p))
+                    (let ((comp ())
+                          (pred
+                           (if (eq pred 'file-directory-p)
+                               ;; Brute-force speed up for directory checking:
+                               ;; Discard strings which don't end in a slash.
+                               (lambda (s)
+                                 (let ((len (length s)))
+                                   (and (> len 0) (eq (aref s (1- len)) ?/))))
+                             ;; Must do it the hard (and slow) way.
+                             pred)))
+                      (let ((default-directory (expand-file-name realdir)))
+                        (dolist (tem all)
+                          (if (funcall pred tem) (push tem comp))))
+                      (setq all (nreverse comp))))
+
+                  all))))))))
+    (file-error nil)))
 
 ;; Smex - convenient command completer
 (setf smex-history-length 100
