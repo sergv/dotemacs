@@ -75,7 +75,6 @@ rm -f \
    "compiled/local-autoloads.el" \
    "src/local-autoloads.el" \
    "third-party/auctex/preview.el" \
-   "third-party/auctex/tex-site.el" \
    "third-party/clojure-mode/clojure-mode-autoloads.el" \
    "third-party/smartparens/smartparens-autoloads.el"  \
    "third-party/sml-mode/sml-mode-autoloads.el" \
@@ -95,23 +94,6 @@ fi
 rm -frv "$emacs_dir/eln-cache"
 find -O3 "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
 find -L -O3 "$emacs_dir/compiled" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
-
-tex_site_el="$emacs_dir/third-party/auctex/tex-site.el"
-if [[ ! -f "${tex_site_el}" ]]; then
-    tex_site_source="${tex_site_el}.in"
-    if [[ ! -f "${tex_site_source}" ]]; then
-        fatal "Cannot find source for tex-site.el: ${tex_site_source}"
-    fi
-    inform "Generating ${tex_site_el} from ${tex_site_source}"
-    sed -r \
-        -e 's,@lisppackage(lisp|data)dir@,(file-name-directory load-file-name),' \
-        -e 's,@lispautodir@,temporary-file-directory,' \
-        -e 's,@AUCTEXVERSION@,latest,' \
-        -e 's,@AUCTEXDATE@,latest,' \
-        <"${tex_site_source}" \
-        >"${tex_site_el}"
-    echo -e "\n\n(provide 'tex-site)" >>"${tex_site_el}"
-fi
 
 preview_el="$emacs_dir/third-party/auctex/preview.el"
 if [[ ! -f "${preview_el}" ]]; then
