@@ -3670,11 +3670,11 @@ internal parameters, STR may be a log to insert into the current log."
 	     (delete-process process)
 	     (preview-reraise-error process)))))
 
-(defconst preview-version "@PREVIEWVERSION@"
+(defconst preview-version "latest"
   "Preview version.
 If not a regular release, the date of the last change.")
 
-(defconst preview-release-date "@PREVIEWDATE@"
+(defconst preview-release-date "latest"
   "Preview release date using the ISO 8601 format, yyyy-mm-dd.")
 
 (defun preview-dump-state (buffer)

@@ -74,7 +74,6 @@ inform "Removing generated autoload el files"
 rm -f \
    "compiled/local-autoloads.el" \
    "src/local-autoloads.el" \
-   "third-party/auctex/preview.el" \
    "third-party/clojure-mode/clojure-mode-autoloads.el" \
    "third-party/smartparens/smartparens-autoloads.el"  \
    "third-party/sml-mode/sml-mode-autoloads.el" \
@@ -94,21 +93,6 @@ fi
 rm -frv "$emacs_dir/eln-cache"
 find -O3 "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
 find -L -O3 "$emacs_dir/compiled" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
-
-preview_el="$emacs_dir/third-party/auctex/preview.el"
-if [[ ! -f "${preview_el}" ]]; then
-    preview_source="${preview_el}.in"
-    if [[ ! -f "${preview_source}" ]]; then
-        fatal "Cannot find source for preview.el: ${preview_source}"
-    fi
-    inform "Generating ${preview_el} from ${preview_source}"
-    sed -r \
-        -e 's/@PREVIEWDATE@/latest/' \
-        -e 's/@PREVIEWVERSION@/latest/' \
-        <"${preview_source}" \
-        >"${preview_el}"
-fi
-
 
 inform "Generating compiled/local-autoloads.el"
 update-dir-autoloads \
