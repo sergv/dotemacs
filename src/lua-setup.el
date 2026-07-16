@@ -11,6 +11,7 @@
   (require 'macro-util))
 
 (require 'hydra-setup)
+(require 'vim-setup)
 
 ;;;###autoload
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)

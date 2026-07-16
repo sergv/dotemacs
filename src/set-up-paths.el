@@ -15,26 +15,46 @@
 ;;;; Paths
 
 (defconst +emacs-config-path+ (getenv "EMACS_ROOT")
-  "Path to root for my emacs configuration.")
+  "Path to root for my emacs configuration. For things than are read
+but typically not written.
+
+Usually either ~/.emacs.d or unique path under /nix/store")
 
 (when (or (null +emacs-config-path+)
           (not (stringp +emacs-config-path+))
           (not (file-directory-p +emacs-config-path+)))
   (error "No accessible directory found for +emacs-config-path+"))
 
-(defconst +resources-path+
-  (concat +emacs-config-path+ "/resources")
-  "Path to directory with resource files like snippets or templates.")
+;; (defconst +emacs-compiled-path+
+;;   (let ((env (getenv "EMACS_COMPILED_ROOT")))
+;;     )
+;;   "Path to root for my emacs configuration. For things than are read
+;; but typically not written.
+;;
+;; Usually either ~/.emacs.d or unique path under /nix/store")
 
-(defconst +prog-data-path+
+
+(defconst +emacs-writable-config-path+
   (let ((writable-root (getenv "EMACS_WRITABLE_ROOT")))
     (if writable-root
         (progn
           (when (not (file-directory-p writable-root))
             (error "Path pointed to by EMACS_WRITABLE_ROOT does not exsit: ‘%s’"
                    writable-root))
-          (concat writable-root "/prog-data"))
-      (concat +emacs-config-path+ "/prog-data")))
+          writable-root)
+      +emacs-config-path+))
+  "Path to root for my emacs configuration for writing things.
+
+Usually ~/.emacs.d
+
+By default points to the same destination as ‘+emacs-config-path+’.")
+
+(defconst +resources-path+
+  (concat +emacs-config-path+ "/resources")
+  "Path to directory with resource files like snippets or templates.")
+
+(defconst +prog-data-path+
+  (concat +emacs-writable-config-path+ "/prog-data")
   "Path to directory for storing persintest data like backups.")
 
 (defconst +execs-path+ (concat +emacs-config-path+ "/execs")
