@@ -6,9 +6,8 @@
 ;; Created: 18 December 2021
 ;; Description:
 
-(require 'fakecygpty)
-
 (when-windows
+ (require 'fakecygpty)
  (fakecygpty-activate))
 
 (provide 'fakecygpty-setup)
