@@ -10,7 +10,8 @@
   (require 'cl)
   (require 'subr-x)
 
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-macs))
 
 (require 'common)
 (require 'current-column-fixed)
@@ -24,13 +25,14 @@
         (current-format-var '#:current-format))
     `(let ((,line-comment-prefix-var
             (unless current-prefix-arg ;; Disable advice if prefix argument is supplied.
-              (when-let (,current-format-var (comment-util-current-format-lax))
-                (save-excursion
-                  (let ((bol (line-beginning-position)))
-                    (goto-char bol)
-                    (when (funcall (comment-format-detect-line-comment ,current-format-var)
-                                   ,current-format-var)
-                      (buffer-substring-no-properties bol (point)))))))))
+              (let ((,current-format-var (comment-util-current-format-lax)))
+                (when ,current-format-var
+                  (save-excursion
+                    (let ((bol (line-beginning-position)))
+                      (goto-char bol)
+                      (when (funcall (comment-format-detect-line-comment ,current-format-var)
+                                     ,current-format-var)
+                        (buffer-substring-no-properties bol (point))))))))))
        ,@body
        (when ,line-comment-prefix-var
          (let ((bol (line-beginning-position)))
@@ -55,15 +57,6 @@ Intended to be used with comment-util-mode."
           (apply old-func args)))
 
        (advice-add ',func :around #',advice-name))))
-
-(comment-util-auto-comment-advice vim:cmd-insert-line-below)
-(comment-util-auto-comment-advice vim:cmd-insert-line-above)
-(comment-util-auto-comment-advice haskell-newline-with-signature-expansion)
-(comment-util-auto-comment-advice newline)
-
-(vimmize-function comment-util-comment-lines :has-count t)
-(vimmize-function comment-util-uncomment-region :has-count nil)
-(vimmize-function comment-util-delete-commented-part :has-count nil)
 
 (defun comment-util--detect-line-comment-with-regexp (format)
   (let ((start (point)))
@@ -346,7 +339,7 @@ Intended to be used with comment-util-mode."
 Contains single-line and region comments.")
 
 (defun comment-util-current-format ()
-  (if-let (fmt (comment-util-current-format-lax))
+  (if-let* ((fmt (comment-util-current-format-lax)))
       fmt
     (error "No comment format defined for current mode")))
 
@@ -821,6 +814,15 @@ commented parts and leave point unchanged."
            (current-column-fixed)
            t))
       (comment-util-comment-lines 1))))
+
+(comment-util-auto-comment-advice vim:cmd-insert-line-below)
+(comment-util-auto-comment-advice vim:cmd-insert-line-above)
+(comment-util-auto-comment-advice haskell-newline-with-signature-expansion)
+(comment-util-auto-comment-advice newline)
+
+(vimmize-function comment-util-comment-lines :has-count t)
+(vimmize-function comment-util-uncomment-region :has-count nil)
+(vimmize-function comment-util-delete-commented-part :has-count nil)
 
 (provide 'comment-util)
 
