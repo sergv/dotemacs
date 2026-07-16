@@ -94,8 +94,9 @@
       (cons old-key old-normalised))))
 
 ;;;###autoload
-(add-to-list 'persistent-store-merge-handlers
-             (cons 'transient-history #'transient-history--merge-entries))
+(with-eval-after-load 'persistent-store
+  (add-to-list 'persistent-store-merge-handlers
+               (cons 'transient-history #'transient-history--merge-entries)))
 
 (provide 'transient-fixes)
 

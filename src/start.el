@@ -101,6 +101,13 @@
 (load-library "global-setup")
 (load-library "user-info")
 
+(when (featurep 'saveplace)
+  ;; 1. It doesn’t like when saved places history contains tramp paths
+  ;; 2. Just consider happens when save-place-abbreviate-file-names is assigsed.
+  ;;    It iterates over whole database and mutates paths to abbreviated/nonabbreviated version.
+  ;;    That’s just atrocious.
+  (error "Never load saveplace.el, it’s implemented poorly"))
+
 (let ((machine-specific-setup-file
        (-find #'file-exists?
               (list (expand-file-name "~/machine-specific-setup.el")
