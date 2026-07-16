@@ -66,7 +66,9 @@
 
 (defun persistent-store-load-contents ()
   "Load database contents from file."
-  (let* ((new-file-content (persistent-store-load-file persistent-store-store-file))
+  (let* ((new-file-content (if (file-exists-p persistent-store-store-file)
+                               (persistent-store-load-file persistent-store-store-file)
+                             "()"))
          (new-content
           (condition-case nil
               (persistent-store-read-contents-from-string new-file-content)
