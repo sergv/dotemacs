@@ -6,13 +6,17 @@
 ;; Created:  8 January 2025
 ;; Description:
 
-(defvar compile--strict-mode)
+(eval-when-compile
+  (require 'macro-util))
+
+(defvar compile--in-progress)
 
 (require 'recompile-init)
 
 ;;;###autoload (autoload 'pcomplete-ghc-flags "shell-completion-ghc-flags" nil)
 (defvar pcomplete-ghc-flags
-  (eval-when-compile
+  (run-at-compile-time-if
+      (executable-find "ghc")
     (let* ((known-options '(("--show-iface" (pcmpl-haskell-hi-files))
                             (("--exclude-module" "-dep-makefile" "-o") (pcmpl-entries))
                             (("-i" "-I" "-L" "--dumpdir" "-hidir" "-odir" "-outputdir" "-stubdir" "-tmpdir" "-working-dir") (pcmpl-dirs))
@@ -46,8 +50,7 @@
               (if (executable-find "ghc")
                   (--filter (not (gethash it known-options-names-ht))
                             (process-lines "ghc" "--show-options"))
-                (if compile--strict-mode
-                    (error "The ‘ghc’ executable was not found, cannot query it for the list of options it supports")
+                (unless compile--in-progress
                   ;; Fallback
                   '("-fdiagnostics-show-caret"
                     "-fno-diagnostics-show-caret"
