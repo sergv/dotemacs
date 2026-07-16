@@ -134,17 +134,18 @@ directories whose absolute path matches IGNORED-DIR-RE."
  "/third-party"
  set-up-paths--ignored-third-party-el-dirs-re)
 
+;; todo: run this only on windows
 (add-to-load-path (concat +emacs-config-path+ "/native/fakecygpty"))
 
 ;; this must go to the end in order to give files in /src dir a chance
 ;; (add-to-list 'load-path +bytecode-lib+ t)
 
-(add-to-list 'load-path (concat +emacs-config-path+ "/lib"))
-
-;; Shadow everything else
-(push (concat +emacs-config-path+ "/compiled") load-path)
-(unless (equal (getenv "EMACS_SKIP_ELC") "1")
-  (push (concat +emacs-config-path+ "/compiled/elc") load-path))
+;; (push (concat +emacs-compiled-path+ "/lib") load-path )
+;;
+;; ;; Shadow everything else
+;; (push (concat +emacs-compiled-path+ "/compiled") load-path)
+;; (unless (equal (getenv "EMACS_SKIP_ELC") "1")
+;;   (push (concat +emacs-compiled-path+ "/compiled/elc") load-path))
 
 (add-to-list 'exec-path +execs-path+)
 
