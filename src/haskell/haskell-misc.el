@@ -785,7 +785,7 @@ a single entity."
             ([enclosing-bind-node
               (when is-ts-mode?
                 (when-let ((curr-node (treesit-haskell--current-node)))
-                  (destructuring-bind
+                  (cl-destructuring-bind
                       (enclosing-let-node . let-depth)
                       (treesit-utils-find-closest-parent-with-count
                        curr-node
