@@ -5024,6 +5024,14 @@ Don't finish completion."
     (insert (substring-no-properties
              (ivy-state-current ivy-last) 0 end))))
 
+;; todo bind function below, consider commented snippet as well
+;; (defun bg-ivy-insert-current-full-clear-input-before-insert ()
+;;     "Clear the input before calling `ivy-insert-current-full'."
+;;     ;; Use (line-beginning-position) instead of (point-min) because of text properties in use that inhibit motion:
+;;     (delete-region (line-beginning-position) (point-max)))
+;;
+;;   (advice-add 'ivy-insert-current-full :before #'bg-ivy-insert-current-full-clear-input-before-insert)
+
 (defun ivy-insert-current-full ()
   "Insert the current directory into the minibuffer."
   (interactive)

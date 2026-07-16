@@ -177,11 +177,13 @@ _e_val
 
 ;;;;
 
-(defun elisp-compile-get-elc-destination (path)
-  (concat
-   +emacs-config-path+
-   "/compiled/elc/"
-   (file-name-sans-extension (file-name-nondirectory path)) ".elc"))
+(defun elisp-compile-get-elc-destination (path &optional dir)
+  (let ((new-path (concat
+                   (file-name-sans-extension (file-name-nondirectory path))
+                   ".elc")))
+    (if dir
+        (concat dir "/" new-path)
+      (concat +emacs-writable-config-path+ "/compiled/elc/" new-path))))
 
 (defun elisp-compile-and-move ()
   (interactive)

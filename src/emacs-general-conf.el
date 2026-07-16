@@ -13,6 +13,8 @@
 
   (defvar lv-wnd))
 
+(declare-function so-long-statistics-excessive-p "so-long")
+
 (require 'common)
 (require 'current-column-fixed)
 (require 'persistent-sessions-global-vars)
@@ -56,13 +58,6 @@
         debugger-mode))
 
 (global-auto-revert-mode 1)
-
-
-;;;; saveplace - minor mode to remember positions in visited files
-(setq save-place-file (path-concat +prog-data-path+ "saveplace")
-      save-place-limit nil)
-(require 'saveplace)
-(save-place-mode +1)
 
 ;;;; bunch of standard customizations
 
@@ -248,9 +243,12 @@
 ;;       calendar-latitude 46.967
 ;;       calendar-longitude 32)
 ;; as reported by Google
-(setf calendar-location-name "Kiev Ukraine"
-      calendar-latitude 50.4500
-      calendar-longitude 30.5233)
+;; (setf calendar-location-name "Kiev Ukraine"
+;;       calendar-latitude 50.4500
+;;       calendar-longitude 30.5233)
+(setf calendar-location-name "London United Kindom"
+      calendar-latitude 51.509865
+      calendar-longitude -0.118092)
 
 (setf font-lock-maximum-decoration
       ;; there are three decoration levels, 1 being the minimum
