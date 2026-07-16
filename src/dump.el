@@ -249,6 +249,11 @@
     (fmakunbound 'dump-main)
     (delete-file dump-target)
 
+    ;; These buffers could contain overlays which will prevent
+    ;; dumping. We don’t need these buffers anyway.
+    (dolist (name '(" *code-conversion-work*" "*Compile-Log*" "*Warnings*"))
+      (awhen (get-buffer name)
+        (remove-buffer t it)))
     (dump-emacs-portable dump-target)
 
     (mapc (lambda (func)

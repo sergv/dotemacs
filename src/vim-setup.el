@@ -284,27 +284,29 @@ _<right>_: move tab to the right"
   (("<up>"   "]") vim:motion-bwd-paragraph:interactive)
   (("<down>" "[") vim:motion-fwd-paragraph:interactive))
 
-(defconst +vim-navigation-keys+
-  `(("d"         vim:motion-left:interactive)
-    ("h"         vim:motion-down:interactive)
-    ("t"         vim:motion-up:interactive)
-    ("n"         vim:motion-right:interactive)
+(eval-and-compile
+  (defconst +vim-navigation-keys+
+    `(("d"         vim:motion-left:interactive)
+      ("h"         vim:motion-down:interactive)
+      ("t"         vim:motion-up:interactive)
+      ("n"         vim:motion-right:interactive)
 
-    (";"         vim:motion-repeat-last-find:interactive)
-    (":"         vim:motion-repeat-last-find-opposite:interactive)
+      (";"         vim:motion-repeat-last-find:interactive)
+      (":"         vim:motion-repeat-last-find-opposite:interactive)
 
-    ("C-:"       pp-eval-expression)
-    ("<down>"    vim:motion-fwd-paragraph:interactive)
-    ("<up>"      vim:motion-bwd-paragraph:interactive)
+      ("C-:"       pp-eval-expression)
+      ("<down>"    vim:motion-fwd-paragraph:interactive)
+      ("<up>"      vim:motion-bwd-paragraph:interactive)
 
-    ,@+vim-interbuffer-navigation-keys+
-    ,@+vim-character-navigation-keys+))
+      ,@+vim-interbuffer-navigation-keys+
+      ,@+vim-character-navigation-keys+)))
 
-(defconst +vim-normal-mode-navigation-keys+
-  '(("'" paredit-backward-up)
-    ("]" vim:motion-bwd-paragraph:interactive)
-    ("[" vim:motion-fwd-paragraph:interactive)
-    ("s" vim-ex-read-command)))
+(eval-and-compile
+  (defconst +vim-normal-mode-navigation-keys+
+    '(("'" paredit-backward-up)
+      ("]" vim:motion-bwd-paragraph:interactive)
+      ("[" vim:motion-fwd-paragraph:interactive)
+      ("s" vim-ex-read-command))))
 
 (def-keys-for-map (vim-normal-mode-keymap
                    vim-visual-mode-keymap)

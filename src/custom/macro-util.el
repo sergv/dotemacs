@@ -394,7 +394,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
               (cl-loop
                 for entry in key-command-list
                 appending (if (symbolp entry)
-                              (funcall process-key-command-list map-var (eval entry))
+                              (funcall process-key-command-list map-var (symbol-value entry))
                             (cl-destructuring-bind (key command)
                                 (if (quoted? entry)
                                     (eval entry)
