@@ -6,8 +6,6 @@
 ;; Created: Wednesday, 25 July 2012
 ;; Description:
 
-(eval-when-compile (require 'cl))
-
 ;;;; Platform
 
 (defvar +platform+ nil

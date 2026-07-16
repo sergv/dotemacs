@@ -18,6 +18,8 @@ emacs="${EMACS:-emacs}"
 to_load=""
 matcher=""
 
+compiled_dir="${EMACS_COMPILED_ROOT:-${EMACS_ROOT}}"
+
 declare -a tests
 
 if [[ "$#" -gt 0 ]]; then
@@ -69,7 +71,7 @@ declare -a load_elc
 if [[ ${EMACS_SKIP_ELC:-0} == 1 ]]; then
     load_elc=()
 else
-    load_elc=( "-L" "$EMACS_ROOT/compiled/elc" )
+    load_elc=( "-L" "$compiled_dir/compiled/elc" )
 fi
 
 requires=$(cat <<EOF
@@ -105,6 +107,7 @@ else
     suffix=""
 fi
 "$emacs" -Q --batch \\
+    -L "$EMACS_ROOT/lib" \\
     -L "$EMACS_ROOT/compiled" \\
     ${load_elc[*]} \\
     -L "$EMACS_ROOT/src" \\
@@ -156,7 +159,8 @@ EOF
 else
     # -L "$EMACS_ROOT/third-party/lsp-mode/test"
   "$emacs" -Q --batch \
-        -L "$EMACS_ROOT/compiled" \
+        -L "$compiled_dir/lib" \
+        -L "$compiled_dir/compiled" \
         "${load_elc[@]}" \
         -L "$EMACS_ROOT/src" \
         -L "$EMACS_ROOT/src/custom" \
