@@ -21,6 +21,7 @@ bombardment, explosions, cave-ins, and/or frogs falling from the sky.
 
 ## Environment variables
 - `EMACS_ROOT`          - path
+- `EMACS_COMPILED_ROOT` - path, where config compilation results go
 - `EMACS_WRITABLE_ROOT` - path
 - `EMACS_SYSTEM_TYPE`   - e.g. `(linux home)`
 - `EMACS_ENV_DEFS`      - redirect .bashrc
