@@ -1028,6 +1028,17 @@ MATCHING-PREDICATE expression. When the predicate returns non-nil, execute BODY 
     `(progn
        ,@(reverse res))))
 
+;;;
+
+(defmacro run-at-compile-time-if (condition &rest body)
+  "Run BODY at compile time if compile-time CONDITION is true, otherwise execute
+BODY at runtime."
+  (declare (indent 1))
+  (if (eval condition)
+      `(quote ,(eval (cons 'progn body)))
+    `(progn
+       ,@body)))
+
 ;;; end
 
 (provide 'macro-util)
