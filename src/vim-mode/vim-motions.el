@@ -1316,7 +1316,7 @@ The function shouldn’t move point.")
 (defun vim--inner-doubled-quote (count)
   "Select text between two quotes."
   (if-let* ((bounds (vim--inclusive-bounds-of-string (point))))
-      (destructuring-bind (beg . end) bounds
+      (cl-destructuring-bind (beg . end) bounds
         (cond
           ;; point is in visual mode on one of both quotes
           ;; or quoted text is empty
@@ -1373,7 +1373,7 @@ The function shouldn’t move point.")
                                :type 'inclusive))
           (signal 'vim/no-such-object nil)))
     (if-let (bounds (vim--inclusive-bounds-of-string (point)))
-        (destructuring-bind (beg . end) bounds
+        (cl-destructuring-bind (beg . end) bounds
           (cond
             ;; extend whitespaces to the right
             ((save-excursion
