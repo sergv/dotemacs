@@ -99,23 +99,6 @@ update-dir-autoloads \
     "compiled/local-autoloads.el" \
     $(find . \( -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -name 'scripts' -o -name '.cask' -o -name '.git' \) -prune -o -type f -name '*.el' -print0 | xargs -0 grep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
 
-mkdir -p "${emacs_dir}/prog-data"
-mkdir -p "${emacs_dir}/resources"
-# for fresh emacsen
-mkdir -p "${emacs_dir}/resources/themes"
-
-if [[ ! -f "$emacs_dir/prog-data/persistent-store" ]]; then
-    echo "()" >"$emacs_dir/prog-data/persistent-store"
-fi
-
-# if [[ ! -f "$emacs_dir/third-party/auctex/preview-latex.el" ]]; then
-#     inform "Generating $emacs_dir/third-party/auctex/preview-latex.el"
-#     cat <<\QEOF >"$emacs_dir/third-party/auctex/preview-latex.el"
-# foobar
-# QEOF
-#
-# fi
-
 inform "Recompiling"
 
 n="1"
