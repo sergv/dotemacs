@@ -59,7 +59,6 @@
 (require 'yasnippet-autoload)
 (require 'git-autoload)
 (require 'ediff-autoload)
-(require 'misc-autoloads)
 (require 'flycheck-setup)
 (require 'typography-setup)
 (require 'eshell-autoload)
