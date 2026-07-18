@@ -129,17 +129,6 @@
      (message "Showing all blocks ... done"))
    (run-hooks 'hs-show-hook)))
 
-(when-emacs-version (= 28 it)
-  (el-patch-defun hs-forward-sexp (match-data arg)
-    "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
-Original match data is restored upon return."
-    (save-match-data
-      (set-match-data match-data)
-      (el-patch-wrap 2 0
-        (when hs-block-start-mdata-select
-          (goto-char (match-beginning hs-block-start-mdata-select))))
-      (funcall hs-forward-sexp-func arg))))
-
 (when-emacs-version (<= 29 it)
   (el-patch-defun hs-forward-sexp (match-data arg)
     "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' with ARG.
