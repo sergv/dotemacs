@@ -360,6 +360,17 @@ overhead if produced structures will only be compared once."
       (skip-chars-backward " \t")
       (eq (point) (line-beginning-position)))))
 
+(defmacro treesit-utils--with-parsed-string (str language node-var &rest body)
+  "Better alternative to ‘treesit-parse-string’ that cleans up temporary
+buffer after itself but imposes constraint that after BODY finishes no
+references to parsed treesitter modes shall remain."
+  (declare (indent 3))
+  (cl-assert (symbolp node-var))
+  `(with-temp-buffer
+     (insert ,str)
+     (let ((,node-var (treesit-parser-root-node (treesit-parser-create ,language))))
+       ,@body)))
+
 ;; (defun treesit-utils-node-texts-in-current-buffer= (x y)
 ;;   (cl-assert (treesit-node-p y))
 ;;   (cl-assert (eq (treesit-node-buffer y) (current-buffer)))
