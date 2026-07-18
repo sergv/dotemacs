@@ -260,7 +260,7 @@
   "Move to the the beginning of heading or one level up in heading hierarchy."
   (interactive)
   (if (= (line-beginning-position) (point))
-    (outline-up-heading 1)
+      (outline-up-heading 1)
     (outline-previous-heading)))
 
 ;;;###autoload
