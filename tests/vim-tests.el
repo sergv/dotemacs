@@ -5039,6 +5039,44 @@ _|_bar")
   "(>>=) x = x"
   ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-9
+ :action
+ (execute-kbd-macro (kbd "i SPC - W n o - o r p h a <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo x = x"
+  ""
+  "#o_|_"
+  ""
+  "-- Comment 1"
+  ""
+  "-- Comment 2"
+  ""
+  "(>>=) :: a -> a"
+  "(>>=) x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo x = x"
+  ""
+  "{-# OPTIONS_GHC -Wno-orphans #-}_|_"
+  ""
+  "-- Comment 1"
+  ""
+  "-- Comment 2"
+  ""
+  "(>>=) :: a -> a"
+  "(>>=) x = x"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1
