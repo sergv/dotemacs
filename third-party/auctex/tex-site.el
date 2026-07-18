@@ -66,8 +66,6 @@ For the location of lisp files associated with
 styles, see the variables TeX-style-* (hand-generated lisp) and
 TeX-auto-* (automatically generated lisp).")
 
-(add-to-list 'load-path TeX-lisp-directory)
-
 (defvar TeX-data-directory
   (file-name-directory load-file-name)
   "The directory where the AUCTeX non-Lisp data is located.")
