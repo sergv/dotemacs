@@ -67,7 +67,7 @@
   :type 'string
   :group 'vim-motions)
 
-(defcustom vim-find-skip-newlines t
+(defcustom vim-find-skip-newlines? t
   "If non-nil character find motions t,T,f,F skip over newlines."
   :type 'boolean
   :group 'vim-motions)
@@ -1450,24 +1450,48 @@ The function shouldn’t move point.")
       (vim--outer-doubled-quote count))))
 
 (vim-defmotion vim:motion-find (inclusive count (argument:char arg) raw-result)
-  "Move the cursor to the next count’th occurrence of arg."
+  "Move the cursor to the next count’th occurrence of ARG."
   (forward-char)
-  (let ((case-fold-search nil))
-    (unless (search-forward (char-to-string arg)
-                            (unless vim-find-skip-newlines (line-end-position))
-                            t (or count 1))
-      (backward-char)
-      (error (format "Can't find %c" arg)))
+  (let ((case-fold-search nil)
+        (to-find (cond
+                   ((and (equal '(control) (event-modifiers arg))
+                         (eq ?' (event-basic-type arg)))
+                    "[‘’]")
+                   ((and (equal '(control) (event-modifiers arg))
+                         (eq ?\" (event-basic-type arg)))
+                    "[“”]")
+                   (t
+                    arg)))
+        (bound (unless vim-find-skip-newlines? (line-end-position)))
+        (n (or count 1)))
+    (save-match-data
+      (when (not (if (characterp to-find)
+                     (search-forward (char->string to-find) bound t n)
+                   (re-search-forward to-find bound t n)))
+        (backward-char)
+        (error (format "Can't find %s" to-find))))
     (setq vim--last-find (cons #'vim:motion-find arg))
     (backward-char)))
 
 (vim-defmotion vim:motion-find-back (exclusive count (argument:char arg) raw-result)
-  "Move the cursor to the previous count'th occurrence of arg."
-  (let ((case-fold-search nil))
-    (unless (search-backward (char-to-string arg)
-                             (unless vim-find-skip-newlines (line-beginning-position))
-                             t (or count 1))
-      (error (format "Can't find %c" arg)))
+  "Move the cursor to the previous count’th occurrence of ARG."
+  (let ((case-fold-search nil)
+        (to-find (cond
+                   ((and (equal '(control) (event-modifiers arg))
+                         (eq ?' (event-basic-type arg)))
+                    "[‘’]")
+                   ((and (equal '(control) (event-modifiers arg))
+                         (eq ?\" (event-basic-type arg)))
+                    "[“”]")
+                   (t
+                    arg)))
+        (bound (unless vim-find-skip-newlines? (line-beginning-position)))
+        (n (or count 1)))
+    (save-match-data
+      (when (not (if (characterp to-find)
+                     (search-backward (char->string to-find) bound t n)
+                   (re-search-backward to-find bound t n)))
+        (error (format "Can't find %s" to-find))))
     (setq vim--last-find (cons #'vim:motion-find-back arg))))
 
 (vim-defmotion vim:motion-find-to (inclusive count (argument:char arg) raw-result)

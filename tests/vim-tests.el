@@ -10012,6 +10012,231 @@ _|_bar")
   "  hp2pretty = hlib.justStaticExecutables (hlib.dontCheck hpkgs914_|_.hp2pretty);"
   "}"))
 
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-1a
+ :action
+ (execute-kbd-macro (kbd ", t '"))
+ :contents
+ "foo 'qu_|_ux' bar"
+ :expected-value
+ "foo 'qu_|_' bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-1b
+ :action
+ (execute-kbd-macro (kbd ", t C-'"))
+ :contents
+ "foo ‘qu_|_ux’ bar"
+ :expected-value
+ "foo ‘qu_|_’ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-1c
+ :action
+ (execute-kbd-macro (kbd ", t C-'"))
+ :contents
+ "x _|_foo ‘quux’ bar"
+ :expected-value
+ "x _|_‘quux’ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-1a
+ :action
+ (execute-kbd-macro (kbd ", T '"))
+ :contents
+ "foo 'qu_|_ux' bar"
+ :expected-value
+ "foo '_|_ux' bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-1b
+ :action
+ (execute-kbd-macro (kbd ", T C-'"))
+ :contents
+ "foo ‘qu_|_ux’ bar"
+ :expected-value
+ "foo ‘_|_ux’ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-1c
+ :action
+ (execute-kbd-macro (kbd ", T C-'"))
+ :contents
+ "foo ‘quux’ bar_|_ x"
+ :expected-value
+ "foo ‘quux’_|_ x")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-1d
+ :action
+ (execute-kbd-macro (kbd ", 2 T C-'"))
+ :contents
+ "foo’s ‘quux’ bar_|_ x"
+ :expected-value
+ "foo’s ‘_|_ x")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-2a
+ :action
+ (execute-kbd-macro (kbd ", t \""))
+ :contents
+ "foo \"qu_|_ux\" bar"
+ :expected-value
+ "foo \"qu_|_\" bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-2b
+ :action
+ (execute-kbd-macro (kbd ", t C-\""))
+ :contents
+ "foo “qu_|_ux” bar"
+ :expected-value
+ "foo “qu_|_” bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-2c
+ :action
+ (execute-kbd-macro (kbd ", t C-\""))
+ :contents
+ "x _|_foo “quux” bar"
+ :expected-value
+ "x _|_“quux” bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-2a
+ :action
+ (execute-kbd-macro (kbd ", T \""))
+ :contents
+ "foo \"qu_|_ux\" bar"
+ :expected-value
+ "foo \"_|_ux\" bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-2b
+ :action
+ (execute-kbd-macro (kbd ", T C-\""))
+ :contents
+ "foo “qu_|_ux” bar"
+ :expected-value
+ "foo “_|_ux” bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-2c
+ :action
+ (execute-kbd-macro (kbd ", T C-\""))
+ :contents
+ "foo “quux” bar_|_ x"
+ :expected-value
+ "foo “quux”_|_ x")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-3a
+ :action
+ (execute-kbd-macro (kbd ", f '"))
+ :contents
+ "foo 'qu_|_ux' bar"
+ :expected-value
+ "foo 'qu_|_ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-3b
+ :action
+ (execute-kbd-macro (kbd ", f C-'"))
+ :contents
+ "foo ‘qu_|_ux’ bar"
+ :expected-value
+ "foo ‘qu_|_ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-3c
+ :action
+ (execute-kbd-macro (kbd ", f C-'"))
+ :contents
+ "x _|_foo ‘quux’ bar"
+ :expected-value
+ "x _|_quux’ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-3a
+ :action
+ (execute-kbd-macro (kbd ", F '"))
+ :contents
+ "foo 'qu_|_ux' bar"
+ :expected-value
+ "foo _|_ux' bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-3b
+ :action
+ (execute-kbd-macro (kbd ", F C-'"))
+ :contents
+ "foo ‘qu_|_ux’ bar"
+ :expected-value
+ "foo _|_ux’ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-3c
+ :action
+ (execute-kbd-macro (kbd ", F C-'"))
+ :contents
+ "foo ‘quux’ bar_|_ x"
+ :expected-value
+ "foo ‘quux_|_ x")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-4a
+ :action
+ (execute-kbd-macro (kbd ", f \""))
+ :contents
+ "foo \"qu_|_ux\" bar"
+ :expected-value
+ "foo \"qu_|_ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-4b
+ :action
+ (execute-kbd-macro (kbd ", f C-\""))
+ :contents
+ "foo “qu_|_ux” bar"
+ :expected-value
+ "foo “qu_|_ bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-4c
+ :action
+ (execute-kbd-macro (kbd ", f C-\""))
+ :contents
+ "x _|_foo “quux” bar"
+ :expected-value
+ "x _|_quux” bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-4a
+ :action
+ (execute-kbd-macro (kbd ", F \""))
+ :contents
+ "foo \"qu_|_ux\" bar"
+ :expected-value
+ "foo _|_ux\" bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-4b
+ :action
+ (execute-kbd-macro (kbd ", F C-\""))
+ :contents
+ "foo “qu_|_ux” bar"
+ :expected-value
+ "foo _|_ux” bar")
+
+(vim-tests--folding-test-fresh-buffer-contents*
+ :name vim-tests/motion-find-back-4c
+ :action
+ (execute-kbd-macro (kbd ", F C-\""))
+ :contents
+ "foo “quux” bar_|_ x"
+ :expected-value
+ "foo “quux_|_ x")
+
 (provide 'vim-tests)
 
 ;; Local Variables:
