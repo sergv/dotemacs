@@ -1526,7 +1526,7 @@ before point."
   "Combine ‘-filter’ and ‘member’.
 
 Returns cons where car is filtered XS where PRED returned non-nil
-and cdr is a boolean whether any element was let out."
+and cdr is a boolean whether any element was left out."
   (let* ((res (cons nil nil))
          (tmp res)
          (any-omitted? nil))
