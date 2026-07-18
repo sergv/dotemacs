@@ -28,3 +28,12 @@ bombardment, explosions, cave-ins, and/or frogs falling from the sky.
 - `EMACS_SKIP_ELC`      - `0` or `1`
 - `EMACS_NIX_STORE_DIR` - unused legacy?
 - `EMACS_NIX_STATE_DIR` - unused legacy?
+
+## Environment variables take 2
+
+   Emacs uses following environment variables for configuration:
+
+   1. EMACS_ROOT - path to .emacs.d directory.
+   2. EMACS_ENV_DEFS - paths to .bash_env file - shell script that sets up environment variables on the system for current user.
+   3. BASHRC_ENV_LOADED - whether ~/.bash_env was already loaded.
+   4. EMACS_COMPILED_ROOT
