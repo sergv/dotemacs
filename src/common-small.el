@@ -21,7 +21,7 @@
     (cl-assert (fixnump x))
     x))
 
-(when-emacs-version (<= 28 it )
+(when-emacs-version (<= 28 it)
   ;; For comp-hint-cons and comp-hint-fixnum.
   (require 'comp))
 
