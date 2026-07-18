@@ -93,9 +93,9 @@ overridden."
 
 (defvar haskell-indentation-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") #'haskell-indentation-newline-and-indent)
-    (define-key map (kbd "<backtab>") #'haskell-indentation-indent-backwards)
-    (define-key map (kbd ";") #'haskell-indentation-common-electric-command)
+    (define-key map (eval-when-compile (kbd "RET")) #'haskell-indentation-newline-and-indent)
+    (define-key map (eval-when-compile (kbd "<backtab>")) #'haskell-indentation-indent-backwards)
+    (define-key map (eval-when-compile (kbd ";")) #'haskell-indentation-common-electric-command)
     map)
   "Keymap for `haskell-indentation-mode'.")
 
