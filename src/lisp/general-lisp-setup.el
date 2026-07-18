@@ -535,6 +535,8 @@ nor comment."
 
 ;;;; this is useful for all lisps
 
+(autoload 'outline-invisible-p "outline")
+
 (search-def-autoexpand-advices
  (save-excursion
    (when (hs-already-hidden-p)
