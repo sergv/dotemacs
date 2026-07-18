@@ -107,6 +107,11 @@
   ;;    That’s just atrocious.
   (error "Never load saveplace.el, it’s implemented poorly"))
 
+(unless noninteractive
+  (awhen (get-buffer "*Messages*")
+    (with-current-buffer it
+      (messages-buffer-setup))))
+
 (let ((machine-specific-setup-file
        (-find #'file-exists?
               (list (expand-file-name "~/machine-specific-setup.el")
