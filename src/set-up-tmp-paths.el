@@ -65,6 +65,7 @@ directories whose absolute path matches IGNORED-DIR-RE."
                   "_darcs"
                   ".cask")
               (seq (or "dist"
+                       "dist-newstyle"
                        ".cabal-sandbox"
                        ".stack-work")
                    (* not-newline))))))
@@ -94,18 +95,44 @@ directories whose absolute path matches IGNORED-DIR-RE."
         (funcall collect-dirs root)
         dirs))))
 
+(defun nconc-after (skip-pred xs ys)
+  (let* ((tmp xs)
+         (prev nil)
+         (result tmp))
+    (while (and tmp
+                (funcall skip-pred (car tmp)))
+      (setf prev tmp
+            tmp (cdr tmp)))
+    (if prev
+        (progn
+          (setcdr prev (nconc ys tmp))
+          result)
+      (nconc ys tmp))))
+
 (defmacro add-to-load-path-recursively (root &optional ignored-dirs-re)
+  (declare (indent 1))
   (let* ((prefix-len (length +emacs-config-path+))
          (dirs (mapcar (lambda (dir)
-                         `(concat +emacs-config-path+ ,(concat "/" dir)))
-                       (mapcar (lambda (dir)
-                                 (substring dir (+ prefix-len 1)))
-                               (find-elisp-dirs (concat +emacs-config-path+ root) (eval ignored-dirs-re))))))
-    `(add-to-load-path ,@dirs)))
+                         (substring dir (+ prefix-len 1)))
+                       (find-elisp-dirs (concat +emacs-config-path+ root) (eval ignored-dirs-re)))))
+    `(setf load-path
+           (nconc-after
+            (lambda (x)
+              (or (string-prefix-p +emacs-config-path+ x)
+                  (string-prefix-p +emacs-compiled-path+ x)))
+            load-path
+            (mapcar (lambda (dir)
+                      (directory-file-name (concat +emacs-config-path+ "/" dir)))
+                    (list ,@dirs))))))
 
-(defvar set-up-paths--ignored-third-party-el-dirs-re
+(add-to-load-path-recursively "/src")
+
+(add-to-load-path-recursively
+    "/third-party"
+  ;; Ignored third-party dirs.
   (rx
    (or (seq bow (or "tests" "doc" "examples" ".cask" ".stack-work.*") eol)
+       (seq (* anything) "/test" (? "s"))
        "auctex/tests"
        "auctex/style"
        "clojure-mode/test"
@@ -119,20 +146,21 @@ directories whose absolute path matches IGNORED-DIR-RE."
        (seq "haskell-mode/" (or "doc/gifcasts" "tests" "tests/compat"))
        "ht/test"
        "js2-mode/tests"
+       "kotlin-ts-mode/test"
        "lua-mode/test"
+       "lsp-mode/test"
        "magit/t"
        "markdown-mode/tests"
+       "markdown-mode/scripts"
+       "nix-ts-mode/test"
        (seq "org-mode/" (or "mk" "testing"))
-       "s.el/dev")))
-
-(add-to-load-path-recursively "/src")
-
-(add-to-load-path-recursively
- "/third-party"
- set-up-paths--ignored-third-party-el-dirs-re)
+       "pkg-info/test"
+       "s.el/dev"
+       "treepy.el/test"
+       "transient/test")))
 
 (when-windows
- (add-to-load-path (concat +emacs-config-path+ "/native/fakecygpty")))
+ (push (concat +emacs-config-path+ "/native/fakecygpty") load-path))
 
 ;; (push (concat +emacs-compiled-path+ "/lib") load-path )
 ;;
@@ -142,7 +170,6 @@ directories whose absolute path matches IGNORED-DIR-RE."
 ;;   (push (concat +emacs-compiled-path+ "/compiled/elc") load-path))
 
 (add-to-list 'exec-path +execs-path+)
-
 
 (provide 'set-up-tmp-paths)
 

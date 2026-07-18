@@ -545,6 +545,7 @@ newlines."
 (eval-after-load "comint" '(comint-init))
 
 (when-emacs-version (and (= 30 it) (native-comp-available-p))
+  (require 'dump-init)
   (defvar dump--emacs-dir)
   ;; Overwrite the definition with a new one.
   (defun load--fixup-all-elns ()

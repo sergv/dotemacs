@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'common))
 
 ;; Display line numbers in mode line even in buffers that have lines
@@ -95,7 +95,7 @@
     mode-name
     mode-line-process
     (:eval
-     (case (coding-system-eol-type buffer-file-coding-system)
+     (cl-case (coding-system-eol-type buffer-file-coding-system)
        ;; here should be unix but it is most of the time so
        ;; there's no reason to say obvious things
        (0 "")
