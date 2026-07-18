@@ -79,6 +79,8 @@
     (when-buffer-has-file
       ;; Ensure that destination directory exists.
       (unless (file-exists-p b/backup-directory)
+        (unless (file-writable-p b/backup-directory)
+          (error "Cannot backup to non-writable directory: ‘%s’" b/backup-directory))
         (make-directory b/backup-directory t))
       (let* ((file buffer-file-name)
              (dest (path-concat b/backup-directory
