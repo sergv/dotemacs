@@ -12,24 +12,23 @@
 
 (defvar trie-opt--global-cache)
 
-(defvar dump--emacs-dir nil)
-
 (defun dump-main (emacs-dir dump-target)
   (setf dumping t)
 
   (unless emacs-dir
     (setf emacs-dir
-          (let ((emacs-root (expand-file-name (getenv "EMACS_ROOT")))
-                (default-emacs-dir (expand-file-name "~/.emacs.d")))
+          (let ((emacs-root (expand-file-name (getenv "EMACS_COMPILED_ROOT")))
+                ;; (default-emacs-dir (expand-file-name "~/.emacs.d"))
+                )
             (cond
               (emacs-root
                (progn
                  (cl-assert (file-directory-p emacs-root))
                  emacs-root))
-              ((file-directory-p default-emacs-dir)
-               default-emacs-dir)
+              ;; ((file-directory-p default-emacs-dir)
+              ;;  default-emacs-dir)
               (t
-               (error "EMACS_ROOT not defined and default emacs directory does not exist: %s" default-emacs-dir))))))
+               (error "EMACS_COMPILED_ROOT not defined"))))))
   (setf dump--emacs-dir emacs-dir)
 
   (dolist (dir '("compiled" "src"))

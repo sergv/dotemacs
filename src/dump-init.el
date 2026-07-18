@@ -8,6 +8,9 @@
 
 (defvar dumping nil)
 
+(defvar dump--emacs-dir nil
+  "EMACS_COMPILATION_ROOT where dumped image resides.")
+
 (provide 'dump-init)
 
 ;; Local Variables:
