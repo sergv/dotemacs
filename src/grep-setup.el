@@ -58,62 +58,6 @@
                           "")
                       t t command)))))))))
 
-(when-emacs-version (= 28 it)
-  (el-patch-defun grep-read-files (regexp)
-    "Read a file-name pattern arg for interactive grep.
-The pattern can include shell wildcards.  As SPC can triggers
-completion when entering a pattern, including it requires
-quoting, e.g. `\\[quoted-insert]<space>'.
-
-REGEXP is used as a string in the prompt."
-    (let* ((bn (funcall grep-read-files-function))
-	   (fn (and bn
-		    (stringp bn)
-		    (file-name-nondirectory bn)))
-	   (default-alias
-	    (and fn
-		 (let ((aliases (remove (assoc "all" grep-files-aliases)
-				        grep-files-aliases))
-		       alias)
-		   (while aliases
-		     (setq alias (car aliases)
-			   aliases (cdr aliases))
-		     (if (string-match (mapconcat
-				        #'wildcard-to-regexp
-				        (split-string (cdr alias) nil t)
-				        "\\|")
-				       fn)
-			 (setq aliases nil)
-		       (setq alias nil)))
-		   (cdr alias))))
-	   (default-extension
-	    (and fn
-		 (let ((ext (file-name-extension fn)))
-		   (and ext (concat "*." ext)))))
-	   (default
-	    (or default-alias
-	        default-extension
-	        (car grep-files-history)
-	        (car (car grep-files-aliases))))
-	   (files (completing-read
-		   (concat "Search for \"" regexp
-			   "\" in files matching wildcard"
-			   (if default (concat " (default " default ")"))
-			   ": ")
-                   (el-patch-swap
-                     #'read-file-name-internal
-                     (delete-dups
-                      (delq nil (append (list default default-alias default-extension)
-                                        (mapcar 'car grep-files-aliases)))))
-		   nil nil nil 'grep-files-history
-		   (delete-dups
-		    (delq nil
-                          (append (list default default-alias default-extension)
-				  (mapcar #'car grep-files-aliases)))))))
-      (and files
-	   (or (cdr (assoc files grep-files-aliases))
-	       files)))))
-
 (defun grep-init-after-load ()
   (def-keys-for-map grep-mode-map
     +vi-keys+
