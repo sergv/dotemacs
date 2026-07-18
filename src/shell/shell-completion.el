@@ -20,8 +20,6 @@
 (require 'pcomplete)
 ;; (require 'json)
 
-(require 'shell-completion-ghc-flags)
-
 (setf pcmpl-gnu-tarfile-regexp
       (rx
        ".t"
@@ -1301,18 +1299,6 @@ under version-control directories."
 (defpcmpl pcomplete/runghc
   (opts
    (args (pcmpl-haskell-source-or-obj-files))))
-
-;;;###autoload (autoload 'pcomplete/runhaskell "shell-completion" nil t)
-(defpcmpl pcomplete/runhaskell
-  (opts
-   (args (pcmpl-haskell-source-or-obj-files))))
-
-;;;###autoload (autoload 'pcomplete/ghc "shell-completion" nil t)
-(defpcmpl pcomplete/ghc
-  `(opts
-    (flags ,@pcomplete-ghc-flags)
-    (args (pcmpl-haskell-source-or-obj-files)))
-  :evaluate-definition t)
 
 ;;;###autoload (autoload 'pcomplete/cabal "shell-completion" nil t)
 (defpcmpl pcomplete/cabal
