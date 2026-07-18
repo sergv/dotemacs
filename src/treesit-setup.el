@@ -334,8 +334,6 @@ to the offending pattern and highlight the pattern."
 (provide 'treesit-setup)
 
 ;; Local Variables:
-;; no-byte-compile: t
-;; no-native-compile: t
 ;; End:
 
 ;; treesit-setup.el ends here
