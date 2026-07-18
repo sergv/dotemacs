@@ -187,11 +187,14 @@ _e_val
 
 (defun elisp-compile-and-move ()
   (interactive)
-  (save-buffer-if-modified)
+  (when (and buffer-file-name
+             (file-writable-p buffer-file-name))
+    (save-buffer-if-modified))
   (when (and (eq major-mode 'emacs-lisp-mode)
              (not no-byte-compile)
              (not (string= ".eproj-info"
-                           (file-name-nondirectory buffer-file-name))))
+                           (file-name-nondirectory buffer-file-name)))
+             (file-writable-p (elisp-compile-get-elc-destination buffer-file-name)))
     (let ((window-config (current-window-configuration))
           (byte-compile-dest-file-function #'elisp-compile-get-elc-destination))
       (if (byte-compile-file buffer-file-name)
