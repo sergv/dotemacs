@@ -23,7 +23,7 @@
 (require 'v)
 
 ;; for ghc flags to OPTIONS_GHC
-(require 'shell-completion)
+(require 'shell-completion-ghc)
 
 (defun haskell-insert-followed-by-dollar? (pos)
   "Check whether text after POS is followed by $."
