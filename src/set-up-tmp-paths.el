@@ -137,9 +137,6 @@ directories whose absolute path matches IGNORED-DIR-RE."
 (when-windows
  (add-to-load-path (concat +emacs-config-path+ "/native/fakecygpty")))
 
-;; this must go to the end in order to give files in /src dir a chance
-;; (add-to-list 'load-path +bytecode-lib+ t)
-
 ;; (push (concat +emacs-compiled-path+ "/lib") load-path )
 ;;
 ;; ;; Shadow everything else
