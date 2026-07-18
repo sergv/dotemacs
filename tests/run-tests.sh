@@ -115,6 +115,7 @@ fi
     -L "$EMACS_ROOT/tests" \\
     -L "$EMACS_ROOT/third-party/haskell-mode/tests" \\
     -L "$EMACS_ROOT/third-party/nix-mode/tests" \\
+    -L "$EMACS_ROOT/third-party/nix-ts-mode/test" \\
     -L "$EMACS_ROOT/third-party/f.el/test" \\
     -L "$EMACS_ROOT/third-party/rainbow-delimiters" \\
     -L "$EMACS_ROOT/third-party/poly-mode/tests" \\
@@ -167,6 +168,7 @@ else
         -L "$EMACS_ROOT/tests" \
         -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
         -L "$EMACS_ROOT/third-party/nix-mode/tests" \
+        -L "$EMACS_ROOT/third-party/nix-ts-mode/test" \
         -L "$EMACS_ROOT/third-party/f.el/test" \
         -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
         -L "$EMACS_ROOT/third-party/poly-mode/tests" \
