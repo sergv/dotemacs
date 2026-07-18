@@ -540,8 +540,6 @@ nor comment."
    (when (hs-already-hidden-p)
      (hs-show-block))
    (when (outline-invisible-p)
-     (outline-show-subtree))
-   (when (outline-invisible-p)
      (outline-show-subtree)))
  (clojure-mode lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
 
