@@ -1,0 +1,47 @@
+diff --git i/lisp/emacs-lisp/comp.el w/lisp/emacs-lisp/comp.el
+index 2bc8b996622..e66155cad7b 100644
+--- i/lisp/emacs-lisp/comp.el
++++ w/lisp/emacs-lisp/comp.el
+@@ -90,7 +90,16 @@ native-comp-bootstrap-deny-list
+   :type '(repeat regexp)
+   :version "28.1")
+ 
+-(defcustom native-comp-compiler-options nil
++(defcustom native-comp-compiler-options
++  '(;; The most meaningful optimizations:
++    "-O2"
++    @mtuneFlag@
++    @marchFlag@
++    ;; Reduce .eln size and compilation overhead.
++    "-g0"
++    ;; Good defensive choice for Emacs stability.
++    "-fno-omit-frame-pointer"
++    "-fno-finite-math-only")
+   "Command line options passed verbatim to GCC compiler.
+ Note that not all options are meaningful and some options might even
+ break your Emacs.  Use at your own risk.
+@@ -101,8 +110,22 @@ native-comp-compiler-options
+   :version "28.1")
+ 
+ (defcustom native-comp-driver-options
+-  (cond ((eq system-type 'darwin) '("-Wl,-w"))
+-        ((eq system-type 'cygwin) '("-Wl,-dynamicbase")))
++  (append
++   (cond ((eq system-type 'darwin) '("-Wl,-w"))
++         ((eq system-type 'cygwin) '("-Wl,-dynamicbase")))
++   '(@backendPath@)
++   '(;; -Wl,-z,pack-relative-relocs compresses
++     ;; relocation tables to reduce file size and
++     ;; slightly improve load times.
++     "-Wl,-z,pack-relative-relocs"
++     ;; -Wl,-O2 applies standard linker-level
++     ;; optimizations (like string merging) to the
++     ;; generated shared object.
++     "-Wl,-O2"
++     ;; -Wl,--as-needed prevents the linker from
++     ;; recording dependencies on libraries that
++     ;; are not actually used by the code.
++     "-Wl,--as-needed"))
+   "Options passed verbatim to the native compiler's back-end driver.
+ Note that not all options are meaningful; typically only the options
+ affecting the assembler and linker are likely to be useful.

@@ -134,7 +134,7 @@ session."
 
     (cons emacs-dir init-file)))
 
-(defun recompile-main (emacs-dir k n compile-native? config)
+(defun recompile-main (emacs-dir compilation-elc-dest-dir k n compile-native? preload? zipped-el-dest)
   (cl-assert (numberp k))
   (cl-assert (numberp n))
   (unwind-protect
@@ -146,10 +146,37 @@ session."
                 (find-elisp-dirs (concat emacs-dir "/src")))
                (third-party-dirs
                 (append
-                 (list
-                  (concat emacs-dir "/native/fakecygpty"))
+                 (when-windows
+                  (list
+                   (concat emacs-dir "/native/fakecygpty")))
                  (find-elisp-dirs (concat emacs-dir "/third-party")
-                                  set-up-paths--ignored-third-party-el-dirs-re)))
+                                  ;; Keep in sync with ‘set-up-tmp-paths.el’
+                                  (rx
+                                   (or (seq bow (or "test" "tests" "doc" "examples" ".cask" ".stack-work.*") eol)
+                                       "auctex/tests"
+                                       "auctex/style"
+                                       "clojure-mode/test"
+                                       "company-mode/test"
+                                       "dash.el/dev"
+                                       (seq "f.el/" (or "bin" "test"))
+                                       "flycheck-haskell/test"
+                                       (seq "flycheck/" (or ".cask" "test"))
+                                       "ivy/targets"
+                                       "groovy-mode/test"
+                                       (seq "haskell-mode/" (or "doc/gifcasts" "tests" "tests/compat"))
+                                       "ht/test"
+                                       "js2-mode/tests"
+                                       "kotlin-ts-mode/test"
+                                       "lua-mode/test"
+                                       "magit/t"
+                                       "markdown-mode/tests"
+                                       "markdown-mode/scripts"
+                                       "nix-ts-mode/test"
+                                       (seq "org-mode/" (or "mk" "testing"))
+                                       "pkg-info/test"
+                                       "s.el/dev"
+                                       "treepy.el/test"
+                                       "transient/test")))))
                (extra-files (list init-file))
                (dir-el-files
                 (lambda (dir)
@@ -182,31 +209,24 @@ session."
                              native-comp-available?)))
 
           (cond
-            (config
-             ;; No point in config for now, just exit. Uncomment when decide to use again.
-             (when nil
-               (with-temp-buffer
-                 (dolist (entry '((no-native-compile nil)
-                                  (byte-native-compiling t)
-                                  (byte-native-qualities nil)
-                                  (native-comp-debug 0)
-                                  (native-comp-compiler-options '("-O2"))
-                                  (native-comp-driver-options '("-march=native"))))
-                   (insert (format "(setf %s %S)\n" (car entry) (cadr entry))))
-                 (insert (format "(setf load-path '%S)" load-path))
-
-                 (write-file config)
-                 (message "WRITTEN CONFIG TO %S" config))))
+            (preload?
+             ;; Preloading finished, exit now.
+             )
 
             (proceed?
              (message "[recompile.el] loading local *.el files")
              (dolist (file local-files)
-               (require (intern (file-name-sans-extension (file-name-nondirectory file))))
+               (let ((compile--in-progress t))
+                 (require (intern (file-name-sans-extension (file-name-nondirectory file)))))
                ;; (load-library file)
                )
 
              (let ((i 0)
-                   (byte-compile-dest-file-function #'elisp-compile-get-elc-destination))
+                   (byte-compile-dest-file-function
+                    (lambda (path)
+                      (elisp-compile-get-elc-destination path compilation-elc-dest-dir)))
+                   (emacs-dir-with-trailing-slash
+                    (concat emacs-dir "/")))
                (message "[recompile.el] %s %s files" k (if compile-native? "native-compiling" "byte-compiling"))
                (dolist (file (append local-files third-party-files))
                  (when (= k (mod i n))
@@ -234,7 +254,26 @@ session."
                        (let ((target (concat file "c")))
                          (if (file-exists-p target)
                              (message "[recompile.el] %s skipping %s - already compiled" k file)
-                           (byte-compile-file file))))))
+                           (byte-compile-file file))
+                         (when zipped-el-dest
+                           (let* ((dest-base
+                                   (concat zipped-el-dest "/" (strip-string-prefix emacs-dir-with-trailing-slash file)))
+                                  (dest (concat dest-base ".gz")))
+                             (with-temp-buffer
+                               (if (zerop
+                                    (call-process "gzip"
+                                                  file
+                                                  (current-buffer)
+                                                  nil
+                                                  "--best"
+                                                  "--stdout"))
+                                   (progn
+                                     (make-directory (file-name-directory dest) t)
+                                     (unless (string= "init.el" (file-name-nondirectory file))
+                                       (jka-compr-run-real-handler
+                                        'write-region
+                                        (list (point-min) (point-max) dest))))
+                                 (error "Failed to compress source ‘%s’ to ‘%s’:\n%s" file dest (buffer-substring-no-properties (point-min) (point-max)))))))))))
                  (cl-incf i))
 
                (message "[recompile.el] %s done %s" k (if compile-native? "native-compiling" "byte-compiling"))))
