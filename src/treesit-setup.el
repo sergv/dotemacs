@@ -22,7 +22,7 @@
 (setf treesit-max-buffer-size (* 100 1024 1024)
       treesit-font-lock-level 4)
 
-(add-to-list 'treesit-extra-load-path (concat +emacs-config-path+ "/lib"))
+(add-to-list 'treesit-extra-load-path (concat +emacs-compiled-path+ "/lib"))
 
 (when (and (fboundp 'treesit-available-p)
            (treesit-available-p))
