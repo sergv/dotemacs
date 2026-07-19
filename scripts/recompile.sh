@@ -102,8 +102,12 @@ update-dir-autoloads \
 inform "Recompiling"
 
 n="1"
-if [[ -e /proc/cpuinfo ]]; then
-    n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
+if [[ -v NIX_BUILD_CORES ]]; then
+    n="$NIX_BUILD_CORES"
+else
+    if [[ -e /proc/cpuinfo ]]; then
+        n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
+    fi
 fi
 if [[ "$n" -gt 5 ]]; then
     n="5"
