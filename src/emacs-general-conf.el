@@ -367,6 +367,19 @@
 (defalias 'rmdir 'delete-directory)
 (defalias 'unnarrow 'widen)
 
+;;;; Enable “dangerous” commands.
+
+(dolist (func '(downcase-region
+                erase-buffer
+                eval-expression
+                narrow-to-defun
+                narrow-to-page
+                narrow-to-region
+                set-goal-column
+                upcase-region
+                dired-find-alternate-file))
+  (put func 'disabled nil))
+
 ;;;; Epilogue
 
 (provide 'emacs-general-conf)
