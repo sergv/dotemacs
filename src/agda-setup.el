@@ -8,11 +8,13 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-macs))
 
 (require 'agda-abbrev+)
 (require 'common)
 (require 'hydra-setup)
+(require 'vim-setup)
 
 (require 'agda2)
 
