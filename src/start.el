@@ -1,4 +1,4 @@
-;; dotemacs.el --- -*- lexical-binding: t; -*-
+;; start.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -12,6 +12,7 @@
 
   (defvar yas-expand-fallback))
 
+;; todo: replace with dump-mode
 (defvar dumping nil)
 
 (require 'set-up-platform)
@@ -78,24 +79,13 @@
 (require 'solarized)
 (solarized-apply-known-color-theme 'solarized-dark)
 
-(dolist (func '(downcase-region
-                erase-buffer
-                eval-expression
-                narrow-to-defun
-                narrow-to-page
-                narrow-to-region
-                set-goal-column
-                upcase-region
-                dired-find-alternate-file))
-  (put func 'disabled nil))
-
 (when-windows
  (require 'fakecygpty-setup))
 
 (provide 'start)
 
 (unless (featurep 'custom-variables-defined)
-  (load-library (concat +emacs-config-path+ "/init.el")))
+  (error "start.el loaded before init.el"))
 
 (load-library "global-setup")
 (load-library "user-info")
@@ -123,4 +113,4 @@
 ;; Local Variables:
 ;; End:
 
-;; dotemacs.el ends here
+;; start.el ends here
