@@ -14,31 +14,6 @@
 
 ;;;; Paths
 
-(defconst +emacs-config-path+ (getenv "EMACS_ROOT")
-  "Path to root for my emacs configuration. For things than are read
-but typically not written.
-
-Usually either ~/.emacs.d or unique path under /nix/store")
-
-(when (or (null +emacs-config-path+)
-          (not (stringp +emacs-config-path+))
-          (not (file-directory-p +emacs-config-path+)))
-  (error "No accessible directory found for +emacs-config-path+"))
-
-(defconst +emacs-compiled-path+
-  (let ((env (getenv "EMACS_COMPILED_ROOT")))
-    (if env
-        (progn
-          (when (not (file-directory-p env))
-            (error "Path pointed to by EMACS_COMPILED_ROOT does not exsit: ‘%s’"
-                   env))
-          env)
-      +emacs-config-path+))
-  "Path to root for my emacs configuration. For things than are read
-but typically not written.
-
-Usually either ~/.emacs.d or unique path under /nix/store")
-
 (defconst +emacs-writable-config-path+
   (let ((writable-root (getenv "EMACS_WRITABLE_ROOT")))
     (if writable-root
