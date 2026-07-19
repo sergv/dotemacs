@@ -1627,6 +1627,44 @@ persistent store may restore the narrowing state when session is loaded."
 (defsubst is-close-paren? (c)
   (eq c 41))
 
+;;;;
+
+(defun filter! (predicate xs)
+  "Filter mutate list XS by keeping only items for which function PREDICATE
+returned non-nil."
+  (declare (pure nil) (side-effect-free nil))
+  (let* ((result (cons nil xs))
+         (prev result)
+         (tmp (cdr prev)))
+    (while tmp
+      (if (funcall predicate (car tmp))
+          (setf prev tmp
+                tmp (cdr tmp))
+        (setf tmp (setcdr prev (cdr tmp)))))
+    (cdr result)))
+
+(defun nconc-after-uniq! (skip-pred xs ys)
+  "Skip prefix of XS, filter out those items from YS then nconc prefix ++ ys ++ suffix."
+  (declare (pure nil) (side-effect-free nil))
+  (let* ((tmp xs)
+         (prev nil)
+         (result tmp)
+         (item nil)
+         (prefix (make-hash-table :test #'equal)))
+    (while (and tmp
+                (funcall skip-pred (setf item (car tmp))))
+      (puthash item t prefix)
+      (setf prev tmp
+            tmp (cdr tmp)))
+    (let ((ys-uniq
+           (filter! (lambda (y) (not (gethash y prefix))) ys)))
+      (if prev
+          (progn
+            (setcdr prev (nconc ys-uniq tmp))
+            result)
+        (nconc ys-uniq tmp)))))
+
+
 (provide 'common)
 
 ;; Local Variables:
