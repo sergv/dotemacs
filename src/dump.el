@@ -16,25 +16,9 @@
   (setf dumping t)
 
   (unless emacs-dir
-    (setf emacs-dir
-          (let ((emacs-root (expand-file-name (getenv "EMACS_COMPILED_ROOT")))
-                ;; (default-emacs-dir (expand-file-name "~/.emacs.d"))
-                )
-            (cond
-              (emacs-root
-               (progn
-                 (cl-assert (file-directory-p emacs-root))
-                 emacs-root))
-              ;; ((file-directory-p default-emacs-dir)
-              ;;  default-emacs-dir)
-              (t
-               (error "EMACS_COMPILED_ROOT not defined"))))))
+    (setf emacs-dir user-emacs-directory))
   (setf dump--emacs-dir emacs-dir)
 
-  (dolist (dir '("compiled" "src"))
-    (let ((dir2 (concat emacs-dir "/" dir)))
-      (cl-assert (file-directory-p dir2))
-      (add-to-list 'load-path dir2)))
   (when (boundp 'native-comp-eln-load-path)
     (startup-redirect-eln-cache (concat emacs-dir "/compiled")))
 
@@ -43,6 +27,7 @@
                      (mapcan (lambda (x) (list (concat emacs-dir "/" x)
                                           (expand-file-name (concat "~/.emacs.d/" x))))
                              '("init.el")))))
+    (load-file init-file)
     ;; (message "Loading start.el...")
     ;; (load-library "start")
     ;; (message "Loading start.el... OK")
@@ -253,6 +238,9 @@
     (dolist (name '(" *code-conversion-work*" "*Compile-Log*" "*Warnings*"))
       (awhen (get-buffer name)
         (remove-buffer t it)))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (mapc #'delete-overlay (overlays-in (point-min) (point-max)))))
     (dump-emacs-portable dump-target)
 
     (mapc (lambda (func)
