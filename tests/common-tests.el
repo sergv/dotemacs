@@ -723,6 +723,18 @@
     (should (equal xs xs-copy))
     (should (equal ys ys-copy))))
 
+(ert-deftest common-tests/filter-1 ()
+  (should (equal (filter! #'identity '(a b c d e))
+                 '(a b c d e))))
+
+(ert-deftest common-tests/filter-2 ()
+  (should (equal (filter! #'identity '(a b c nil d e))
+                 '(a b c d e))))
+
+(ert-deftest common-tests/filter-3 ()
+  (should (equal (filter! #'identity '(nil a nil nil b nil c nil d nil e nil nil nil))
+                 '(a b c d e))))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
