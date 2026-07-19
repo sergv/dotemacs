@@ -14,6 +14,7 @@
 (require 'dash)
 (require 'solarized)
 (require 'set-up-paths)
+(require 'set-up-tmp-paths)
 
 (defvar *formula-images-cache* (make-hash-table :test 'equal))
 
