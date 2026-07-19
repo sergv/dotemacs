@@ -14,16 +14,13 @@ set -e
 export EMACS_FORCE_PRISTINE=1
 emacs="${EMACS:-emacs}"
 emacs_dir=${1:-"${EMACS_ROOT}"}
-copy_init_el=0
 
 if [[ -z "${2:-}" ]]; then
     artifacts_dir="${emacs_dir}"
     zipped_el_dest="nil"
-    copy_init_el=0
 else
     artifacts_dir=${2:-"${EMACS_COMPILED_ROOT:-${emacs_dir}}"}
     zipped_el_dest="\"${artifacts_dir}\""
-    copy_init_el=1
 fi
 
 compilation_dest="$artifacts_dir/compiled"
@@ -144,15 +141,11 @@ if [[ "$native_comp" = "t" ]]; then
     # Preload to native-compile trampolines
     "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$compilation_dest/elc\" 0 1 nil t nil)"
 
-    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$compilation_dest/elc\" INPUT $n nil nil todo)" && \
-    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$compilation_dest/elc\" INPUT $n t nil $zipped_el_dest)"
+    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $n nil nil nil)" && \
+    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $n t nil $zipped_el_dest)"
 
 else
-    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$compilation_dest/elc\" INPUT $n nil nil $zipped_el_dest)"
-fi
-
-if [[ "$copy_init_el" = "1" ]]; then
-    cp "$emacs_dir/init.el" "${artifacts_dir}/init.el"
+    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $n nil nil $zipped_el_dest)"
 fi
 
 exit 0

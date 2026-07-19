@@ -13,6 +13,7 @@ misc/**
 packages/**
 scripts/git-branch-filtering/**
 standalone/**
+tree-sitter/**
 tmp/**
 
 # haskell-mode is already under git
