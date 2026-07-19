@@ -134,7 +134,7 @@ session."
 
     (cons emacs-dir init-file)))
 
-(defun recompile-main (emacs-dir compilation-elc-dest-dir k n compile-native? preload? zipped-el-dest)
+(defun recompile-main (emacs-dir compilation-dest-root-dir k n compile-native? preload? zipped-el-dest)
   (cl-assert (numberp k))
   (cl-assert (numberp n))
   (unwind-protect
@@ -143,40 +143,50 @@ session."
           (recompile-set-up-env emacs-dir)
         (message "[recompile.el] collecting *.el files")
         (let* ((local-dirs
-                (find-elisp-dirs (concat emacs-dir "/src")))
+                (mapcar
+                 (lambda (x)
+                   (concat emacs-dir "/src" x))
+                 (find-elisp-dirs (concat emacs-dir "/src"))))
                (third-party-dirs
                 (append
                  (when-windows
                   (list
                    (concat emacs-dir "/native/fakecygpty")))
-                 (find-elisp-dirs (concat emacs-dir "/third-party")
-                                  ;; Keep in sync with ‘set-up-tmp-paths.el’
-                                  (rx
-                                   (or (seq bow (or "test" "tests" "doc" "examples" ".cask" ".stack-work.*") eol)
-                                       "auctex/tests"
-                                       "auctex/style"
-                                       "clojure-mode/test"
-                                       "company-mode/test"
-                                       "dash.el/dev"
-                                       (seq "f.el/" (or "bin" "test"))
-                                       "flycheck-haskell/test"
-                                       (seq "flycheck/" (or ".cask" "test"))
-                                       "ivy/targets"
-                                       "groovy-mode/test"
-                                       (seq "haskell-mode/" (or "doc/gifcasts" "tests" "tests/compat"))
-                                       "ht/test"
-                                       "js2-mode/tests"
-                                       "kotlin-ts-mode/test"
-                                       "lua-mode/test"
-                                       "magit/t"
-                                       "markdown-mode/tests"
-                                       "markdown-mode/scripts"
-                                       "nix-ts-mode/test"
-                                       (seq "org-mode/" (or "mk" "testing"))
-                                       "pkg-info/test"
-                                       "s.el/dev"
-                                       "treepy.el/test"
-                                       "transient/test")))))
+                 (mapcar
+                  (lambda (x)
+                    (concat emacs-dir "/third-party" x))
+                  (find-elisp-dirs (concat emacs-dir "/third-party")
+                                   ;; Keep in sync with ‘init.el’
+                                   (rx
+                                    (or
+                                     (seq bow (or "tests" "doc" "examples" ".cask" ".stack-work.*") eol)
+                                     (seq (* anything) "/test" (? "s"))
+                                     "auctex/tests"
+                                     "auctex/style"
+                                     "clojure-mode/test"
+                                     "company-mode/test"
+                                     "dash.el/dev"
+                                     (seq "f.el/" (or "bin" "test"))
+                                     "flycheck-haskell/test"
+                                     (seq "flycheck/" (or ".cask" "maint" "test"))
+                                     "ivy/targets"
+                                     "groovy-mode/test"
+                                     (seq "haskell-mode/" (or "doc/gifcasts" "tests" "tests/compat"))
+                                     "ht/test"
+                                     "js2-mode/tests"
+                                     "kotlin-ts-mode/test"
+                                     "lua-mode/test"
+                                     "lsp-mode/test"
+                                     "magit/t"
+                                     "markdown-mode/tests"
+                                     "markdown-mode/scripts"
+                                     "nix-ts-mode/test"
+                                     (seq "org-mode/" (or "mk" "testing"))
+                                     "pkg-info/test"
+                                     "s.el/dev"
+                                     "treepy.el/test"
+                                     "transient/test"
+                                     "yafolding.el/features"))))))
                (extra-files (list init-file))
                (dir-el-files
                 (lambda (dir)
@@ -224,7 +234,7 @@ session."
              (let ((i 0)
                    (byte-compile-dest-file-function
                     (lambda (path)
-                      (elisp-compile-get-elc-destination path compilation-elc-dest-dir)))
+                      (elisp-compile-get-elc-destination path compilation-dest-root-dir)))
                    (emacs-dir-with-trailing-slash
                     (concat emacs-dir "/")))
                (message "[recompile.el] %s %s files" k (if compile-native? "native-compiling" "byte-compiling"))
@@ -269,10 +279,9 @@ session."
                                                   "--stdout"))
                                    (progn
                                      (make-directory (file-name-directory dest) t)
-                                     (unless (string= "init.el" (file-name-nondirectory file))
-                                       (jka-compr-run-real-handler
-                                        'write-region
-                                        (list (point-min) (point-max) dest))))
+                                     (jka-compr-run-real-handler
+                                      'write-region
+                                      (list (point-min) (point-max) dest)))
                                  (error "Failed to compress source ‘%s’ to ‘%s’:\n%s" file dest (buffer-substring-no-properties (point-min) (point-max)))))))))))
                  (cl-incf i))
 

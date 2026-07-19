@@ -66,14 +66,6 @@ fi
 #       $tests \
 #        --eval "(ert $matcher)"
 
-declare -a load_elc
-
-if [[ ${EMACS_SKIP_ELC:-0} == 1 ]]; then
-    load_elc=()
-else
-    load_elc=( "-L" "$compiled_dir/compiled/elc" )
-fi
-
 requires=$(cat <<EOF
 (progn
   (require 'cl)
@@ -107,11 +99,8 @@ else
     suffix=""
 fi
 "$emacs" -Q --batch \\
-    -L "$EMACS_ROOT/lib" \\
-    -L "$EMACS_ROOT/compiled" \\
-    ${load_elc[*]} \\
-    -L "$EMACS_ROOT/src" \\
-    -L "$EMACS_ROOT/src/custom" \\
+    --init-directory="$EMACS_ROOT" \\
+    -l "$EMACS_ROOT/init.el" \\
     -L "$EMACS_ROOT/tests" \\
     -L "$EMACS_ROOT/third-party/haskell-mode/tests" \\
     -L "$EMACS_ROOT/third-party/nix-mode/tests" \\
@@ -119,9 +108,7 @@ fi
     -L "$EMACS_ROOT/third-party/f.el/test" \\
     -L "$EMACS_ROOT/third-party/rainbow-delimiters" \\
     -L "$EMACS_ROOT/third-party/poly-mode/tests" \\
-    $to_load \\
     --eval "$requires" \\
-    -l start \
     --eval "(require '\${mod_name})" \\
     --eval "(ert-run-tests-batch-and-exit \${m})" 2>"$logs_dest/\${mod_name}\${suffix}.log"
 EOF
@@ -160,11 +147,8 @@ EOF
 else
     # -L "$EMACS_ROOT/third-party/lsp-mode/test"
   "$emacs" -Q --batch \
-        -L "$compiled_dir/lib" \
-        -L "$compiled_dir/compiled" \
-        "${load_elc[@]}" \
-        -L "$EMACS_ROOT/src" \
-        -L "$EMACS_ROOT/src/custom" \
+        --init-directory="$EMACS_ROOT" \
+        -l "$EMACS_ROOT/init.el" \
         -L "$EMACS_ROOT/tests" \
         -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
         -L "$EMACS_ROOT/third-party/nix-mode/tests" \
@@ -174,10 +158,8 @@ else
         -L "$EMACS_ROOT/third-party/poly-mode/tests" \
         $to_load \
         --eval "$requires" \
-        -l start \
         --eval "(mapcar #'require '(${tests[*]}))" \
         --eval "(ert-run-tests-batch-and-exit $matcher)"
-
 fi
 
 exit 0

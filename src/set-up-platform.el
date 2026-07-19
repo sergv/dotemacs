@@ -8,30 +8,6 @@
 
 ;;;; Platform
 
-(defvar +platform+ nil
-  "List of the form (<os> <use> <misc>), <misc> is optional,
-<os> may be 'linux or 'windows.
-Use may be 'home, 'asus-netbook, 'netbook, 'work or something other
-Range of platforms may be expanded (extended?) in the future.")
-
-(let ((sys-type-env (getenv "EMACS_SYSTEM_TYPE")))
-  (setf +platform+
-        (cond
-          (sys-type-env
-           (read sys-type-env))
-          ((eq system-type 'windows-nt)
-           '(windows work))
-          ((memq system-type '(gnu gnu/linux gnu/kfreebsd darwin))
-           '(linux home))
-          (t
-           '(linux home)))))
-
-(unless (and (listp +platform+)
-             (memq (car +platform+)
-                   '(linux windows)))
-  (error "+platform+'s os %s should be one of 'linux or 'windows"
-         (car +platform+)))
-
 (defmacro fold-platform-os-type (on-linux on-windows)
   (let ((os-type (car +platform+)))
     (cond
@@ -41,12 +17,6 @@ Range of platforms may be expanded (extended?) in the future.")
        on-windows)
       (t
        (error "Invalid platform os type: %s" os-type)))))
-
-(defmacro when-windows (&rest body)
-  (let ((os-type (car +platform+)))
-    (when (eq os-type 'windows)
-      `(progn
-         ,@body))))
 
 (defun platform-use? (use)
   "Use may be a symbol or a list of symbols"
