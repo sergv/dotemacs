@@ -28,7 +28,7 @@ case "${shared_ext}" in
         ;;
 esac
 
-mkdir -p "lib"
+mkdir -p "tree-sitter"
 
 for x in native/tree-sitter* native/tree-sitter-haskell/hsc; do
     echo "$x"
@@ -44,9 +44,9 @@ for x in native/tree-sitter* native/tree-sitter-haskell/hsc; do
     fi
 
     if [[ -f "$x/src/scanner.c" ]]; then
-        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$parser" "$x/src/scanner.c" -shared -o "lib/libtree-sitter-$name$shared_ext"
+        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$parser" "$x/src/scanner.c" -shared -o "tree-sitter/libtree-sitter-$name$shared_ext"
     else
-        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$parser" -shared -o "lib/libtree-sitter-$name$shared_ext"
+        "${CC:-cc}" -O2 -fPIC "-I$x/src" "$parser" -shared -o "tree-sitter/libtree-sitter-$name$shared_ext"
     fi
 done
 
