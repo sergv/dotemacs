@@ -178,35 +178,35 @@
   (cl-assert (or (null create-tags-procedure)
                  (functionp create-tags-procedure)
                  (autoloadp create-tags-procedure)
-                 (subr-native-elisp-p create-tags-procedure))
+                 (native-comp-function-p create-tags-procedure))
              nil
              "invalid create-tags-procedure: %s"
              create-tags-procedure)
   (cl-assert (or (null parse-tags-procedure)
                  (functionp parse-tags-procedure)
                  (autoloadp parse-tags-procedure)
-                 (subr-native-elisp-p parse-tags-procedure))
+                 (native-comp-function-p parse-tags-procedure))
              nil
              "Invalid parse-tags-procedure: %s"
              parse-tags-procedure)
   (cl-assert (listp synonym-modes))
   (cl-assert (or (functionp tag->string-func)
                  (autoloadp tag->string-func)
-                 (subr-native-elisp-p tag->string-func))
+                 (native-comp-function-p tag->string-func))
              nil
              "Invalid tag->string-func: %s"
              tag->string-func)
   (cl-assert (or (null authoritative-key-func)
                  (functionp authoritative-key-func)
                  (autoload-p authoritative-key-func)
-                 (subr-native-elisp-p authoritative-key-func))
+                 (native-comp-function-p authoritative-key-func))
              nil
              "Invalid authoritative-key-func: %s"
              authoritative-key-func)
   (cl-assert (or (null deduplicate-matched-tags-func)
                  (functionp deduplicate-matched-tags-func)
                  (autoload-p deduplicate-matched-tags-func)
-                 (subr-native-elisp-p deduplicate-matched-tags-func))
+                 (native-comp-function-p deduplicate-matched-tags-func))
              nil
              "Invalid deduplicate-matched-tags-func: %s"
              deduplicate-matched-tags-func)
@@ -215,7 +215,7 @@
   (cl-assert (or (null normalise-identifier-before-navigation-procedure)
                  (functionp normalise-identifier-before-navigation-procedure)
                  (autoloadp normalise-identifier-before-navigation-procedure)
-                 (subr-native-elisp-p normalise-identifier-before-navigation-procedure))
+                 (native-comp-function-p normalise-identifier-before-navigation-procedure))
              nil
              "Invalid normalise-identifier-before-navigation-procedure: %s"
              normalise-identifier-before-navigation-procedure)
