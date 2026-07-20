@@ -8,6 +8,7 @@
 ;; Inspired by https://github.com/Profpatsch/blog/blob/master/posts/ligature-emulation-in-emacs/post.md.
 
 (eval-when-compile
+  (require 'common)
   (require 'dash))
 
 (require 'el-patch)
@@ -104,182 +105,185 @@ Regexp match data 0 specifies the characters to be composed."
   width  ;; integer
   )
 
-(defconst iosevka-slab-lig-wide-unicode-glyphs
-  (eval-when-compile
-    (alist->hash-table
-     (mapcar
-      (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-first x) :width (cl-second x))))
-      '(
-        ;; Check font: ?⨆, ?⨅, ?⨉
-        ;; Good: ?⨁, ?⨂, ?⨀
-        (?⋃ 2) ;; union
-        (?⋂ 2) ;; intersection
-        (?⨆ 2) ;; square union
-        (?⨅ 2) ;; square intersection
-        (?⨉ 2)
-        (?∑ 2)
-        (?∏ 2)
-        (?∐ 2)
-        (?⋀ 2)
-        (?⋁ 2)
-        (?― 2)
-        (?↑ 2)
-        (?⇑ 2)
-        (?↓ 2)
-        (?⇓ 2)
-        (?↕ 2)
-        (?⇕ 2)
-        (?↦ 2)
-        (?⟼ 2)
-        (?∞ 2)
-        (?→ 2)
-        (?⇒ 2))))))
+(eval-and-compile
+  (defconst iosevka-slab-lig-wide-unicode-glyphs
+    (eval-when-compile
+      (alist->hash-table
+       (mapcar
+        (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-first x) :width (cl-second x))))
+        '(
+          ;; Check font: ?⨆, ?⨅, ?⨉
+          ;; Good: ?⨁, ?⨂, ?⨀
+          (?⋃ 2) ;; union
+          (?⋂ 2) ;; intersection
+          (?⨆ 2) ;; square union
+          (?⨅ 2) ;; square intersection
+          (?⨉ 2)
+          (?∑ 2)
+          (?∏ 2)
+          (?∐ 2)
+          (?⋀ 2)
+          (?⋁ 2)
+          (?― 2)
+          (?↑ 2)
+          (?⇑ 2)
+          (?↓ 2)
+          (?⇓ 2)
+          (?↕ 2)
+          (?⇕ 2)
+          (?↦ 2)
+          (?⟼ 2)
+          (?∞ 2)
+          (?→ 2)
+          (?⇒ 2)))))))
 
-(defconst iosevka-slab-lig-glyphs
-  (eval-when-compile
-    (alist->hash-table
-     (mapcar
-      (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-second x) :width (cl-third x))))
-      '(("<-"   #xe100 2) ;; "<-", 
-        ("->"   #xe101 2) ;; "->", 
-        ("<="   #xe102 2) ;; "<=", left short double arrow, not used much it since clashes with less-than-or-equal, 
-        ("=>"   #xe103 2) ;; "=>", 
-        ("<->"  #xe104 3) ;; "<->", 
-        ("<=>"  #xe105 3) ;; "<=>", 
-        ("=="   #xe106 2) ;; "==", 
-        ("/="   #xe107 2) ;; "/=", 
-        ("::"   #xe108 2) ;; "::", 
-        ("<<-"  #xe109 3) ;; "<<-", 
-        ("->>"  #xe10a 3) ;; "->>", 
-        ("<-<"  #xe10b 3) ;; "<-<", 
-        (">->"  #xe10c 3) ;; ">->", 
-        ("++"   #xe10d 2) ;; "++", 
-        ("+++"  #xe10e 3) ;; "+++", 
-        ("<>"   #xe10f 2) ;; "<>", 
-        ("><"   #xe110 2) ;; "><", 
-        ("<<"   #xe111 2) ;; "<<", 
-        (">>"   #xe112 2) ;; ">>", 
-        ("<|"   #xe113 2) ;; "<|", 
-        ("|>"   #xe114 2) ;; "|>", 
+(eval-and-compile
+  (defconst iosevka-slab-lig-glyphs
+    (eval-when-compile
+      (alist->hash-table
+       (mapcar
+        (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-second x) :width (cl-third x))))
+        '(("<-"   #xe100 2) ;; "<-", 
+          ("->"   #xe101 2) ;; "->", 
+          ("<="   #xe102 2) ;; "<=", left short double arrow, not used much it since clashes with less-than-or-equal, 
+          ("=>"   #xe103 2) ;; "=>", 
+          ("<->"  #xe104 3) ;; "<->", 
+          ("<=>"  #xe105 3) ;; "<=>", 
+          ("=="   #xe106 2) ;; "==", 
+          ("/="   #xe107 2) ;; "/=", 
+          ("::"   #xe108 2) ;; "::", 
+          ("<<-"  #xe109 3) ;; "<<-", 
+          ("->>"  #xe10a 3) ;; "->>", 
+          ("<-<"  #xe10b 3) ;; "<-<", 
+          (">->"  #xe10c 3) ;; ">->", 
+          ("++"   #xe10d 2) ;; "++", 
+          ("+++"  #xe10e 3) ;; "+++", 
+          ("<>"   #xe10f 2) ;; "<>", 
+          ("><"   #xe110 2) ;; "><", 
+          ("<<"   #xe111 2) ;; "<<", 
+          (">>"   #xe112 2) ;; ">>", 
+          ("<|"   #xe113 2) ;; "<|", 
+          ("|>"   #xe114 2) ;; "|>", 
 
-        ("##"   #xe115 2) ;; "##", 
-        ("###"  #xe116 3) ;; "###", 
-        ("####" #xe117 4) ;; "####", 
+          ("##"   #xe115 2) ;; "##", 
+          ("###"  #xe116 3) ;; "###", 
+          ("####" #xe117 4) ;; "####", 
 
-        ("<--"  #xe118 3) ;; "<--", 
-        ("-->"  #xe119 3) ;; "-->", 
-        ("<=="  #xe11a 3) ;; "<==", 
-        ("==>"  #xe11b 3) ;; "==>", 
+          ("<--"  #xe118 3) ;; "<--", 
+          ("-->"  #xe119 3) ;; "-->", 
+          ("<=="  #xe11a 3) ;; "<==", 
+          ("==>"  #xe11b 3) ;; "==>", 
 
-        ("=<<"  #xe11c 3) ;; "=<<", 
-        (">>="  #xe11d 3) ;; ">>=", 
-        ("<=<"  #xe11e 3) ;; "<=<", 
-        (">=>"  #xe11f 3) ;; ">=>", 
-        ("<<="  #xe120 3) ;; "<<=", 
-        ("=>>"  #xe121 3) ;; "=>>", 
+          ("=<<"  #xe11c 3) ;; "=<<", 
+          (">>="  #xe11d 3) ;; ">>=", 
+          ("<=<"  #xe11e 3) ;; "<=<", 
+          (">=>"  #xe11f 3) ;; ">=>", 
+          ("<<="  #xe120 3) ;; "<<=", 
+          ("=>>"  #xe121 3) ;; "=>>", 
 
-        ("LE"   #xe122 2) ;; "<=", but has width of 2 as opposed to ?≤, 
-        ("GE"   #xe123 2) ;; ">=", but has width of 2 as opposed to ?≥, 
-        ("||"   #xe124 2) ;; "||", same as ?⋁, 
-        ("&&"   #xe125 2) ;; "&&", same as ?⋀, 
+          ("LE"   #xe122 2) ;; "<=", but has width of 2 as opposed to ?≤, 
+          ("GE"   #xe123 2) ;; ">=", but has width of 2 as opposed to ?≥, 
+          ("||"   #xe124 2) ;; "||", same as ?⋁, 
+          ("&&"   #xe125 2) ;; "&&", same as ?⋀, 
 
-        ("elem"             #xe12b 2) ;; elem, member, 
-        ("notElem"          #xe12c 2) ;; notElem, notMember, 
-        ("isSubsetOf"       #xe12f 2) ;; isSubsetOf, 
-        ;; ("isSubsetOf"       #xe12f t) ;; isSubsetOf, 2 but glyph is broken
-        ("isProperSubsetOf" #xe12e 2) ;; isProperSubsetOf, 
-        ("emptySet"         #xe12a 2) ;; empty, mempty, 
+          ("elem"             #xe12b 2) ;; elem, member, 
+          ("notElem"          #xe12c 2) ;; notElem, notMember, 
+          ("isSubsetOf"       #xe12f 2) ;; isSubsetOf, 
+          ;; ("isSubsetOf"       #xe12f t) ;; isSubsetOf, 2 but glyph is broken
+          ("isProperSubsetOf" #xe12e 2) ;; isProperSubsetOf, 
+          ("emptySet"         #xe12a 2) ;; empty, mempty, 
 
-        ("top"     #xe126 2) ;; truth - top, 
-        ("bottom"  #xe127 2) ;; error, undefined - bottom, 
-        ("forall"  #xe128 2) ;; forall, all, 
-        ("exists"  #xe129 2) ;; exists, any, 
-        ("nexists" #xe136 2) ;; 
-        ("not"     #xe133 2) ;; not, 
+          ("top"     #xe126 2) ;; truth - top, 
+          ("bottom"  #xe127 2) ;; error, undefined - bottom, 
+          ("forall"  #xe128 2) ;; forall, all, 
+          ("exists"  #xe129 2) ;; exists, any, 
+          ("nexists" #xe136 2) ;; 
+          ("not"     #xe133 2) ;; not, 
 
-        ("-o"      #xe134 2) ;; linear lollipop, -o, 
+          ("-o"      #xe134 2) ;; linear lollipop, -o, 
 
-        ;; These are less elegant and probably should never be used
-        ("union"        #xe130 2) ;; union, but more elegant than ?⋃, 
-        ("intersection" #xe131 2) ;; intersection, but more elegant than ?⋂, 
-        ("sum"          #xe12d 2) ;; sum, same as ?∑ character, 
-        ("product"      #xe132 2) ;; product, same as ?∏ character, 
-        ("coproduct"    #xe135 2) ;; coproduct, same as ?∐ character, 
+          ;; These are less elegant and probably should never be used
+          ("union"        #xe130 2) ;; union, but more elegant than ?⋃, 
+          ("intersection" #xe131 2) ;; intersection, but more elegant than ?⋂, 
+          ("sum"          #xe12d 2) ;; sum, same as ?∑ character, 
+          ("product"      #xe132 2) ;; product, same as ?∏ character, 
+          ("coproduct"    #xe135 2) ;; coproduct, same as ?∐ character, 
 
-        ("equivalent"    #xe137 2) ;; equivalent, ≡ , 
-        ("notEquivalent" #xe138 2) ;; not equivalent, ≢ , 
+          ("equivalent"    #xe137 2) ;; equivalent, ≡ , 
+          ("notEquivalent" #xe138 2) ;; not equivalent, ≢ , 
 
-        ("<-->"  #xe138 4) ;; "<-->", 
-        ("<==>"  #xe139 4) ;; "<==>", 
+          ("<-->"  #xe138 4) ;; "<-->", 
+          ("<==>"  #xe139 4) ;; "<==>", 
 
-        ("|-"    #xe13a 2) ;; 
-        ("-|"    #xe13b 2) ;; 
+          ("|-"    #xe13a 2) ;; 
+          ("-|"    #xe13b 2) ;; 
 
-        ("nabla" #xe13c 2) ;;  
+          ("nabla" #xe13c 2) ;;  
 
-        ("--->" #xe13d 4) ;; 
-        ("===>" #xe13e 4) ;; 
-        ("<---" #xe13f 4) ;; 
-        ("<===" #xe140 4) ;; 
+          ("--->" #xe13d 4) ;; 
+          ("===>" #xe13e 4) ;; 
+          ("<---" #xe13f 4) ;; 
+          ("<===" #xe140 4) ;; 
 
-        ("---->" #xe141 5) ;; 
-        ("====>" #xe142 5) ;; 
-        ("<----" #xe143 5) ;; 
-        ("<====" #xe144 5) ;; 
-        ("<--->" #xe145 5) ;; 
-        ("<===>" #xe146 5) ;; 
+          ("---->" #xe141 5) ;; 
+          ("====>" #xe142 5) ;; 
+          ("<----" #xe143 5) ;; 
+          ("<====" #xe144 5) ;; 
+          ("<--->" #xe145 5) ;; 
+          ("<===>" #xe146 5) ;; 
 
-        ("similar"        #xe147 2) ;; 
-        ("similarFlipped" #xe148 2) ;; 
-        ("similarEq"      #xe149 2) ;; 
+          ("similar"        #xe147 2) ;; 
+          ("similarFlipped" #xe148 2) ;; 
+          ("similarEq"      #xe149 2) ;; 
 
-        ("unionBig"        #xe14a 2) ;; union, but less elegant than ?⋃, 
-        ("intersectionBig" #xe14b 2) ;; intersection, but less elegant than ?⋂), 
-        ("sumBig"          #xe14c 2) ;; sum, but less elegant than ?∑ character, 
-        ("productBig"      #xe14d 2) ;; product, but less elegant than ?∏ character, 
-        ("coproductBig"    #xe14e 2) ;; coproduct, but less elegant than ?∐ character, 
+          ("unionBig"        #xe14a 2) ;; union, but less elegant than ?⋃, 
+          ("intersectionBig" #xe14b 2) ;; intersection, but less elegant than ?⋂), 
+          ("sumBig"          #xe14c 2) ;; sum, but less elegant than ?∑ character, 
+          ("productBig"      #xe14d 2) ;; product, but less elegant than ?∏ character, 
+          ("coproductBig"    #xe14e 2) ;; coproduct, but less elegant than ?∐ character, 
 
-        ("orBig"           #xe14f 2) ;; 
-        ("andBig"          #xe150 2) ;; 
+          ("orBig"           #xe14f 2) ;; 
+          ("andBig"          #xe150 2) ;; 
 
-        ("squareLT"              #xe151 2) ;; 
-        ("squareGT"              #xe152 2) ;; 
-        ("squareLE"              #xe153 2) ;; 
-        ("squareGE"              #xe154 2) ;; 
-        ("squareUnion"           #xe155 2) ;; 
-        ("squareUnionBig"        #xe156 2) ;; 
-        ("squareIntersection"    #xe157 2) ;; 
-        ("squareIntersectionBig" #xe158 2) ;; 
-        )))))
+          ("squareLT"              #xe151 2) ;; 
+          ("squareGT"              #xe152 2) ;; 
+          ("squareLE"              #xe153 2) ;; 
+          ("squareGE"              #xe154 2) ;; 
+          ("squareUnion"           #xe155 2) ;; 
+          ("squareUnionBig"        #xe156 2) ;; 
+          ("squareIntersection"    #xe157 2) ;; 
+          ("squareIntersectionBig" #xe158 2) ;; 
+          ))))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
-(defun pretty-ligatures--make-glyph-composition (g &optional override-width)
-  "G must denote one of ‘iosevka-slab-lig-glyphs’ glyphs."
-  (cl-assert (or (stringp g) (characterp g)))
-  (cl-assert (or (gethash g iosevka-slab-lig-wide-unicode-glyphs)
-                 (gethash g iosevka-slab-lig-glyphs))
-             nil
-             "Glyph not found: %s"
-             (if (characterp g)
-                 (format "?%c (%s)" g g)
-               g))
-  (if-let* ((glyph (if (characterp g)
-                       (gethash g iosevka-slab-lig-wide-unicode-glyphs)
-                     (gethash g iosevka-slab-lig-glyphs)))
-            (c (ligature-glyph-symbol glyph))
-            (glyph-width (ligature-glyph-width glyph))
-            (width (or override-width
-                       glyph-width)))
-      (if (eq width t)
-          ;; No width
-          (string ?\t c ?\t)
-        (vconcat
-         (apply #'vconcat [?\s] (-repeat (1- width) [(Br . Bl) ?\s]))
-         (vector (if (eq glyph-width width)
-                     '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
-                   '(Bl . Bl))
-                 c)))
-    (error "No width for glyph ‘%s’" g)))
+(eval-and-compile
+  (defun pretty-ligatures--make-glyph-composition (g &optional override-width)
+    "G must denote one of ‘iosevka-slab-lig-glyphs’ glyphs."
+    (cl-assert (or (stringp g) (characterp g)))
+    (cl-assert (or (gethash g iosevka-slab-lig-wide-unicode-glyphs)
+                   (gethash g iosevka-slab-lig-glyphs))
+               nil
+               "Glyph not found: %s"
+               (if (characterp g)
+                   (format "?%c (%s)" g g)
+                 g))
+    (if-let* ((glyph (if (characterp g)
+                         (gethash g iosevka-slab-lig-wide-unicode-glyphs)
+                       (gethash g iosevka-slab-lig-glyphs)))
+              (c (ligature-glyph-symbol glyph))
+              (glyph-width (ligature-glyph-width glyph))
+              (width (or override-width
+                         glyph-width)))
+        (if (eq width t)
+            ;; No width
+            (string ?\t c ?\t)
+          (vconcat
+           (apply #'vconcat [?\s] (-repeat (1- width) [(Br . Bl) ?\s]))
+           (vector (if (eq glyph-width width)
+                       '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
+                     '(Bl . Bl))
+                   c)))
+      (error "No width for glyph ‘%s’" g))))
 
 (defun pretty-ligatures--make-literal-singleton-composition (symbol &optional override-width)
   (cl-assert (or (characterp symbol) (stringp symbol)))
@@ -300,21 +304,22 @@ Regexp match data 0 specifies the characters to be composed."
 
 ;; ‘>>’ shows up in generic functions in addition to being a shift operator, thus it’s removed.
 ;; For consistency ‘<<’ is removed as well.
-(defconst pretty-ligatures-rust-symbols
-  (eval-when-compile
-    (let* ((ligs
-            '(("<-"       . "<-")
-              ("->"       . ?→)
-              ("=>"       . ?⇒)
-              ("=="       . "==")
-              ("!="       . "/=")
-              ("<="       . "LE")
-              (">="       . "GE")
-              ("||"       . "||")
-              ("&&"       . "&&")
-              ("::"       . "::")
-              ("INFINITY" . ?∞))))
-      (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it))) ligs))))
+(eval-and-compile
+  (defconst pretty-ligatures-rust-symbols
+    (eval-when-compile
+      (let* ((ligs
+              '(("<-"       . "<-")
+                ("->"       . ?→)
+                ("=>"       . ?⇒)
+                ("=="       . "==")
+                ("!="       . "/=")
+                ("<="       . "LE")
+                (">="       . "GE")
+                ("||"       . "||")
+                ("&&"       . "&&")
+                ("::"       . "::")
+                ("INFINITY" . ?∞))))
+        (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it))) ligs)))))
 
 (defconst pretty-ligatures-c-like-symbols
   (eval-when-compile

@@ -9,10 +9,11 @@
 ;; Status:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
+  (require 'comment-util)
   (require 'dash)
   (require 'macro-util)
-  (require 'comment-util))
+  (require 'keys-def))
 
 (require 'company-mode-setup)
 (require 'elisp-slime-nav)

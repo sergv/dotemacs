@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'keys-def)
   (require 'macro-util))
 
 ;;;###autoload

@@ -232,4 +232,8 @@
 
 (provide 'f-sandbox-test)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; f-sandbox-test.el ends here
