@@ -53,12 +53,12 @@ removing all space and newline characters."
 ;; lexical-let is used since Elisp lacks lexical scoping.
 
 (defun agda-input-compose (f g)
-  "\x -> concatMap F (G x)"
+  "\\x -> concatMap F (G x)"
   (lexical-let ((f1 f) (g1 g))
     (lambda (x) (agda-input-concat-map f1 (funcall g1 x)))))
 
 (defun agda-input-or (f g)
-  "\x -> F x ++ G x"
+  "\\x -> F x ++ G x"
   (lexical-let ((f1 f) (g1 g))
     (lambda (x) (append (funcall f1 x) (funcall g1 x)))))
 
