@@ -332,8 +332,7 @@ _#-}_: on pragma close"
                          (prog1 (point)
                            (unless (eobp)
                              (save-excursion
-                               (forward-line 1)
-                               (setf end-mark (point-marker)))))))))
+                               (forward-line 1))))))))
          (if format-with-brittany?
              (haskell-format-region-with-brittany-preserving-position haskell-indent-offset width start end)
            (haskell-format-region-with-treesitter-preserving-position! start end))))
