@@ -7,8 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'dash)
+  (require 'keys-def)
   (require 'macro-util))
 
 (defvar lsp-document-sync-method)

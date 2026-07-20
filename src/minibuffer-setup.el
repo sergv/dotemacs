@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'keys-def)
   (require 'macro-util))
 
 (def-keys-for-map (minibuffer-local-completion-map

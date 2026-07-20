@@ -60,6 +60,7 @@
 (require 'common)
 (require 'common-whitespace)
 (require 'haskell-cabal-components)
+(require 'haskell-constants)
 (require 'haskell-regexen)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1366,27 +1367,27 @@ Must be called from GHCi process buffer."
     (dante-debug 'inputs "%s" input)
     (s-replace "\r" "" input)))
 
-(defun dante-regexp-disjoin (&rest regexps)
-  "Return a regexp matching any of REGEXPS."
-  (mapconcat (lambda (x) (concat "\\(?:" x "\\)")) regexps "\\|"))
+(eval-when-compile
+  (defun dante-regexp-disjoin (&rest regexps)
+    "Return a regexp matching any of REGEXPS."
+    (mapconcat (lambda (x) (concat "\\(?:" x "\\)")) regexps "\\|"))
 
-(defconst dante-ghci-prompt "\4\\(?1:.*\\)|")
+  (defconst dante-ghci-prompt "\4\\(?1:.*\\)|")
 
-(defconst dante-progress-regexp
-  "^\\[[0-9]* of [0-9]*\\] Compiling \\(?2:[^ \n]*\\).*")
+  (defconst dante-progress-regexp
+    "^\\[[0-9]* of [0-9]*\\] Compiling \\(?2:[^ \n]*\\).*")
 
-(defconst dante-success-regexp
-  (eval-when-compile
+  (defconst dante-success-regexp
     (concat
      "^\\(?3:"
      (dante-regexp-disjoin
       "Ok, modules \\(?:re\\)?loaded:[ ]*[^\n ]*\\(?: (.*)\\)?"
       "Ok, .*modules \\(?:re\\)?loaded" ;; .* stands for a number in english (two, three, ...) (GHC 8.2)
       "Ok, one module \\(?:re\\)?loaded")
-     "\\.\\)")))
+     "\\.\\)"))
 
-(defconst dante-error-regexp
-  "^\\(?:\e\\\[[0-9;]*m\\)?\\(?4:\\(?:[a-zA-Z]:\\)?[^ \n:][^:\n\r]+\\):\\(?5:[0-9()-:]+\\): \\(?6:.*\\)\n\\(?7:\\(?:[ ]+.*\r?\n\\)*\\)")
+  (defconst dante-error-regexp
+    "^\\(?:\e\\\[[0-9;]*m\\)?\\(?4:\\(?:[a-zA-Z]:\\)?[^ \n:][^:\n\r]+\\):\\(?5:[0-9()-:]+\\): \\(?6:.*\\)\n\\(?7:\\(?:[ ]+.*\r?\n\\)*\\)"))
 
 (lcr-def dante-load-loop (ghci-buf str err-fn)
   "Parse the output of load command.
