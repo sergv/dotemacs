@@ -9,7 +9,8 @@
 ;; Status:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-setup))
 
 (require 'browse-kill-ring-setup)
 (require 'dash)
