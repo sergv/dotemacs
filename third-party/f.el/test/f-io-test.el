@@ -149,4 +149,8 @@
 
 (provide 'f-io-test)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; f-io-test.el ends here

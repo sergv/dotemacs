@@ -25,11 +25,12 @@
   (concat "\\(?:\\b\\|'+\\)" haskell-regexen/conid-raw))
 
 
-(rx-define haskell-regexen/module-name-section
-  (regex "[[:upper:]][[:alnum:]'_]*"))
+(eval-when-compile
+  (rx-define haskell-regexen/module-name-section
+    (regex "[[:upper:]][[:alnum:]'_]*"))
 
-(defconst haskell-regexen/module-name-section
-  (rx haskell-regexen/module-name-section))
+  (defconst haskell-regexen/module-name-section
+    (rx haskell-regexen/module-name-section)))
 
 (rx-define haskell-regexen/modid-raw
   (seq haskell-regexen/module-name-section
@@ -405,22 +406,23 @@ otherwise results will be incorrect.")
         (* (any ?\s ?\t))
         eol)))
 
-(defconst haskell-regexen/module-qualification
-  (eval-when-compile
-    (concat "\\b\\(?:" haskell-regexen/module-name-section "\\.\\)+")))
+(eval-and-compile
+  (defconst haskell-regexen/module-qualification
+    (eval-when-compile
+      (concat "\\b\\(?:" haskell-regexen/module-name-section "\\.\\)+")))
 
 ;;;###autoload
-(defun haskell-remove-module-qualification (name)
-  "Removes hierarchihal modules qualification (e.g. Data.Map.null -> null,
+  (defun haskell-remove-module-qualification (name)
+    "Removes hierarchihal modules qualification (e.g. Data.Map.null -> null,
  Prelude.++ -> ++, etc)"
-  (save-match-data
-    (if (string-match (eval-when-compile
-                        (concat "^\\("
-                                haskell-regexen/module-qualification
-                                "\\)"))
-                      name)
-        (replace-match "" t t name 1)
-      name)))
+    (save-match-data
+      (if (string-match (eval-when-compile
+                          (concat "^\\("
+                                  haskell-regexen/module-qualification
+                                  "\\)"))
+                        name)
+          (replace-match "" t t name 1)
+        name))))
 
 (defconst haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci
   (rx "-- Defined at "

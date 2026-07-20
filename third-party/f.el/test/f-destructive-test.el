@@ -279,4 +279,8 @@
 
 (provide 'f-destructive-test)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; f-destructive-test.el ends here

@@ -10,6 +10,8 @@
 (require 'hydra-setup)
 (require 'eproj)
 
+(declare-function counsel-find-file "counsel")
+
 (defvar eshell-buffer-name)
 (defvar this-command)
 
