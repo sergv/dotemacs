@@ -12,6 +12,7 @@
   (require 'cl-lib)
   (require 'set-up-platform)
   (require 'macro-util)
+  (require 'vim-macs)
   (defvar compilation-command))
 
 (require 'persistent-sessions-global-vars)

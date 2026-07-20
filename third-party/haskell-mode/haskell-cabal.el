@@ -49,6 +49,7 @@
 ;;     fields))
 
 (eval-when-compile
+  (require 'common-heavy)
   (require 'dash))
 
 (require 'common)

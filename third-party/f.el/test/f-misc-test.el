@@ -378,4 +378,8 @@
 
 (provide 'f-misc-test)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; f-misc-test.el ends here

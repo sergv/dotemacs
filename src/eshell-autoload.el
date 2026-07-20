@@ -6,7 +6,7 @@
 ;; Created: 14 September 2020
 ;; Description:
 
-(provide 'eshell-autoload)
+(require 'common-constants)
 (require 'set-up-paths)
 
 (setf eshell-buffer-name "esh"
@@ -46,6 +46,8 @@
       )
 
 (add-hook 'eshell-mode-hook #'eshell-setup)
+
+(provide 'eshell-autoload)
 
 ;; Local Variables:
 ;; End:
