@@ -24,39 +24,43 @@
 (require 'compilation-setup)
 (require 'haskell-autoload)
 
+;;;###autoload
+(el-patch-feature grep)
+
 (when-emacs-version (<= 28 it)
   (el-patch-defun grep-expand-template (template &optional regexp files dir excl more-opts)
     "Expand grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
-    (el-patch-wrap 2 0
-      ((setf dir (or dir "."))
-       (setf *grep-latest-dir* dir)
-       (let* ((command template)
-              (env `((opts . ,(let ((opts more-opts))
-                                (when (el-patch-wrap 2 0
-                                        (or rgrep-ignore-case
-                                            (and case-fold-search
-                                                 (isearch-no-upper-case-p regexp t))))
-                                  (push "-i" opts))
-                                (cond
-                                  ((eq grep-highlight-matches 'always)
-                                   (push "--color=always" opts))
-                                  ((eq grep-highlight-matches 'auto)
-                                   (push "--color=auto" opts)))
-                                opts))
-                     (excl . ,excl)
-                     (dir . ,dir)
-                     (files . ,files)
-                     (regexp . ,regexp)))
-              (case-fold-search nil))
-         (dolist (kw grep-expand-keywords command)
-           (if (string-match (car kw) command)
-               (setq command
-                     (replace-match
-                      (or (if (symbolp (cdr kw))
-                              (eval (cdr kw) env)
-                            (save-match-data (eval (cdr kw) env)))
-                          "")
-                      t t command)))))))))
+    (el-patch-wrap 3 0
+      (progn
+        (setf dir (or dir "."))
+        (setf *grep-latest-dir* dir)
+        (let* ((command template)
+               (env `((opts . ,(let ((opts more-opts))
+                                 (when (el-patch-wrap 2 0
+                                         (or rgrep-ignore-case
+                                             (and case-fold-search
+                                                  (isearch-no-upper-case-p regexp t))))
+                                   (push "-i" opts))
+                                 (cond
+                                   ((eq grep-highlight-matches 'always)
+                                    (push "--color=always" opts))
+                                   ((eq grep-highlight-matches 'auto)
+                                    (push "--color=auto" opts)))
+                                 opts))
+                      (excl . ,excl)
+                      (dir . ,dir)
+                      (files . ,files)
+                      (regexp . ,regexp)))
+               (case-fold-search nil))
+          (dolist (kw grep-expand-keywords command)
+            (if (string-match (car kw) command)
+                (setq command
+                      (replace-match
+                       (or (if (symbolp (cdr kw))
+                               (eval (cdr kw) env)
+                             (save-match-data (eval (cdr kw) env)))
+                           "")
+                       t t command)))))))))
 
 (defun grep-init-after-load ()
   (def-keys-for-map grep-mode-map
