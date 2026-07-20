@@ -9,8 +9,10 @@
 ;; Browse kill ring without much ado.
 
 (eval-when-compile
-  (require 'cl)
-  (require 'macro-util))
+  (require 'cl-lib)
+  (require 'common-heavy)
+  (require 'macro-util)
+  (require 'keys-def))
 
 (require 'common)
 (require 'select-mode)

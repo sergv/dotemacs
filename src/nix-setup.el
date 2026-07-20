@@ -27,7 +27,8 @@
 (awhen (getenv "EMACS_NIX_STATE_DIR")
   (setf nix-state-dir it))
 
-(defconst nix-misc--bounds-of-symbol--base-word-chars "[:alnum:]_")
+(eval-and-compile
+  (defconst nix-misc--bounds-of-symbol--base-word-chars "[:alnum:]_"))
 
 (defun nix-misc--bounds-of-symbol-impl ()
   (save-excursion

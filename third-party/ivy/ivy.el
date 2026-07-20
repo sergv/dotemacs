@@ -4032,20 +4032,21 @@ asynchronously. CANDS are the current candidates."
 This function serves as a fallback when nothing else is available."
   0)
 
-(defcustom ivy-minibuffer-faces
-  (vector
-   'ivy-minibuffer-match-face-1
-   'ivy-minibuffer-match-face-2
-   'ivy-minibuffer-match-face-3
-   'ivy-minibuffer-match-face-4)
-  "List of `ivy' faces for minibuffer group matches."
-  :type '(repeat :tag "Faces"
-          (choice
-           (const ivy-minibuffer-match-face-1)
-           (const ivy-minibuffer-match-face-2)
-           (const ivy-minibuffer-match-face-3)
-           (const ivy-minibuffer-match-face-4)
-           (face :tag "Other face"))))
+(eval-and-compile
+  (defcustom ivy-minibuffer-faces
+    (vector
+     'ivy-minibuffer-match-face-1
+     'ivy-minibuffer-match-face-2
+     'ivy-minibuffer-match-face-3
+     'ivy-minibuffer-match-face-4)
+    "List of `ivy' faces for minibuffer group matches."
+    :type '(repeat :tag "Faces"
+                   (choice
+                    (const ivy-minibuffer-match-face-1)
+                    (const ivy-minibuffer-match-face-2)
+                    (const ivy-minibuffer-match-face-3)
+                    (const ivy-minibuffer-match-face-4)
+                    (face :tag "Other face")))))
 
 (defun ivy--minibuffer-face (n)
   "Return Nth face from `ivy-minibuffer-faces'.

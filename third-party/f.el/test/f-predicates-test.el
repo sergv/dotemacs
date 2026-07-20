@@ -500,4 +500,8 @@
 
 (provide 'f-predicates-test)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; f-predicates-test.el ends here

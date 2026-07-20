@@ -7,11 +7,12 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'subr-x)
+  (require 'cl-lib)
   (require 'el-patch)
+  (require 'keys-def)
+  (require 'macro-util)
   (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'subr-x))
 
 (defvar magit-enable-zero-context-diffs?)
 

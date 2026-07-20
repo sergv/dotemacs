@@ -7,7 +7,12 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+
+  (defvar company-idle-delay)
+  (defvar company-tooltip-minimum-width)
+  (defvar company-tooltip-align-annotations)
+  (defvar company-tooltip-offset-display))
 
 (provide 'company-mode-setup)
 
