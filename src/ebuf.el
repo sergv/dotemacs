@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'macro-util))
 
 (require 'bisect)
@@ -32,13 +32,6 @@
                  grouped)))
     grouped))
 
-(cl-defstruct ebuf--buffer-classifier
-  by-name      ;; list of (<regexp string> . <name>)
-  by-mode      ;; hash table <mode> -> <name>
-  by-predicate ;; list of (<function called within buffer> . <name>)
-  names-order  ;; list of <name>
-  )
-
 (defun ebuf--classify-buffer (classifier buf)
   (cl-assert (bufferp buf))
   (or (gethash (buffer-local-value 'major-mode buf)
@@ -52,32 +45,41 @@
          (--find (funcall (car it))
                  (ebuf--buffer-classifier-by-predicate classifier))))))
 
-(defun ebuf--make-classifier (buffer-groups)
-  (let ((by-name nil)
-        (by-mode (make-hash-table :test #'eq))
-        (by-predicate nil))
-    (dolist (entry buffer-groups)
-      (cl-assert (consp entry))
-      (let ((name (car entry))
-            (spec (cadr entry)))
-        (when (eq (car spec) 'or)
-          (setq spec (cdr spec)))
-        (dolist (entry2 spec)
-          (cl-assert (consp entry2))
-          (pcase (car entry2)
-            (`mode
-             (puthash (cdr entry2) name by-mode))
-            (`name
-             (push (cons (cdr entry2) name) by-name))
-            (`predicate
-             (let ((expr (cdr entry2)))
-               (push (cons (byte-compile `(lambda () ,expr)) name) by-predicate)))
-            (_
-             (error "Unrecognized entry: %s" entry2))))))
-    (make-ebuf--buffer-classifier :by-name (nreverse by-name)
-                                  :by-mode by-mode
-                                  :by-predicate (nreverse by-predicate)
-                                  :names-order (-map #'car buffer-groups))))
+(eval-and-compile
+  (cl-defstruct ebuf--buffer-classifier
+    by-name    ;; list of (<regexp string> . <name>)
+    by-mode    ;; hash table <mode> -> <name>
+    by-predicate ;; list of (<function called within buffer> . <name>)
+    names-order  ;; list of <name>
+    ))
+
+(eval-and-compile
+   (defun ebuf--make-classifier (buffer-groups)
+     (let ((by-name nil)
+           (by-mode (make-hash-table :test #'eq))
+           (by-predicate nil))
+       (dolist (entry buffer-groups)
+         (cl-assert (consp entry))
+         (let ((name (car entry))
+               (spec (cadr entry)))
+           (when (eq (car spec) 'or)
+             (setq spec (cdr spec)))
+           (dolist (entry2 spec)
+             (cl-assert (consp entry2))
+             (pcase (car entry2)
+               (`mode
+                (puthash (cdr entry2) name by-mode))
+               (`name
+                (push (cons (cdr entry2) name) by-name))
+               (`predicate
+                (let ((expr (cdr entry2)))
+                  (push (cons (byte-compile `(lambda () ,expr)) name) by-predicate)))
+               (_
+                (error "Unrecognized entry: %s" entry2))))))
+       (make-ebuf--buffer-classifier :by-name (nreverse by-name)
+                                     :by-mode by-mode
+                                     :by-predicate (nreverse by-predicate)
+                                     :names-order (-map #'car buffer-groups)))))
 
 (defconst ebuf--buffer-classifier (eval-when-compile (ebuf--make-classifier +buffer-groups+)))
 

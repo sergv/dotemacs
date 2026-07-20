@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'set-up-platform))
 
+(defvar compile--in-progress)
+
 (require 'dump-init)
 
 (defcustom use-foreign-libraries? t
@@ -17,6 +19,12 @@
   :group 'common)
 
 (when (and use-foreign-libraries?
+           ;; Ideally we don’t even want to load *.el files when compiling.
+           ;; Definitely don’t want foreign modules during elisp compilation -
+           ;; compilation should be completable through
+           ;; emacs --batch -f batch-byte-compile
+           ;; We’re not there yet but foreign modules severely impede that goal.
+           (not (bound-and-true-p byte-compile-current-file))
            (not dumping))
   (load (fold-platform-os-type "libemacs-native" "emacs-native")))
 

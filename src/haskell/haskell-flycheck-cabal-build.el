@@ -7,7 +7,8 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'set-up-platform))
+  (require 'set-up-platform)
+  (require 'common-heavy))
 
 (require 'dante)
 (require 'flycheck)

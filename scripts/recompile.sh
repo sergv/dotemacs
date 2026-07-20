@@ -67,13 +67,11 @@ function update-dir-autoloads() {
         generated-autoload-file "$name"
         make-backup-files nil
         backup-inhibited t)
-  (update-directory-autoloads ${dirs[*]})
-  (message
-    (concat "Updated autoloads in "
-            (mapconcat #'identity (list ${dirs[*]}) ", "
-            ))))
+  (update-directory-autoloads ${dirs[*]}))
 EOF
     "$emacs" --batch --eval "$emacs_cmd"
+    gzip --best --stdout "$name" >"$name.el.gz"
+    rm "$name"
 }
 
 inform "Removing generated autoload el files"

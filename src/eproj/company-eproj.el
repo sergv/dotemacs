@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'common-heavy)
   (require 'macro-util)
   (require 'nanothunk))
 

@@ -7,6 +7,10 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'cc-autoload)
+  (require 'common-constants)
+  (require 'dash)
+  (require 'haskell-constants)
   (require 'set-up-platform))
 
 (setf find-program

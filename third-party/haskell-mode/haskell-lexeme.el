@@ -35,36 +35,39 @@
   (dolist (key (string-to-list "!#$%&*+./<=>?@^|~\\-:"))
     (modify-category-entry key ?P)))
 
-(defconst haskell-lexeme-modid
-  "[[:upper:]][[:alnum:]'_]*"
-  "Regexp matching a valid Haskell module identifier.
+(eval-and-compile
+  (defconst haskell-lexeme-modid
+    "[[:upper:]][[:alnum:]'_]*"
+    "Regexp matching a valid Haskell module identifier.
 
 Note that GHC accepts Unicode category UppercaseLetter as a first
 character. Following letters are from Unicode categories
 UppercaseLetter, LowercaseLetter, OtherLetter, TitlecaseLetter,
 ModifierLetter, DecimalNumber, OtherNumber, backslash or
-underscore.")
+underscore."))
 
 (defconst haskell-lexeme-modid-with-dot
   (eval-when-compile
     (concat haskell-lexeme-modid "\\."))
   "‘haskell-lexeme-modid’ endind with a dot.")
 
-(defconst haskell-lexeme-id
-  "[[:alpha:]_][[:alnum:]'_]*"
-  "Regexp matching a valid Haskell identifier.
+(eval-and-compile
+  (defconst haskell-lexeme-id
+    "[[:alpha:]_][[:alnum:]'_]*"
+    "Regexp matching a valid Haskell identifier.
 
 GHC accepts a string starting with any alphabetic character or
 underscore followed by any alphanumeric character or underscore
-or apostrophe.")
+or apostrophe."))
 
-(defconst haskell-lexeme-sym
-  "\\cP+"
-  "Regexp matching a valid Haskell variable or constructor symbol.
+(eval-and-compile
+  (defconst haskell-lexeme-sym
+    "\\cP+"
+    "Regexp matching a valid Haskell variable or constructor symbol.
 
 GHC accepts a string of chars from the set
 [:!#$%&*+./<=>?@^|~\\-] or Unicode category Symbol for chars with
-codes larger than 128 only.")
+codes larger than 128 only."))
 
 (defconst haskell-lexeme-idsym-first-char
   "\\(?:[[:alpha:]_]\\|\\cP\\)"
@@ -73,13 +76,14 @@ identifier or symbol.
 
 Useful for `re-search-forward'.")
 
-(defconst haskell-lexeme-modid-opt-prefix
-  (eval-when-compile
-    (concat "\\(?:" haskell-lexeme-modid "\\.\\)*"))
-  "Regexp matching a valid Haskell module prefix, potentially empty.
+(eval-and-compile
+  (defconst haskell-lexeme-modid-opt-prefix
+    (eval-when-compile
+      (concat "\\(?:" haskell-lexeme-modid "\\.\\)*"))
+    "Regexp matching a valid Haskell module prefix, potentially empty.
 
 Module path prefix is separated by dots and finishes with a
-dot. For path component syntax see `haskell-lexeme-modid'.")
+dot. For path component syntax see `haskell-lexeme-modid'."))
 
 (defconst haskell-lexeme-qid-or-qsym
   (eval-when-compile

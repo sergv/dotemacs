@@ -7,7 +7,8 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
+  (require 'keys-def)
   (require 'macro-util)
   (defvar lsp-diagnostics-attributes)
   (defvar lsp-modeline-code-actions-segments)

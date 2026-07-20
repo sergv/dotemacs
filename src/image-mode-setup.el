@@ -7,7 +7,8 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'keys-def))
 
 ;;;###autoload
 (defun image-mode-setup ()
