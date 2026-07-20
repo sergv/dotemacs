@@ -19,7 +19,8 @@
 
 (provide 'custom-variables-defined)
 
-(defalias 'strip-trailing-slash 'directory-file-name)
+(eval-and-compile
+  (defalias 'strip-trailing-slash 'directory-file-name))
 
 ;; Invariant: init.el is always located at the root of emacs
 ;; configuration directory.
@@ -34,7 +35,7 @@ but typically not written.
 
 Usually either ~/.emacs.d or unique path under /nix/store.")
 
-(defvar +platform+
+(defconst +platform+
   (let ((sys-type-env (getenv "EMACS_SYSTEM_TYPE")))
     (cond
       (sys-type-env
@@ -45,7 +46,7 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
        '(linux home))
       (t
        '(linux home))))
-  "List of the form (<os> <use>), <os> may be 'linux or 'windows.")
+  "List of the form (<os> <use>), <os> may be \\='linux or \\='windows.")
 
 (unless (and (listp +platform+)
              (memq (car +platform+)
@@ -61,49 +62,44 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
 
 ;; Recursively find directories containing elisp files starting at
 ;; ROOT. Omit directories whose absolute path matches IGNORED-DIR-RE.
-(defun find-elisp-dirs (root &optional ignored-dirs-re)
-  (let ((standard-ignored-dirs-re
-         (rx
-          (or ".git"
-              ".github"
-              ".cask"
-              "test"
-              "tests"))))
-    (let ((dirs nil))
-      (letrec ((collect-dirs
-                (lambda (path rel-path)
-                  (when
-                      (and (file-directory-p path)
-                           (not
-                            (string-match-p standard-ignored-dirs-re
-                                            (file-name-nondirectory (strip-trailing-slash path)))))
-                    (let ((has-elisp-files? nil))
-                      (dolist (entry (directory-files path
-                                                      nil ;; produce relative names
-                                                      directory-files-no-dot-files-regexp
-                                                      t ;; don't sort
-                                                      ))
-                        (let ((p (concat path "/" entry)))
-                          (if (file-regular-p p)
-                              (when (string-suffix-p ".el" entry)
-                                (setf has-elisp-files? t))
-                            (funcall collect-dirs p (concat rel-path "/" entry)))))
-                      (when (and has-elisp-files?
-                                 (or (null ignored-dirs-re)
-                                     (not (string-match-p ignored-dirs-re path))))
-                        (push rel-path dirs)))))))
-        (funcall collect-dirs root "")
-        dirs))))
+(eval-and-compile
+  (defun find-elisp-dirs (root &optional ignored-dirs-re)
+    (let ((standard-ignored-dirs-re
+           (rx
+            (or ".git"
+                ".github"
+                ".cask"
+                "test"
+                "tests"))))
+      (let ((dirs nil))
+        (letrec ((collect-dirs
+                  (lambda (path rel-path)
+                    (when
+                        (and (file-directory-p path)
+                             (not
+                              (string-match-p standard-ignored-dirs-re
+                                              (file-name-nondirectory (strip-trailing-slash path)))))
+                      (let ((has-elisp-files? nil))
+                        (dolist (entry (directory-files path
+                                                        nil ;; produce relative names
+                                                        directory-files-no-dot-files-regexp
+                                                        t ;; don't sort
+                                                        ))
+                          (let ((p (concat path "/" entry)))
+                            (if (file-regular-p p)
+                                (when (string-suffix-p ".el" entry)
+                                  (setf has-elisp-files? t))
+                              (funcall collect-dirs p (concat rel-path "/" entry)))))
+                        (when (and has-elisp-files?
+                                   (or (null ignored-dirs-re)
+                                       (not (string-match-p ignored-dirs-re path))))
+                          (push rel-path dirs)))))))
+          (funcall collect-dirs root "")
+          dirs)))))
 
 (let ((skip-elc? (equal (getenv "EMACS_SKIP_ELC") "1")))
 
-  (dolist (dir
-           (list "compiled"
-                 (unless skip-elc?
-                   "compiled/elc")
-                 "lib"
-                 "src"
-                 "src/custom"))
+  (dolist (dir (list "src" "src/custom"))
     (when dir
       (let ((full-dir (concat +emacs-config-path+ "/" dir)))
         (unless (file-directory-p full-dir)
@@ -125,8 +121,8 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
       (eval-when-compile
         (find-elisp-dirs
          (concat (file-name-directory (or load-file-name
-                                          (and (boundp 'byte-compile-current-file)
-                                               byte-compile-current-file)
+                                          (when (boundp 'byte-compile-current-file)
+                                            byte-compile-current-file)
                                           buffer-file-name))
                  ;; +emacs-config-path+
                  "/src"))))
@@ -140,7 +136,7 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
                                           buffer-file-name))
                  ;; +emacs-config-path+
                  "/third-party")
-         ;; Ignored third-party dirs.
+         ;; Ignored third-party dirs. Keep in sync with recompile.el.
          (rx
           (or
            (seq bow (or "tests" "doc" "examples" ".cask" ".stack-work.*") eol)

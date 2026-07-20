@@ -28,11 +28,13 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'subr-x))
+
 (require 'compile)
 (require 'haskell-cabal)
 (require 'haskell-customize)
 (require 'ansi-color)
-(eval-when-compile (require 'subr-x))
 
 (require 'haskell-constants)
 
@@ -55,71 +57,73 @@
     :group 'haskell-compile)
 (make-variable-buffer-local 'haskell-compiler-type)
 
-(defconst haskell-compilation-error-main-filename-regexp
-  (eval-when-compile
-    (let* ((ext-re
-            (rx-to-string (list 'seq "."
-                                (cons 'or
-                                      +haskell-extensions+))))
-           (filename-re
-            (concat "\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\)"))
-           (lines-and-columns-re
-            (concat
-             "\\(?:"
-             "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
-             "\\|"
-             "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
-             "\\)")))
-      (concat
-       "\\(?:"
-       (concat
-        "^" filename-re ":"
-        lines-and-columns-re
-        ":\\(?6:[ \t\r\n]+[Ww]arning:\\)?")
-       "\\)"
-       "\\|\\(?:"
-       (concat
-        "^[ \t]+" filename-re ":"
-        lines-and-columns-re
-        ":\\(?:[ \t]+[Ee]rror\\|\\(?6:[ \t\r\n]+[Ww]arning\\)\\):")
-       "\\)"))))
+(eval-and-compile
+  (defconst haskell-compilation-error-main-filename-regexp
+    (eval-when-compile
+      (let* ((ext-re
+              (rx-to-string (list 'seq "."
+                                  (cons 'or
+                                        +haskell-extensions+))))
+             (filename-re
+              (concat "\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\)"))
+             (lines-and-columns-re
+              (concat
+               "\\(?:"
+               "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
+               "\\|"
+               "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
+               "\\)")))
+        (concat
+         "\\(?:"
+         (concat
+          "^" filename-re ":"
+          lines-and-columns-re
+          ":\\(?6:[ \t\r\n]+[Ww]arning:\\)?")
+         "\\)"
+         "\\|\\(?:"
+         (concat
+          "^[ \t]+" filename-re ":"
+          lines-and-columns-re
+          ":\\(?:[ \t]+[Ee]rror\\|\\(?6:[ \t\r\n]+[Ww]arning\\)\\):")
+         "\\)")))))
 
-(defconst haskell-compilation-error-auxiliary-filename-regexp
-  (eval-when-compile
-    `(,(eval
-        `(rx (group-n 1
-                      (+ (not (any ?\s ?\t ?\n ?\r)))
-                      "."
-                      ,(cons 'or
-                             +haskell-extensions+))
-             ":"
-             (or
-              ;; "121:1" & "12:3-5"
-              (seq (group-n 2 (+ numeric))
-                   ":"
-                   (group-n 4 (+ numeric))
-                   (? "-"
-                      (group-n 5 (+ numeric))))
-              ;; "(289,5)-(291,36)"
-              (seq "("
-                   (group-n 2 (+ numeric))
-                   ","
-                   (group-n 4 (+ numeric))
-                   ")-("
-                   (group-n 3 (+ numeric))
-                   ","
-                   (group-n 5 (+ numeric))
-                   ")"))
-             ;; Require paren or \n at end because this regexp aims to
-             ;; highlight auxiliary file names, not the actuall
-             ;; errors/warnings (cf type of this regexp).
-             (or ")"
-                 eol)))
-      1
-      (2 . 3)
-      (4 . 5)
-      0 ;; type - info
-      )))
+(eval-and-compile
+  (defconst haskell-compilation-error-auxiliary-filename-regexp
+    (eval-when-compile
+      `(,(eval
+          `(rx (group-n 1
+                 (+ (not (any ?\s ?\t ?\n ?\r)))
+                 "."
+                 ,(cons 'or
+                        +haskell-extensions+))
+               ":"
+               (or
+                ;; "121:1" & "12:3-5"
+                (seq (group-n 2 (+ numeric))
+                     ":"
+                     (group-n 4 (+ numeric))
+                     (? "-"
+                        (group-n 5 (+ numeric))))
+                ;; "(289,5)-(291,36)"
+                (seq "("
+                     (group-n 2 (+ numeric))
+                     ","
+                     (group-n 4 (+ numeric))
+                     ")-("
+                     (group-n 3 (+ numeric))
+                     ","
+                     (group-n 5 (+ numeric))
+                     ")"))
+               ;; Require paren or \n at end because this regexp aims to
+               ;; highlight auxiliary file names, not the actuall
+               ;; errors/warnings (cf type of this regexp).
+               (or ")"
+                   eol)))
+        1
+        (2 . 3)
+        (4 . 5)
+        0 ;; type - info
+        ))))
 
 (defconst haskell-compilation-error-regexp-alist
   (eval-when-compile

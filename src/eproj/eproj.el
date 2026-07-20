@@ -102,7 +102,7 @@
 (require 'haskell-regexen)
 (require 'rust-autoloads)
 
-(declare-function eproj/create-haskell-tags "eproj-haskell")
+(declare-function eproj/create-haskell-compact-tags "eproj-haskell")
 
 ;;; eproj languages
 

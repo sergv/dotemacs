@@ -467,7 +467,8 @@ extensions as a list of strings. Leaves point at the end of pragma"
 
 ;;; define ‘bounds-of-haskell-symbol’
 
-(defconst haskell-misc--bounds-of-symbol--word-chars "[:alnum:]_'#.")
+(eval-and-compile
+  (defconst haskell-misc--bounds-of-symbol--word-chars "[:alnum:]_'#."))
 
 (defun haskell-misc--bounds-of-symbol-impl (qualified? offset core-mode? include-quotes?)
   "Qualified symbol may return prefix of ' before the symbol."

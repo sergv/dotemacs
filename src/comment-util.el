@@ -17,8 +17,9 @@
 (require 'current-column-fixed)
 (require 'advices-util)
 
-(defconst comment-util--spaces-after-comment " "
-  "Amount of spaces to put after comment markers.")
+(eval-and-compile
+  (defconst comment-util--spaces-after-comment " "
+    "Amount of spaces to put after comment markers."))
 
 (defmacro comment-util--auto-commenting-action (&rest body)
   (let ((line-comment-prefix-var '#:line-comment-prefix)
@@ -564,12 +565,12 @@ be used only for vim-visual-mode of the vim-mode package."
     (goto-char end-pos)
     (delete-char (- (length end-str)))
     (when (text-before-matches? comment-util--spaces-after-comment)
-      (delete-char (- (length comment-util--spaces-after-comment))))
+      (delete-char (- (eval-when-compile (length comment-util--spaces-after-comment)))))
 
     (goto-char begin-pos)
     (delete-char (length begin-str))
     (when (text-after-matches? comment-util--spaces-after-comment)
-      (delete-char (length comment-util--spaces-after-comment)))))
+      (delete-char (eval-when-compile (length comment-util--spaces-after-comment))))))
 
 ;;;;; Low-level core functions
 
