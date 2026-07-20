@@ -812,11 +812,11 @@ for project at ROOT directory."
          (related-projects
           (eproj--get-related-projects-from-info root aux-info))
          (cached-ignored-files-re
-          (let ((related-projs-globs
-                 (--map (concat (strip-directory-and-separator-prefix root it) "/*")
-                        (--filter (eproj--path-under-p root it)
-                                  related-projects))))
-            (globs-to-regexp ignored-files-globs)))
+          let ((related-projs-globs
+                (--map (concat (strip-directory-and-separator-prefix root it) "/*")
+                       (--filter (eproj--path-under-p root it)
+                                 related-projects))))
+          (globs-to-regexp ignored-files-globs))
          (no-default-project-for (cdr-safe (assq 'no-default-proj aux-info)))
 
          (authoritative-tag-source-for (cdr-safe (assq 'authoritative-tag-source-for aux-info))))
@@ -1231,7 +1231,6 @@ doing `eproj-switch-to-file-or-buffer'."
   "Get all files that are managed by a project PROJ."
   ;; Cache files
   (let ((files-cache (eproj-project/cached-files-for-navigation proj))
-        (proj-root (eproj-project/root proj))
         (should-cache? (eproj-project/create-cache-files proj)))
     (if files-cache
         (eproj--reset-cached-files-for-navigation! files-cache)
