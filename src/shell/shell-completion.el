@@ -153,52 +153,53 @@
                              "\n"
                              t)))))))
 
-(cl-defstruct (pcmpl-flag
-               (:conc-name pcmpl-flag/)
-               (:constructor pcmpl-flag/create))
-  names           ;; Nonempty list of strings
-  completion-expr ;; Closed expression to generate completions, may be nil
-  )
+(eval-and-compile
+  (cl-defstruct (pcmpl-flag
+                 (:conc-name pcmpl-flag/)
+                 (:constructor pcmpl-flag/create))
+    names           ;; Nonempty list of strings
+    completion-expr ;; Closed expression to generate completions, may be nil
+    )
 
-(cl-defun make-pcmpl-flag (&key names completion-expr)
-  (cl-assert (or (stringp names)
-                 (-all? #'stringp names)))
-  (pcmpl-flag/create :names names :completion-expr completion-expr))
+  (cl-defun make-pcmpl-flag (&key names completion-expr)
+    (cl-assert (or (stringp names)
+                   (-all? #'stringp names)))
+    (pcmpl-flag/create :names names :completion-expr completion-expr))
 
-(cl-defun pcpmpl/make-name-regex (flag)
-  (cl-assert (pcmpl-flag-p flag))
-  (regexp-opt (pcmpl-flag/names flag) 'symbols))
+  (cl-defun pcpmpl/make-name-regex (flag)
+    (cl-assert (pcmpl-flag-p flag))
+    (regexp-opt (pcmpl-flag/names flag) 'symbols))
 
-(defun pcmpl/make-flags (raw-flag-specs)
-  "RAW-FLAG-SPECS is a list of either strings or 1- or 2-element lists where
+  (defun pcmpl/make-flags (raw-flag-specs)
+    "RAW-FLAG-SPECS is a list of either strings or 1- or 2-element lists where
 first item is flag name and second is completion expression. Flag name can
 be either singular string or a list of strings."
-  (-map
-   (lambda (entry)
-     (cond
-       ((stringp entry)
-        (make-pcmpl-flag
-         :names (list entry)
-         :completion-expr nil))
-       ((and entry
-             (listp entry)
-             (= 2 (length entry)))
-        (let ((flag-name (first entry))
-              (compl-expr (cadr-safe entry)))
-          (cl-assert (or (stringp flag-name)
-                         (and
-                          (listp flag-name)
-                          (-all? #'stringp flag-name)))
-                     nil
-                     "process-opts: invalid flag name: %s"
-                     flag-name)
-          (make-pcmpl-flag :names (if (stringp flag-name)
-                                      (list flag-name)
-                                    flag-name)
-                           :completion-expr compl-expr)))
-       (t
-        (error "process-opts: invalid entry %s" entry))))
-   raw-flag-specs))
+    (-map
+     (lambda (entry)
+       (cond
+         ((stringp entry)
+          (make-pcmpl-flag
+           :names (list entry)
+           :completion-expr nil))
+         ((and entry
+               (listp entry)
+               (= 2 (length entry)))
+          (let ((flag-name (first entry))
+                (compl-expr (cadr-safe entry)))
+            (cl-assert (or (stringp flag-name)
+                           (and
+                            (listp flag-name)
+                            (-all? #'stringp flag-name)))
+                       nil
+                       "process-opts: invalid flag name: %s"
+                       flag-name)
+            (make-pcmpl-flag :names (if (stringp flag-name)
+                                        (list flag-name)
+                                      flag-name)
+                             :completion-expr compl-expr)))
+         (t
+          (error "process-opts: invalid entry %s" entry))))
+     raw-flag-specs)))
 
 ;;;; The pcomplete macro
 

@@ -30,85 +30,83 @@
   (require 'cl)
   (require 'macro-util))
 
-(cl-defstruct (solarized-palette
-               (:constructor make--solarized-palette)
-               (:copier nil))
-  mode ;; Either 'dark or 'light, for Emacs.
+(eval-and-compile
+  (cl-defstruct (solarized-palette
+                 (:constructor make--solarized-palette)
+                 (:copier nil))
+    mode ;; Either 'dark or 'light, for Emacs.
 
-  background
-  background-highlights
-  secondary-content
-  aux-mid
-  primary-content
-  emphasized-content
-  aux-high-1
-  aux-high-2
+    background
+    background-highlights
+    secondary-content
+    aux-mid
+    primary-content
+    emphasized-content
+    aux-high-1
+    aux-high-2
 
-  red
-  orange
-  yellow
-  green
-  cyan
-  blue
-  violet
-  magenta
+    red
+    orange
+    yellow
+    green
+    cyan
+    blue
+    violet
+    magenta
 
-  red-aux-fg
-  orange-aux-fg
-  yellow-aux-fg
-  green-aux-fg
-  cyan-aux-fg
-  blue-aux-fg
-  violet-aux-fg
-  magenta-aux-fg
+    red-aux-fg
+    orange-aux-fg
+    yellow-aux-fg
+    green-aux-fg
+    cyan-aux-fg
+    blue-aux-fg
+    violet-aux-fg
+    magenta-aux-fg
 
-  red-aux-bg
-  orange-aux-bg
-  yellow-aux-bg
-  green-aux-bg
-  cyan-aux-bg
-  blue-aux-bg
-  violet-aux-bg
-  magenta-aux-bg
+    red-aux-bg
+    orange-aux-bg
+    yellow-aux-bg
+    green-aux-bg
+    cyan-aux-bg
+    blue-aux-bg
+    violet-aux-bg
+    magenta-aux-bg
 
-  red-aux-aux-fg
-  orange-aux-aux-fg
-  yellow-aux-aux-fg
-  green-aux-aux-fg
-  cyan-aux-aux-fg
-  blue-aux-aux-fg
-  violet-aux-aux-fg
-  magenta-aux-aux-fg
+    red-aux-aux-fg
+    orange-aux-aux-fg
+    yellow-aux-aux-fg
+    green-aux-aux-fg
+    cyan-aux-aux-fg
+    blue-aux-aux-fg
+    violet-aux-aux-fg
+    magenta-aux-aux-fg
 
-  red-aux-aux-bg
-  orange-aux-aux-bg
-  yellow-aux-aux-bg
-  green-aux-aux-bg
-  cyan-aux-aux-bg
-  blue-aux-aux-bg
-  violet-aux-aux-bg
-  magenta-aux-aux-bg
+    red-aux-aux-bg
+    orange-aux-aux-bg
+    yellow-aux-aux-bg
+    green-aux-aux-bg
+    cyan-aux-aux-bg
+    blue-aux-aux-bg
+    violet-aux-aux-bg
+    magenta-aux-aux-bg
 
-  red-aux-aux-aux-fg
-  orange-aux-aux-aux-fg
-  yellow-aux-aux-aux-fg
-  green-aux-aux-aux-fg
-  cyan-aux-aux-aux-fg
-  blue-aux-aux-aux-fg
-  violet-aux-aux-aux-fg
-  magenta-aux-aux-aux-fg
+    red-aux-aux-aux-fg
+    orange-aux-aux-aux-fg
+    yellow-aux-aux-aux-fg
+    green-aux-aux-aux-fg
+    cyan-aux-aux-aux-fg
+    blue-aux-aux-aux-fg
+    violet-aux-aux-aux-fg
+    magenta-aux-aux-aux-fg
 
-  red-aux-aux-aux-bg
-  orange-aux-aux-aux-bg
-  yellow-aux-aux-aux-bg
-  green-aux-aux-aux-bg
-  cyan-aux-aux-aux-bg
-  blue-aux-aux-aux-bg
-  violet-aux-aux-aux-bg
-  magenta-aux-aux-aux-bg)
-
-(defsubst num->color (x)
-  (format "#%06x" x))
+    red-aux-aux-aux-bg
+    orange-aux-aux-aux-bg
+    yellow-aux-aux-aux-bg
+    green-aux-aux-aux-bg
+    cyan-aux-aux-aux-bg
+    blue-aux-aux-aux-bg
+    violet-aux-aux-aux-bg
+    magenta-aux-aux-aux-bg))
 
 (eval-when-compile
   (defun solarized-get-color (key xs)
@@ -199,31 +197,34 @@
      :violet-aux-aux-aux-bg     (solarized-get-color 'violet-2bg  palette)
      :magenta-aux-aux-aux-bg    (solarized-get-color 'magenta-2bg palette))))
 
-(defconst +solarized-red-num+ #xdc322f)
-(defconst +solarized-magenta-num+ #xd33682)
-(defconst +solarized-violet-num+ #x6c71c4)
-(defconst +solarized-blue-num+ #x268bd2)
-(defconst +solarized-cyan-num+ #x2aa198)
-(defconst +solarized-orange-num+ #xcb4b16)
-(defconst +solarized-yellow-num+ #xb58900)
+(eval-and-compile
+  (defconst +solarized-red-num+ #xdc322f)
+  (defconst +solarized-magenta-num+ #xd33682)
+  (defconst +solarized-violet-num+ #x6c71c4)
+  (defconst +solarized-blue-num+ #x268bd2)
+  (defconst +solarized-cyan-num+ #x2aa198)
+  (defconst +solarized-orange-num+ #xcb4b16)
+  (defconst +solarized-yellow-num+ #xb58900))
 
 ;; ;; default one
 ;; (defconst +solarized-green-num+ #x859900)
 
 ;; this geen looks like green and is closest to the default one
-(defconst +solarized-green-num+ #x1aa625)
+(eval-and-compile
+  (defconst +solarized-green-num+ #x1aa625))
 
 ;; ;; this one is a bit brighter - too bright compared to defalut colours like blue and yellow
 ;; (defconst +solarized-green-num+ #x1abf25)
 
-(defconst +solarized-red+     (num->color +solarized-red-num+))
-(defconst +solarized-orange+  (num->color +solarized-orange-num+))
-(defconst +solarized-yellow+  (num->color +solarized-yellow-num+))
-(defconst +solarized-green+   (num->color +solarized-green-num+))
-(defconst +solarized-cyan+    (num->color +solarized-cyan-num+))
-(defconst +solarized-blue+    (num->color +solarized-blue-num+))
-(defconst +solarized-violet+  (num->color +solarized-violet-num+))
-(defconst +solarized-magenta+ (num->color +solarized-magenta-num+))
+(eval-and-compile
+  (defconst +solarized-red+     (format "#%06x" +solarized-red-num+))
+  (defconst +solarized-orange+  (format "#%06x" +solarized-orange-num+))
+  (defconst +solarized-yellow+  (format "#%06x" +solarized-yellow-num+))
+  (defconst +solarized-green+   (format "#%06x" +solarized-green-num+))
+  (defconst +solarized-cyan+    (format "#%06x" +solarized-cyan-num+))
+  (defconst +solarized-blue+    (format "#%06x" +solarized-blue-num+))
+  (defconst +solarized-violet+  (format "#%06x" +solarized-violet-num+))
+  (defconst +solarized-magenta+ (format "#%06x" +solarized-magenta-num+)))
 
 ;; Unclear what’s these
 ;; (orange      . #xdb5823)
