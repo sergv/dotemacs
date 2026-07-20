@@ -46,4 +46,8 @@
 
 (provide 'f-init)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; f-init.el ends here

@@ -10,6 +10,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'common-heavy)
   (require 'macro-util))
 
 ;; set up abbrev+ for latex

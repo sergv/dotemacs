@@ -43,91 +43,92 @@ question mark"
 with exclamation mark"
   :group 'emacs-lisp)
 
-(defconst +emacs-lisp-basic-keywords+
-  (eval-when-compile
-    `(;; support nearly full numeric tower
-      ;; upd: full numeric tower is supported (? needs tests)
-      ;; upd upd: rationals were not handled properly, merged with integers
-      ;; - everything else seems to work fine
-      (,(rx-let ((int-or-rat (seq (? (regexp "[+-]"))
-                                  (+ digit)
-                                  ;; now rationals go here
-                                  (? "/"
-                                     (+ digit))))
-                 (binary      (seq "#b" (+ (regexp "[01]"))))
-                 (octal       (seq "#o" (+ (regexp "[0-7]"))))
-                 (hexadecimal (seq "#x" (+ (regexp "[0-9abcdefABCDEF]"))))
-                 ;; (rational    (seq integer "/" integer))
-                 (float-point (seq (? (regexp "[+-]"))
-                                   (or (seq (+ digit)
-                                            (? "." (* digit)))
-                                       (seq (* digit)
-                                            "." (+ digit)))))
-                 (float       (seq float-point
-                                   (? (regexp "[deDE]")
-                                      float-point)))
-                 (number (seq (or (seq symbol-start
-                                       (or int-or-rat
-                                           float))
-                                  binary
-                                  octal
-                                  hexadecimal)
-                              symbol-end))
-                 ;; (number (seq (or int-or-rat
-                 ;;                  binary
-                 ;;                  octal
-                 ;;                  hexadecimal
-                 ;;                  ;; rational
-                 ;;                  float)
-                 ;;              symbol-end))
-                 (complex (seq "#c("
-                               (* whitespace)
-                               number
-                               (+ whitespace)
-                               number
-                               (* whitespace)
-                               ")")))
-          (rx
-           (or number
-               complex)))
-       (0 'emacs-lisp-constant-face))
+(eval-and-compile
+  (defconst +emacs-lisp-basic-keywords+
+    (eval-when-compile
+      `(;; support nearly full numeric tower
+        ;; upd: full numeric tower is supported (? needs tests)
+        ;; upd upd: rationals were not handled properly, merged with integers
+        ;; - everything else seems to work fine
+        (,(rx-let ((int-or-rat (seq (? (regexp "[+-]"))
+                                    (+ digit)
+                                    ;; now rationals go here
+                                    (? "/"
+                                       (+ digit))))
+                   (binary      (seq "#b" (+ (regexp "[01]"))))
+                   (octal       (seq "#o" (+ (regexp "[0-7]"))))
+                   (hexadecimal (seq "#x" (+ (regexp "[0-9abcdefABCDEF]"))))
+                   ;; (rational    (seq integer "/" integer))
+                   (float-point (seq (? (regexp "[+-]"))
+                                     (or (seq (+ digit)
+                                              (? "." (* digit)))
+                                         (seq (* digit)
+                                              "." (+ digit)))))
+                   (float       (seq float-point
+                                     (? (regexp "[deDE]")
+                                        float-point)))
+                   (number (seq (or (seq symbol-start
+                                         (or int-or-rat
+                                             float))
+                                    binary
+                                    octal
+                                    hexadecimal)
+                                symbol-end))
+                   ;; (number (seq (or int-or-rat
+                   ;;                  binary
+                   ;;                  octal
+                   ;;                  hexadecimal
+                   ;;                  ;; rational
+                   ;;                  float)
+                   ;;              symbol-end))
+                   (complex (seq "#c("
+                                 (* whitespace)
+                                 number
+                                 (+ whitespace)
+                                 number
+                                 (* whitespace)
+                                 ")")))
+            (rx
+             (or number
+                 complex)))
+         (0 'emacs-lisp-constant-face))
 
-      ("\\_<\\(?:\\(?:[^: \t\n\r]+:\\)?\\(\\+[^+ \n\t\r\f]+\\+\\)\\)\\_>"
-       (1 'emacs-lisp-constant-face))
-      ("\\_<\\(?:\\(?:[^: \t\n\r]+:\\)?\\(\\*[^* \n\t\r\f]+\\*\\)\\)\\_>"
-       (1 'emacs-lisp-global-variable-face))
+        ("\\_<\\(?:\\(?:[^: \t\n\r]+:\\)?\\(\\+[^+ \n\t\r\f]+\\+\\)\\)\\_>"
+         (1 'emacs-lisp-constant-face))
+        ("\\_<\\(?:\\(?:[^: \t\n\r]+:\\)?\\(\\*[^* \n\t\r\f]+\\*\\)\\)\\_>"
+         (1 'emacs-lisp-global-variable-face))
 
-      ;; handle both :keywords and #:sybols-without-home-package
-      ("\\(#\\)?\\_<\\(\\:\\(?:\\s_\\|\\sw\\)+\\)\\_>"
-       ;; symbols without home package, as special kind of constant
-       (0 (when (re-group-matched? 1)
-            'emacs-lisp-constant-face))
-       ;; keywords
-       (2 (unless (re-group-matched? 1)
-            'emacs-lisp-keyword-face)))
+        ;; handle both :keywords and #:sybols-without-home-package
+        ("\\(#\\)?\\_<\\(\\:\\(?:\\s_\\|\\sw\\)+\\)\\_>"
+         ;; symbols without home package, as special kind of constant
+         (0 (when (re-group-matched? 1)
+              'emacs-lisp-constant-face))
+         ;; keywords
+         (2 (unless (re-group-matched? 1)
+              'emacs-lisp-keyword-face)))
 
-      ("\\_<\\(?:[^ \n\t]+\\)\\?\\_>" 0 'emacs-lisp-predicate-face)
-      ("\\_<\\(?:[^ \n\t]+\\)!\\_>"   0 'emacs-lisp-mutating-op-face)
+        ("\\_<\\(?:[^ \n\t]+\\)\\?\\_>" 0 'emacs-lisp-predicate-face)
+        ("\\_<\\(?:[^ \n\t]+\\)!\\_>"   0 'emacs-lisp-mutating-op-face)
 
-      ;; make pretty lambdas
-      ("(\\(lambda\\)\\_>"
-       (0 (prog1 nil
-            (compose-region (match-beginning 1)
-                            (match-end 1)
-                            ,(make-char 'greek-iso8859-7 107) ;; ?λ
-                            ))))
+        ;; make pretty lambdas
+        ("(\\(lambda\\)\\_>"
+         (0 (prog1 nil
+              (compose-region (match-beginning 1)
+                              (match-end 1)
+                              ,(make-char 'greek-iso8859-7 107) ;; ?λ
+                              ))))
 
-      ;; ensure that pretty lambda goes away as soon as we type something after it
-      ("(lambda[^ \n\t\v\f]"
-       (0 (unless (memq (get-text-property (match-beginning 0)
-                                           'face)
-                        '(font-lock-comment-face
-                          font-lock-string-face))
-            (decompose-region (match-beginning 0)
-                              (match-end 0))
-            nil)))
+        ;; ensure that pretty lambda goes away as soon as we type something after it
+        ("(lambda[^ \n\t\v\f]"
+         (0 (unless (memq (get-text-property (match-beginning 0)
+                                             'face)
+                          '(font-lock-comment-face
+                            font-lock-string-face))
+              (decompose-region (match-beginning 0)
+                                (match-end 0))
+              nil)))
 
-      ("\\_<\\(?:t\\|nil\\)\\_>" (0 'emacs-lisp-constant-face)))))
+        ("\\_<\\(?:t\\|nil\\)\\_>" (0 'emacs-lisp-constant-face))))))
 
 (defun emacs-lisp-highlight-keywords (&optional mode)
   (font-lock-remove-keywords
