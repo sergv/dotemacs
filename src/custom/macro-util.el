@@ -368,7 +368,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
 2.a. KEYS    - string or list of string defining keys, in `kbd' format;
 2.b. COMMAND - symbol or inline interactive lambda to be invoked on pressing a key.
 "
-  (declare (indent nil))
+  (declare (indent 1))
   (letrec ((def-key
              (lambda (map key command)
                (cl-assert (or (stringp key)
