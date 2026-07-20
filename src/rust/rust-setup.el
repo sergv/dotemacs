@@ -7,8 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'set-up-platform)
   (require 'macro-util)
+  (require 'set-up-platform)
+  (require 'vim-setup)
 
   (defvar whitespace-line-column))
 
