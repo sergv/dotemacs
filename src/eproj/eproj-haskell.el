@@ -7,7 +7,6 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'eproj)
   (require 'macro-util)
   (require 'nanothunk))
 

@@ -9,8 +9,9 @@
 ;; Status:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'el-patch)
+  (require 'keys-def)
   (require 'macro-util))
 
 (require 'common)

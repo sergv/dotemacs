@@ -6,6 +6,9 @@
 ;; Created: 21 April 2022
 ;; Description:
 
+(eval-when-compile
+  (require 'common-small))
+
 (cl-defmacro defalign (func
                        align-str
                        &key

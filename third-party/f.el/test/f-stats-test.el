@@ -87,4 +87,8 @@
 
 (provide 'f-stats-test)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; f-stats-test.el ends here

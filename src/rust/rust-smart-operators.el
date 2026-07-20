@@ -32,11 +32,12 @@ stick it to the previous operator on line."
 (defconst rust-smart-operators--chars-to-separate-from-asterisk
   '(?= ?> ?| ?^ ?% ?/ ?- ?+ ?* ?&))
 
-(defconst +rust-smart-operators--valid-operators+
-  '("!" "!=" "%" "%=" "&" "&" "&" "&=" "&&" "*" "*=" "*" "*" "+" "+" "+=" "," "-" "-" "-=" "->" "." ".." "..=" ".." ".." "..." "/" "/=" ":" ":" ":" ";" ";" "<<" "<<=" "<" "<=" "=" "==" "=>" ">" ">=" ">>" ">>=" "@" "^" "^=" "|" "|" "|=" "||" "?"))
-
-(defconst +rust-smart-operators--composite-operators+
-  (--filter (< 1 (length it)) +rust-smart-operators--valid-operators+))
+(eval-and-compile
+  (defconst +rust-smart-operators--composite-operators+
+    (--filter (< 1 (length it))
+              ;; All valid rust operators, full list not needed anywhere yet but kept
+              ;; here just in case.b
+              '("!" "!=" "%" "%=" "&" "&" "&" "&=" "&&" "*" "*=" "*" "*" "+" "+" "+=" "," "-" "-" "-=" "->" "." ".." "..=" ".." ".." "..." "/" "/=" ":" ":" ":" ";" ";" "<<" "<<=" "<" "<=" "=" "==" "=>" ">" ">=" ">>" ">>=" "@" "^" "^=" "|" "|" "|=" "||" "?"))))
 
 (defmacro rust-smart-operators--char-before-matches (specs idx get-char)
   "Specs is a list of strings."

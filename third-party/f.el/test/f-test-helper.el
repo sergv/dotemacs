@@ -87,4 +87,8 @@ includes the CONTENT."
 
 (provide 'f-test-helper)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; f-test-helper.el ends here
