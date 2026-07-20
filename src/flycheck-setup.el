@@ -190,15 +190,13 @@ scheme and it’s view of current buffer is malformed."
     (cl-assert (overlayp ov-b))
     (or (< start-a start-b)
         (and (= start-a start-b)
-             (let ((end-a (overlay-end ov-a))
-                   (end-b (overlay-end ov-b)))
-               (or (< start-a start-b)
-                   (and (= start-a start-b)
-                        (let ((err-a (car-sure a))
-                              (err-b (car-sure b)))
-                          (cl-assert (flycheck-error-p err-a))
-                          (cl-assert (flycheck-error-p err-b))
-                          (flycheck-error< err-a err-b)))))))))
+             (or (< start-a start-b)
+                 (and (= start-a start-b)
+                      (let ((err-a (car-sure a))
+                            (err-b (car-sure b)))
+                        (cl-assert (flycheck-error-p err-a))
+                        (cl-assert (flycheck-error-p err-b))
+                        (flycheck-error< err-a err-b))))))))
 
 ;; This function assumes that each flycheck error necessarily has a
 ;; corresponding overlay (in current buffer, no less). This seems to
