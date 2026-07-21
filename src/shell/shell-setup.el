@@ -12,15 +12,16 @@
   (require 'set-up-platform)
   (require 'vim-macs))
 
+(declare-function msys-directory-name-to-emacs "windows-setup")
+(declare-function cygwin-directory-name-to-emacs "windows-setup")
+(declare-function treesit-utils--string-at "treesit-utils")
+
 (require 'common)
 (require 'comint-setup)
 (require 'dirtrack)
 (require 'folding-setup)
 (require 'shell-script-abbrev+)
 (require 'xterm-color)
-
-(declare-function msys-directory-name-to-emacs "windows-setup")
-(declare-function cygwin-directory-name-to-emacs "windows-setup")
 
 ;;;###autoload
 (unless (getenv "SHELL")
@@ -88,27 +89,27 @@
                 bash-ts-mode-hook))
   (add-hook mode #'shell-script-setup))
 
-;;;###autoload
-(defun make-dirtrack-windows-msys-directory-function (internal-func)
-  "Wrapper around `dirtrack-directory-function' that canonicalizes
-MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
-  (lambda (dir)
-    (fold-platform-os-type
-     (error "The result of `make-dirtrack-windows-msys-directory-function' must be used only in Windows environment.")
-     nil)
-    (save-match-data
-      (funcall
-       internal-func
-       (if (string-match "^\\(/\\([a-zA-Z]\\)\\)/.*$" dir)
-           (let ((drive (match-string-no-properties 2 dir)))
-             (replace-match (concat drive ":") nil t dir 1))
-         dir)))))
-
-;;;###autoload
-(fold-platform-os-type
- nil
- (setf dirtrack-directory-function
-       (make-dirtrack-windows-msys-directory-function dirtrack-directory-function)))
+;; Disable for now since there’s similar setup below. TODO: Check which one is better later.
+;; ;;;###autoload
+;; (defun make-dirtrack-windows-msys-directory-function (internal-func)
+;;   "Wrapper around `dirtrack-directory-function' that canonicalizes
+;; MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
+;;   (lambda (dir)
+;;     (fold-platform-os-type
+;;      (error "The result of `make-dirtrack-windows-msys-directory-function' must be used only in Windows environment.")
+;;      nil)
+;;     (save-match-data
+;;       (funcall
+;;        internal-func
+;;        (if (string-match "^\\(/\\([a-zA-Z]\\)\\)/.*$" dir)
+;;            (let ((drive (match-string-no-properties 2 dir)))
+;;              (replace-match (concat drive ":") nil t dir 1))
+;;          dir)))))
+;;
+;; ;;;###autoload
+;; (when (eq system-type 'windows-nt)
+;;   (setf dirtrack-directory-function
+;;         (make-dirtrack-windows-msys-directory-function dirtrack-directory-function)))
 
 ;;;###autoload
 (add-to-list

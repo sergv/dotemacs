@@ -31,11 +31,12 @@
 (setf prolog-system 'swi)
 
 ;;;###autoload
-(setf auto-mode-alist
-      (cons '("\\.pl$" . prolog-mode)
-            (cons '("\\.pro$" . prolog-mode)
-                  (--filter (not (eq 'perl-mode (cdr it)))
-                            auto-mode-alist))))
+(unless noninteractive
+  (setf auto-mode-alist
+        (cons '("\\.pl$" . prolog-mode)
+              (cons '("\\.pro$" . prolog-mode)
+                    (--filter (not (eq 'perl-mode (cdr it)))
+                              auto-mode-alist)))))
 ;; (add-to-list 'auto-mode-alist '("\\.m\\'" . mercury-mode))
 
 (defhydra-ext hydra-prolog-dash (:exit t :foreign-keys nil :hint nil)

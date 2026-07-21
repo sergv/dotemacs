@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'macro-util))
 
 (require 'common)
@@ -98,8 +99,8 @@ template files, data description may be found in
         (with-inhibited-modification-hooks
          (mapc (lambda (x)
                  (goto-char (point-min))
-                 (let ((pattern (concat "\\${" (first x) "}"))
-                       (new-data (funcall (second x))))
+                 (let ((pattern (concat "\\${" (cl-first x) "}"))
+                       (new-data (funcall (cl-second x))))
                    (while (re-search-forward pattern nil t)
                      (replace-match new-data t t))))
                auto-insert-fields)))))))

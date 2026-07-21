@@ -25,7 +25,8 @@
 (require 'haskell-autoload)
 
 ;;;###autoload
-(el-patch-feature grep)
+(unless noninteractive
+  (el-patch-feature grep))
 
 (when-emacs-version (<= 28 it)
   (el-patch-defun grep-expand-template (template &optional regexp files dir excl more-opts)
@@ -132,7 +133,7 @@ more than once"
                  (dir (read-directory-name "Base directory: "
                                            nil default-directory t))
                  (ignore-case (and (not (null current-prefix-arg))
-                                   (<= 16 (first current-prefix-arg)))))
+                                   (<= 16 (cl-first current-prefix-arg)))))
             (list regexp files dir ignore-case))))))
   (let* ((rgrep-ignore-case ignore-case)
          (user-supplied-files (split-string files))
@@ -144,7 +145,7 @@ more than once"
 (defun rgrep-region (str ignore-case)
   (interactive (list (get-region-string-no-properties)
                      (and (not (null current-prefix-arg))
-                          (<= 16 (first current-prefix-arg)))))
+                          (<= 16 (cl-first current-prefix-arg)))))
   (let* ((regexp (read-string "Search for: "
                               str
                               'grep-regexp-history

@@ -134,7 +134,7 @@ if point is in preamble or not in section."
   ;; may need to use latex-initialize here
   (latex:save-ex-save-re
    ;; need to move past the opening { of section header here
-   (line-end-position)
+   (goto-char (line-end-position))
    (when (re-search-backward latex-sectioning-regexp
                              (marker-position latex:document-start)
                              t)
@@ -147,7 +147,7 @@ position at point."
   ;; may need to use latex-initialize here
   (latex:save-ex-save-re
    ;; need to move past the opening { of section header here
-   (line-end-position)
+   (goto-char (line-end-position))
    (re-search-backward latex-sectioning-regexp
                        (marker-position latex:document-start)
                        t)))

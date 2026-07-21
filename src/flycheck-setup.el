@@ -23,7 +23,6 @@
 (require 'eproj-query)
 
 (require 'current-column-fixed)
-(provide 'flycheck-setup)
 
 
 (defvar-local flycheck-enhancements--error-overlays nil
@@ -33,25 +32,21 @@ do check that ‘overlay-buffer’ is non-nil before use.")
 (defvar-local flycheck-enhancements--get-project-root-for-current-buffer (lambda () nil)
   "Function that should return potential project root this buffer is part of.")
 
-;;;###autoload
-(eval-after-load "flycheck" '(require 'flycheck-setup))
+(with-eval-after-load 'flycheck
+  ;; Don't show errors on fringes.
+  (setf flycheck-indication-mode nil
+        ;; Highlight whole line with error
+        flycheck-highlighting-mode 'lines
+        flycheck-display-errors-delay 0
+        flycheck-check-syntax-automatically '(save mode-enabled)
+        ;; Display all errors & warnings from all relevant files.
+        flycheck-relevant-error-other-file-minimum-level nil)
 
-(eval-after-load "flycheck"
-  '(progn
-     ;; Don't show errors on fringes.
-     (setf flycheck-indication-mode nil
-           ;; Highlight whole line with error
-           flycheck-highlighting-mode 'lines
-           flycheck-display-errors-delay 0
-           flycheck-check-syntax-automatically '(save mode-enabled)
-           ;; Display all errors & warnings from all relevant files.
-           flycheck-relevant-error-other-file-minimum-level nil)
-
-     ;; Need same ‘flycheck-add-overlay’ but with storing overlays in a variables for
-     ;; ease of access.
-     (remove-hook 'flycheck-process-error-functions #'flycheck-add-overlay)
-     (add-hook 'flycheck-process-error-functions #'flycheck-add-and-record-overlay 'append)
-     (add-hook 'flycheck-before-syntax-check-hook #'flycheck-reset-recorded-overlays)))
+  ;; Need same ‘flycheck-add-overlay’ but with storing overlays in a variables for
+  ;; ease of access.
+  (remove-hook 'flycheck-process-error-functions #'flycheck-add-overlay)
+  (add-hook 'flycheck-process-error-functions #'flycheck-add-and-record-overlay 'append)
+  (add-hook 'flycheck-before-syntax-check-hook #'flycheck-reset-recorded-overlays))
 
 (defun flycheck-mode-line--propertise-as-comments (str)
   (propertize str 'face 'font-lock-comment-face))

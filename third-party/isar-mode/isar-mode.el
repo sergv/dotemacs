@@ -29,14 +29,17 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'dash))
+  (require 'common-small)
+  (require 'dash)
+
+  (declare-function lsp-isar-indent-line "lsp-isar-indent"))
 
 (require 'dash)
 (require 'pretty-ligatures)
 
 (require 'isar-unicode-tokens)
 
-(defcustom isar-mode-remove-utf8-when-saving nil
+(defvar isar-mode-remove-utf8-when-saving nil
   "Replace the '‹' by the Isabelle encoding.")
 
 (defvar isar-mode-map
@@ -117,7 +120,7 @@ Multiple symbols can be applied at once.")
   "Turn the property name list SYMBS into a list of text properties.
 
 Optional argument RESET-FACE means set the face property to nil, unless
-'face is in the property list."
+\\='face is in the property list."
   (cl-assert (symbolp name))
   (let ((ps (cddr-safe (assq name isar-control--token-properties)))
         props)
@@ -195,6 +198,8 @@ Optional argument OBJECT is the string or buffer containing the text."
                                            (match-end 2)
                                            ',(isar-control--name-to-props prop)))))
 
+(defvar-local isar-control--current-symbol-bounds nil)
+
 (defun isar-control--mark-char-form-start (prop start-delim-start start-delim-end body-start body-end props)
   (let ((control-props
          `(invisible
@@ -267,8 +272,6 @@ Optional argument OBJECT is the string or buffer containing the text."
           isar-control--single-characters)
    (--map (isar-control--make-control-region-font-lock-keyword (cl-second it) (cl-third it) (cl-fourth it))
           isar-control--regions)))
-
-(defvar-local isar-control--current-symbol-bounds nil)
 
 (defun isar-control--post-command-hook ()
   ;; Re-apply prettification to the previous symbol.

@@ -9,7 +9,10 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'dash)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'treesit-utils))
+
+(declare-function treesit-node-at "treesit")
 
 (defvar haskell-indent-offset)
 
@@ -167,7 +170,7 @@
             curr))
       curr)))
 
-(defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent bol support-functions? support-field-update? return-list-or-tuple-child?)
+(defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent _bol support-functions? support-field-update? return-list-or-tuple-child?)
   (save-excursion
     (let ((prev2 nil)
           (prev1 node)
@@ -400,7 +403,7 @@
             typ (treesit-node-type n)))
     n))
 
-(defun haskell-ts-indent--prev-sib (node parent _bol)
+(defun haskell-ts-indent--prev-sib (node _parent _bol)
   (let ((n (haskell-ts-indent--prev-non-comment-sibling node)))
     (if (string= "bind" (treesit-node-type n))
         (save-excursion
@@ -624,9 +627,8 @@
             ctx-contents))))))
 
 (defun haskell-ts-indent--gadt-type-function-in-context-first-arg-anchor (node parent bol)
-  (let* ((gp (treesit-node-parent parent))
-         (gp-type (treesit-node-type gp)))
-    (cl-assert (string= gp-type "prefix"))
+  (let ((gp (treesit-node-parent parent)))
+    (cl-assert (string= (treesit-node-type gp) "prefix"))
 
     (let* ((ggp (treesit-node-parent gp))
            (ggp-type (treesit-node-type ggp)))
@@ -644,13 +646,10 @@
 
 (defun haskell-ts-indent--type-function-in-context-first-arg-anchor (node parent _bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
-
   (let* ((gp (treesit-node-parent parent))
-         (gp-type (treesit-node-type gp))
          (context gp)
          (forall (treesit-node-parent context)))
-
-    (cl-assert (string= gp-type "context"))
+    (cl-assert (string= (treesit-node-type gp) "context"))
     (haskell-ts-indent--type-function-in-context-first-arg-anchor--impl context forall)))
 
 (defun haskell-ts-indent--type-function-result-anchor (node parent _bol)

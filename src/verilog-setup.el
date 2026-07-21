@@ -8,6 +8,21 @@
 
 (declare-function electric-verilog-tab "verilog-mode")
 
+(defvar verilog-indent-level)
+(defvar verilog-indent-level-module)
+(defvar verilog-indent-level-declaration)
+(defvar verilog-indent-level-behavioral)
+(defvar verilog-indent-level-directive)
+(defvar verilog-case-indent)
+(defvar verilog-auto-newline)
+(defvar verilog-auto-indent-on-newline)
+(defvar verilog-tab-always-indent)
+(defvar verilog-auto-endcomments)
+(defvar verilog-minimum-comment-distance)
+(defvar verilog-indent-begin-after-if)
+(defvar verilog-auto-lineup)
+(defvar verilog-highlight-p1800-keywords)
+
 (require 'common)
 
 (setf verilog-indent-level             4

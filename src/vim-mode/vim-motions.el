@@ -489,7 +489,7 @@ described by one of the given `boundaries'."
                                (let ((beg (save-excursion
                                             (goto-char end)
                                             (funcall bnd 'bwd))))
-                                 (values beg end)))))
+                                 (cl-values beg end)))))
                          (lambda (b1 e1 b2 e2)
                            (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
 
@@ -500,7 +500,7 @@ described by one of the given `boundaries'."
                                (let ((end (save-excursion
                                             (goto-char beg)
                                             (funcall bnd 'fwd))))
-                                 (values beg end)))))
+                                 (cl-values beg end)))))
                          (lambda (b1 e1 b2 e2)
                            (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
 
@@ -774,7 +774,7 @@ text-object before or at point."
                                    (split-cdr (nthcdr (1+ (* 2 n-open)) open-md))
                                    (close-md (cdr split-cdr)))
                               (setcdr split-cdr nil)
-                              (values open-md close-md)))))
+                              (cl-values open-md close-md)))))
     (cl-block end
       (save-excursion
         (let ((combined-re (concat "\\("
@@ -836,7 +836,7 @@ text-object before or at point."
           (setq cl-beg (match-beginning 0)
                 cl-end (1- (match-end 0)))
           (when (>= cl-end close-pos)
-            (values op-beg op-end cl-beg cl-end)))))))
+            (cl-values op-beg op-end cl-beg cl-end)))))))
 
 (defun vim--inner-block (open-re close-re match-test n)
   "Selects the next `n' enclosing blocks excluding the delimiters."

@@ -35,7 +35,8 @@
   "List of modes that are considered to be lisp.")
 
 ;;;###autoload
-(el-patch-feature lisp-mode)
+(unless noninteractive
+  (el-patch-feature lisp-mode))
 
 (el-patch-defun lisp-indent-line (&optional indent)
   "Indent current line as Lisp code."
@@ -46,22 +47,22 @@
     (skip-chars-forward " \t")
     (if (or (null indent)
             ((el-patch-swap looking-at looking-at-p) "\\s<\\s<\\s<"))
-	;; Don't alter indentation of a ;;; comment line
-	;; or a line that starts in a string.
+        ;; Don't alter indentation of a ;;; comment line
+        ;; or a line that starts in a string.
         ;; FIXME: inconsistency: comment-indent moves ;;; to column 0.
-	(goto-char (- (point-max) pos))
+        (goto-char (- (point-max) pos))
       (el-patch-splice 3 0
         (if (and (looking-at "\\s<")
                  (not (looking-at "\\s<\\s<")))
-	    ;; Single-semicolon comment lines should be indented
-	    ;; as comment lines, not as code.
-	    (progn (indent-for-comment) (forward-char -1))
-	  (if (listp indent) (setq indent (car indent)))
+            ;; Single-semicolon comment lines should be indented
+            ;; as comment lines, not as code.
+            (progn (indent-for-comment) (forward-char -1))
+          (if (listp indent) (setq indent (car indent)))
           (indent-line-to indent)))
       ;; If initial point was within line's indentation,
       ;; position after the indentation.  Else stay at same point in text.
       (if (> (- (point-max) pos) (point))
-	  (goto-char (- (point-max) pos))))))
+          (goto-char (- (point-max) pos))))))
 
 (defalign lisp-align-on-comments ";+")
 
@@ -346,12 +347,12 @@ nor comment."
 
 ;;;; lists, strings
 
+(defsubst lisp-pos-is-beginning-of-list? (pos)
+  (eq ?\( (char-after pos)))
+
 (defsubst lisp-prev-pos-is-beginning-of-list? (pos)
   "Check whether position POS minus one is beginning of a list"
   (lisp-pos-is-beginning-of-list? (max (1- pos) (point-min))))
-
-(defsubst lisp-pos-is-beginning-of-list? (pos)
-  (eq ?\( (char-after pos)))
 
 (defsubst lisp-pos-is-end-of-list? (pos)
   (eq ?\) (char-after pos)))

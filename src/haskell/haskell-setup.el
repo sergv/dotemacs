@@ -7,13 +7,11 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'dash)
   (require 'flycheck-setup)
   (require 'macro-util)
   (require 'subr-x)
-  (require 'vim-macs)
-
-  (defvar ghc-core-program)
-  (defvar ghc-core-program-args))
+  (require 'vim-macs))
 
 (declare-function lsp-ui-sideline-mode "lsp-ui-sideline")
 

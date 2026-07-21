@@ -127,11 +127,10 @@ fi
 # fi
 # jobs="1"
 
-declare -a loads
+declare -a load_path
 
 while IFS= read -d $'\0' -r dir ; do
-    echo "$dir"
-    loads+=("-L" "$dir")
+    load_path+=("-L" "$dir")
     # emacs  -Q --batch -L. -Lsrc -Lsrc/haskell -Lsrc/lisp
 done < <(gen-el-files "-print" | xargs dirname | sort -u | awk '!/(auctex\/style|targets|template|tests?)([/]?|$)/' | sed -re 's,^\./,,' | tr '\n' '\0')
 
@@ -140,7 +139,8 @@ define eval_prelude <<EOF
   (defconst +emacs-config-path+ "$emacs_dir")
 
   (setf cl--optimize-speed 3
-        cl--optimize-safety 0)
+        cl--optimize-safety 0
+        byte-compile-warnings '(not docstrings-wide docstrings))
 
   (setf with-editor-emacsclient-executable nil
         byte-compile-dest-file-function
@@ -183,7 +183,7 @@ else
     gen-el-files "-print0" | \
         xargs -0 -P "$jobs" -n 1 \
               "$emacs" -Q --batch \
-              "${loads[@]}" \
+              "${load_path[@]}" \
               --eval "$eval_prelude" \
               -f batch-byte-compile
     # todo: use zipped_el_dest

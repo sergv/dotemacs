@@ -1,4 +1,4 @@
-;;; agda2-queue.el --- Simple FIFO character queues.
+;;; agda2-queue.el --- Simple FIFO character queues. -*- lexical-binding: t; -*-
 
 (defun agda2-queue-empty ()
   "Creates a new empty FIFO character queue.

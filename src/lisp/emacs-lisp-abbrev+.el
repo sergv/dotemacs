@@ -95,7 +95,7 @@ being invoked."
               ("bind"     1 1))))
           (make-abbrev+-abbreviation
            :action-type 'literal-string
-           :action-data "(multiple-value-bind"))
+           :action-data "(cl-multiple-value-bind"))
     (cons (emacs-lisp-abbrev+-only-when-called
            (make-abbrev+-triggers-for-func-name
             emacs-lisp-abbrev+--delims

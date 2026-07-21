@@ -7,7 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'hydra-setup)
+  (require 'macro-util)
+  (require 'vim-setup))
 
 ;;;###autoload
 (eval-after-load "sql"

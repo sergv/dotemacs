@@ -94,6 +94,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cl-extra)
   (require 'macro-util))
 
 (require 'cl-lib)
@@ -820,12 +821,10 @@ Will only be used when we finish implementing the interpreter.")
 (js2-deflocal js2-in-use-strict-directive nil
   "True while inside a script or function under strict mode.")
 
-(defcustom js2-global-externs nil
+(defvar js2-global-externs nil
   "A list of any extern names you'd like to consider always declared.
 This list is global and is used by all `js2-mode' files.
-You can create buffer-local externs list using `js2-additional-externs'."
-  :type 'list
-  :group 'js2-mode)
+You can create buffer-local externs list using `js2-additional-externs'.")
 
 (defcustom js2-include-browser-externs t
   "Non-nil to include browser externs in the master externs list.
@@ -1141,7 +1140,7 @@ another file, or you've got a potential bug."
 
 (defcustom js2-warn-about-unused-function-arguments nil
   "Non-nil to treat function arguments like declared-but-unused variables."
-  :type 'booleanp
+  :type 'boolean
   :group 'js2-mode)
 
 (defcustom js2-include-jslint-globals t
@@ -11866,7 +11865,7 @@ Selecting an error will jump it to the corresponding source-buffer error.
   (interactive)
   (kill-buffer))
 
-(defun js2-error-buffer-jump (&rest ignored)
+(defun js2-error-buffer-jump (&rest _ignored)
   "Jump cursor to current error in source buffer."
   (interactive)
   (when (js2-error-buffer-view)

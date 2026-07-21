@@ -57,7 +57,8 @@
                                                anything)))))
 
 ;;;###autoload
-(el-patch-feature minibuffer)
+(unless noninteractive
+  (el-patch-feature minibuffer))
 
 (el-patch-defun completion-file-name-table (string pred action)
   "Completion table for file names."

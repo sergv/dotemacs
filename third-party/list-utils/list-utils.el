@@ -1,4 +1,4 @@
-;;; list-utils.el --- List-manipulation utility functions
+;;; list-utils.el --- List-manipulation utility functions -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (c) 2012-2024 Roland Walker
 ;;

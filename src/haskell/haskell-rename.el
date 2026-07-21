@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'set-up-platform))
 
+(declare-function treesit-node-at "treesit")
+
 (require 'haskell-ts-getters)
 (require 'haskell-ts-mode)
 
@@ -265,7 +267,7 @@
           (goto-char editing-start-pos)
           (vim-activate-insert-mode))))))
 
-(defun haskell-ts-rename--modification-hook (ov changed beg end &optional len)
+(defun haskell-ts-rename--modification-hook (ov changed _beg _end &optional _len)
   (when changed
     (let ((ov-start (overlay-start ov))
           (ov-end (overlay-end ov)))

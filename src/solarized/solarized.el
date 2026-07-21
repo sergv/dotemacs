@@ -8,6 +8,17 @@
   (require 'macro-util)
   (require 'set-up-platform))
 
+(defvar org-drill-new-count-color)
+(defvar org-drill-done-count-color)
+(defvar org-drill-failed-count-color)
+(defvar org-drill-mature-count-color)
+(defvar ansi-color-names-vector)
+(defvar ansi-color-map)
+(defvar xterm-color-names)
+(defvar xterm-color-names-bright)
+(defvar fci-rule-color)
+(defvar ansi-term-color-vector)
+
 (require 'solarized-palettes)
 
 ;; (defun solarized-color-clamp-lab (lab)
@@ -146,8 +157,8 @@
          (aux-mid                   (funcall num->color (solarized-palette-aux-mid                   palette)))
          (primary-content           (funcall num->color (solarized-palette-primary-content           palette)))
          (emphasized-content        (funcall num->color (solarized-palette-emphasized-content        palette)))
-         (aux-high-1                (funcall num->color (solarized-palette-aux-high-1                palette)))
-         (aux-high-2                (funcall num->color (solarized-palette-aux-high-2                palette)))
+         (_aux-high-1               (funcall num->color (solarized-palette-aux-high-1                palette)))
+         (_aux-high-2               (funcall num->color (solarized-palette-aux-high-2                palette)))
 
          (red                       (funcall num->color (solarized-palette-red                       palette)))
          (orange                    (funcall num->color (solarized-palette-orange                    palette)))
@@ -168,13 +179,13 @@
          ;; (magenta-aux-fg            (funcall num->color (solarized-palette-magenta-aux-fg            palette)))
 
          (red-aux-bg                (funcall num->color (solarized-palette-red-aux-bg                palette)))
-         (orange-aux-bg             (funcall num->color (solarized-palette-orange-aux-bg             palette)))
+         (_orange-aux-bg            (funcall num->color (solarized-palette-orange-aux-bg             palette)))
          (yellow-aux-bg             (funcall num->color (solarized-palette-yellow-aux-bg             palette)))
          (green-aux-bg              (funcall num->color (solarized-palette-green-aux-bg              palette)))
-         (cyan-aux-bg               (funcall num->color (solarized-palette-cyan-aux-bg               palette)))
-         (blue-aux-bg               (funcall num->color (solarized-palette-blue-aux-bg               palette)))
-         (violet-aux-bg             (funcall num->color (solarized-palette-violet-aux-bg             palette)))
-         (magenta-aux-bg            (funcall num->color (solarized-palette-magenta-aux-bg            palette)))
+         (_cyan-aux-bg              (funcall num->color (solarized-palette-cyan-aux-bg               palette)))
+         (_blue-aux-bg              (funcall num->color (solarized-palette-blue-aux-bg               palette)))
+         (_violet-aux-bg            (funcall num->color (solarized-palette-violet-aux-bg             palette)))
+         (_magenta-aux-bg           (funcall num->color (solarized-palette-magenta-aux-bg            palette)))
 
          ;; (red-aux-aux-fg            (funcall num->color (solarized-palette-red-aux-aux-fg            palette)))
          ;; (orange-aux-aux-fg         (funcall num->color (solarized-palette-orange-aux-aux-fg         palette)))
@@ -185,14 +196,14 @@
          ;; (violet-aux-aux-fg         (funcall num->color (solarized-palette-violet-aux-aux-fg         palette)))
          ;; (magenta-aux-aux-fg        (funcall num->color (solarized-palette-magenta-aux-aux-fg        palette)))
 
-         (red-aux-aux-bg            (funcall num->color (solarized-palette-red-aux-aux-bg            palette)))
-         (orange-aux-aux-bg         (funcall num->color (solarized-palette-orange-aux-aux-bg         palette)))
-         (yellow-aux-aux-bg         (funcall num->color (solarized-palette-yellow-aux-aux-bg         palette)))
-         (green-aux-aux-bg          (funcall num->color (solarized-palette-green-aux-aux-bg          palette)))
-         (cyan-aux-aux-bg           (funcall num->color (solarized-palette-cyan-aux-aux-bg           palette)))
-         (blue-aux-aux-bg           (funcall num->color (solarized-palette-blue-aux-aux-bg           palette)))
-         (violet-aux-aux-bg         (funcall num->color (solarized-palette-violet-aux-aux-bg         palette)))
-         (magenta-aux-aux-bg        (funcall num->color (solarized-palette-magenta-aux-aux-bg        palette)))
+         (_red-aux-aux-bg           (funcall num->color (solarized-palette-red-aux-aux-bg            palette)))
+         (_orange-aux-aux-bg        (funcall num->color (solarized-palette-orange-aux-aux-bg         palette)))
+         (_yellow-aux-aux-bg        (funcall num->color (solarized-palette-yellow-aux-aux-bg         palette)))
+         (_green-aux-aux-bg         (funcall num->color (solarized-palette-green-aux-aux-bg          palette)))
+         (_cyan-aux-aux-bg          (funcall num->color (solarized-palette-cyan-aux-aux-bg           palette)))
+         (_blue-aux-aux-bg          (funcall num->color (solarized-palette-blue-aux-aux-bg           palette)))
+         (_violet-aux-aux-bg        (funcall num->color (solarized-palette-violet-aux-aux-bg         palette)))
+         (_magenta-aux-aux-bg       (funcall num->color (solarized-palette-magenta-aux-aux-bg        palette)))
 
          ;; (red-aux-aux-aux-fg        (funcall num->color (solarized-palette-red-aux-aux-aux-fg        palette)))
          ;; (orange-aux-aux-aux-fg     (funcall num->color (solarized-palette-orange-aux-aux-aux-fg     palette)))
@@ -218,9 +229,9 @@
          (highlight-yellow-background     yellow-aux-aux-aux-bg)
          (highlight-green-background      green-aux-aux-aux-bg)
          (highlight-cyan-background       cyan-aux-aux-aux-bg)
-         (highlight-blue-background       blue-aux-aux-aux-bg)
-         (highlight-violet-background     violet-aux-aux-aux-bg)
-         (highlight-magenta-background    magenta-aux-aux-aux-bg)
+         (_highlight-blue-background      blue-aux-aux-aux-bg)
+         (_highlight-violet-background    violet-aux-aux-aux-bg)
+         (_highlight-magenta-background   magenta-aux-aux-aux-bg)
 
          (box-line-width (eval-when-compile
                            (or (when-emacs-version (>= it 28)
@@ -971,8 +982,8 @@ only installing unique attributes."
 
 (defun solarized--install-faces (faces)
   (dolist (face-spec faces)
-    (let ((face (first face-spec))
-          (spec (second face-spec)))
+    (let ((face (cl-first face-spec))
+          (spec (cl-second face-spec)))
       (condition-case err
           (progn
             (face-spec-set face spec)
