@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'flycheck-setup)
   (require 'macro-util))
 
 (defvar c-basic-offset)
