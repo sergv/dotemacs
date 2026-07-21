@@ -14,7 +14,7 @@
   "The version of the Agda mode.
 Note that the same version of the Agda executable must be used.")
 
-(require 'cl)
+(require 'cl-lib)
 (require 'compile)
 (require 'pp)
 (require 'time-date)
