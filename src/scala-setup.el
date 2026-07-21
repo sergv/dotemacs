@@ -6,6 +6,9 @@
 ;; Created: 12 June 2026
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (defun scala-setup ()
   (init-common :use-render-formula t

@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'dash)
   (require 'macro-util))
 
 ;; Really, don’t create this symbol yourself, only reference it via
@@ -123,12 +124,11 @@ call (MERGE old-val VALUE) to produce a new value."
   (aif (gethash trie cache)
       it
     (let* ((value (trie-node--value trie))
-           (subtrees (trie-node--subtrees trie))
            (shared-val (aif (gethash value cache)
                            it
                          (puthash value value cache)))
            (shared-subtrees
-            ;; (trie-opt--recover-sharing-worker--subtrees subtrees cache)
+            ;; (trie-opt--recover-sharing-worker--subtrees (trie-node--subtrees trie) cache)
             (trie-opt--recover-sharing-worker--subtrees
              (--map (cons (car it)
                           (trie-opt--recover-sharing-worker (cdr it) cache))

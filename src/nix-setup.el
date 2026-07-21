@@ -7,8 +7,9 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'hydra-setup)
   (require 'macro-util)
-  (require 'hydra-setup))
+  (require 'vim-macs))
 
 (require 'align-util)
 (require 'hydra-setup)

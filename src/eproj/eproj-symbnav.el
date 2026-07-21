@@ -8,9 +8,10 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x)
+  (require 'eproj-common)
   (require 'macro-util)
-  (require 'nanothunk))
+  (require 'nanothunk)
+  (require 'subr-x))
 
 (declare-function eproj-reload-project! "eproj")
 

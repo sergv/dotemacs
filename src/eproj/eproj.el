@@ -1452,14 +1452,6 @@ projects into the mix."
                              projs)))))
     (hash-table-values visited)))
 
-(defmacro eproj-resolve-to-abs-path (path proj)
-  `(if (file-name-absolute-p ,path)
-       ,path
-     ,(if proj
-          `(eproj--resolve-to-abs-path-cached ,path (eproj-project/root ,proj))
-        `(error "Path is not absolute and no project available to resolve it: %s"
-                ,path))))
-
 
 (defvar eproj-translate-file-name nil
   "If set should be a function that amends paths according to some rule. E.g. when

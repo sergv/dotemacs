@@ -6,6 +6,10 @@
 ;; Created:  4 December 2023
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util)
+  (require 'vim-macs))
+
 ;;;###autoload
 (defun ptl-backward-up-indentation-or-sexp ()
   "PTL brother of ‘paredit-backward-up’ that considers both
