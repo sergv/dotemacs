@@ -1,4 +1,4 @@
-;; align-let.el --- align expressions in a lisp "let"
+;; align-let.el --- align expressions in a lisp "let" -*- lexical-binding: t; -*-
 
 ;; Copyright 2005, 2006, 2007, 2009, 2010 Kevin Ryde
 

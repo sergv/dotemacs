@@ -25,10 +25,10 @@
   (concat "\\(?:\\b\\|'+\\)" haskell-regexen/conid-raw))
 
 
-(eval-when-compile
-  (rx-define haskell-regexen/module-name-section
-    (regex "[[:upper:]][[:alnum:]'_]*"))
+(rx-define haskell-regexen/module-name-section
+  (regex "[[:upper:]][[:alnum:]'_]*"))
 
+(eval-when-compile
   (defconst haskell-regexen/module-name-section
     (rx haskell-regexen/module-name-section)))
 
@@ -346,9 +346,8 @@ otherwise results will be incorrect.")
 
 (defconst haskell-regexen/module-name
   (eval-when-compile
-    (let ((conid "[[:upper:]][[:alnum:]'_]*"))
-      (concat "\\b" haskell-regexen/module-name-section
-              "\\(?:\\." haskell-regexen/module-name-section "\\)*\\b"))))
+    (concat "\\b" haskell-regexen/module-name-section
+            "\\(?:\\." haskell-regexen/module-name-section "\\)*\\b")))
 
 (defconst haskell-regexen/pre-post-qualified-import-line
   (rx-let ((ws (any ?\s ?\t ?\r ?\n))

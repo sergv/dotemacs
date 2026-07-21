@@ -1,4 +1,4 @@
-;;; lv.el --- Other echo area
+;;; lv.el --- Other echo area -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015  Free Software Foundation, Inc.
 

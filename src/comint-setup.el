@@ -29,7 +29,8 @@
 ;;;###autoload
 (eval-after-load "comint" '(require 'comint-setup))
 
-(el-patch-feature shell)
+(unless noninteractive
+  (el-patch-feature shell))
 
 (defun shell-init ()
   ;; this calls `comint-write-input-ring' from the repl buffer so that it
@@ -53,7 +54,8 @@ Sentinels will always get the two parameters PROCESS and EVENT."
 
 (eval-after-load "shell" '(shell-init))
 
-(el-patch-feature comint)
+(unless noninteractive
+  (el-patch-feature comint))
 
 (defun comint-init ()
 

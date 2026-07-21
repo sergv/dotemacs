@@ -1,3 +1,4 @@
+(require 'cl-lib)
 (require 'popup)
 
 (defmacro test (explain &rest body)
@@ -113,11 +114,11 @@ HELP-DELAY is a delay of displaying helps."
   (popup-select popup 1))
 
 (ui-test "scroll-down?"
-  (setq popup (popup-cascade-menu (loop repeat 100 collect "Foo") :nowait t :height 10 :margin t :scroll-bar t))
+  (setq popup (popup-cascade-menu (cl-loop repeat 100 collect "Foo") :nowait t :height 10 :margin t :scroll-bar t))
   (popup-scroll-down popup 10))
 
 (ui-test "scroll-up?"
-  (setq popup (popup-cascade-menu (loop repeat 100 collect "Foo") :nowait t :height 10 :margin t :scroll-bar t))
+  (setq popup (popup-cascade-menu (cl-loop repeat 100 collect "Foo") :nowait t :height 10 :margin t :scroll-bar t))
   (popup-scroll-down popup 999)
   (popup-scroll-up popup 10))
 

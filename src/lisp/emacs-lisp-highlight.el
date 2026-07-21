@@ -164,8 +164,7 @@ with exclamation mark"
                          (mapc check-highlight-entry (cdr entry)))
                         (t
                          (error "Non-highlight directive(s) found: %s" (cdr entry)))))
-                    keywords)
-              (values)))
+                    keywords)))
 
            (check-highlight-entry
             (lambda (entry)
@@ -185,7 +184,6 @@ with exclamation mark"
                    (<= 2 (length form))))))
 
     (funcall check-font-lock-keywords +emacs-lisp-basic-keywords+)))
-
 
 (provide 'emacs-lisp-highlight)
 

@@ -8,15 +8,18 @@
 
 (eval-when-compile
   (require 'macro-util)
-  (require 'vim-motions)
-
-  (defvar awk-buffer-name)
-  (defvar magit-blame-mode))
+  (require 'vim-motions))
 
 (declare-function magit-blame-quit "magit-blame")
 (declare-function magit-refresh-all "magit-mode")
 (declare-function server-edit "server")
-(declare-function vim-activate-blame-mode "git-setup")
+(declare-function smerge-next "smerge")
+
+(defvar awk-buffer-name)
+(defvar magit-blame-mode)
+(defvar *mode-indent-functions-table*)
+(defvar smerge-begin-re)
+(defvar smerge-mode)
 
 (require 'common)
 (require 'completion-setup)

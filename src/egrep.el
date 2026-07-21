@@ -10,6 +10,10 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(declare-function eproj-get-absolute-ignored-dirs "eproj" (proj))
+
+(defvar select-mode--current-state)
+
 (require 'f)
 
 (require 'common)
@@ -417,7 +421,7 @@ string patterns."
       (read-directory-name "Base directory: "
                            nil default-directory t)
       (and current-prefix-arg
-           (<= 4 (first current-prefix-arg))))))
+           (<= 4 (cl-first current-prefix-arg))))))
   (cl-assert (listp exts-globs))
 
   (egrep-search (expand-escape-sequences regexp)
@@ -433,7 +437,7 @@ string patterns."
   (interactive
    (let* ((ignore-case?
            (and current-prefix-arg
-                (<= 4 (first current-prefix-arg))))
+                (<= 4 (cl-first current-prefix-arg))))
           (regexp
            (read-regexp (format
                          "%s for"

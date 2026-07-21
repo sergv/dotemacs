@@ -251,9 +251,6 @@ mutate when finishing the edit.")
 ;;;###autoload
 (define-derived-mode vim-edmacro-mode text-mode "Edit macro"
   "Major mode for editing macro definitions."
-  ;; Fringe line tracking.
-  (when (bound-and-true-p linum-mode)
-    (linum-mode -1))
   (font-lock-mode 1)
 
   (setq-local comment-start ";; "

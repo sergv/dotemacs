@@ -1,4 +1,4 @@
-;;; agda2-mode.el --- Major mode for Agda
+;;; agda2-mode.el --- Major mode for Agda -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -7,6 +7,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Dependency
 
+(eval-when-compile
+  (require 'cl-lib))
 
 ;;; Code:
 
@@ -770,7 +772,7 @@ range is given.
 
 If SAVE is 'save, then the buffer is saved just before the
 command is sent to Agda (if it is sent)."
-  (multiple-value-bind (o g) (agda2-goal-at (point))
+  (cl-multiple-value-bind (o g) (agda2-goal-at (point))
     (unless g (error "For this command, please place the cursor in a goal"))
     (let ((txt (buffer-substring-no-properties (+ (overlay-start o) 2)
                                                (- (overlay-end   o) 2)))
@@ -1585,14 +1587,14 @@ if NEW-TXT is `'paren').
 
 Removes the goal braces, but does not remove the goal overlay or
 text properties."
-  (multiple-value-bind (p q) (agda2-range-of-goal old-g)
+  (cl-multiple-value-bind (p q) (agda2-range-of-goal old-g)
     (save-excursion
       (cond ((stringp new-txt)
              (agda2-replace-goal old-g new-txt))
             ((equal new-txt 'paren)
              (goto-char (- q 2)) (insert ")")
              (goto-char (+ p 2)) (insert "(")))
-      (multiple-value-bind (p q) (agda2-range-of-goal old-g)
+      (cl-multiple-value-bind (p q) (agda2-range-of-goal old-g)
         (delete-region (- q 2) q)
         (delete-region p (+ p 2)))
         ;; Update highlighting
@@ -1671,7 +1673,7 @@ characters to the \\xNNNN notation used in Haskell strings."
   "Return (goal overlay, goal number) at POS, or nil."
   (let ((os (and pos (overlays-at pos))) o g)
     (while (and os (not(setq g (overlay-get (setq o (pop os)) 'agda2-gn)))))
-    (if g (list o g))))
+    (if g (cl-values o g))))
 
 (defun agda2-goal-overlay (g)
   "Returns the overlay of goal number G, if any."
@@ -1692,7 +1694,7 @@ characters to the \\xNNNN notation used in Haskell strings."
 (defun agda2-replace-goal (g newtxt)
   "Replace the content of goal G with NEWTXT." (interactive)
   (save-excursion
-    (multiple-value-bind (p q) (agda2-range-of-goal g)
+    (cl-multiple-value-bind (p q) (agda2-range-of-goal g)
       (setq p (+ p 2) q (- q 2))
       (let ((indent (and (goto-char p) (current-column))))
         (delete-region p q) (insert newtxt)

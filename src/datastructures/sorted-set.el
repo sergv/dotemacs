@@ -33,19 +33,19 @@
          (items (sorted-set/items set))
          (lt-pred (sorted-set/lt-pred set)))
     (while (and (not (null items))
-                (funcall lt-pred (first items) item))
-      (setf (rest tmp) (cons (first items) nil)
-            tmp (rest tmp)
-            items (rest items)))
+                (funcall lt-pred (cl-first items) item))
+      (setf (cl-rest tmp) (cons (cl-first items) nil)
+            tmp (cl-rest tmp)
+            items (cl-rest items)))
     (if (and (not (null items))
              ;; If existing item is not greater thar the
              ;; one we're trying to insert then do not
              ;; insert it.
-             (not (funcall lt-pred item (first items))))
+             (not (funcall lt-pred item (cl-first items))))
       set
       (progn
-        (setf (rest tmp) (cons item items))
-        (make-sorted-set :items (rest res-items)
+        (setf (cl-rest tmp) (cons item items))
+        (make-sorted-set :items (cl-rest res-items)
                          :lt-pred (sorted-set/lt-pred set)
                          :length (+ 1 (sorted-set/length set)))))))
 
@@ -66,31 +66,31 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
     (while (or (not (null items1))
                (not (null items2)))
       (cond ((null items1)
-             (setf (rest tmp) items2
+             (setf (cl-rest tmp) items2
                    len (+ len (length items2))
                    items2 nil))
             ((null items2)
-             (setf (rest tmp) items1
+             (setf (cl-rest tmp) items1
                    len (+ len (length items1))
                    items1 nil))
-            ((funcall lt-than (first items1) (first items2))
-             (setf (rest tmp) (cons (first items1) nil)
+            ((funcall lt-than (cl-first items1) (cl-first items2))
+             (setf (cl-rest tmp) (cons (cl-first items1) nil)
                    len (+ 1 len)
-                   tmp (rest tmp)
-                   items1 (rest items1)))
-            ((funcall lt-than (first items2) (first items1))
-             (setf (rest tmp) (cons (first items2) nil)
+                   tmp (cl-rest tmp)
+                   items1 (cl-rest items1)))
+            ((funcall lt-than (cl-first items2) (cl-first items1))
+             (setf (cl-rest tmp) (cons (cl-first items2) nil)
                    len (+ 1 len)
-                   tmp (rest tmp)
-                   items2 (rest items2)))
+                   tmp (cl-rest tmp)
+                   items2 (cl-rest items2)))
             (t
              ;; equal case
-             (setf (rest tmp) (cons (first items1) nil)
+             (setf (cl-rest tmp) (cons (cl-first items1) nil)
                    len (+ 1 len)
-                   tmp (rest tmp)
-                   items1 (rest items1)
-                   items2 (rest items2)))))
-    (make-sorted-set :items (rest result)
+                   tmp (cl-rest tmp)
+                   items1 (cl-rest items1)
+                   items2 (cl-rest items2)))))
+    (make-sorted-set :items (cl-rest result)
                      :lt-pred lt-than
                      :length len)))
 
@@ -110,18 +110,18 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
          (len 0))
     (while (and (not (null items1))
                 (not (null items2)))
-      (cond ((funcall lt-than (first items1) (first items2))
-             (setf items1 (rest items1)))
-            ((funcall lt-than (first items2) (first items1))
-             (setf items2 (rest items2)))
+      (cond ((funcall lt-than (cl-first items1) (cl-first items2))
+             (setf items1 (cl-rest items1)))
+            ((funcall lt-than (cl-first items2) (cl-first items1))
+             (setf items2 (cl-rest items2)))
             (t
              ;; equal case
-             (setf (rest tmp) (cons (first items1) nil)
+             (setf (cl-rest tmp) (cons (cl-first items1) nil)
                    len (+ 1 len)
-                   tmp (rest tmp)
-                   items1 (rest items1)
-                   items2 (rest items2)))))
-    (make-sorted-set :items (rest result)
+                   tmp (cl-rest tmp)
+                   items1 (cl-rest items1)
+                   items2 (cl-rest items2)))))
+    (make-sorted-set :items (cl-rest result)
                      :lt-pred lt-than
                      :length len)))
 
@@ -132,17 +132,17 @@ items and remove any duplicates."
   (let ((remove-duplicates
          (lambda (items)
            ;; items is sorted here
-           (let* ((result (cons (first items) nil))
+           (let* ((result (cons (cl-first items) nil))
                   (tmp result)
                   (len 1))
-             (setf items (rest items))
+             (setf items (cl-rest items))
              (while items
-               (when (funcall lt-pred (first tmp) (first items))
-                 (setf (rest tmp) (cons (first items) nil)
-                       tmp (rest tmp)
+               (when (funcall lt-pred (cl-first tmp) (cl-first items))
+                 (setf (cl-rest tmp) (cons (cl-first items) nil)
+                       tmp (cl-rest tmp)
                        len (+ 1 len)))
-               (setf items (rest items)))
-             (values result len)))))
+               (setf items (cl-rest items)))
+             (cl-values result len)))))
     (cl-multiple-value-bind (items len)
         (funcall remove-duplicates
                  (sort items :lessp lt-pred :in-place nil))

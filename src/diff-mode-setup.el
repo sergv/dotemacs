@@ -12,6 +12,8 @@
 (declare-function diff-hunk-kill "diff-mode")
 (declare-function server-edit "server")
 
+(defvar outline-heading-alist)
+
 (require 'common)
 (require 'folding-setup)
 (require 'hydra-setup)

@@ -7,6 +7,8 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'common)
+  (require 'dash)
   (require 'macro-util)
   (require 'set-up-platform))
 
@@ -130,7 +132,7 @@
                                       (lambda (idx _)
                                         (< idx current-index)))))
 
-(defun tab-bar--close-tabs-by-predicate (tabs current-index predicate)
+(defun tab-bar--close-tabs-by-predicate (tabs _current-index predicate)
   "Close all tabs on the selected frame for which PREDICATE returns t.
 
 PREDICATE should accept two arguments: tab index and tab structure and return

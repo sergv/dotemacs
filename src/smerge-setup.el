@@ -11,6 +11,15 @@
   (require 'keys-def)
   (require 'macro-util))
 
+(declare-function hydra-set-transient-map "vim-motions" (keymap on-exit &optional foreign-keys))
+(declare-function hydra-show-hint "hydra" (hint caller))
+(declare-function hydra--call-interactively-remap-maybe "hydra" (cmd))
+(declare-function hydra-keyboard-quit "hydra" ())
+(declare-function hydra-default-pre "hydra" nil)
+(declare-function vim-execute-command "vim-core" (cmd))
+(declare-function vim-activate-mode "vim-modes" (mode))
+(declare-function vim--make-keymap "vim-keymap" (&optional parent))
+
 (require 'smerge-mode)
 (require 'vim-setup)
 
@@ -31,6 +40,16 @@
   :command-function #'vim--normal-mode-command
   :cursor 'hbar)
 
+(vimmize-function smerge-keep-upper   :name vim:smerge-keep-upper :has-count nil)
+(vimmize-function smerge-keep-lower   :name vim:smerge-keep-lower :has-count nil)
+;;;###autoload (autoload 'vim:smerge-keep-upper "smerge-setup")
+;;;###autoload (autoload 'vim:smerge-keep-upper:interactive "smerge-setup" nil t)
+;;;###autoload (autoload 'vim:smerge-keep-lower "smerge-setup")
+;;;###autoload (autoload 'vim:smerge-keep-lower:interactive "smerge-setup" nil t)
+(vimmize-function smerge-keep-base    :name vim:smerge-keep-base :has-count nil)
+(vimmize-function smerge-keep-current :name vim:smerge-keep-current :has-count nil)
+(vimmize-function smerge-kill-current :name vim:smerge-kill-current :has-count nil)
+
 (defhydra-ext hydra-smerge (:exit t :foreign-keys nil :hint nil)
   "
 _h_: go to next confict       _e_diff
@@ -49,16 +68,6 @@ _,_: kill current
 
   ("e" smerge-ediff)
   ("r" smerge-refine))
-
-;;;###autoload (autoload 'vim:smerge-keep-upper "smerge-setup")
-;;;###autoload (autoload 'vim:smerge-keep-upper:interactive "smerge-setup" nil t)
-(vimmize-function smerge-keep-upper   :name vim:smerge-keep-upper :has-count nil)
-;;;###autoload (autoload 'vim:smerge-keep-lower "smerge-setup")
-;;;###autoload (autoload 'vim:smerge-keep-lower:interactive "smerge-setup" nil t)
-(vimmize-function smerge-keep-lower   :name vim:smerge-keep-lower :has-count nil)
-(vimmize-function smerge-keep-base    :name vim:smerge-keep-base :has-count nil)
-(vimmize-function smerge-keep-current :name vim:smerge-keep-current :has-count nil)
-(vimmize-function smerge-kill-current :name vim:smerge-kill-current :has-count nil)
 
 (vim-defcmd vim:smerge-mode-exit (nonrepeatable)
   "Deactivates visual mode, returning to normal-mode."

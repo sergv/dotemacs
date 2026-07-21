@@ -1023,7 +1023,7 @@ style is assumed."
 Respect the COMMA-STYLE, see
 `haskell-cabal-strip-list-and-detect-style' for the possible
 styles."
-  (cl-case comma-style
+  (pcase comma-style
     ('before
      (goto-char (point-min))
      (while (haskell-cabal-ignore-line-p) (forward-line))
