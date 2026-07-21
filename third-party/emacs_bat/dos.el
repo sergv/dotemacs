@@ -1,4 +1,4 @@
-;;; dos.el --- major mode for editing Dos scripts (batch files)
+;;; dos.el --- major mode for editing Dos scripts (batch files) -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003, 2008, 2009, 2010, 2011, 2012 Arni Magnusson
 
@@ -48,11 +48,11 @@
 
 ;;; History:
 ;;
-;; 18 Jul 2012  =.== Correct parsing the following elements: 
-;;                       %%f(batch variable), 
-;;                       %~xxI(expand extension), 
+;; 18 Jul 2012  =.== Correct parsing the following elements:
+;;                       %%f(batch variable),
+;;                       %~xxI(expand extension),
 ;;                       %0..%9(command line param),
-;;                       variables in string 
+;;                       variables in string
 ;;                       echo XXX(`XXX' as string),
 ;;                   Remove templates
 ;; 30 Mar 2012  2.17 Improved documentation.

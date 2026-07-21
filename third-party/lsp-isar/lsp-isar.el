@@ -100,7 +100,7 @@ automatically."
 A potentially easier way to control is to use the option
 `--noisabelle' you can pass to Emacs. It has the same effect, but
 you can decide at startup what you want."
-  :type 'bool
+  :type 'boolean
   :group 'isabelle)
 
 (defun lsp-isar-initialise ()

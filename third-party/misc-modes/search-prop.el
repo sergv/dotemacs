@@ -1,4 +1,4 @@
-;;; search-prop.el --- search forward and backward for properties
+;;; search-prop.el --- search forward and backward for properties -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007 Michael Olson
 

@@ -17,6 +17,7 @@
 (require 'common)
 (require 'compile)
 (require 'compilation-navigation)
+(require 'hl-paren)
 (require 'xterm-color)
 
 (setf compilation-always-kill t

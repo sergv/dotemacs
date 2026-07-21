@@ -10,6 +10,7 @@
 
 (eval-when-compile
   (require 'macro-util)
+
   (defvar asm-mode-map))
 
 ;;;###autoload

@@ -9,6 +9,16 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(declare-function treesit-buffer-root-node "treesit")
+(declare-function treesit-filter-child "treesit")
+(declare-function treesit-node-at "treesit")
+
+(defvar haskell-regexen/inline-pragmas-complete-pragma)
+(defvar haskell-ts-buffer-lang)
+
+(require 'buffer-span)
+(require 'common)
+(require 'common-small)
 (require 'semnav)
 
 (defsubst treesit-haskell--current-node ()
@@ -204,7 +214,7 @@
            x)))
     (treesit-node-type node)))
 
-(defmacro* treesit-with-evaluated-anchor-and-offset
+(cl-defmacro treesit-with-evaluated-anchor-and-offset
     ((evaluated-anchor-pos-var anchor)
      (evaluated-offset-num-var offset)
      &rest body)
@@ -370,6 +380,16 @@ references to parsed treesitter modes shall remain."
      (insert ,str)
      (let ((,node-var (treesit-parser-root-node (treesit-parser-create ,language))))
        ,@body)))
+
+(defun treesit-node-text-no-properties-unsafe (node &optional str)
+  (cl-assert (not (null node)))
+  (cl-assert (treesit-node-p node))
+  (if (stringp str)
+      (substring-no-properties str (1- (treesit-node-start node)) (1- (treesit-node-end node)))
+    (progn
+      (cl-assert (or (eq (current-buffer) (treesit-node-buffer node))
+                     (eq (buffer-base-buffer (current-buffer)) (treesit-node-buffer node))))
+      (buffer-substring-no-properties (treesit-node-start node) (treesit-node-end node)))))
 
 ;; (defun treesit-utils-node-texts-in-current-buffer= (x y)
 ;;   (cl-assert (treesit-node-p y))

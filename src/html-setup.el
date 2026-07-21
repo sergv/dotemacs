@@ -177,7 +177,8 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     (web-mode-navigate)))
 
 ;;;###autoload
-(el-patch-feature rng-valid)
+(unless noninteractive
+  (el-patch-feature rng-valid))
 
 (defun rng-init ()
   ;; propertize Invalid message with distinctive face

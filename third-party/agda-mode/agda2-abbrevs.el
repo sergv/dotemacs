@@ -1,4 +1,4 @@
-;; agda2-abbrevs.el --- Default Agda abbrevs
+;; agda2-abbrevs.el --- Default Agda abbrevs -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

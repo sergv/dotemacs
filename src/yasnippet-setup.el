@@ -16,7 +16,8 @@
 (require 'yasnippet)
 
 ;;;###autoload
-(el-patch-feature yasnippet)
+(unless noninteractive
+  (el-patch-feature yasnippet))
 
 (setf yas-ignore-filenames-as-triggers t
       yas-snippet-dirs (list (concat +resources-path+ "/snippets"))

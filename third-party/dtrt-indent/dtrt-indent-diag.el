@@ -1,4 +1,4 @@
-;;; dtrt-indent-diag.el --- Diagnostic functions for dtrt-indent.el
+;;; dtrt-indent-diag.el --- Diagnostic functions for dtrt-indent.el -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003, 2007, 2008 Julian Scheid
 
@@ -124,18 +124,18 @@ required)\n"
 
           (princ (format "  Hard tab percentage: %.2f%% (%d lines), \
 %.2f%% superior to soft tabs (threshold %.2f%%)\n"
-                         (* 100.0 hard-tab-percentage) 
-                         hard-tab-lines 
-                         (- (* 100.0 (/ hard-tab-percentage 
+                         (* 100.0 hard-tab-percentage)
+                         hard-tab-lines
+                         (- (* 100.0 (/ hard-tab-percentage
                                         soft-tab-percentage))
                             100.0)
                          dtrt-indent-min-hard-tab-superiority
                          ))
           (princ (format "  Soft tab percentage: %.2f%% (%d lines), \
 %.2f%% superior to hard tabs (threshold %.2f%%)\n"
-                         (* 100.0 soft-tab-percentage) 
+                         (* 100.0 soft-tab-percentage)
                          soft-tab-lines
-                         (- (* 100.0 (/ soft-tab-percentage 
+                         (- (* 100.0 (/ soft-tab-percentage
                                         hard-tab-percentage))
                             100.0)
                          dtrt-indent-min-soft-tab-superiority))

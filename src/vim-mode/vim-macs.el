@@ -421,7 +421,7 @@ look at vim-core.el."
            ,doc
            ,(cond
               (raw-result
-               `(vim-wrap-motion ,type
+               `(vim-wrap-motion ',type
                   (,name-raw nil                        ;; motion
                              ,(when count 'count)       ;; count
                              ,(when argument 'argument) ;; arg
