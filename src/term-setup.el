@@ -7,10 +7,12 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-macs))
 
 (require 'common)
 (require 'solarized)
+(require 'term)
 
 (setf term-buffer-maximum-size 0 ;; don't truncate anything
       ;; set pompt both for lisps and
@@ -22,9 +24,11 @@
 
 (vimmize-motion
  (term-bol nil)
- :doc "Move the cursor to the first character after prompt\
-on current line. See `term-bol'.")
+ :doc
+ "Move the cursor to the first character after prompt on current line.
+See ‘term-bol’.")
 
+;;;###autoload
 (defun term-setup ()
   (vim:bind-local-keymaps)
 
@@ -43,6 +47,7 @@ on current line. See `term-bol'.")
   (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" term-send-raw)))
 
+;;;###autoload
 (add-hook 'term-mode-hook #'term-setup)
 
 (provide 'term-setup)

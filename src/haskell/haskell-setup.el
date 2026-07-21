@@ -7,9 +7,10 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'subr-x)
+  (require 'flycheck-setup)
   (require 'macro-util)
-
+  (require 'subr-x)
+  (require 'vim-macs)
 
   (defvar ghc-core-program)
   (defvar ghc-core-program-args))

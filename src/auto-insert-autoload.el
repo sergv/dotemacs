@@ -6,6 +6,9 @@
 ;; Created: 16 August 2023
 ;; Description:
 
+(eval-when-compile
+  (declare-function auto-insert-update "auto-insert-setup"))
+
 (setf auto-insert-directory (concat +resources-path+ "/auto-insert")
       auto-insert 'other
       auto-insert-query nil

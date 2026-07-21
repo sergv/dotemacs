@@ -8,6 +8,9 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (autoload 'graphviz-dot-mode "graphviz-dot-mode" nil t)
 

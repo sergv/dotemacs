@@ -1370,7 +1370,7 @@ Must be called from GHCi process buffer."
     (dante-debug 'inputs "%s" input)
     (s-replace "\r" "" input)))
 
-(eval-when-compile
+(eval-and-compile
   (defun dante-regexp-disjoin (&rest regexps)
     "Return a regexp matching any of REGEXPS."
     (mapconcat (lambda (x) (concat "\\(?:" x "\\)")) regexps "\\|"))
