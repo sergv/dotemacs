@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'macro-util)
+  (require 'vim-motions)
 
   (defvar awk-buffer-name)
   (defvar magit-blame-mode))

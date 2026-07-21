@@ -11,7 +11,8 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'keys-def)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-macs))
 
 (require 'common)
 (require 'common-font)

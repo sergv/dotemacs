@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(defvar treesit--indent-region-batch-size)
+
 (require 'common)
 (require 'flycheck-haskell)
 (require 'haskell-regexen)

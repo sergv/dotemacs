@@ -9,6 +9,7 @@
 ;;;; ctags facility
 
 (eval-when-compile
+  (require 'eproj-common)
   (require 'macro-util)
   (require 'set-up-platform))
 

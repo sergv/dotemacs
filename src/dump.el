@@ -6,14 +6,14 @@
 ;; Created:  1 September 2020
 ;; Description:
 
-(require 'cl)
+(require 'cl-lib)
 
 (require 'dump-init)
 
 (defvar trie-opt--global-cache)
 
 (defun dump-main (emacs-dir dump-target)
-  (setf dumping t)
+  (setf dumping? t)
 
   (unless emacs-dir
     (setf emacs-dir user-emacs-directory))
@@ -26,7 +26,8 @@
          (cl-find-if #'file-exists-p
                      (mapcan (lambda (x) (list (concat emacs-dir "/" x)
                                           (expand-file-name (concat "~/.emacs.d/" x))))
-                             '("init.el")))))
+                             '("init.elc"
+                               "init.el")))))
     (load-file init-file)
     ;; (message "Loading start.el...")
     ;; (load-library "start")
@@ -229,7 +230,7 @@
 
     (provide 'already-dumped)
 
-    (makunbound 'dumping)
+    (makunbound 'dumping?)
     (fmakunbound 'dump-main)
     (delete-file dump-target)
 

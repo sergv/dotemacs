@@ -10,7 +10,8 @@
   (require 'cl-lib)
   (require 'el-patch)
   (require 'macro-util)
-  (require 'set-up-platform))
+  (require 'set-up-platform)
+  (require 'vim-visual-mode))
 
 (require 'base-emacs-fixes)
 (require 'c-preprocessor)

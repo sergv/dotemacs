@@ -12,8 +12,7 @@
 
   (defvar yas-expand-fallback))
 
-;; todo: replace with dump-mode
-(defvar dumping nil)
+(defvar dumping? nil)
 
 (require 'set-up-platform)
 (when-windows
@@ -76,7 +75,8 @@
 (require 'keys)
 (require 'vim-setup)
 
-(fortunes-init-scratch-buffer)
+(unless dumping?
+  (fortunes-init-scratch-buffer))
 
 (require 'solarized)
 (solarized-apply-known-color-theme 'solarized-dark)

@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'subr-x))
 
 (defmacro car-sure (x)
@@ -358,8 +358,8 @@ compatibility mappings for unexpected environments."
      (error "Cannot expand key: %s" key))))
 
 (defmacro def-keys-for-map (mode-map &rest key-command-list)
-  "Bind keys specified by KEY-COMMAND-LIST into map MODE-MAP. MODE-MAP can be
-either a single map or a list of maps.
+  "Bind keys specified by KEY-COMMAND-LIST into map MODE-MAP. MODE-MAP can
+be either a single map or a list of maps.
 
 KEY-COMMAND-LIST can be list of the following:
 1. Symbols - they will be treated as variables and their contents treated as
