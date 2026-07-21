@@ -145,7 +145,8 @@ don't clear it."
                                 (help--key-description-fontified
                                  (where-is-internal (car info) nil t)))))))))))))
 ;;;###autoload
-(el-patch-feature thingatpt)
+(unless noninteractive
+  (el-patch-feature thingatpt))
 
 (when-emacs-version (<= 28 it)
   (require 'thingatpt)

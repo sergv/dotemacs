@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'hl-paren)
+
 (setq compilation-auto-jump-to-first-error nil
       whitespace-style '(face tabs)
       ;; whitespace-line-column 81
@@ -36,6 +38,7 @@
     magit-refs-mode
     magit-status-mode ))
 
+;;;###autoload
 (defun vim:bind-local-keymaps ()
   (setf vim-normal-mode-local-keymap              (make-sparse-keymap)
 
@@ -44,6 +47,7 @@
         vim-operator-pending-mode-local-keymap    (make-sparse-keymap)
         vim-motion-mode-local-keymap              (make-sparse-keymap)))
 
+;;;###autoload
 (cl-defun init-common (&key (use-yasnippet t)
                             (use-comment t)
                             (use-fci t)
@@ -104,6 +108,7 @@
 
   (electric-quote-local-mode (if typography +1 -1)))
 
+;;;###Autoload
 (cl-defun init-repl (&key (show-directory nil)
                           (bind-return t)
                           (create-keymaps nil)
@@ -143,6 +148,7 @@
         ("<return>"   comint-send-input)
         ("C-<return>" newline-and-indent)))))
 
+;;;###autoload
 (cl-defun bind-tab-keys (tab-binding
                          backtab-binding
                          &key

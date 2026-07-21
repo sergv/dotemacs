@@ -563,7 +563,7 @@ pattern and replace matches with REPLACEMENT.
   (when (string-match-p "^\\s-*[/|,;:!@#]." text)
     (cl-multiple-value-bind (pattern replacement flags)
         (vim--parse-substitute-pattern-repl-flags text)
-      (values pattern (vim-substitute-face-expand-escapes replacement) flags))))
+      (cl-values pattern (vim-substitute-face-expand-escapes replacement) flags))))
 
 (defun vim--parse-substitute-pattern-repl-flags (str)
   "Perform actual parse of substitute command. Works much better than
@@ -580,17 +580,17 @@ regular expressions."
 
         delimiter)
     (cl-symbol-macrolet ((skip-quoted
-                          (while (and (< i len)
-                                      (not (eq (aref str i) delimiter)))
-                            ;; skip quoted character
-                            (if (eq (aref str i) ?\\)
-                                (cl-incf i 2)
-                              (cl-incf i))))
+                           (while (and (< i len)
+                                       (not (eq (aref str i) delimiter)))
+                             ;; skip quoted character
+                             (if (eq (aref str i) ?\\)
+                                 (cl-incf i 2)
+                               (cl-incf i))))
                          (skip-flags
-                          (while (and (< i len)
-                                      (memq (aref str i)
-                                            (eval-when-compile (string-to-list "niIcg"))))
-                            (cl-incf i))))
+                           (while (and (< i len)
+                                       (memq (aref str i)
+                                             (eval-when-compile (string-to-list "niIcg"))))
+                             (cl-incf i))))
       (while (and (< i len)
                   (not (memq (aref str i) vim-common-command-delimiters)))
         (cl-incf i))
@@ -611,15 +611,16 @@ regular expressions."
           (setf flags-start i)
           skip-flags
           (setf flags-end i)))
-      (values (expand-escape-sequences!
-               (substring-no-properties str pattern-start (min len pattern-end)))
-              (when (and replacement-start
-                         replacement-end
-                         ;; hack
-                         (<= replacement-end len))
-                (substring-no-properties str replacement-start (min len replacement-end)))
-              (when (and flags-start flags-end)
-                (substring-no-properties str flags-start (min len flags-end)))))))
+      (cl-values
+       (expand-escape-sequences!
+        (substring-no-properties str pattern-start (min len pattern-end)))
+       (when (and replacement-start
+                  replacement-end
+                  ;; hack
+                  (<= replacement-end len))
+         (substring-no-properties str replacement-start (min len replacement-end)))
+       (when (and flags-start flags-end)
+         (substring-no-properties str flags-start (min len flags-end)))))))
 
 (defun vim-substitute-face-expand-escapes (replacement)
   "Expand escapes in the replacement string of vim substitue command."

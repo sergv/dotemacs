@@ -254,13 +254,27 @@ This function should be called whenever the minibuffer is exited."
   (remove-hook 'minibuffer-setup-hook #'vim-ex--start-session)
   (add-hook 'after-change-functions #'vim-ex--change nil t))
 
+(defmacro vim-ex--with-demoted-errors (format &rest body)
+  "Run BODY and demote any errors to simple messages.
+FORMAT is a string passed to `message' to format any error message.
+It should contain a single %-sequence; e.g., \"Error: %S\".
+
+If `debug-on-error' is non-nil, run BODY without catching its errors.
+This is to be used around code that is not expected to signal an error
+but that should be robust in the unexpected case that an error is signaled."
+  (declare (debug t) (indent 1))
+  (let ((err '#:err))
+    `(condition-case-unless-debug ,err
+         ,(macroexp-progn body)
+       (error (message ,format ,err) nil))))
+
 (defun vim-ex--stop-session ()
   "Deinitializes the minibuffer when ex-mode is stopped."
   (when-let (arg-deactivate (and vim-ex--arg-handler
                                  (vim-arg-handler-deactivate vim-ex--arg-handler)))
     (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
                           vim-ex--arg-handler)))
-      (with-demoted-errors format
+      (vim-ex--with-demoted-errors format
         (funcall arg-deactivate))))
   (remove-hook 'after-change-functions #'vim-ex--change t)
   (vim-ex--teardown!))
@@ -302,7 +316,7 @@ argument handler. Gets called on every minibuffer change."
                                       (vim-arg-handler-deactivate vim-ex--arg-handler)))
          (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
                                vim-ex--arg-handler)))
-           (with-demoted-errors format
+           (vim-ex--with-demoted-errors format
              (funcall arg-deactivate))))
        ;; ... activate and store new handler ...
        (let ((cmd (vim-ex--binding cmd)))
@@ -319,7 +333,7 @@ argument handler. Gets called on every minibuffer change."
                                          (vim-arg-handler-activate vim-ex--arg-handler)))
               (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
                                     vim-ex--arg-handler)))
-                (with-demoted-errors format
+                (vim-ex--with-demoted-errors format
                   (funcall arg-activate))))))))
       ((or (not (string= vim-ex--arg arg))
            (not (equal (cons beg end) vim-ex--range)))
@@ -689,7 +703,7 @@ Returns four values: (cmd beg end force) where
           (vim-ex--get-range (and begin (cons begin begin-off))
                              sep
                              (and end (cons end end-off)))
-        (values cmd start end (match-beginning 2))))))
+        (cl-values cmd start end (match-beginning 2))))))
 
 (defun vim-ex--known-commands-re ()
   "Get regexps that matches all ex commands that are known in current context."
@@ -719,34 +733,37 @@ the range and the new position."
   (cond
     ((>= pos (length text)) nil)
     ((= pos (or (string-match "[0-9]+" text pos) -1))
-     (values (cons 'abs (string-to-number (match-string-no-properties 0 text)))
-             (match-end 0)))
+     (cl-values
+      (cons 'abs (string-to-number (match-string-no-properties 0 text)))
+      (match-end 0)))
     ((= (aref text pos) ?\$)
-     (values 'last-line (1+ pos)))
+     (cl-values 'last-line (1+ pos)))
     ((= (aref text pos) ?\%)
-     (values 'all (1+ pos)))
+     (cl-values 'all (1+ pos)))
     ((= (aref text pos) ?\.)
-     (values 'current-line (1+ pos)))
+     (cl-values 'current-line (1+ pos)))
     ((= (aref text pos) ?\')
      (if (>= (1+ pos) (length text))
-       nil
-       (values `(mark ,(aref text (1+ pos))) (+ 2 pos))))
+         nil
+       (cl-values `(mark ,(aref text (1+ pos))) (+ 2 pos))))
     ((= (aref text pos) ?\/)
      (when (string-match "\\([^/]+\\|\\\\.\\)\\(?:/\\|$\\)"
                          text (1+ pos))
-       (values (cons 're-fwd (match-string-no-properties 1 text))
-               (match-end 0))))
+       (cl-values
+        (cons 're-fwd (match-string-no-properties 1 text))
+        (match-end 0))))
     ((= (aref text pos) ?\?)
      (when (string-match "\\([^?]+\\|\\\\.\\)\\(?:?\\|$\\)"
                          text (1+ pos))
-       (values (cons 're-bwd (match-string-no-properties 1 text))
-               (match-end 0))))
+       (cl-values
+        (cons 're-bwd (match-string-no-properties 1 text))
+        (match-end 0))))
     ((and (= (aref text pos) ?\\)
           (< pos (1- (length text))))
      (cl-case (aref text (1+ pos))
-       (?\/ (values 'next-of-prev-search (1+ pos)))
-       (?\? (values 'prev-of-prev-search (1+ pos)))
-       (?\& (values 'next-of-prev-subst (1+ pos)))))
+       (?\/ (cl-values 'next-of-prev-search (1+ pos)))
+       (?\? (cl-values 'prev-of-prev-search (1+ pos)))
+       (?\& (cl-values 'next-of-prev-subst (1+ pos)))))
     (t nil)))
 
 (defun vim-ex--parse-offset (text pos)
@@ -763,7 +780,7 @@ the offset and the new position."
                                     (string-to-number (match-string-no-properties 2 text))
                                   1))))
       (setq pos (match-end 0)))
-    (and off (values off pos))))
+    (and off (cl-values off pos))))
 
 (defun vim-ex--get-range (start sep end)
   "Must be called from within ex buffer."
@@ -776,7 +793,7 @@ the offset and the new position."
         (when (eq sep ?\;)
           (goto-char (vim-ex-position-point start)))
         (setq end (vim-ex--translate-address end))))
-    (values start end)))
+    (cl-values start end)))
 
 (cl-defstruct vim-ex-position
   (point     nil :read-only t)

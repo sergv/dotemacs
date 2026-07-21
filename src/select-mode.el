@@ -386,8 +386,8 @@ by the user)."
   (cl-assert select-mode--current-state)
   (let ((old-items (select-mode--state-items select-mode--current-state))
         (selected-idx (select-mode--state-selected-item select-mode--current-state)))
-    (select-mode-update-items (vconcat (subseq old-items 0 idx)
-                                       (subseq old-items (+ idx 1)))
+    (select-mode-update-items (vconcat (cl-subseq old-items 0 idx)
+                                       (cl-subseq old-items (+ idx 1)))
                               selected-idx)))
 
 (provide 'select-mode)

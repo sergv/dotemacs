@@ -1,4 +1,4 @@
-;;; typopunct.el --- Automatic typographical punctuation marks
+;;; typopunct.el --- Automatic typographical punctuation marks -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003  Free Software Foundation, Inc.
 
@@ -28,15 +28,11 @@
 
 ;;; Code:
 
-(defgroup typopunct nil
-  "Minor mode for typographical punctuation marks."
-  :group 'local)
-
 (defconst typopunct-en-dash
-  (decode-char 'ucs #x2013))
+  (eval-when-compile (decode-char 'ucs #x2013)))
 
 (defconst typopunct-em-dash
-  (decode-char 'ucs #x2014))
+  (eval-when-compile (decode-char 'ucs #x2014)))
 
 (defvar typopunct-typographical-dashes-enabled? t)
 
@@ -46,12 +42,12 @@
   (interactive "P")
   (if typopunct-typographical-dashes-enabled?
       (cond ((eq (preceding-char) ?-)
-	     (delete-char -1)
-	     (insert-char typopunct-en-dash))
-	    ((eq (preceding-char) typopunct-en-dash)
-	     (delete-char -1)
-	     (insert-char typopunct-em-dash))
-	    (t (insert-char ?-)))
+             (delete-char -1)
+             (insert-char typopunct-en-dash))
+            ((eq (preceding-char) typopunct-en-dash)
+             (delete-char -1)
+             (insert-char typopunct-em-dash))
+            (t (insert-char ?-)))
     (insert-char ?- n)))
 
 (defvar typopunct-map
@@ -62,44 +58,44 @@
     map)
   "Keymap used by TypoPunct mode.")
 
-(defcustom typopunct-language-alist
+(defvar typopunct-language-alist
   `((deutsch ,(decode-char 'ucs #x201E)
-	     ,(decode-char 'ucs #x201C)
-	     ,(decode-char 'ucs #x201A)
-	     ,(decode-char 'ucs #x2018))
+             ,(decode-char 'ucs #x201C)
+             ,(decode-char 'ucs #x201A)
+             ,(decode-char 'ucs #x2018))
     (deutsch-2 ,(decode-char 'ucs #xBB)
-	       ,(decode-char 'ucs #xAB)
-	       ,(decode-char 'ucs #x203A)
-	       ,(decode-char 'ucs #x2039))
-;;     (deutsch-latex "\"`" "\"'"
-;; 		   ,(propertize "\\glq "
-;; 				'display
-;; 				(string
-;; 				 (decode-char 'ucs #x201A)))
-;; 		   ,(propertize "\\grq "
-;; 				'display
-;; 				(string
-;; 				 (decode-char 'ucs #x2018))))
+               ,(decode-char 'ucs #xAB)
+               ,(decode-char 'ucs #x203A)
+               ,(decode-char 'ucs #x2039))
+    ;;     (deutsch-latex "\"`" "\"'"
+    ;;             ,(propertize "\\glq "
+    ;;                          'display
+    ;;                          (string
+    ;;                           (decode-char 'ucs #x201A)))
+    ;;             ,(propertize "\\grq "
+    ;;                          'display
+    ;;                          (string
+    ;;                           (decode-char 'ucs #x2018))))
     (dutch ,(decode-char 'ucs #x201E)
-	   ,(decode-char 'ucs #x201D)
-	   ,(decode-char 'ucs #x201A)
-	   ,(decode-char 'ucs #x2019))
+           ,(decode-char 'ucs #x201D)
+           ,(decode-char 'ucs #x201A)
+           ,(decode-char 'ucs #x2019))
     (dutch-2 ,(decode-char 'ucs #x201E)
-	     ,(decode-char 'ucs #x201D)
-	     ,(decode-char 'ucs #x2018)
-	     ,(decode-char 'ucs #x2019))
+             ,(decode-char 'ucs #x201D)
+             ,(decode-char 'ucs #x2018)
+             ,(decode-char 'ucs #x2019))
     (francais ,(decode-char 'ucs #xAB)
-	      ,(decode-char 'ucs #xBB)
-	      ,(decode-char 'ucs #x2039)
-	      ,(decode-char 'ucs #x203A))
+              ,(decode-char 'ucs #xBB)
+              ,(decode-char 'ucs #x2039)
+              ,(decode-char 'ucs #x203A))
     (russian ,(decode-char 'ucs #xAB)
              ,(decode-char 'ucs #xBB)
              ,(decode-char 'ucs #x201E)
              ,(decode-char 'ucs #x201C))
     (english ,(decode-char 'ucs #x201C)
-	     ,(decode-char 'ucs #x201D)
-	     ,(decode-char 'ucs #x2018)
-	     ,(decode-char 'ucs #x2019)))
+             ,(decode-char 'ucs #x201D)
+             ,(decode-char 'ucs #x2018)
+             ,(decode-char 'ucs #x2019)))
   "Alist of languages and typographical quotation marks.
 Each element of this alist is list of the form:
 
@@ -107,29 +103,23 @@ Each element of this alist is list of the form:
            OPENING-SINGLE-QMARK CLOSING-SINGLE-QMARK)
 
 LANGUAGE is a symbol, the other elements may be either characters or
-strings."
-  :group 'typopunct
-  :type '(repeat (list symbol
-		       (choice character string)
-		       (choice character string)
-		       (choice character string)
-		       (choice character string))))
+strings.")
 
 (defsubst typopunct-opening-quotation-mark (lang)
   (nth 1 (assq lang
-	       typopunct-language-alist)))
+               typopunct-language-alist)))
 
 (defsubst typopunct-closing-quotation-mark (lang)
   (nth 2 (assq lang
-	       typopunct-language-alist)))
+               typopunct-language-alist)))
 
 (defsubst typopunct-opening-single-quotation-mark (lang)
   (nth 3 (assq lang
-	       typopunct-language-alist)))
+               typopunct-language-alist)))
 
 (defsubst typopunct-closing-single-quotation-mark (lang)
   (nth 4 (assq lang
-	       typopunct-language-alist)))
+               typopunct-language-alist)))
 
 (defcustom typopunct-buffer-language 'deutsch
   "Default language of a buffer.
@@ -145,14 +135,14 @@ typographical conventions used by that language.  See the variable
   "Return t if point is inside an XML tag, nil otherwise."
   (save-excursion
     (let ((pos (point))
-	  (beg (search-backward "<" (min
-				     (point-min)
-				     (- (point) typopunct-xml-max-search))
-				t)))
+          (beg (search-backward "<" (min
+                                     (point-min)
+                                     (- (point) typopunct-xml-max-search))
+                                t)))
       (and beg
-	   (not (search-forward ">" pos t))))))
+           (not (search-forward ">" pos t))))))
 
-(defcustom typopunct-mode-exeptions-alist
+(defvar typopunct-mode-exeptions-alist
   '((sgml-mode . typopunct-point-in-xml-tag-p)
     (nxml-mode . typopunct-point-in-xml-tag-p)
     (html-mode . typopunct-point-in-xml-tag-p))
@@ -164,9 +154,7 @@ typographical quotation marks.
 
 Each element is a pair of a major mode (a symbol) and a predicate
 function that should return non nil, when
-`typopunct-insert-quotation-mark' should insert an ASCII `\"'."
-  :group 'typopunct
-  :type '(alist :key-type symbol :value-type function))
+`typopunct-insert-quotation-mark' should insert an ASCII `\"'.")
 
 
 (defvar typopunct-opening-quote-syntax-list
@@ -184,23 +172,23 @@ The language assumed is either the value of the text property
 `typopunct-buffer-language'."
   (interactive)
   (let ((lang (or (get-text-property (point) 'typopunct-language)
-		  typopunct-buffer-language))
-	(pfunc (cdr (assq major-mode typopunct-mode-exeptions-alist)))
-	(qmark nil))
+                  typopunct-buffer-language))
+        (pfunc (cdr (assq major-mode typopunct-mode-exeptions-alist)))
+        (qmark nil))
     (if (and lang
-	     (not (and pfunc
-		       (funcall pfunc))))
-	(if (or (bobp)
-		(memq (char-syntax (preceding-char))
-		      typopunct-opening-quote-syntax-list))
-	    ;; After whitespace etc.: Opening quotation mark.
-	    (setq qmark (if single
-			    (typopunct-opening-single-quotation-mark lang)
-			  (typopunct-opening-quotation-mark lang)))
-	  ;; Everywhere else: Closing quotation mark.
-	  (setq qmark (if single
-			  (typopunct-closing-single-quotation-mark lang)
-			(typopunct-closing-quotation-mark lang)))))
+             (not (and pfunc
+                       (funcall pfunc))))
+        (if (or (bobp)
+                (memq (char-syntax (preceding-char))
+                      typopunct-opening-quote-syntax-list))
+            ;; After whitespace etc.: Opening quotation mark.
+            (setq qmark (if single
+                            (typopunct-opening-single-quotation-mark lang)
+                          (typopunct-opening-quotation-mark lang)))
+          ;; Everywhere else: Closing quotation mark.
+          (setq qmark (if single
+                          (typopunct-closing-single-quotation-mark lang)
+                        (typopunct-closing-quotation-mark lang)))))
       (insert (or qmark (if single ?\' ?\")))))
 
 ;;;###autoload
@@ -252,20 +240,20 @@ If `transient-mark-mode' is non-nil and if the region is active, then
 add LANGUAGE as the value of the text property `typopunct-language' to
 the text in the region instead of setting the variable."
   (interactive (list (completing-read "Switch to language: "
-				      (mapcar (lambda (elt)
-						(list (symbol-name (car elt))))
-					      typopunct-language-alist))
-		     current-prefix-arg))
+                                      (mapcar (lambda (elt)
+                                                (list (symbol-name (car elt))))
+                                              typopunct-language-alist))
+                     current-prefix-arg))
   (when (stringp language)
     (setq language (intern language)))
   (if (and transient-mark-mode
-	   mark-active)
+           mark-active)
       (put-text-property (region-beginning)
-			 (region-end)
-			 'typopunct-language
-			 language)
+                         (region-end)
+                         'typopunct-language
+                         language)
     (if default
-	(setq-default typopunct-buffer-language language)
+        (setq-default typopunct-buffer-language language)
       (setq typopunct-buffer-language language))))
 
 

@@ -77,8 +77,7 @@ stick it to the previous operator on line."
         (if (smart-operators--literal-insertion? (and (eq char ?/)
                                                       (eq char-before-spaces ?/)))
             (insert-char char)
-          (let ((whitespace-deleted? nil)
-                (after (following-char)))
+          (let ((whitespace-deleted? nil))
             ;; Delete spaces backwards if there's operator or open
             ;; paren char before the spaces.
             (when-let ((delete-whitespace?
