@@ -6,6 +6,9 @@
 ;; Created: 19 May 2024
 ;; Description:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (require 'haskell-ts-getters)
 (require 'haskell-ts-mode)
 

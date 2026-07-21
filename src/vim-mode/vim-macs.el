@@ -9,7 +9,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'macro-util))
 
 (cl-defmacro vim-defcmd (name (&rest args) &rest body)
@@ -261,9 +261,8 @@ For more information about the vim:motion struct look at vim-core.el."
               `(progn
                  (put ',name-interactive 'vim--is-cmd? t)
                  ;; Name to bind to keys.
-                 (defun ,name-interactive ,(if has-args? '(&rest args) '())
+                 (defun ,name-interactive ,(if has-args? '(&rest _args) '())
                    ,(format "Interactive version of ‘%s’" name)
-                   ,@(when has-args? '((declare (ignore args))))
                    (interactive)
                    (let ,(if unadjusted
                              '((vim-do-not-adjust-point t))
@@ -272,7 +271,7 @@ For more information about the vim:motion struct look at vim-core.el."
                          (vim-execute-command #',name)
                        ,(if has-nontrivial-args?
                             `(error ,(format "Command %s takes arguments and cannot be called outside vim mode" name))
-                          ;; `(apply #',name args)
+                          ;; `(apply #',name _args)
                           `(,name nil 1 nil nil nil))))
 
                    ;; (if ;; Since in minibuffer vim-mode may be inactive but
@@ -281,7 +280,7 @@ For more information about the vim:motion struct look at vim-core.el."
                    ;;     ;; e.g. ‘vim:cmd-paste-before’.
                    ;;     vim-active-command-function
                    ;;     (vim-active-mode vim-active-command-function #',name)
-                   ;;   (apply #',name args))
+                   ;;   (apply #',name _args))
                    ))))))))
 
 (cl-defmacro vim-defmotion (name (&rest args) &rest body)
