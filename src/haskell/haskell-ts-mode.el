@@ -100,7 +100,7 @@
 
 ;; Collect any haskell treesitter-based values so that they can be uniformly used
 ;; in both vanilla and hsc dialects.
-(defstruct haskell-ts-lang-selection
+(cl-defstruct haskell-ts-lang-selection
   ;; Result of compiling query for regular Haskell grammar.
   vanilla
   ;; Result of compiling query for regular HSC grammar.
@@ -291,17 +291,17 @@
      :hsc
      (funcall mk-rule 'hsc (append hsc-rules rules)))))
 
-(defun haskell-ts-mode--fontify-hsc-directive-name (node override start end &rest _)
+(defun haskell-ts-mode--fontify-hsc-directive-name (node _override _start _end &rest _)
   (let ((s (treesit-node-start node))
         (e (treesit-node-end node)))
     (if (eq (char-before s) ?#)
         (put-text-property (1- s) e 'face 'haskell-ts-keyword-face)
       (put-text-property s e 'face 'haskell-ts-keyword-face))))
 
-(defun haskell-ts-mode--fontify-bang (node override start end &rest _)
+(defun haskell-ts-mode--fontify-bang (node _override _start _end &rest _)
   (haskell-ts-mode--fontify-first-char ?! node))
 
-(defun haskell-ts-mode--fontify-tilde (node override start end &rest _)
+(defun haskell-ts-mode--fontify-tilde (node _override _start _end &rest _)
   (haskell-ts-mode--fontify-first-char ?~ node))
 
 (defun haskell-ts-mode--fontify-first-char (char node)

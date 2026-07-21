@@ -19,14 +19,14 @@
 
 (defvar-local bkr--current-state nil)
 
-(defstruct bkr-state
+(cl-defstruct bkr-state
   (variable    nil :read-only t)    ;; symbol
   (orig-buffer nil :read-only t) ;; buffer
   (orig-win    nil :read-only t) ;; window
 
   ;; replace-yanked-text? ;; bool
-  (preview-overlay nil :read-only) ;; overlay
-  (original-buf-pos nil :read-only)
+  (preview-overlay nil :read-only t) ;; overlay
+  (original-buf-pos nil :read-only t)
   )
 
 (defvar bkr-mode-map

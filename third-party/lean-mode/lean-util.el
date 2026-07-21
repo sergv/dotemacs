@@ -1,13 +1,19 @@
-;; Copyright (c) 2014 Microsoft Corporation. All rights reserved.
+;; Copyright (c) 2014 Microsoft Corporation. All rights reserved. -*- lexical-binding: t; -*-
 ;; Released under Apache 2.0 license as described in the file LICENSE.
 ;;
 ;; Author: Soonho Kong
 ;;
 
-(require 'cl-lib)
+(eval-when-compile
+  (require 'cl-lib))
+
+(defvar lean-executable-name)
+(defvar lean-rootdir)
+(defvar lean-delete-trailing-whitespace)
+
+(require 'dash)
 (require 'f)
 (require 's)
-(require 'dash)
 
 (defun lean-setup-rootdir ()
   (let ((root (executable-find lean-executable-name)))

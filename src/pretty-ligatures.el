@@ -17,7 +17,8 @@
 
 (require 'common-font)
 
-(el-patch-feature prog-mode)
+(unless noninteractive
+  (el-patch-feature prog-mode))
 
 (el-patch-defun prettify-symbols--post-command-hook ()
   (cl-labels ((get-prop-as-list
@@ -100,7 +101,7 @@ Regexp match data 0 specifies the characters to be composed."
 
 ;; (set-fontset-font t '(#Xe100 . #Xe115) "Iosevka Slab Lig")
 
-(defstruct ligature-glyph
+(cl-defstruct ligature-glyph
   symbol ;; character, >= #xe100
   width  ;; integer
   )
