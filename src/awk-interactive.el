@@ -11,7 +11,7 @@
 ;; Use awk or sed on current region in interactive manner
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'macro-util)
   (require 'vim-visual-mode)
 
