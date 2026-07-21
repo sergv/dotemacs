@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (cl-defstruct (interval-with-margins
                (:conc-name interval-with-margins/))
