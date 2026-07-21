@@ -9,10 +9,10 @@
 ;; eshell customization
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'el-patch)
-  (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'set-up-platform))
 
 (require 'em-prompt)
 (require 'em-term)

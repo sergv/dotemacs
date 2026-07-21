@@ -3497,7 +3497,7 @@ This function is called by `flycheck--idle-trigger-timer'."
           (flycheck-buffer-automatically flycheck--idle-trigger-conditions)
           (setq flycheck--idle-trigger-conditions nil))))))
 
-(defun flycheck-handle-change (beg end _len)
+(defun flycheck-handle-change (_beg _end _len)
   "Handle a buffer change between BEG and END.
 
 BEG and END mark the beginning and end of the change text.  _LEN
