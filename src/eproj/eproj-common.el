@@ -6,7 +6,17 @@
 ;; Created: 15 February 2025
 ;; Description:
 
+(declare-function eproj--resolve-to-abs-path-cached "eproj")
+
 (require 'eproj-tag-index)
+
+(defmacro eproj-resolve-to-abs-path (path proj)
+  `(if (file-name-absolute-p ,path)
+       ,path
+     ,(if proj
+          `(eproj--resolve-to-abs-path-cached ,path (eproj-project/root ,proj))
+        `(error "Path is not absolute and no project available to resolve it: %s"
+                ,path))))
 
 (defun eproj/default-authoritative-key-func (identifier tag)
   "Resonable default method to produce key to compare similar tags for
