@@ -13,6 +13,7 @@
 (eval-when-compile
   (require 'cl)
   (require 'macro-util)
+  (require 'vim-visual-mode)
 
   (defvar awk-mode-map))
 

@@ -9,7 +9,8 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'el-patch)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-motions))
 
 (require 'el-patch)
 (require 'paredit)

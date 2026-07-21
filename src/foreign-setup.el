@@ -7,9 +7,8 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'set-up-platform))
-
-(require 'dump-init)
+  (require 'set-up-platform)
+  (defvar dumping?))
 
 (defcustom use-foreign-libraries? t
   "Whether to use foreign extensions to Emacs."
@@ -23,7 +22,7 @@
            ;; emacs --batch -f batch-byte-compile
            ;; We’re not there yet but foreign modules severely impede that goal.
            (not (bound-and-true-p byte-compile-current-file))
-           (not dumping))
+           (not dumping?))
   (load (fold-platform-os-type "libemacs-native" "emacs-native")))
 
 (provide 'foreign-setup)

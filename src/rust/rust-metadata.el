@@ -7,7 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'dash)
+  (require 'macro-util)
+  (require 'v))
 
 (require 'json)
 

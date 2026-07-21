@@ -6,6 +6,9 @@
 ;; Created: Wednesday, 27 June 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (save-match-data
   (dolist (command '(plusp
                      minusp
