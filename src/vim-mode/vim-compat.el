@@ -11,7 +11,7 @@
 ;; Check emacs and xemacs
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (require 'vim-macs)
 (require 'vim-defs)

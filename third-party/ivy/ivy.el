@@ -3091,8 +3091,8 @@ Insert .* between each char."
                  (while (and (< i len)
                              (not (eq (aref str i) ?\s)))
                    (cl-incf i))
-                 (cons (subseq str 0 i)
-                       (split-string (subseq str i) " " t)))
+                 (cons (cl-subseq str 0 i)
+                       (split-string (cl-subseq str i) " " t)))
              (split-string str " " t)))
           (subexps 0))
       (prog1
