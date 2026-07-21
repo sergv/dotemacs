@@ -6,6 +6,9 @@
 ;; Created: 18 December 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (when-windows
  (require 'fakecygpty)
  (fakecygpty-activate))

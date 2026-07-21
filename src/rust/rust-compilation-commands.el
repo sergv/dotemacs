@@ -18,6 +18,7 @@
 (require 'persistent-sessions-global-vars)
 
 (require 'configurable-compilation)
+(require 'eproj-query)
 (require 'rust-mode)
 (require 'rust-ts-mode)
 (require 's)

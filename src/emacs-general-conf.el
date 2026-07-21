@@ -7,9 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'set-up-platform)
+  (require 'cl-lib)
   (require 'macro-util)
+  (require 'set-up-platform)
 
   (defvar lv-wnd))
 

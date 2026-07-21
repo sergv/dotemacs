@@ -7,10 +7,10 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'set-up-platform)
+  (require 'cl-lib)
+  (require 'el-patch)
   (require 'macro-util)
-  (require 'el-patch))
+  (require 'set-up-platform))
 
 (require 'common-constants)
 (require 'common)
