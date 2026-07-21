@@ -8,7 +8,7 @@
 ;; Fixes for errors in standard emacs files
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'set-up-platform)
   (require 'el-patch)
   (require 'macro-util))

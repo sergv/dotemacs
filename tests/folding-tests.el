@@ -8,7 +8,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'cl))
+  (require 'cl-lib))
 
 (require 'dante)
 (require 'alex-mode)
