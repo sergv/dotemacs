@@ -9,9 +9,11 @@
 ;; Status:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'el-patch)
   (require 'macro-util)
+  (require 'vim-macs)
+  (require 'vim-motions)
 
   (defvar web-mode-markup-indent-offset)
   (defvar web-mode-css-indent-offset)

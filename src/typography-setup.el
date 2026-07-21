@@ -6,6 +6,9 @@
 ;; Created: Tuesday, 25 October 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'electric)
 (require 'typopunct)
 

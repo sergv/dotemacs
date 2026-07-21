@@ -7,13 +7,13 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+
+  (defvar dumping?))
 
 (defvar default-composition-function-table)
-(defvar dumping)
 
-(when (or dumping
-          dump-mode)
+(when dumping?
   (error "Should not be reached when dumping"))
 
 (require 'set-up-platform)
@@ -75,19 +75,19 @@
       (t
        120))))
 
+(defun set-up-font--init-font-and-scaling ()
+(let ((scaling (or current-font-scaling
+               (get-default-font-scaling)))
+  (frames (frame-list)))
+(setf current-font-scaling scaling)
+(set-frame-font current-font nil frames)
+(dolist (frame frames)
+(set-face-attribute 'default frame :height scaling))))
+
+(defun set-up-font--set-current-font-for-frame (&optional frame)
+(set-frame-font current-font nil (if frame (list frame) nil)))
+
 (unless noninteractive
-  (defun set-up-font--init-font-and-scaling ()
-    (let ((scaling (or current-font-scaling
-                       (get-default-font-scaling)))
-          (frames (frame-list)))
-      (setf current-font-scaling scaling)
-      (set-frame-font current-font nil frames)
-      (dolist (frame frames)
-        (set-face-attribute 'default frame :height scaling))))
-
-  (defun set-up-font--set-current-font-for-frame (&optional frame)
-    (set-frame-font current-font nil (if frame (list frame) nil)))
-
   (add-hook 'window-setup-hook #'set-up-font--init-font-and-scaling)
   (add-hook 'after-make-frame-functions #'set-up-font--set-current-font-for-frame))
 

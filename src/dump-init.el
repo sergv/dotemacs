@@ -6,7 +6,7 @@
 ;; Created:  7 August 2023
 ;; Description:
 
-(defvar dumping nil)
+(defvar dumping? nil)
 
 (defvar dump--emacs-dir nil
   "EMACS_COMPILATION_ROOT where dumped image resides.")

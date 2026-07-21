@@ -1984,13 +1984,13 @@ With a prefix argument, skip the balance check."
     (goto-char start)
     (let* ((start-state (paredit-current-parse-state))
            (end-state (parse-partial-sexp start end nil nil start-state)))
-      (paredit-check-region-for-delete:depth start start-state end end-state)
-      (paredit-check-region-for-delete:string start start-state end end-state)
-      (paredit-check-region-for-delete:comment start start-state end end-state)
-      (paredit-check-region-for-delete:char-quote start start-state
+      (paredit-check-region-for-delete:depth start-state end end-state)
+      (paredit-check-region-for-delete:string start-state end end-state)
+      (paredit-check-region-for-delete:comment start-state end end-state)
+      (paredit-check-region-for-delete:char-quote start-state
                                                   end end-state))))
 
-(defun paredit-check-region-for-delete:depth (start start-state end end-state)
+(defun paredit-check-region-for-delete:depth (start-state end end-state)
   (let ((start-depth (nth 0 start-state))
         (end-depth (nth 0 end-state)))
     (unless (= start-depth end-depth)
@@ -1998,7 +1998,7 @@ With a prefix argument, skip the balance check."
              start-depth
              end-depth))))
 
-(defun paredit-check-region-for-delete:string (start start-state end end-state)
+(defun paredit-check-region-for-delete:string (start-state end end-state)
   (let ((start-string-p (nth 3 start-state))
         (end-string-p (nth 3 end-state)))
     (unless (eq start-string-p end-string-p)
@@ -2007,7 +2007,7 @@ With a prefix argument, skip the balance check."
              (if end-string-p "" "not ")))))
 
 (defun paredit-check-region-for-delete:comment
-    (start start-state end end-state)
+    (start-state end end-state)
   (let ((start-comment-state (nth 4 start-state))
         (end-comment-state (nth 4 end-state)))
     (unless (or (eq start-comment-state end-comment-state)
@@ -2043,7 +2043,7 @@ With a prefix argument, skip the balance check."
                             end-comment-state)))))))
 
 (defun paredit-check-region-for-delete:char-quote
-    (start start-state end end-state)
+    (start-state end end-state)
   (let ((start-char-quote (nth 5 start-state))
         (end-char-quote (nth 5 end-state)))
     (unless (eq start-char-quote end-char-quote)
