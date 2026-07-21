@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 ;; Pair of positions in a buffer. Interchangeable with treesit nodes.
 (cl-defstruct (buffer-span
