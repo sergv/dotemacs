@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
