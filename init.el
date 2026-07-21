@@ -35,31 +35,6 @@ but typically not written.
 
 Usually either ~/.emacs.d or unique path under /nix/store.")
 
-(defconst +platform+
-  (let ((sys-type-env (getenv "EMACS_SYSTEM_TYPE")))
-    (cond
-      (sys-type-env
-       (read sys-type-env))
-      ((eq system-type 'windows-nt)
-       '(windows work))
-      ((memq system-type '(gnu gnu/linux gnu/kfreebsd darwin))
-       '(linux home))
-      (t
-       '(linux home))))
-  "List of the form (<os> <use>), <os> may be \\='linux or \\='windows.")
-
-(unless (and (listp +platform+)
-             (memq (car +platform+)
-                   '(linux windows)))
-  (error "+platform+'s os %s should be one of 'linux or 'windows"
-         (car +platform+)))
-
-(defmacro when-windows (&rest body)
-  (let ((os-type (car +platform+)))
-    (when (eq os-type 'windows)
-      `(progn
-         ,@body))))
-
 ;; Recursively find directories containing elisp files starting at
 ;; ROOT. Omit directories whose absolute path matches IGNORED-DIR-RE.
 (eval-and-compile
@@ -167,8 +142,8 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
            "treepy.el/test"
            "transient/test"
            "yafolding.el/features")))))
-     (when-windows
-      (list (directory-file-name (concat +emacs-config-path+ "/native/fakecygpty")))))
+     (when (eq system-type 'windows-nt)
+       (list (directory-file-name (concat +emacs-config-path+ "/native/fakecygpty")))))
     load-path))
 
   ;; By default Emacs will use (concat +emacs-config-path+ "/tree-sitter") here
