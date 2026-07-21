@@ -129,7 +129,8 @@ v/V       scroll up/dn    {A,B,C}  read-only in buf X         w{A,B,C}  save buf
                           $*       skip changed regions       &         merge w/new default
 ")
 
-(el-patch-feature ediff-util)
+(unless noninteractive
+  (el-patch-feature ediff-util))
 
 (el-patch-defun ediff-scroll-horizontally (&optional arg)
   "Horizontally scroll buffers A, B (and C if appropriate).
@@ -270,7 +271,8 @@ window configuration on end of ediff session."
   "Option that causes the diff program to ignore whitespace differences."
   :type 'string)
 
-(el-patch-feature ediff-diff)
+(unless noninteractive
+  (el-patch-feature ediff-diff))
 
 (el-patch-defun ediff-set-actual-diff-options ()
   (el-patch-swap

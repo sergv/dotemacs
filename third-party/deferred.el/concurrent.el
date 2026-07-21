@@ -179,7 +179,8 @@ permission is returned, the task is executed."
       d))))
 
 (defun cc:semaphore-release(semaphore)
-  "Release an execution permission. The programmer is responsible to return the permissions."
+  "Release an execution permission. The programmer is responsible to return
+the permissions."
   (when (<= (cc:semaphore-max-permits semaphore)
             (cc:semaphore-permits semaphore))
     (error "Too many calling semaphore-release. [max:%s <= permits:%s]"
@@ -220,7 +221,8 @@ tasks in the semaphore object."
     ds))
 
 (defun cc:semaphore-interrupt-all (semaphore)
-  "Clear the list of the blocked tasks in the semaphore and return a deferred object to chain.
+  "Clear the list of the blocked tasks in the semaphore and return a
+deferred object to chain.
 This function is used for the interruption cases."
   (when (cc:semaphore-waiting-deferreds semaphore)
     (setf (cc:semaphore-waiting-deferreds semaphore) nil)
@@ -235,8 +237,14 @@ This function is used for the interruption cases."
 (defun cc:signal-channel (&optional name parent-channel)
   "Create a channel.
 NAME is a channel name for debug.
-PARENT-CHANNEL is an upstream channel. The observers of this channel can receive the upstream signals.
-In the case of using the function `cc:signal-send', the observers of the upstream channel can not receive the signals of this channel. The function `cc:signal-send-global' can send a signal to the upstream channels from the downstream channels."
+
+PARENT-CHANNEL is an upstream channel. The observers of this channel can
+receive the upstream signals.
+
+In the case of using the function `cc:signal-send', the observers of the
+upstream channel can not receive the signals of this channel. The
+function `cc:signal-send-global' can send a signal to the upstream
+channels from the downstream channels."
   (let ((ch (cons
              (or name (format "signal%s" (deferred:uid))) ; name for debug
              (cons
@@ -278,7 +286,10 @@ tasks to the returned deferred object."
     d))
 
 (defun cc:signal-send (channel event-sym &rest args)
-  "Send a signal to CHANNEL. If ARGS values are given, observers can get the values by following code: (lambda (event) (destructuring-bind (event-sym (args)) event ... )). "
+  "Send a signal to CHANNEL. If ARGS values are given, observers can get
+the values by following code:
+
+(lambda (event) (destructuring-bind (event-sym (args)) event ... ))."
   (let ((observers (cc:signal-observers channel))
         (event (list event-sym args)))
     (cl-loop for i in observers
@@ -340,14 +351,23 @@ the removed deferred object. "
   `(cl-caddr ,df))
 
 (defmacro cc:dataflow-list (df)
-  "[internal] Return the list of deferred object which are waiting for value binding."
+  "[internal] Return the list of deferred object which are waiting for
+value binding."
   `(cl-cdddr ,df))
 
 (defun cc:dataflow-environment (&optional parent-env test-func channel)
   "Create a dataflow environment.
-PARENT-ENV is the default environment. If this environment doesn't have the entry A and the parent one has the entry A, this environment can return the entry A. One can override the entry, setting another entry A to this environment.
-TEST-FUNC is a test function that compares the entry keys. The default function is `equal'.
-CHANNEL is a channel object that sends signals of variable events. Observers can receive following signals:
+
+PARENT-ENV is the default environment. If this environment doesn't have
+the entry A and the parent one has the entry A, this environment can
+return the entry A. One can override the entry, setting another entry A
+to this environment.
+
+TEST-FUNC is a test function that compares the entry keys. The default
+function is `equal'.
+
+CHANNEL is a channel object that sends signals of variable events.
+Observers can receive following signals:
 -get-first : the fist referrer is waiting for binding,
 -get-waiting : another referrer is waiting for binding,
 -set : a value is bound,
@@ -381,7 +401,10 @@ CHANNEL is a channel object that sends signals of variable events. Observers can
 
 (defun cc:dataflow-get-object-for-value (df key)
   "[internal] Return an entry object that is indicated by KEY.
-If the environment DF doesn't have the entry and the parent one has the entry, this function returns the entry of the parent environment. This function doesn't affect the waiting list."
+
+If the environment DF doesn't have the entry and the parent one has the
+entry, this function returns the entry of the parent environment. This
+function doesn't affect the waiting list."
   (or
    (cl-loop for i in (cc:dataflow-list df)
             with test = (cc:dataflow-test df)
@@ -393,7 +416,9 @@ If the environment DF doesn't have the entry and the parent one has the entry, t
      (cc:dataflow-get-object-for-value it key))))
 
 (defun cc:dataflow-get-object-for-deferreds (df key)
-  "[internal] Return a list of the deferred objects those are waiting for value binding.
+  "[internal] Return a list of the deferred objects those are waiting for
+value binding.
+
 This function doesn't affect the waiting list and doesn't refer the parent environment."
   (cl-loop for i in (cc:dataflow-list df)
            with test = (cc:dataflow-test df)
@@ -401,7 +426,9 @@ This function doesn't affect the waiting list and doesn't refer the parent envir
            return i))
 
 (defun cc:dataflow-connect (df event-sym &optional callback)
-  "Append an observer for EVENT-SYM of the channel of DF and return a deferred object.
+  "Append an observer for EVENT-SYM of the channel of DF and return a
+deferred object.
+
 See the docstring of `cc:dataflow-environment' for details."
   (cc:signal-connect (cc:dataflow-channel df) event-sym callback))
 
@@ -411,8 +438,10 @@ See the docstring of `cc:dataflow-environment' for details."
 
 (defun cc:dataflow-get (df key)
   "Return a deferred object that can refer the value which is indicated by KEY.
-If DF has the entry that bound value, the subsequent deferred task is executed immediately.
-If not, the task is deferred till a value is bound."
+
+If DF has the entry that bound value, the subsequent deferred task is
+executed immediately. If not, the task is deferred till a value is
+bound."
   (let ((obj (cc:dataflow-get-object-for-value df key)))
     (cond
      ((and obj (cc:dataflow-value obj))
@@ -476,7 +505,8 @@ This function does nothing for the waiting deferred objects."
      (cc:dataflow-get-avalable-pairs it))))
 
 (defun cc:dataflow-get-waiting-keys (df)
-  "Return a list of keys which have waiting deferred objects in the environment DF and the parent ones."
+  "Return a list of keys which have waiting deferred objects in the
+environment DF and the parent ones."
   (append
    (cl-loop for i in (cc:dataflow-list df)
             for key = (cc:dataflow-key i)

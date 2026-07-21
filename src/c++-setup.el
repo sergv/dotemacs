@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'dash)
   (require 'flycheck-setup)
   (require 'macro-util))
 

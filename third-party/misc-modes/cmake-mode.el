@@ -255,14 +255,14 @@ optional argument topic will be appended to the argument list."
         (display-buffer buffer 'not-this-window)
       ;; Buffer doesn't exist.  Create it and fill it
       (setq buffer (generate-new-buffer bufname))
-      (setq command (concat cmake-mode-cmake-executable " " type " " topic))
-      (message "Running %s" command)
-      ;; We don't want the contents of the shell-command running to the
-      ;; minibuffer, so turn it off.  A value of nil means don't automatically
-      ;; resize mini-windows.
-      (setq resize-mini-windows-save resize-mini-windows)
-      (setq resize-mini-windows nil)
-      (shell-command command buffer)
+      (let ((command (concat cmake-mode-cmake-executable " " type " " topic)))
+        (message "Running %s" command)
+        ;; We don't want the contents of the shell-command running to the
+        ;; minibuffer, so turn it off.  A value of nil means don't automatically
+        ;; resize mini-windows.
+        (setq resize-mini-windows-save resize-mini-windows)
+        (setq resize-mini-windows nil)
+        (shell-command command buffer))
       ;; Save the original window, so that we can come back to it later.
       ;; save-excursion doesn't seem to work for this.
       (setq window (selected-window))
@@ -305,8 +305,8 @@ optional argument topic will be appended to the argument list."
 (defun cmake-help-command ()
   "Prints out the help message corresponding to the command the cursor is on."
   (interactive)
-  (setq command (cmake-get-topic "command"))
-  (cmake-command-run "--help-command" (downcase command))
+  (let ((command (cmake-get-topic "command")))
+    (cmake-command-run "--help-command" (downcase command)))
   )
 
 

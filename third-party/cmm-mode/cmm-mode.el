@@ -1,4 +1,4 @@
-;;; cmm-mode.el --- Major mode for C-- source code
+;;; cmm-mode.el --- Major mode for C-- source code -*- lexical-binding: t; -*-
 
 ;; Copyright (c) 2012, Johan Tibell
 ;; All rights reserved.

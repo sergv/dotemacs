@@ -182,14 +182,14 @@ command has finished execution."
       (apply #'vconcat (append-list-reify events))
     []))
 
-(defsubst vim--reify-events-no-escape (events)
+(defun vim--reify-events-no-escape (events)
   (if events
       (let* ((v (apply #'vconcat (append-list-reify events)))
              (end (- (length v) 1)))
         (while (and (<= 0 end)
                     (eq (aref v end) 'escape))
           (setf end (- end 1)))
-        (subseq v nil (+ end 1)))
+        (cl-subseq v nil (+ end 1)))
     []))
 
 (defsubst vim--cmd-count-p (cmd)
@@ -451,8 +451,7 @@ return the correct end-position of emacs-ranges, i.e.
 
 Similar to ‘vim-do-motion’ but assumes that BODY will not return a motion object."
   (declare (indent 1))
-  (let ((start-pos '#:start-pos)
-        (motion '#:motion))
+  (let ((start-pos '#:start-pos))
     `(let ((,start-pos (point)))
        ,@body
        (when vim--this-column
@@ -460,7 +459,7 @@ Similar to ‘vim-do-motion’ but assumes that BODY will not return a motion ob
        (vim-make-motion :has-begin nil
                         :begin ,start-pos
                         :end (point)
-                        :type ',type))))
+                        :type ,type))))
 
 (defmacro vim-do-motion (type &rest body)
   "Executes a motion body, ensuring the return of a valid vim:motion object.

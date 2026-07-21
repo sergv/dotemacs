@@ -1,4 +1,4 @@
-;;; agda2-highlight.el --- Syntax highlighting for Agda (version ≥ 2)
+;;; agda2-highlight.el --- Syntax highlighting for Agda (version ≥ 2) -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

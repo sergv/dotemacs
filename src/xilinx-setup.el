@@ -6,7 +6,7 @@
 ;; Created: Sunday, 13 October 2013
 ;; Description:
 
-;; Set ups for various xilinx-specific FPGA-oriented file formats
+;; Setups for various xilinx-specific FPGA-oriented file formats
 
 (require 'common)
 

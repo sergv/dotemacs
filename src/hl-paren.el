@@ -17,7 +17,7 @@
 (defface hl-paren-selection-face '((t (:underline "#d33682")))
   "Face to highlight parentheses.")
 
-(defstruct hl-paren-state
+(cl-defstruct hl-paren-state
   first  ;; Current paren overlay
   second ;; Matching paren overaly
   is-enabled?)
@@ -122,6 +122,7 @@ Turn off highlighting if character at point is not parentheses."
   ;;   (setq-local hl-paren-timer nil))
   )
 
+;;;###autoload
 (defun setup-hl-paren ()
   (hl-paren-mode +1))
 

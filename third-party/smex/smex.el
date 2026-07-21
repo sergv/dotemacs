@@ -409,7 +409,7 @@ Returns nil when reaching the end of the list."
   (smex-do-with-selected-item 'find-function))
 
 (defun smex-extract-commands-from-keymap (map)
-  (let (commands)
+  (let ((commands nil))
     (smex-parse-keymap map commands)
     commands))
 

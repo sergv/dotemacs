@@ -23,13 +23,13 @@
 (defsubst trie-node--value (x)
   (car x))
 
-(defsetf trie-node--value (x) (value)
+(my-defsetf trie-node--value (x) (value)
   `(setf (car ,x) ,value))
 
 (defsubst trie-node--subtrees (x)
   (cdr x))
 
-(defsetf trie-node--subtrees (x) (value)
+(my-defsetf trie-node--subtrees (x) (value)
   `(setf (cdr ,x) ,value))
 
 (defsubst trie-node-p (x)

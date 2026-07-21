@@ -8,8 +8,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'macro-util)
-  (require 'vim-search))
+  (require 'macro-util))
 
 (require 'vim-common)
 (require 'vim-macs)
@@ -51,10 +50,11 @@
                         (and (memq (aref str i) vim--align-known-flags)))
               (cl-incf i))
             (let ((flags-end i))
-              (values (expand-escape-sequences!
-                       (substring-no-properties str pattern-start (min end pattern-end)))
-                      (and (< flags-start end)
-                           (string->list (substring-no-properties str flags-start flags-end)))))))))))
+              (cl-values
+               (expand-escape-sequences!
+                (substring-no-properties str pattern-start (min end pattern-end)))
+               (and (< flags-start end)
+                    (string->list (substring-no-properties str flags-start flags-end)))))))))))
 
 (vim-defcmd vim:cmd-align (motion argument:text nonrepeatable noninteractive)
   "The VIM align command: [range]s/pattern/flags

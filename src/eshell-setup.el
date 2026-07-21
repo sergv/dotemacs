@@ -32,7 +32,8 @@
 (declare-function eshell/rm "em-unix")
 
 ;;;###autoload
-(el-patch-feature eshell)
+(unless noninteractive
+  (el-patch-feature eshell))
 
 (when-emacs-version (< it 30)
   (el-patch-defun eshell-emit-prompt ()
@@ -117,8 +118,8 @@
 ;; (add-to-list 'eshell-visual-commands "tail")
 
 (cl-macrolet ((define-programs (programs regexp)
-                `(list ,@(loop
-                           for p in programs
+                `(list ,@(cl-loop
+                          for p in programs
                            appending (list `(cons ,p ,regexp)
                                            `(cons ,(concat (char->string
                                                             eshell-explicit-command-char)

@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(defvar vim-insert-mode-local-keymap)
+
 (require 'abbrev+)
 (require 'semnav)
 

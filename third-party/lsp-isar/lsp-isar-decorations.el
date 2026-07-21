@@ -146,7 +146,7 @@
 (defcustom lsp-isar-decorations-delayed-printing nil
   "Don't update the decorations of non-visible buffers."
   :group 'isabelle
-  :type 'bool)
+  :type 'boolean)
 
 
 (defface lsp-isar-font-background-unprocessed1

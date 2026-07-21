@@ -164,7 +164,8 @@ current one."
 ;;;###autoload
 (add-hook 'dired-mode-hook #'dired-setup)
 
-(el-patch-feature dired)
+(unless noninteractive
+  (el-patch-feature dired))
 
 (el-patch-defun dired--move-to-next-line (arg jumpfun)
   (let ((wrapped nil)
