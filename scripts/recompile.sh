@@ -70,8 +70,13 @@ function update-dir-autoloads() {
   (update-directory-autoloads ${dirs[*]}))
 EOF
     "$emacs" --batch --eval "$emacs_cmd"
-    gzip --best --stdout "$name" >"$name.el.gz"
+    gzip --best --stdout "$name" >"$name.gz"
     rm "$name"
+}
+
+function gen-el-files() {
+    local print="$1"
+    find "$emacs_dir" \( -path '*/native' -o -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -path '*/auctex/style' -o -name 'scripts' -o -name 'resources' -o -name '.cask' -o -name '.git' \) -prune -o -type f \( -name '*.el' -a -not \( -name '*test.el' -o -name '*tests.el' -o -name '*test-utils*' -o -name '.dir-locals.el' \) \) "$print"
 }
 
 inform "Removing generated autoload el files"
@@ -101,21 +106,46 @@ find -L "$compilation_dest" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}
 inform "Generating $compilation_dest/local-autoloads.el"
 update-dir-autoloads \
     "$compilation_dest/local-autoloads.el" \
-    $(find "$emacs_dir" \( -path '*/native' -o -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -name 'scripts' -o -name '.cask' -o -name '.git' \) -prune -o -type f -name '*.el' -print0 | xargs -0 grep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
+    $(gen-el-files "-print0" | xargs -0 grep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
 
 inform "Recompiling"
 
-n="1"
+jobs="1"
 if [[ -v NIX_BUILD_CORES ]]; then
-    n="$NIX_BUILD_CORES"
+    jobs="$NIX_BUILD_CORES"
 else
     if [[ -e /proc/cpuinfo ]]; then
-        n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
+        jobs="$(awk '/processor/' /proc/cpuinfo | wc -l)"
     fi
 fi
-if [[ "$n" -gt 5 ]]; then
-    n="5"
-fi
+# if [[ "$jobs" -gt 5 ]]; then
+#     jobs="5"
+# fi
+# jobs="1"
+
+declare -a loads
+
+while IFS= read -d $'\0' -r dir ; do
+    echo "$dir"
+    loads+=("-L" "$dir")
+    # emacs  -Q --batch -L. -Lsrc -Lsrc/haskell -Lsrc/lisp
+done < <(gen-el-files "-print" | xargs dirname | sort -u | awk '!/(auctex\/style|targets|template|tests?)([/]?|$)/' | sed -re 's,^\./,,' | tr '\n' '\0')
+
+define eval_prelude <<EOF
+(progn
+  (defconst +emacs-config-path+ "$emacs_dir")
+
+  (setf cl--optimize-speed 3
+        cl--optimize-safety 0)
+
+  (setf with-editor-emacsclient-executable nil
+        byte-compile-dest-file-function
+        (lambda (path)
+          (concat
+            "${artifacts_dir}/compiled/elc/"
+            (file-name-sans-extension (file-name-nondirectory path))
+            ".elc"))))
+EOF
 
 # Either 't' or 'nil'
 native_comp="$(native-comp-available)"
@@ -129,21 +159,30 @@ if [[ "$native_comp" = "t" ]]; then
         mkdir "$compilation_dest/eln"
     fi
 
-    # # Generate config and native-compile trampolines
-    # "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
+    echo "todo: native compilation" >&2
+    exti 1
+
+    # # # Generate config and native-compile trampolines
+    # # "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
+    # #
+    # # ( seq 0 "$((jobs - 1))" | xargs -I INPUT --max-args=1 -P "$jobs" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $jobs nil nil)" && \
+    # #       find . -type f -name '*.elc' -print | xargs -n 1 -P "$jobs" "$emacs" --batch -l "$cfg" -f batch-native-compile
+    # # ) && rm "$cfg" || rm "$cfg"
     #
-    # ( seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)" && \
-    #       find . -type f -name '*.elc' -print | xargs -n 1 -P "$n" "$emacs" --batch -l "$cfg" -f batch-native-compile
-    # ) && rm "$cfg" || rm "$cfg"
-
-    # Preload to native-compile trampolines
-    "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$compilation_dest/elc\" 0 1 nil t nil)"
-
-    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $n nil nil nil)" && \
-    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $n t nil $zipped_el_dest)"
+    # # Preload to native-compile trampolines
+    # "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$compilation_dest/elc\" 0 1 nil t nil)"
+    #
+    # seq 0 "$((jobs - 1))" | xargs -I INPUT --max-args=1 -P "$jobs" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $jobs nil nil nil)" && \
+    # seq 0 "$((jobs - 1))" | xargs -I INPUT --max-args=1 -P "$jobs" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $jobs t nil $zipped_el_dest)"
 
 else
-    seq 0 "$((n - 1))" | xargs -I INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $n nil nil $zipped_el_dest)"
+    gen-el-files "-print0" | \
+        xargs -0 -P "$jobs" -n 1 \
+              "$emacs" -Q --batch \
+              "${loads[@]}" \
+              --eval "$eval_prelude" \
+              -f batch-byte-compile
+    # todo: use zipped_el_dest
 fi
 
 exit 0
