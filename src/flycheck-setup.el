@@ -9,8 +9,10 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'dash)
+  (require 'flycheck)
   (require 'keys-def)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-ex))
 
 (defvar lsp-document-sync-method)
 
@@ -18,6 +20,7 @@
 
 (require 'common)
 (require 'dash)
+(require 'eproj-query)
 
 (require 'current-column-fixed)
 (provide 'flycheck-setup)

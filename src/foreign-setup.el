@@ -9,8 +9,6 @@
 (eval-when-compile
   (require 'set-up-platform))
 
-(defvar compile--in-progress)
-
 (require 'dump-init)
 
 (defcustom use-foreign-libraries? t

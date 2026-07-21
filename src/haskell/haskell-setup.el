@@ -27,6 +27,7 @@
 (require 'dante)
 (require 'dante-repl)
 (require 'eproj)
+(require 'eproj-query)
 (require 'eproj-symbnav)
 (require 'flycheck-setup)
 (require 'haskell-abbrev+)

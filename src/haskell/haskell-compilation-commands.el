@@ -9,12 +9,12 @@
 (eval-when-compile
   (require 'set-up-platform)
   (require 'macro-util)
-
-  (declare-function sessions-mark-global-var-for-save "persistent-sessions-global-vars"))
+  (require 'vim-macs))
 
 (require 'persistent-sessions-global-vars)
 
 (require 'configurable-compilation)
+(require 'eproj-query)
 (require 'nix-integration)
 (require 's)
 

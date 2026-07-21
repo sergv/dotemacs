@@ -9,7 +9,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'el-patch)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'set-up-platform))
 
 (require 'base-emacs-fixes)
 

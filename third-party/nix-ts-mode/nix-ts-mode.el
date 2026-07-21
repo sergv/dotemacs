@@ -349,7 +349,7 @@ and for subsequent lines it's the previous line's indentation."
           ;; indent to bol
           bol)))))
 
-(defun nix-ts-mode--prev-sibling-not-comment (node parent bol &rest _)
+(defun nix-ts-mode--prev-sibling-not-comment (node _parent _bol &rest _)
   (let ((tmp (treesit-node-prev-sibling node))
         (prev nil))
     (while (and tmp
@@ -360,7 +360,7 @@ and for subsequent lines it's the previous line's indentation."
                             tmp
                           prev))))
 
-(defun nix-ts-mode--find-indent-anchor (node parent bol &rest _)
+(defun nix-ts-mode--find-indent-anchor (node parent _bol &rest _)
   (let ((prev node)
         (tmp parent))
     (when-let ((anchor
