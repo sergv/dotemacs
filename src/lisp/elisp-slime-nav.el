@@ -1,4 +1,4 @@
-;; elisp-slime-nav.el --- Make M-. and M-, work in elisp like they do in slime
+;; elisp-slime-nav.el --- Make M-. and M-, work in elisp like they do in slime -*- lexical-binding: t -*-
 ;;
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: navigation slime elisp emacs-lisp
@@ -25,7 +25,7 @@
 ;;; Code
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (require 'eproj-symbnav)
 

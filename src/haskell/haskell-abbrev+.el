@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'macro-util))
 
 (require 'abbrev+)
@@ -235,7 +235,7 @@ to check whether their modules are imported if functions are already in scope."
               (insert " ++ \""))
             acc))
          (insert-message
-          (lambda (acc _is-initial-insertion? user-input)
+          (lambda (_acc _is-initial-insertion? user-input)
             (cl-assert (stringp user-input))
             (insert (format "%s\"" (funcall quote-input user-input)))
             (cons 'message user-input)))

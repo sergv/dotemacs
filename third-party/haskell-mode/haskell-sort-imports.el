@@ -395,7 +395,7 @@ entities. Entities must be valid Haskell import/export names. E.g.
 
         :str-before-import-list merged-str-before-import-list)))))
 
-(defun haskell-sort-imports--combine-group (group-key grouped-imports)
+(defun haskell-sort-imports--combine-group (_group-key grouped-imports)
   (foldl #'haskell-import-merge (car grouped-imports) (cdr grouped-imports)))
 
 (defun haskell-sort-imports--reconstruct-import-statement (import)

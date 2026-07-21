@@ -1,4 +1,4 @@
-;;  Major mode for editing Xilinx UCF files
+;;  Major mode for editing Xilinx UCF files -*- lexical-binding: t -*-
 ;; 
 ;; This program is free software.  It is released under the terms of the GNU
 ;; GPL version 3 or later.  See the file LICENSE for full text.

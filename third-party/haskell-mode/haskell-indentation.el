@@ -42,6 +42,7 @@
 
 (eval-when-compile
   (require 'macro-util)
+  (require 'set-up-platform)
   (require 'treesit-utils))
 
 (require 'cl-lib)

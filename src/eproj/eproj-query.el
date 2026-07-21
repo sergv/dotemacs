@@ -6,6 +6,9 @@
 ;; Created: 29 January 2018
 ;; Description:
 
+(eval-when-compile
+  (defvar c-style-alist))
+
 (require 'eproj)
 
 ;; Predefined queries

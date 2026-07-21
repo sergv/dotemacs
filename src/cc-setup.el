@@ -7,13 +7,16 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'macro-util)
+
+  (require 'cc-cmds)
   (defvar whitespace-line-column))
 
 (require 'align-util)
 (require 'c-preprocessor)
 (require 'common)
+(require 'eproj-query)
 (require 'indentation)
 (require 'find-file)
 (require 'company-eproj)
