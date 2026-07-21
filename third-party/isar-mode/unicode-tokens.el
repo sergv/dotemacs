@@ -1,4 +1,4 @@
-;;; unicode-tokens.el --- Support for control and symbol tokens
+;;; unicode-tokens.el --- Support for control and symbol tokens -*- lexical-binding: t -*-
 ;;
 ;; Copyright(C) 2008-2010 David Aspinall / LFCS Edinburgh
 ;; Author:    David Aspinall <David.Aspinall@ed.ac.uk>
