@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'macro-util))
 
 (defun bisect (item items start end eq? less?)

@@ -4,7 +4,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 
 (defun eri-current-line-length nil
   "Calculate length of current line."
