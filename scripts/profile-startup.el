@@ -71,7 +71,7 @@
 
 (defun profile-startup-minimal-setup ()
   "Perform minimal setup of emacs."
-  (require 'cl)
+  (require 'cl-lib)
   (setq max-lisp-eval-depth 1000
         ;; to handle all unwind-protects and similar stuff
         ;; in deep recursion

@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (defvar transient-values)
 (defvar transient-levels)

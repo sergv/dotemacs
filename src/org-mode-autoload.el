@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (require 'set-up-paths)
 (require 'org-loaddefs)

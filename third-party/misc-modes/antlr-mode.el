@@ -122,7 +122,7 @@
 
 ;; General Emacs/XEmacs-compatibility compile-time macros
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (defmacro cond-emacs-xemacs (&rest args)
     (cond-emacs-xemacs-macfn
      args "`cond-emacs-xemacs' must return exactly one element"))
