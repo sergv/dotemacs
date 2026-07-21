@@ -43,7 +43,7 @@ Polyfill for Emacs 30 `static-if'."
   ;; TODO: Emacs 24.3 first introduced `gv', so remove this and all
   ;; calls to `defsetf' when support for earlier versions is dropped.
   (unless (fboundp 'gv-define-setter)
-    (require 'cl))
+    (require 'cl-lib))
 
   ;; - 24.3 started complaining about unknown `declare' props.
   ;; - 25 introduced `pure' and `side-effect-free'.

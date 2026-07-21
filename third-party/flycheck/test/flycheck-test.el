@@ -3714,7 +3714,7 @@ MODE-SYM is the Erlang mode name, one of ‘erlang’ and
 (flycheck-ert-def-checker-test groovy groovy syntax-error
   ;; Work around
   ;; https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes/issues/11
-  (require 'cl)
+  (require 'cl-lib)
   (flycheck-ert-should-syntax-check
    "language/groovy.groovy" 'groovy-mode
    '(2 14 error "unexpected token: {" :checker groovy)))
