@@ -184,7 +184,7 @@ be either singular string or a list of strings."
          ((and entry
                (listp entry)
                (= 2 (length entry)))
-          (let ((flag-name (first entry))
+          (let ((flag-name (cl-first entry))
                 (compl-expr (cadr-safe entry)))
             (cl-assert (or (stringp flag-name)
                            (and
@@ -241,28 +241,28 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                            nil
                            "invalid definition %s"
                            definition)
-                (cond ((eq? 'or (first definition))
+                (cond ((eq? 'or (cl-first definition))
                        (funcall process-or definition positional-depth))
-                      ((eq? 'opts (first definition))
+                      ((eq? 'opts (cl-first definition))
                        (funcall process-opts definition))
                       (t
                        (error "process: unsupported definition: %S" definition)))))
              ;; Alternatives
              (process-or
               (lambda (definition positional-depth)
-                (when-let (defs (rest definition))
+                (when-let (defs (cl-rest definition))
                   (let* ((positional-def?
                           (lambda (def)
-                            (or (stringp (first def))
+                            (or (stringp (cl-first def))
                                 (and
-                                 (listp (first def))
-                                 (-all? #'stringp (first def))))))
+                                 (listp (cl-first def))
+                                 (-all? #'stringp (cl-first def))))))
                          (positional-defs
                           (-filter positional-def? defs))
                          (other-defs
                           (--filter (not (funcall positional-def? it)) defs))
                          (names
-                          (-map (lambda (x) (if (listp x) (first x) (list x)))
+                          (-map (lambda (x) (if (listp x) (cl-first x) (list x)))
                                 positional-defs))
                          (pcomplete-arg-var '#:positional-arg))
                     `(progn
@@ -283,11 +283,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              ;; -s and --long flags followed by positional arguments
              (process-opts
               (lambda (definition)
-                (let ((info (rest definition)))
+                (let ((info (cl-rest definition)))
                   (cl-assert (-all? (lambda (entry)
                                       (and (listp entry)
                                            (not (null entry))
-                                           (memq (first entry) '(flags args))))
+                                           (memq (cl-first entry) '(flags args))))
                                     info)
                              nil
                              "<opts> clause must contain either (flags ...) or (args ...) entries only: %S"
@@ -344,7 +344,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              ;; Positional arguments for subcommands
              (process-positional
               (lambda (definition pcomplete-arg-var positional-depth)
-                (let ((name (first definition)))
+                (let ((name (cl-first definition)))
                   (cl-assert (or (stringp name)
                                  (and (listp name)
                                       (-all? #'stringp name))))

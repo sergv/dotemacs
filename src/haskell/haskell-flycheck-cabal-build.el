@@ -15,7 +15,7 @@
 (require 'flycheck)
 (require 'nix-integration)
 
-(defun haskell-flycheck-cabal-build--check (checker cont)
+(defun haskell-flycheck-cabal-build--check (_checker cont)
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
          (proj-dir (configurable-compilation-proj-dir))
          (build-dir (eproj-query/fold-build-dir
@@ -35,20 +35,18 @@
       (buffer-disable-undo buf)
       (with-current-buffer buf
         (erase-buffer))
-      (let* ((orig-buf (current-buffer))
-             (proc
-              (let ((default-directory proj-dir))
-                (make-process :name "flycheck-haskell-cabal-build"
-                              :buffer buf
-                              :command (cmdline-to-executable-command command)
-                              :noquery t
-                              :sentinel (lambda (process event)
-                                          (pcase (process-status process)
-                                            (`signal
-                                             (funcall cont 'interrupted))
-                                            (`exit
-                                             (let ((result (haskell-flycheck-cabal-build--extract-errors buf proj-dir (eproj-project/root proj) process)))
-                                               (funcall cont (car result) (cdr result))))))))))))))
+      (let ((default-directory proj-dir))
+        (make-process :name "flycheck-haskell-cabal-build"
+                      :buffer buf
+                      :command (cmdline-to-executable-command command)
+                      :noquery t
+                      :sentinel (lambda (process _event)
+                                  (pcase (process-status process)
+                                    (`signal
+                                     (funcall cont 'interrupted))
+                                    (`exit
+                                     (let ((result (haskell-flycheck-cabal-build--extract-errors buf proj-dir (eproj-project/root proj) process)))
+                                       (funcall cont (car result) (cdr result)))))))))))
 
 (defconst haskell-flycheck-cabal-build--extract-errors--resolved-filenames
   (make-hash-table :test #'equal)

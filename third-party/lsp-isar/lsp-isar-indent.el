@@ -68,7 +68,6 @@ unused arguments are still evaluated.)")
   ;;(if lsp-isar-indent-trace-indent
   ;;	  (apply 'message args))
   (progn
-    (message "don't debug indentation")
     (define-inline lsp-isar-indent-trace-indent (&rest _args)
       nil)))
 

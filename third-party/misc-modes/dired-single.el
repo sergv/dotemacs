@@ -1,4 +1,4 @@
-;;; dired-single.el --- reuse the current dired buffer to visit another directory
+;;; dired-single.el --- reuse the current dired buffer to visit another directory -*- lexical-binding: t; -*-
 
 ;; This file is not part of Emacs
 

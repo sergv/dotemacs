@@ -463,7 +463,7 @@ arguments in that format. Don’t supply sentinel - it’s reserved and is not p
 in the regular ‘call-process’ anyway."
   (lcr-context-switch
     (apply #'make-process
-           :sentinel (lambda (p signal)
+           :sentinel (lambda (p _signal)
                        (when (memq (process-status p) '(exit signal finished))
                          (lcr-resume continue (process-exit-status p))))
            args)))

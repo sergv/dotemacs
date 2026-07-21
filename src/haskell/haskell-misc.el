@@ -17,6 +17,8 @@
   (require 'treesit-utils)
   (require 'trie))
 
+(declare-function treesit-node-at "treesit")
+
 (require 'advices-util)
 (require 'align-util)
 (require 'common)
@@ -242,7 +244,8 @@ sexps and indentation levels."
   (haskell-align-on-pragma-open)
   (haskell-align-on-pragma-close))
 
-(defvar hydra-haskell-align--empty-keymap (make-sparse-keymap))
+(eval-and-compile
+  (defvar hydra-haskell-align--empty-keymap (make-sparse-keymap)))
 
 ;;;###autoload (autoload 'hydra-haskell-align/body "haskell-misc" nil t)
 (defhydra-ext hydra-haskell-align (:exit t :foreign-keys nil :hint nil :base-map hydra-haskell-align--empty-keymap)
@@ -459,7 +462,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
               (delete-region pragma-block-start pragma-block-end)
               (setf exts (sort exts #'string<))
               (when exts
-                (insert (format template (first exts)))
+                (insert (format template (cl-first exts)))
                 (dolist (e (cdr exts))
                   (insert "\n")
                   (insert (format template e))))
@@ -1320,7 +1323,7 @@ value section should have if it is to be properly indented."
                   (re-search-forward haskell-regexen/cabal-script-metadata-start nil t)))))
        t))
 
-(defstruct (dante-configuration-result
+(cl-defstruct (dante-configuration-result
             (:conc-name dante-configuration-result/))
   ;; String
   (target nil :read-only t)

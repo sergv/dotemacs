@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (declare-function eproj-project/root "eproj" (proj))
+  (declare-function eproj-get-project-for-buf-lax "eproj" (buf)))
+
 (require 'common-whitespace)
 
 (require 'cl-generic)

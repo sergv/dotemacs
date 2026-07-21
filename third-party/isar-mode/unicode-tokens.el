@@ -41,6 +41,9 @@
 ;;; Code:
 ;;
 
+(eval-when-compile
+  (defvar evil-escape-inhibit))
+
 (require 'quail)
 
 ;; Emacs <24 compatibility
@@ -616,7 +619,7 @@ Optional argument FACENIL means set the face property to nil, unless 'face is in
     (add-to-invisibility-spec 'unicode-tokens-show-controls))
   (redraw-display))
 
-(defun unicode-tokens-control-char (name s &rest props)
+(defun unicode-tokens-control-char (_name s &rest props)
   `(,(format unicode-tokens-control-char-format-regexp (regexp-quote s))
     (1 '(face nil invisible unicode-tokens-show-controls) prepend)
     ;; simpler but buggy with font-lock-prepend-text-property:
@@ -626,7 +629,7 @@ Optional argument FACENIL means set the face property to nil, unless 'face is in
        prepend)
     ))
 
-(defun unicode-tokens-control-region (name start end &rest props)
+(defun unicode-tokens-control-region (_name start end &rest props)
   `(,(format unicode-tokens-control-region-format-regexp
              (regexp-quote start) (regexp-quote end))
     (1 '(face nil invisible unicode-tokens-show-controls) prepend)
@@ -829,8 +832,7 @@ but multiple characters in the underlying buffer."
   (interactive "p")
   (if (> (point) (point-min))
       (save-match-data
-        (let ((pos    (point))
-              (token  (unicode-tokens-prev-token)))
+        (let ((token (unicode-tokens-prev-token)))
           (when (not token)
             (goto-char (point))
             (error "Cannot find token before point"))
@@ -856,7 +858,7 @@ but multiple characters in the underlying buffer."
   (interactive "p")
   (unicode-tokens-rotate-token-forward (if n (- n) -1)))
 
-(defun unicode-tokens-replace-shortcut-match (&rest ignore)
+(defun unicode-tokens-replace-shortcut-match (&rest _ignore)
   "Subroutine for `unicode-tokens-replace-shortcuts'."
   (let* ((match (match-string-no-properties 0))
          (repl  (if match
@@ -879,7 +881,7 @@ Starts from point."
                        (cons 'unicode-tokens-replace-shortcut-match nil)
                        t t nil))))
 
-(defun unicode-tokens-replace-unicode-match (&rest ignore)
+(defun unicode-tokens-replace-unicode-match (&rest _ignore)
   "Subroutine for `unicode-tokens-replace-unicode'."
   (let* ((useq	(match-string-no-properties 0))
          (token (gethash useq unicode-tokens-uchar-hash-table)))
@@ -1218,7 +1220,7 @@ Commands available are:
 (defun unicode-tokens-set-font-var (fontvar)
   "Interactively select a font for FONTVAR."
   (interactive)
-  (let (font spec)
+  (let (font)
     (if (fboundp 'ns-popup-font-panel)
         (with-no-warnings
           (unicode-tokens-popup-font-panel fontvar))
@@ -1513,7 +1515,6 @@ Return the input string."
       (let* ((echo-keystrokes 0)
              (help-char nil)
              (overriding-terminal-local-map (quail-translation-keymap))
-             (generated-events nil)     ;FIXME: What is this?
              (input-method-function nil)
              (modified-p (buffer-modified-p))
              last-command-event last-command this-command)
