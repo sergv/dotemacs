@@ -7,9 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util)
+  (require 'macro-util))
 
-  (declare-function insert-info-template "common-heavy"))
+(defvar vim-insert-mode-local-keymap)
 
 (require 'abbrev+)
 (require 'common)

@@ -18,8 +18,10 @@
   (require 'cl-lib)
   (require 'macro-util)
   (require 'search)
+  (require 'vim-core)
   (require 'vim-commands)
-  (defvar vim--last-undo))
+  (defvar vim--last-undo)
+  (defvar vim-visual--last-insert-info))
 
 (require 'common)
 (require 'current-column-fixed)

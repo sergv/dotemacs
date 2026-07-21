@@ -11,6 +11,8 @@
   (require 'macro-util)
   (require 'vim-macs))
 
+(declare-function treesit-node-at "treesit")
+
 (require 'align-util)
 (require 'hydra-setup)
 (require 'indentation)

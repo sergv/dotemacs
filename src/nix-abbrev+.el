@@ -39,7 +39,7 @@ while interactively prompting for variables/messages."
               (insert " + \""))
             acc))
          (insert-message
-          (lambda (acc _is-initial-insertion? user-input)
+          (lambda (_acc _is-initial-insertion? user-input)
             (cl-assert (stringp user-input))
             (insert (format "%s\"" (funcall quote-input user-input)))
             (cons 'message user-input)))

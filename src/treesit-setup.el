@@ -8,12 +8,11 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'el-patch)
-  (require 'macro-util)
-  (require 'treesit-utils))
+  (require 'macro-util))
 
 (require 'el-patch)
 (require 'set-up-paths)
+(require 'treesit-utils)
 
 (defvar treesit-max-buffer-size)
 (defvar treesit-font-lock-level)
@@ -59,22 +58,13 @@ Return the root node of the syntax tree."
       (back-to-indentation)
       (point))))
 
-(defun treesit-node-text-no-properties-unsafe (node &optional str)
-  (cl-assert (not (null node)))
-  (cl-assert (treesit-node-p node))
-  (if (stringp str)
-      (substring-no-properties str (1- (treesit-node-start node)) (1- (treesit-node-end node)))
-    (progn
-      (cl-assert (or (eq (current-buffer) (treesit-node-buffer node))
-                     (eq (buffer-base-buffer (current-buffer)) (treesit-node-buffer node))))
-      (buffer-substring-no-properties (treesit-node-start node) (treesit-node-end node)))))
-
 (add-to-list 'treesit-simple-indent-presets
              (cons 'grand-parent-bol
                    #'treesit-grand-parent-bol))
 
 ;;;###autoload
-(when (and (fboundp 'treesit-available-p)
+(when (and (not noninteractive)
+           (fboundp 'treesit-available-p)
            (treesit-available-p))
   (el-patch-feature treesit))
 

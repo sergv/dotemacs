@@ -1,4 +1,4 @@
-;;; annotation.el --- Functions for annotating text with faces and help bubbles
+;;; annotation.el --- Functions for annotating text with faces and help bubbles -*- lexical-binding: t; -*-
 
 ;; Note that this library enumerates buffer positions starting from 1,
 ;; just like Emacs.
@@ -27,7 +27,6 @@ display the target position."
   (let (source-pos
         source-window
         source-buffer
-        source-file-name
         target)
     (cond ((eventp link)
            (let ((pn (event-end link)))
@@ -104,7 +103,7 @@ less than END."
       (setq mid (next-single-property-change pos 'annotation-faces
                                              nil end))
       (let* ((old-faces (get-text-property pos 'annotation-faces))
-             (all-faces (union old-faces faces)))
+             (all-faces (cl-union old-faces faces)))
         (mapc (lambda (prop) (put-text-property pos mid prop all-faces))
               '(annotation-faces face))
         (setq pos mid)))))
@@ -161,32 +160,32 @@ with)."
             (props nil))
         (when faces
           (annotation-merge-faces start end faces)
-          (add-to-list 'props 'face)
-          (add-to-list 'props 'annotation-faces))
+          (push 'face props)
+          (push 'annotation-faces props))
         (when token-based
           (add-text-properties start end
                                `(annotation-token-based t))
-          (add-to-list 'props 'annotation-token-based))
+          (push 'annotation-token-based props))
         (when (consp goto)
           (add-text-properties start end
                                `(annotation-goto ,goto
                                  mouse-face highlight))
-          (add-to-list 'props 'annotation-goto)
-          (add-to-list 'props 'mouse-face))
+          (push 'annotation-goto props)
+          (push 'mouse-face props))
         (when info
           (add-text-properties start end
                                `(mouse-face highlight help-echo ,info))
-          (add-to-list 'props 'mouse-face)
-          (add-to-list 'props 'help-echo))
+          (push 'mouse-face props)
+          (push 'help-echo props))
         (when props
-          (add-to-list 'props 'annotation-annotated)
+          (push 'annotation-annotated props)
           (let ((pos start)
                 mid)
             (while (< pos end)
               (setq mid (next-single-property-change pos
                            'annotation-annotations nil end))
               (let* ((old-props (get-text-property pos 'annotation-annotations))
-                     (all-props (union old-props props)))
+                     (all-props (cl-union old-props props)))
                 (add-text-properties pos mid
                    `(annotation-annotated t annotation-annotations ,all-props))
                 (setq pos mid)))))))))

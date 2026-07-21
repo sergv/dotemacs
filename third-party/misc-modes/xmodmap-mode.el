@@ -1,4 +1,4 @@
-;;; xmodmap-mode.el --- Major mode for editing .xmodmaprc
+;;; xmodmap-mode.el --- Major mode for editing .xmodmaprc -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998, 2001 Stéphane Levant <sun@tuxfamily.org>
 
