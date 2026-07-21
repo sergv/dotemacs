@@ -112,12 +112,12 @@
 SEARCH a search term to use.
 FILE a Nix expression to search in."
   (interactive "snix-search> \n")
-  (setq use-flakes (nix-has-flakes))
-  (setq file (or file (if use-flakes (nix-read-flake) (nix-read-file))))
-  (let ((results (nix-search--search search file nil use-flakes)))
-    (when (called-interactively-p 'any)
-      (nix-search--display results display-buffer use-flakes search file))
-    results))
+  (let ((use-flakes (nix-has-flakes)))
+    (setq file (or file (if use-flakes (nix-read-flake) (nix-read-file))))
+    (let ((results (nix-search--search search file nil use-flakes)))
+      (when (called-interactively-p 'any)
+        (nix-search--display results display-buffer use-flakes search file))
+      results)))
 
 (defun nix-search-read-attr (file)
   "Read from a list of attributes.

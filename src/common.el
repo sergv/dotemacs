@@ -10,9 +10,12 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'cl-seq)
   (require 'macro-util)
   (require 'set-up-platform)
   (require 'subr-x))
+
+(defvar grep-find-ignored-files)
 
 (require 'common-small)
 (require 'common-constants)
@@ -716,7 +719,7 @@ return pair (x (F x))."
                 fy tmp)))
       (setf xs (cdr-sure xs)))
     (if done
-        (values y fy)
+        (cl-values y fy)
       nil)))
 
 ;;;
@@ -732,21 +735,6 @@ return pair (x (F x))."
       (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)))))
 
 ;;; buffer, window and frame utils
-
-(defun next-buffer (n)
-  "Go to the buffer which is at the end of buffer list."
-  (interactive "p")
-  (dotimes (_ n)
-    (unbury-buffer)))
-
-(defun prev-buffer (n)
-  "Go to the buffer which is at the top of buffer list behind
-the current buffer."
-  (interactive "p")
-  (dotimes (_ n)
-    (bury-buffer (current-buffer))
-    (switch-to-buffer (other-buffer (current-buffer))))) ;dont forget about 0 here (??)
-
 
 (defsubst next-w (n)
   "Go to next Nth window"
@@ -873,8 +861,8 @@ the current buffer."
          (to-mb (lambda (x) (when x (/ x (* 1024 1024)))))
          (entry->mb (lambda (entry)
                       (when entry
-                        (let ((size (second entry))
-                              (used (third entry)))
+                        (let ((size (cl-second entry))
+                              (used (cl-third entry)))
                           (funcall to-mb
                                    (* size used))))))
          ;; (extract-used (lambda (x) (car-safe (cdr-safe (cdr-safe x)))))

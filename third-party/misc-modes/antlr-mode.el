@@ -1,4 +1,4 @@
-;;; antlr-mode.el --- major mode for ANTLR grammar files
+;;; antlr-mode.el --- major mode for ANTLR grammar files -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 

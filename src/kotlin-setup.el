@@ -6,10 +6,12 @@
 ;; Created: 28 July 2024
 ;; Description:
 
+(defvar c-basic-offset)
+(defvar vim-shift-width)
+
 (require 'eproj)
 (require 'eproj-query)
 (require 'folding-setup)
-(require 'start-common)
 
 ;;;###autoload
 (defun kotlin-setup ()

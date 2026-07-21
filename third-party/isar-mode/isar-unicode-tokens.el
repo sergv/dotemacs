@@ -100,7 +100,7 @@
 (defconst isar-token-variant-format-regexp
   "\\\\<\\(%s\\)[0-9]*>") ; unofficial interpretation of usual syntax
 
-(defcustom isar-greek-letters-tokens
+(defconst isar-greek-letters-tokens
   '(("alpha" "α")
     ("beta" "β")
     ("gamma" "γ")
@@ -135,22 +135,18 @@
     ("Phi" "Φ")
     ("Psi" "Ψ")
     ("Omega" "Ω"))
-  "Greek letter token map for Isabelle."
-  :group 'isabelle-tokens
-  :set 'isar-set-and-restart-tokens)
+  "Greek letter token map for Isabelle.")
 
-(defcustom isar-misc-letters-tokens
+(defconst isar-misc-letters-tokens
   '(("bool" "B" bold underline)
     ("complex" "ℂ")
     ("nat" "ℕ")
     ("rat" "ℚ")
     ("real" "ℝ")
     ("int" "ℤ"))
-  "Miscellaneous letter token map for Isabelle."
-  :group 'isabelle-tokens
-  :set 'isar-set-and-restart-tokens)
+  "Miscellaneous letter token map for Isabelle.")
 
-(defcustom isar-symbols-tokens
+(defconst isar-symbols-tokens
   '(("A" "𝒜")
     ("B" "ℬ")
     ("C" "𝒞")
@@ -526,12 +522,9 @@
     ("^url" "🌐")
     ("^doc" "📓")
     ("^action" "☛")
-    )
-  "Symbol token map for Isabelle.  The standard set of Isabelle symbols."
-  :group 'isabelle-tokens
-  :set 'isar-set-and-restart-tokens)
+    ))
 
-(defcustom isar-extended-symbols-tokens
+(defconst isar-extended-symbols-tokens
   '(("stareq" "≛")
     ("defeq" "≝")
     ("questioneq" "≟")
@@ -595,15 +588,13 @@
     ("sevensuperior" "⁷")
     ("eightsuperior" "⁸")
     ("ninesuperior" "⁹"))
-  "Extended symbols token map for Isabelle.  These are not defined standardly."
-  :group 'isabelle-tokens
-  :set 'isar-set-and-restart-tokens)
+  "Extended symbols token map for Isabelle.  These are not defined standardly.")
 
 (defun isar-try-char (charset code1 code2)
   (and (charsetp charset) ; prevent error
        (char-to-string (make-char charset code1 code2))))
 
-(defcustom isar-symbols-tokens-fallbacks
+(defconst isar-symbols-tokens-fallbacks
   `(;; Faked long symbols
     ("longleftarrow" "←-")
     ("Longleftarrow" "⇐–")
@@ -625,11 +616,9 @@
     ("rbrace" "|}"))
   "Fallback alternatives to `isar-symbols-tokens'.
 The first displayable composition will be displayed to replace the
-tokens."
-  :group 'isabelle-tokens
-  :set 'isar-set-and-restart-tokens)
+tokens.")
 
-(defcustom isar-bold-nums-tokens
+(defconst isar-bold-nums-tokens
   '(("zero" "0" bold)
     ("one" "1" bold)
     ("two" "2" bold)
@@ -640,11 +629,9 @@ tokens."
     ("seven" "7" bold)
     ("eight" "8" bold)
     ("nine" "9" bold))
-  "Tokens for bold numerals."
-  :group 'isabelle-tokens
-  :set 'isar-set-and-restart-tokens)
+  "Tokens for bold numerals.")
 
-(defcustom isar-modifier-symbols-tokens
+(defconst isar-modifier-symbols-tokens
   '(("^sub" "⇩")
     ("^sup" "⇧")
     ("^bsub" "⇘")
@@ -661,9 +648,7 @@ tokens."
     ("seven" "𝟕")
     ("eight" "𝟖")
     ("nine" "𝟗"))
-  "Some various symbols used for Unicode printing. Most should be either invisible or styled (e.g. bold)."
-  :group 'isabelle-tokens
-  :set 'isar-set-and-restart-tokens)
+  "Some various symbols used for Unicode printing. Most should be either invisible or styled (e.g. bold).")
 
 (defun isar-map-letters (f1 f2 &rest symbs)
   (cl-loop for x below 26
@@ -691,7 +676,7 @@ tokens."
                     (lambda (x) (downcase (format "%c" x)))
                     'frakt))
 
-(defcustom isar-token-symbol-map nil
+(defvar isar-token-symbol-map nil
   "Table mapping Isabelle symbol token names to Unicode strings.
 See `unicode-tokens-token-symbol-map'.
 
@@ -702,12 +687,9 @@ Each element is a list
   (TOKNAME COMPOSITION FONTSYMB ...)
 
 COMPOSITION is usually a string, perhaps containing Unicode characters.
-For Isabelle, the token TOKNAME is made into the token \\<TOKNAME>."
-  :group 'isabelle
-  :set 'isar-set-and-restart-tokens
-  :tag "Isabelle Unicode Token Mapping")
+For Isabelle, the token TOKNAME is made into the token \\<TOKNAME>.")
 
-(defcustom isar-user-tokens nil
+(defvar isar-user-tokens nil
   "User-defined additions to `isar-token-symbol-map'.
 
 Each element is a list
@@ -715,10 +697,7 @@ Each element is a list
   (TOKNAME COMPOSITION FONTSYMB ...)
 
 COMPOSITION is usually a string, perhaps containing Unicode characters.
-For Isabelle, the token TOKNAME is made into the token \\<TOKNAME>."
-  :group 'isabelle
-  :set 'isar-set-and-restart-tokens
-  :tag "User extensions for Isabelle Token Mapping")
+For Isabelle, the token TOKNAME is made into the token \\<TOKNAME>.")
 
 (defun isar-init-token-symbol-map ()
   "Initialise the default value for `unicode-tokens-token-symbol-map'."

@@ -10040,7 +10040,8 @@ Relative paths are relative to the file being checked."
 
 The value of this variable is a list of strings, where each
 string is a module to `use' in Perl."
-  :type '(repeat :tag "Module")
+  :type '(repeat :tag "Module list"
+                 (string :tag "Module"))
   :safe #'flycheck-string-list-p
   :package-version '(flycheck . "32"))
 

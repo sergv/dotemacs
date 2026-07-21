@@ -26,7 +26,8 @@
 (require 'ob)
 
 ;;;###autoload
-(el-patch-feature ob-tangle)
+(unless noninteractive
+  (el-patch-feature ob-tangle))
 
 (def-keys-for-map global-map
   ("C-c l" org-store-link)

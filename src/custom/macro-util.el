@@ -8,7 +8,22 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'cl-macs)
+  (require 'set-up-platform)
   (require 'subr-x))
+
+(defvar vim-visual--mode-type)
+
+(declare-function foldl "common")
+(declare-function foldr "common")
+(declare-function string->symbol "common-small")
+(declare-function symbol->string "common-small")
+(declare-function vim-visual-mode-p "vim-visual-mode")
+
+(when-emacs-version (or (< it 28)
+                        (not (and (fboundp #'native-comp-available-p)
+                                  (native-comp-available-p))))
+  (declare-function comp-hint-cons "common-small"))
 
 (defmacro car-sure (x)
   (if (fboundp #'comp-hint-cons)
@@ -96,6 +111,20 @@
   `(if (symbolp ,x)
        (eval ,x)
      ,x))
+
+(defmacro aif (condition true-branch &optional false-branch)
+  "Anaphoric if, binds evaluated condition to variable it."
+  (declare (indent 2))
+  `(let ((it ,condition))
+     (if it
+         ,true-branch
+       ,false-branch)))
+
+(defmacro awhen (condition &rest body)
+  "Anaphoric if, binds evaluated condition to variable it."
+  `(let ((it ,condition))
+     (when it
+       ,@body)))
 
 (cl-defmacro vimmize-motion (func
                              &key
@@ -190,7 +219,7 @@ NB does not expect to cache values of ARGS that are nil."
          (clrhash ,cache-var))
        (defun ,func ,args
          (let ((,query-var
-                ,(first
+                ,(cl-first
                   (foldl (lambda (hash-table-expr-struct x)
                            (cl-destructuring-bind (hash-table-expr may-be-null?)
                                hash-table-expr-struct
@@ -319,7 +348,7 @@ BODY if it returns nil."
   "Define function NAME with body BODY that will call BODY only once and return it's original
 value on all subsequent invokations."
   (declare (indent 1))
-  (let ((value (cl-gentemp "value"))
+  (let ((value '#:value)
         (uninitialized '#:uninitialized))
     `(defalias ',name
        (let ((,value ',uninitialized))
@@ -621,7 +650,7 @@ return nil otherwise."
   (declare (indent 4))
   (let ((res-var '#:result))
     `(when-let (,res-var (find-first-matching ,pred ,items))
-       (multiple-value-bind (,item-var ,pred-value-var) ,res-var
+       (cl-multiple-value-bind (,item-var ,pred-value-var) ,res-var
          ,@body))))
 
 ;;; with-* macro
@@ -723,22 +752,6 @@ Temporary file will be removed after BODY finishes."
            ,@body)
        (when (file-exists-p ,var)
          (delete-file ,var)))))
-
-;;; aif, awhen
-
-(defmacro aif (condition true-branch &optional false-branch)
-  "Anaphoric if, binds evaluated condition to variable it."
-  (declare (indent 2))
-  `(let ((it ,condition))
-     (if it
-         ,true-branch
-       ,false-branch)))
-
-(defmacro awhen (condition &rest body)
-  "Anaphoric if, binds evaluated condition to variable it."
-  `(let ((it ,condition))
-     (when it
-       ,@body)))
 
 ;; defparameter, defparameter-local
 
@@ -846,7 +859,7 @@ and returns a boolean, t when something was found and nil
 otherwise. An example DO_SEARCH is `re-search-forward' with
 some regexp.
 
-DIRECTION must be a symbol, either 'forward or 'backward (don’t
+DIRECTION must be a symbol, either \\='forward or \\='backward (don’t
 quote it for macro’s sake).
 "
   (declare (indent 1))
@@ -912,10 +925,10 @@ quote it for macro’s sake).
     `(let ,names
        (dolist (,tmp ,val)
          (cl-case (car ,tmp)
-           ,@(-map (lambda (x)
-                     `((,x)
-                       (setf ,x (cdr ,tmp))))
-                   names)))
+           ,@(mapcar (lambda (x)
+                       `((,x)
+                         (setf ,x (cdr ,tmp))))
+                     names)))
        ,@body)))
 
 ;;;
@@ -1038,6 +1051,52 @@ BODY at runtime."
       `(quote ,(eval (cons 'progn body)))
     `(progn
        ,@body)))
+
+;;;
+
+(defmacro my-defsetf (name arg1 &rest args)
+  "Define a `setf' method.
+This macro is an easy-to-use substitute for `define-setf-expander'
+that works well for simple place forms.
+
+In the simple `defsetf' form, `setf's of the form (setf (NAME
+ARGS...) VAL) are transformed to function or macro calls of the
+form (FUNC ARGS... VAL).  For example:
+
+  (defsetf aref aset)
+
+You can replace this form with `gv-define-simple-setter'.
+
+Alternate form: (defsetf NAME ARGLIST (STORE) BODY...).
+
+Here, the above `setf' call is expanded by binding the argument
+forms ARGS according to ARGLIST, binding the value form VAL to
+STORE, then executing BODY, which must return a Lisp form that
+does the necessary `setf' operation.  Actually, ARGLIST and STORE
+may be bound to temporary variables which are introduced
+automatically to preserve proper execution order of the arguments.
+For example:
+
+  (defsetf nth (n x) (v) \\=`(setcar (nthcdr ,n ,x) ,v))
+
+You can replace this form with `gv-define-setter'.
+
+\(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
+  (declare (debug
+            (&define name
+                     [&or [symbolp &optional stringp]
+                          [cl-lambda-list (symbolp)]]
+                     cl-declarations-or-string def-body))
+           (indent defun))
+  (if (and (listp arg1) (consp args))
+      ;; Like `gv-define-setter' but with `cl-function'.
+      `(gv-define-expander ,name
+         (lambda (do &rest args)
+           (gv--defsetter ',name
+                          (cl-function
+                           (lambda (,@(car args) ,@arg1) ,@(cdr args)))
+                          do args)))
+    `(gv-define-simple-setter ,name ,arg1 ,(car args))))
 
 ;;; end
 
