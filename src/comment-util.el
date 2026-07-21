@@ -740,7 +740,7 @@ commented parts and leave point unchanged."
         (goto-char pos)
         (funcall move-while-commented t)
         (setf end (line-end-position)))
-      (values start end))))
+      (cl-values start end))))
 
 ;;;###autoload
 (defun comment-util-delete-commented-part ()

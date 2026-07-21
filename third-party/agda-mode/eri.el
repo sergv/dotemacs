@@ -1,4 +1,4 @@
-;;; eri.el --- Enhanced relative indentation (eri)
+;;; eri.el --- Enhanced relative indentation (eri) -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -59,7 +59,7 @@ Example (positions marked with ^ are returned):
                 (when (not (null pos))
                   (let ((pos1 (- pos (line-beginning-position))))
                     (when (or (null max) (< pos1 max))
-                      (add-to-list 'result pos1))))
+                      (push pos1 result))))
                 (and pos
                      (< (point) (line-end-position))
                      (or (null max) (< (current-column) max))))))

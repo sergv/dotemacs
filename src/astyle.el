@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'common)
 (require 'set-up-paths)
 
 ;; Indentation of c-style languages via AStyle command-line utility.

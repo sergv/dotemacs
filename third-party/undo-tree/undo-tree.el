@@ -3577,6 +3577,7 @@ Note this will overwrite any existing undo history."
 ;;; =====================================================================
 ;;;                    Visualizer drawing functions
 
+;;;###autoload
 (defun undo-tree-visualize ()
   "Visualize the current buffer's undo tree."
   (interactive "*")

@@ -301,7 +301,7 @@ PREFIX should be a list such one returned by
   (cl-destructuring-bind (beg end _pfx typ) prefix
     (when (not (eql typ 'haskell-completions-general-prefix))
       (let ((candidates
-             (cl-case typ
+             (pcase typ
                ('haskell-completions-pragma-name-prefix
                 haskell-completions--pragma-names)
                ('haskell-completions-ghc-option-prefix
