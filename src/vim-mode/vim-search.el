@@ -91,7 +91,7 @@ insenstive, if \\C appears the pattern is case sensitive. Only
 the first occurrence of \\c or \\C is used, all others are
 ignored. If neither \\c nor \\C appears in the pattern, the
 case specified by `default-case' is used. `default-case' should be either
-'sensitive, 'insensitive or 'smart. In the latter case the pattern will be
+\\='sensitive, \\='insensitive or \\='smart. In the latter case the pattern will be
 case-sensitive if and only if it contains an upper-case letter, otherwise it
 will be case-insensitive."
   (let ((start 0)

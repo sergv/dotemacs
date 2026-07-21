@@ -9,20 +9,20 @@
 ;; Status:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'subr-x)
+  (require 'cl-lib)
+  (require 'macro-util)
   (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'subr-x))
 
 (require 'common-small)
 (require 'common-constants)
 (require 'common-whitespace)
-(require 'macro-util)
 (require 'custom-predicates)
+(require 'macro-util)
 
+(require 'dash)
 (require 'f)
 (require 's)
-(require 'dash)
 (require 'v)
 
 (defconst +undef+ 'common--undef

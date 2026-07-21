@@ -42,15 +42,17 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'company)
-  (require 'dash)
   (require 'set-up-platform))
 
 (require 'cmdline)
 (require 'dash)
+(require 'eproj)
+(require 'eproj-query)
 (require 'f)
 (require 'flycheck)
 (require 'flymake)
 (require 'haskell-mode)
+(require 'nix-integration)
 (require 's)
 (require 'xref)
 (require 'lcr)
@@ -61,6 +63,7 @@
 (require 'common-whitespace)
 (require 'haskell-cabal-components)
 (require 'haskell-constants)
+(require 'haskell-misc)
 (require 'haskell-regexen)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1652,11 +1655,11 @@ The command block is indicated by the >>> symbol."
       (lcr-call dante-async-load-current-buffer t nil)
       (while (search-forward-regexp " *-- +>>>" (line-end-position) t 1)
         ;; found a command; execute it and replace the result.
-        (let ((cmd-start (match-end 0))
+        (let ((_cmd-start (match-end 0))
               (prefix (string-replace ">>>" "   " (match-string 0)))
               (cmd-start-col (current-column))
               (cmd-lines (list (buffer-substring-no-properties (point) (line-end-position)) ":{")))
-          (cl-assert (equal (point) cmd-start))
+          (cl-assert (equal (point) _cmd-start))
           (beginning-of-line)
           (forward-line)
           (while (looking-at-p prefix)
@@ -1664,21 +1667,15 @@ The command block is indicated by the >>> symbol."
             (push (buffer-substring-no-properties (point) (line-end-position)) cmd-lines)
             (beginning-of-line)
             (forward-line))
-          (let ((cmd-end (1- (point))))
-            (let* ((cmd (join-lines (nreverse (cons ":}" cmd-lines))))
-                   (res (lcr-call dante-async-call cmd)))
-              (save-excursion
-                (delete-region (point)
-                               ;; look for: empty comment line, next command or end of block.
-                               (or (and (search-forward-regexp " *-- *\\( >>>\\|$\\)" block-end t 1)
-                                        (match-beginning 0))
-                                   block-end)))
-              (insert (apply #'concat (--map (concat "-- " it "\n") (--remove (s-blank? it) (s-lines res))))))
-            (beginning-of-line)
-            ;; skip any non-executable comment
-            (while (and (looking-at " *--")
-                        (not (looking-at-p " *-- +>>>")))
-              (forward-line))))))))
+          (let* ((cmd (join-lines (nreverse (cons ":}" cmd-lines))))
+                 (res (lcr-call dante-async-call cmd)))
+            (save-excursion
+              (delete-region (point)
+                             ;; look for: empty comment line, next command or end of block.
+                             (or (and (search-forward-regexp " *-- *\\( >>>\\|$\\)" block-end t 1)
+                                      (match-beginning 0))
+                                 block-end)))
+            (insert (apply #'concat (--map (concat "-- " it "\n") (--remove (s-blank? it) (s-lines res)))))))))))
 
 (defcustom dante-exec-default "main"
   (substitute-command-keys "Default command to run by `dante-exec'.")
