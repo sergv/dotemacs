@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (require 'cc-setup)
 (require 'common)

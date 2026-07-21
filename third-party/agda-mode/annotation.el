@@ -3,7 +3,7 @@
 ;; Note that this library enumerates buffer positions starting from 1,
 ;; just like Emacs.
 
-(require 'cl)
+(require 'cl-lib)
 
 (defvar annotation-bindings nil
   "An association list mapping symbols to faces.")

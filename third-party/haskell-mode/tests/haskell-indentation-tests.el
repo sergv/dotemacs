@@ -24,7 +24,7 @@
 ;; tests, just...
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (require 'ert)
 (require 'haskell-test-utils)
