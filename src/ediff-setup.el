@@ -7,9 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'macro-util)
+  (require 'cl-lib)
   (require 'keys-def)
+  (require 'macro-util)
   (require 'set-up-platform))
 
 (require 'ediff)

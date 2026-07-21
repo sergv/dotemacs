@@ -61,8 +61,6 @@
 
 ;;; Code:
 
-(defvar compile--in-progress)
-
 (require 'magit-core)
 (require 'magit-diff)
 (require 'magit-log)
@@ -733,8 +731,7 @@ the output in the kill ring.
      ;; See comment above.
      "https://github.com/magit/magit/wiki/Don't-set-$GIT_DIR-and-alike"))
   ;; Git isn't required while building Magit.
-  (when (not (or (bound-and-true-p byte-compile-current-file)
-                 (bound-and-true-p compile--in-progress)))
+  (when (not (bound-and-true-p byte-compile-current-file))
     (magit-git-version-assert))
   (when (version< emacs-version magit--minimal-emacs)
     (display-warning 'magit (format "\

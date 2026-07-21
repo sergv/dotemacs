@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8; -*-
+;;; -*- coding: utf-8; lexical-binding: t; -*-
 ;; isar-unicode-tokens.el --- Tokens for Unicode Tokens package
 ;;
 ;; Copyright(C) 2008, 2009 David Aspinall / LFCS Edinburgh
