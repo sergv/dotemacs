@@ -8,6 +8,32 @@
 
 ;;;; Platform
 
+(eval-and-compile
+  (defconst +platform+
+    (let ((sys-type-env (getenv "EMACS_SYSTEM_TYPE")))
+      (cond
+        (sys-type-env
+         (read sys-type-env))
+        ((eq system-type 'windows-nt)
+         '(windows work))
+        ((memq system-type '(gnu gnu/linux gnu/kfreebsd darwin))
+         '(linux home))
+        (t
+         '(linux home))))
+    "List of the form (<os> <use>), <os> may be \\='linux or \\='windows."))
+
+(unless (and (listp +platform+)
+             (memq (car +platform+)
+                   '(linux windows)))
+  (error "+platform+'s os %s should be one of 'linux or 'windows"
+         (car +platform+)))
+
+(defmacro when-windows (&rest body)
+  (let ((os-type (car +platform+)))
+    (when (eq os-type 'windows)
+      `(progn
+         ,@body))))
+
 (defmacro fold-platform-os-type (on-linux on-windows)
   (let ((os-type (car +platform+)))
     (cond
