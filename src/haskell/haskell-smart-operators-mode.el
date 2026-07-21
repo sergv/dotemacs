@@ -16,6 +16,8 @@
   (require 'macro-util)
   (require 'nanothunk))
 
+(declare-function haskell-abbrev+--insert-pragma "haskell-abbrev+")
+
 (require 'haskell-ext-tracking)
 (require 'haskell-ghc-support)
 (require 'haskell-mode)
@@ -45,7 +47,7 @@
   ;;   (beginning-of-line)
   ;;   (and (looking-at-p "^[ \t]+|")
   ;;        (point)))
-  (let* ((p0 (point-at-bol))
+  (let* ((p0 (line-beginning-position))
          (p p0)
          (c (char-after p)))
     (while (or (eq c ?\s)

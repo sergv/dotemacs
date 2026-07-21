@@ -12,8 +12,12 @@
   (require 'cl-lib)
   (require 'set-up-platform)
   (require 'macro-util)
-  (require 'vim-macs)
-  (defvar compilation-command))
+  (require 'vim-macs))
+
+(declare-function vim-execute-command "vim-core")
+
+(defvar compilation-command)
+(defvar vim-active-mode)
 
 (require 'persistent-sessions-global-vars)
 
@@ -72,9 +76,9 @@
                            (concat dir "/rls")
                          nil)
                        (flycheck-cargo--make-check-args dir)))))
-         (presets (first tmp))
-         (target-dir (second tmp))
-         (check-args (third tmp)))
+         (presets (cl-first tmp))
+         (target-dir (cl-second tmp))
+         (check-args (cl-third tmp)))
 
     (configurable-compilation-install-command-presets!
      presets

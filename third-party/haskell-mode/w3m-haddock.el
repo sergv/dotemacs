@@ -40,7 +40,7 @@
   "Face for quarantines."
   :group 'haskell)
 
-(defcustom haskell-w3m-haddock-dirs
+(defvar haskell-w3m-haddock-dirs
   '("~/.cabal/share/doc/")
   "The path to your cabal documentation dir. It should contain
 directories of package-name-x.x.
@@ -50,9 +50,7 @@ You can rebind this if you're using hsenv by adding it to your
 
     ((haskell-mode . ((haskell-w3m-haddock-dirs . (\"/home/chris/Projects/foobar/.hsenv/cabal/share/doc\")))))
 
-"
-  :group 'haskell
-  :type 'list)
+")
 
 (defvar w3m-haddock-entry-regex "^\\(\\(data\\|type\\) \\|[a-z].* :: \\)"
   "Regex to match entry headings.")

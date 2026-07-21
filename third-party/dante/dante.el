@@ -42,7 +42,12 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'company)
-  (require 'set-up-platform))
+  (require 'haskell-regexen)
+  (require 'set-up-platform)
+
+  (declare-function company-begin-backend "company")
+  (declare-function find-rec* "find-files")
+  (declare-function find-rec-multi* "find-files"))
 
 (require 'cmdline)
 (require 'dash)
@@ -72,6 +77,8 @@
 (defgroup dante nil
   "Interactive development mode for Haskell."
   :group 'haskell)
+
+(defconst dante-cabal-executable "cabal")
 
 (defcustom dante-debug nil
   "Show debug output."
@@ -286,8 +293,6 @@ targets and components about current buffer’s ghci session."
                 (concat "-" (sha1 it))))
     (concat "dist-newstyle/" name)))
 
-(defconst dante-cabal-executable "cabal")
-
 (defconst dante-methods-defs
   (let* ((ghci-options
           '("-fbyte-code"
@@ -404,8 +409,7 @@ targets and components about current buffer’s ghci session."
                :disable-preprocess t
                :template
                (cl-function
-                (lambda (&key flake-root flags target)
-                  (declare (ignore target))
+                (lambda (&key flake-root flags &allow-other-keys)
                   (nix-call-via-flakes dante-cabal-executable `("repl" ,buffer-file-name ,@flags) flake-root))))
 
       (funcall mk-dante-method
@@ -427,8 +431,7 @@ targets and components about current buffer’s ghci session."
                :disable-preprocess t
                :template
                (cl-function
-                (lambda (&key flake-root flags target)
-                  (declare (ignore flake-root target))
+                (lambda (&key flags &allow-other-keys)
                   (make-cmdline
                    :exe dante-cabal-executable
                    :args `("repl" ,buffer-file-name ,@flags)))))
@@ -440,8 +443,7 @@ targets and components about current buffer’s ghci session."
                :repl-buf-name-func #'dante-buffer-name--default
                :template
                (cl-function
-                (lambda (&key flake-root flags target)
-                  (declare (ignore flake-root))
+                (lambda (&key flags target &allow-other-keys)
                   (cl-assert (stringp target))
                   (make-cmdline
                    :exe dante-cabal-executable
@@ -454,8 +456,7 @@ targets and components about current buffer’s ghci session."
                :repl-buf-name-func #'dante-buffer-name--default
                :template
                (cl-function
-                (lambda (&key flake-root flags target)
-                  (declare (ignore flake-root flags target))
+                (lambda (&key &allow-other-keys)
                   (make-cmdline :exe "ghci"))))))))
 
 (defcustom dante-methods (dante--methods-names dante-methods-defs)
@@ -473,76 +474,75 @@ Consider setting this variable as a directory variable."
       (error "dante target not configured"))
     (let ((result nil)
           (ms dante-methods))
-      (dolist (method-name dante-methods)
-        (while (and (not result)
-                    ms)
-          (let ((method-name (car ms)))
-            (setf ms (cdr ms))
-            (when-let ((method (dante--methods-lookup method-name dante-methods-defs)))
-              (let ((pred (dante-method/is-enabled-pred method)))
-                (when (or (null pred)
-                          (funcall pred (current-buffer)))
-                  (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
-                         (proj-root (awhen proj
-                                      (f-full (eproj-project/root it)))))
-                    (when-let ((proj-root (if-let ((find-root-pred (dante-method/find-root-pred method)))
-                                              (locate-dominating-file default-directory
-                                                                      (lambda (dir)
-                                                                        (and (if proj-root
-                                                                                 ;; If there’s a project then don’t ascend past it.
-                                                                                 (string-prefix-p proj-root
-                                                                                                  (f-full dir))
-                                                                               t)
-                                                                             (funcall find-root-pred dir))))
-                                            default-directory)))
-                      (setf proj-root (expand-file-name proj-root))
-                      (let ((flake-root
-                             (when (dante-nix-available? (current-buffer))
-                               (cond
-                                 ((file-exists-p (concat proj-root "/flake.nix"))
-                                  proj-root)
-                                 (proj
-                                  (let ((eproj-root (eproj-project/root proj)))
-                                    (when (file-exists-p (concat eproj-root "/flake.nix"))
-                                      eproj-root)))
-                                 (t
-                                  nil))))
-                            (global-build-dir
-                             (concat (eproj-query/fold-build-dir
-                                      proj
-                                      ;; if not defined
-                                      (lambda ()
-                                        (fold-platform-os-type "/tmp/dist/dante" "dist-newstyle/dante"))
-                                      ;; if defined
-                                      #'identity))))
-                        (cl-assert (stringp proj-root))
-                        (cl-assert (file-directory-p proj-root))
-                        (cl-assert (or (null proj-root)
-                                       (and (stringp proj-root)
-                                            (file-directory-p proj-root))))
-                        (cl-assert (or (null flake-root)
-                                       (and (stringp flake-root)
-                                            (file-directory-p flake-root))))
-                        (cl-assert (dante-method-p method))
-                        (cl-assert (or (null cabal-cfg)
-                                       (dante-configuration-result-p cabal-cfg)))
-                        (cl-assert (or (null cabal-cfg)
-                                       (stringp (dante-configuration-result/cabal-build-root cabal-cfg))))
-                        (setf result
-                              (make-dante-config
-                               :project-root proj-root
-                               :eproj-root proj-root
-                               :flake-root flake-root
-                               :cabal-target (and cabal-cfg
-                                                  (dante-configuration-result/target cabal-cfg))
-                               :cabal-component (and cabal-cfg
-                                                     (dante-configuration-result/component cabal-cfg))
-                               :build-dir
-                               (funcall (dante-method/get-check-build-dir method) proj-root global-build-dir)
-                               :build-package-subdir (and cabal-cfg
-                                                          (dante-configuration-result/cabal-build-root cabal-cfg))
-                               :repl-dir (funcall (dante-method/get-repl-build-dir method) proj-root global-build-dir)
-                               :method method)))))))))))
+      (while (and (not result)
+                  ms)
+        (let ((method-name (car ms)))
+          (setf ms (cdr ms))
+          (when-let ((method (dante--methods-lookup method-name dante-methods-defs)))
+            (let ((pred (dante-method/is-enabled-pred method)))
+              (when (or (null pred)
+                        (funcall pred (current-buffer)))
+                (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
+                       (proj-root (awhen proj
+                                    (f-full (eproj-project/root it)))))
+                  (when-let ((proj-root (if-let ((find-root-pred (dante-method/find-root-pred method)))
+                                            (locate-dominating-file default-directory
+                                                                    (lambda (dir)
+                                                                      (and (if proj-root
+                                                                               ;; If there’s a project then don’t ascend past it.
+                                                                               (string-prefix-p proj-root
+                                                                                                (f-full dir))
+                                                                             t)
+                                                                           (funcall find-root-pred dir))))
+                                          default-directory)))
+                    (setf proj-root (expand-file-name proj-root))
+                    (let ((flake-root
+                           (when (dante-nix-available? (current-buffer))
+                             (cond
+                               ((file-exists-p (concat proj-root "/flake.nix"))
+                                proj-root)
+                               (proj
+                                (let ((eproj-root (eproj-project/root proj)))
+                                  (when (file-exists-p (concat eproj-root "/flake.nix"))
+                                    eproj-root)))
+                               (t
+                                nil))))
+                          (global-build-dir
+                           (concat (eproj-query/fold-build-dir
+                                    proj
+                                    ;; if not defined
+                                    (lambda ()
+                                      (fold-platform-os-type "/tmp/dist/dante" "dist-newstyle/dante"))
+                                    ;; if defined
+                                    #'identity))))
+                      (cl-assert (stringp proj-root))
+                      (cl-assert (file-directory-p proj-root))
+                      (cl-assert (or (null proj-root)
+                                     (and (stringp proj-root)
+                                          (file-directory-p proj-root))))
+                      (cl-assert (or (null flake-root)
+                                     (and (stringp flake-root)
+                                          (file-directory-p flake-root))))
+                      (cl-assert (dante-method-p method))
+                      (cl-assert (or (null cabal-cfg)
+                                     (dante-configuration-result-p cabal-cfg)))
+                      (cl-assert (or (null cabal-cfg)
+                                     (stringp (dante-configuration-result/cabal-build-root cabal-cfg))))
+                      (setf result
+                            (make-dante-config
+                             :project-root proj-root
+                             :eproj-root proj-root
+                             :flake-root flake-root
+                             :cabal-target (and cabal-cfg
+                                                (dante-configuration-result/target cabal-cfg))
+                             :cabal-component (and cabal-cfg
+                                                   (dante-configuration-result/component cabal-cfg))
+                             :build-dir
+                             (funcall (dante-method/get-check-build-dir method) proj-root global-build-dir)
+                             :build-package-subdir (and cabal-cfg
+                                                        (dante-configuration-result/cabal-build-root cabal-cfg))
+                             :repl-dir (funcall (dante-method/get-repl-build-dir method) proj-root global-build-dir)
+                             :method method))))))))))
       (if result
           result
         (error "Dante not configured - no method applies")))))
@@ -550,8 +550,8 @@ Consider setting this variable as a directory variable."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Session-local variables. These are set *IN THE GHCi INTERACTION BUFFER*
 
-(defstruct (dante-check-ghci-state
-            (:conc-name dante-check-ghci-state/))
+(cl-defstruct (dante-check-ghci-state
+               (:conc-name dante-check-ghci-state/))
   ;; Path where GHCi runs.
   ;;
   ;; May be different to what ‘dante-config/project-root’ returns
@@ -873,7 +873,7 @@ process."
     ("^splicing " . nil)
     ("" . error))
   "Map of regular expressions to flycheck error types, ordered by priority."
-  :group 'dante :type '(repeat cons (regex symbol)))
+  :group 'dante :type '(repeat (cons regex symbol)))
 
 (defun dante-fly-message (matched checker buf temp-file)
   "Convert the MATCHED message to flycheck format.
@@ -927,8 +927,6 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
 (defun dante--in-a-comment ()
   "Return non-nil if point is in a comment."
   (nth 4 (syntax-ppss)))
-
-(declare-function company-begin-backend 'company)
 
 (defun dante-company (command &optional arg &rest _ignored)
   "Company backend for dante.
@@ -1078,7 +1076,7 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
                    (with-current-buffer tmp-buf
                      (buffer-substring-no-properties (point-min) (point-max))))))))))
 
-(lcr-def dante-check--get-file-to-load--hsc2hs (current-file buf)
+(lcr-def dante-check--get-file-to-load--hsc2hs (_current-file buf)
   "Prepare to load into GHCi a file that requires preprocessing."
   (let (;; (preprocessed-file (dante-get-filename-to-load--hsc2hs buf))
         (cfg (dante-get-config)))

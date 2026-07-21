@@ -82,7 +82,8 @@
   (require 'macro-util)
   (require 'nanothunk)
 
-  (declare-function eproj-query/local-variables "eproj-query"))
+  (declare-function eproj-query/local-variables "eproj-query")
+  (declare-function flycheck-haskell-clear-config-cache "flycheck-haskell"))
 
 (require 'eproj-customization)
 ;; Provide here to resolve load cycles.
@@ -814,10 +815,6 @@ for project at ROOT directory."
          (related-projects
           (eproj--get-related-projects-from-info root aux-info))
          (cached-ignored-files-re
-          let ((related-projs-globs
-                (--map (concat (strip-directory-and-separator-prefix root it) "/*")
-                       (--filter (eproj--path-under-p root it)
-                                 related-projects))))
           (globs-to-regexp ignored-files-globs))
          (no-default-project-for (cdr-safe (assq 'no-default-proj aux-info)))
 

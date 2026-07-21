@@ -19,10 +19,10 @@
   :group 'lean)
 
 (defvar-local lean-default-executable-name
-  (cl-case system-type
+  (pcase system-type
     ('windows-nt   "lean.exe")
     ('cygwin       "lean.exe")
-    (t             "lean"))
+    (_             "lean"))
   "Default executable name of Lean")
 
 (defcustom lean-rootdir nil
