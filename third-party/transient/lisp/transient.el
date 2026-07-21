@@ -747,7 +747,8 @@ See also option `transient-highlight-mismatched-keys'."
       (pp list (current-buffer)))))
 
 (defvar transient-values
-  (transient--read-file-contents transient-values-file)
+  (unless noninteractive
+    (transient--read-file-contents transient-values-file))
   "Values of transient commands.
 The value of this variable persists between Emacs sessions
 and you usually should not change it manually.")
@@ -756,7 +757,8 @@ and you usually should not change it manually.")
   (transient--pp-to-file transient-values transient-values-file))
 
 (defvar transient-levels
-  (transient--read-file-contents transient-levels-file)
+  (unless noninteractive
+    (transient--read-file-contents transient-levels-file))
   "Levels of transient commands.
 The value of this variable persists between Emacs sessions
 and you usually should not change it manually.")
@@ -765,7 +767,8 @@ and you usually should not change it manually.")
   (transient--pp-to-file transient-levels transient-levels-file))
 
 (defvar transient-history
-  (transient--read-file-contents transient-history-file)
+  (unless noninteractive
+    (transient--read-file-contents transient-history-file))
   "History of transient commands and infix arguments.
 The value of this variable persists between Emacs sessions
 \(unless `transient-save-history' is nil) and you usually

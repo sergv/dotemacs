@@ -12,6 +12,13 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(defvar markdown-enable-math)
+(defvar markdown-list-indent-width)
+(defvar markdown-asymmetric-header)
+(defvar markdown-indent-on-enter)
+(defvar markdown-fontify-code-blocks-natively)
+(defvar vim-normal-mode-local-keymap)
+
 ;;;###autoload
 (autoload 'markdown-mode "markdown-mode"
           "Major mode for editing Markdown files" t)

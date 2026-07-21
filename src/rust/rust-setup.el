@@ -12,11 +12,11 @@
   (require 'macro-util)
   (require 'set-up-platform)
   (require 'vim-macs)
-  (require 'vim-setup)
-
-  (defvar whitespace-line-column))
+  (require 'vim-setup))
 
 (declare-function server-edit "server")
+
+(defvar whitespace-line-column)
 
 (require 'align-util)
 (require 'common)

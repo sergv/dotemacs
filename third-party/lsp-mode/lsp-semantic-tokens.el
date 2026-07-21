@@ -23,6 +23,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'macro-util))
 
 (require 'lsp-mode)
@@ -500,7 +501,7 @@ configuration changes.")
                 (eq nil (plist-get lsp--semantic-tokens-cache :response))
                 ;; NOTE: perhaps we'd rather have stale highlights than temporarily dropping them altogether?
                 (not (= lsp--cur-version (plist-get lsp--semantic-tokens-cache :_documentVersion))))
-      
+
       (-let* ((inhibit-field-text-motion t)
               (data (lsp-get (plist-get lsp--semantic-tokens-cache :response) :data))
               (i0 0)

@@ -328,8 +328,7 @@ Return the amount the indentation changed by."
         ;; somewhere after %% but in the literal context
         ((save-excursion
            (save-match-data
-             (let ((limit (point))
-                   state)
+             (let ((limit (point)))
                (goto-char (point-min))
                (or (not (re-search-forward "^%%" limit t))
                    (happy-in-literal-context?
@@ -397,7 +396,7 @@ Return the amount the indentation changed by."
     (beginning-of-line)
     (skip-chars-forward " \t")
     (delete-region (line-beginning-position) (point))
-    (dotimes (i col)
+    (dotimes (_ col)
       (insert ?\s))))
 
 ;;;;

@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'macro-util))
 
 ;;;###autoload
@@ -23,8 +24,8 @@ otherwise."
   (save-excursion
     (yas-load-snippet-buffer (if prompt-table
                                  (yas--read-table)
-                               (first (yas--compute-major-mode-and-parents
-                                       buffer-file-name)))
+                               (cl-first (yas--compute-major-mode-and-parents
+                                          buffer-file-name)))
                              nil)))
 
 ;;;###autoload

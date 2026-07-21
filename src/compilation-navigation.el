@@ -7,7 +7,10 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'trie)
+
+  (defvar hl-line-mode))
 
 (require 'common)
 (require 'compile)

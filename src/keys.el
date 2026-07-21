@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'ivy)
 (require 'keys-def)
 
 (def-keys-for-map help-map
