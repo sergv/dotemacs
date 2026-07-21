@@ -12,7 +12,8 @@
   (require 'cl-lib)
   (require 'el-patch)
   (require 'macro-util)
-  (require 'set-up-platform))
+  (require 'set-up-platform)
+  (require 'vim-motions))
 
 (provide 'comint-setup)
 (require 'el-patch)
