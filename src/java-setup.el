@@ -11,6 +11,7 @@
 
 (require 'cc-setup)
 (require 'common)
+(require 'eproj-query)
 (require 'java-abbrev+)
 
 (puthash 'java-mode

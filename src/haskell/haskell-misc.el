@@ -9,7 +9,7 @@
 ;; Status:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'cond-let)
   (require 'subr-x)
   (require 'macro-util)
@@ -22,6 +22,8 @@
 (require 'common)
 (require 'configurable-compilation)
 (require 'current-column-fixed)
+(require 'eproj)
+(require 'eproj-query)
 (require 'haskell-cabal-components)
 (require 'indentation)
 (require 'macro-util)

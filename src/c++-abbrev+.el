@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'abbrev+)
 (require 'common)
 (require 'semnav)
 
