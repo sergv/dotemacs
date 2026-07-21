@@ -457,17 +457,21 @@ is a short cut of following code:
     d))
 
 (defun deferred:nextc (d callback)
-  "Create a deferred object with OK callback and connect it to the given deferred object."
+  "Create a deferred object with OK callback and
+connect it to the given deferred object."
   (let ((nd (make-deferred :callback callback)))
     (deferred:set-next d nd)))
 
 (defun deferred:error (d callback)
-  "Create a deferred object with errorback and connect it to the given deferred object."
+  "Create a deferred object with errorback and
+connect it to the given deferred object."
   (let ((nd (make-deferred :errorback callback)))
     (deferred:set-next d nd)))
 
 (defun deferred:watch (d callback)
-  "Create a deferred object with watch task and connect it to the given deferred object.
+  "Create a deferred object with watch task and
+connect it to the given deferred object.
+
 The watch task CALLBACK can not affect deferred chains with
 return values. This function is used in following purposes,
 simulation of try-finally block in asynchronous tasks, progress

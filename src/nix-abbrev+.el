@@ -6,9 +6,10 @@
 ;; Created: 11 May 2026
 ;; Description:
 
-
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+
+  (declare-function insert-info-template "common-heavy"))
 
 (require 'abbrev+)
 (require 'common)

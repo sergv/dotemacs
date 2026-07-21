@@ -6,6 +6,9 @@
 ;; Created:  3 March 2026
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (setq compilation-auto-jump-to-first-error nil
       whitespace-style '(face tabs)
       ;; whitespace-line-column 81
