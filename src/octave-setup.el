@@ -249,7 +249,7 @@ in GROUP-NUMS."
       (when line
         (goto-line-dumb (read line))
         (when column
-          (line-beginning-position)
+          (goto-char (line-beginning-position))
           (skip-to-indentation)
           (cl-loop
             with end = (line-end-position)

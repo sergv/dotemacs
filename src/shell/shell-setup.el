@@ -9,7 +9,8 @@
 ;; set up shell scripting files and shell interaction mode
 
 (eval-when-compile
-  (require 'set-up-platform))
+  (require 'set-up-platform)
+  (require 'vim-macs))
 
 (require 'common)
 (require 'comint-setup)

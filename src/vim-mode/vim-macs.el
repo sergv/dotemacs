@@ -12,6 +12,8 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(require 'common-small)
+
 (cl-defmacro vim-defcmd (name (&rest args) &rest body)
   "Defines a new VIM-command.
 
