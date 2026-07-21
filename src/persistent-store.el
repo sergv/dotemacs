@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'macro-util)
   (require 'subr-x))
 
 (require 'common)
@@ -32,14 +33,15 @@
 `persistent-store-content'.")
 
 
-(defun persistent-store-init ()
-  "Initialize database."
-  (unless (persistent-store-initialized?)
-    (add-hook 'kill-emacs-hook #'persistent-store-flush-database)
-    (persistent-store-load-contents)))
-
 (defsubst persistent-store-initialized? ()
   (not (null persistent-store-content)))
+
+(defun persistent-store-init ()
+  "Initialize database."
+  (unless noninteractive
+    (unless (persistent-store-initialized?)
+      (add-hook 'kill-emacs-hook #'persistent-store-flush-database)
+      (persistent-store-load-contents))))
 
 ;;;###autoload
 (defun persistent-store-put (key value)
@@ -54,7 +56,7 @@
   (cl-assert (symbolp key))
   (gethash key persistent-store-content default))
 
-(defsetf persistent-store-get (key) (value)
+(my-defsetf persistent-store-get (key) (value)
   `(progn
      (cl-assert (symbolp key))
      (setf (gethash ,key persistent-store-content) ,value)))

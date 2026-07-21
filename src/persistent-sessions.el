@@ -685,12 +685,12 @@ entries."
       (message "sessions/load-from-data: no 'temporary-buffers field"))
     (aif (assq 'special-buffers session-entries)
         (-map (lambda (saved-info)
-                (let ((mmode (first saved-info))
+                (let ((mmode (cl-first saved-info))
                       (buf-name
                        (sessions/versioned/restore-string
                         version
-                        (second saved-info)))
-                      (special-data (third saved-info)))
+                        (cl-second saved-info)))
+                      (special-data (cl-third saved-info)))
                   (condition-case err
                       (when-let ((spec-entry (assq mmode sessions/special-modes))
                                  (restore-func (cadr-safe (assq 'restore spec-entry))))

@@ -1,4 +1,4 @@
-;;; json-error.el --- JSON syntax error highlighting
+;;; json-error.el --- JSON syntax error highlighting -*- lexical-binding: t; -*-
 
 ;; Author:  Peter Sanford (psanford@petersdanceparty.com)
 ;; Keywords:  json

@@ -7,7 +7,14 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'common-small))
+  (require 'cl-lib)
+  (require 'macro-util))
+
+(defvar vim-visual--mode-type)
+
+(declare-function vim-visual-mode-p "vim-visual-mode")
+
+(require 'common-small)
 
 (cl-defmacro defalign (func
                        align-str

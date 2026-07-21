@@ -21,7 +21,18 @@
 ;;
 ;;; Code:
 
+(eval-when-compile
+  (declare-function flycheck-error-group "flycheck")
+  (declare-function flycheck-error-id "flycheck")
+  (declare-function flycheck-error-end-column "flycheck")
+  (declare-function flycheck-error-end-line "flycheck")
+  (declare-function flycheck-error-column "flycheck")
+  (declare-function flycheck-error-line "flycheck")
+  (declare-function flycheck-error-level "flycheck")
+  (declare-function flycheck-error-filename "flycheck"))
+
 (require 'lsp-mode)
+
 
 (defgroup lsp-diagnostics nil
   "LSP support for diagnostics"

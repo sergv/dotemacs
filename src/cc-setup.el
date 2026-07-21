@@ -7,11 +7,11 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'macro-util)
-
   (require 'cc-cmds)
-  (defvar whitespace-line-column))
+  (require 'cl-lib)
+  (require 'macro-util))
+
+(defvar whitespace-line-column)
 
 (require 'align-util)
 (require 'c-preprocessor)
@@ -20,6 +20,7 @@
 (require 'indentation)
 (require 'find-file)
 (require 'company-eproj)
+(require 'start-common)
 (require 'vim-setup)
 
 (require 'dtrt-indent) ;; indent offset guesser
