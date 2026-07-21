@@ -7,8 +7,11 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'comment-util)
+  (require 'flycheck-setup)
   (require 'macro-util)
   (require 'set-up-platform)
+  (require 'vim-macs)
   (require 'vim-setup)
 
   (defvar whitespace-line-column))
