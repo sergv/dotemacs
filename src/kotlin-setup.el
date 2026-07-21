@@ -6,6 +6,11 @@
 ;; Created: 28 July 2024
 ;; Description:
 
+(require 'eproj)
+(require 'eproj-query)
+(require 'folding-setup)
+(require 'start-common)
+
 ;;;###autoload
 (defun kotlin-setup ()
   (init-common :use-render-formula t

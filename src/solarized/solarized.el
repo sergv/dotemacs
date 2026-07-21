@@ -4,10 +4,9 @@
 ;; URL: http://ethanschoonover.com/solarized
 
 (eval-when-compile
-  (require 'cl)
-  (require 'set-up-platform)
-
-  (require 'macro-util))
+  (require 'cl-lib)
+  (require 'macro-util)
+  (require 'set-up-platform))
 
 (require 'solarized-palettes)
 

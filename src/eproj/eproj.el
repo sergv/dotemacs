@@ -77,10 +77,12 @@
 ;; <arg> - emacs strings, arguments to the command
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'subr-x)
   (require 'macro-util)
-  (require 'nanothunk))
+  (require 'nanothunk)
+
+  (declare-function eproj-query/local-variables "eproj-query"))
 
 (require 'eproj-customization)
 ;; Provide here to resolve load cycles.

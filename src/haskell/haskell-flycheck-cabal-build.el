@@ -11,6 +11,7 @@
   (require 'common-heavy))
 
 (require 'dante)
+(require 'eproj-query)
 (require 'flycheck)
 (require 'nix-integration)
 

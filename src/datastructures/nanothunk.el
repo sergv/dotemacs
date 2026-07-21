@@ -8,6 +8,9 @@
 ;;
 ;; Extra lightweight thunks that add as little overhead as I managed.
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (defmacro nanothunk-delay (&rest body)
   "Delay the evaluation of BODY."
   (declare (debug (def-body)))
