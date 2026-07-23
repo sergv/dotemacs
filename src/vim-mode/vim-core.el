@@ -651,7 +651,7 @@ command-specific transformations."
   (vim-activate-normal-mode)
   (ding))
 
-(vim--def-key (kbd "ESC ESC") #'vim-exit-to-normal-mode :keymap vim-override-keymap)
+(define-key vim-override-keymap (kbd "ESC ESC") #'vim-exit-to-normal-mode)
 
 (defun vim-notify (&rest args)
   "Like `message' but is quiet in noninteractive mode."
