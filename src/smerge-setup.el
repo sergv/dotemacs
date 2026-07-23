@@ -60,6 +60,9 @@ _b_: keep base
 _c_: keep current
 _,_: kill current
 "
+  ("h" smerge-next :exit nil)
+  ("t" smerge-prev :exit nil)
+
   ("<" vim:smerge-keep-upper:interactive)
   (">" vim:smerge-keep-lower:interactive)
   ("b" vim:smerge-keep-base:interactive)
