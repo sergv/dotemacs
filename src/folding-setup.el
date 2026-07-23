@@ -37,8 +37,7 @@
 ;;;; Hideshow
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature hideshow))
+(add-to-list 'el-patch-features 'hideshow)
 
 ;;;###autoload
 (eval-after-load "hideshow" '(require 'folding-setup))
