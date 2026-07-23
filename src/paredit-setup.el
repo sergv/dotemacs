@@ -42,8 +42,7 @@
 ;;;
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature paredit))
+(add-to-list 'el-patch-features 'paredit)
 
 (defun paredit-forward-slurp-sexp--remove-initial-whitespace (&optional _)
   (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))

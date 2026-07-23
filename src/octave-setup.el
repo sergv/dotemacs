@@ -42,8 +42,7 @@
 (add-to-list 'auto-mode-alist '("\\.\\(?:m\\|octaverc\\)\\'" . octave-mode))
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature octave))
+(add-to-list 'el-patch-features 'octave)
 
 (defvar inferior-octave-on-output-hook nil
   "Hook to run after any output arrived from process.")
