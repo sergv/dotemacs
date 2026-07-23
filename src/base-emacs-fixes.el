@@ -83,8 +83,7 @@ running their FOO-mode-hook."
         (funcall fun)))))
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature autorevert))
+(add-to-list 'el-patch-features 'autorevert)
 
 (defun autorevert-init ()
   (when-emacs-version (<= 28 it)
@@ -424,8 +423,7 @@ newlines."
           (move-marker end nil))))))
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature hl-line))
+(add-to-list 'el-patch-features 'hl-line)
 
 (defun hl-line-init ()
   (el-patch-defun hl-line-make-overlay ()
@@ -744,8 +742,7 @@ Before and after saving the buffer, this function runs
         (el-patch-add nil)))))
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature arc-mode))
+(add-to-list 'el-patch-features 'arc-mode)
 
 (when-emacs-version (<= 30 it)
   (defun arc-mode-init ()
