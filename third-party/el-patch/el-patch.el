@@ -886,6 +886,11 @@ DEFINITION is a list starting with `defun' or similar."
 
 ;;;; Validating patches
 
+;;;###autoload
+(defvar el-patch-features nil
+  "List of symbols that should be ‘require’d to load everything so that
+‘el-patch-validate-all’ can do its job.")
+
 (defcustom el-patch-pre-validate-hook nil
   "Hook run before `el-patch-validate-all'.
 Also run before `el-patch-validate' if a prefix argument is
@@ -997,6 +1002,7 @@ Runs `el-patch-pre-validate-hook' and
 See `el-patch-validate'."
   (interactive)
   (run-hooks 'el-patch-pre-validate-hook)
+  (mapc #'require el-patch-features)
   (unwind-protect
       (let ((patch-count 0)
             (warning-count 0)
