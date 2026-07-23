@@ -52,6 +52,17 @@
   "Face to highlight python format directives"
   :group 'python-highlight)
 
+(defun python-point-inside-string-and-not-comment? ()
+  "Return t if point is positioned inside a string."
+  (save-excursion
+    (save-match-data
+      (let* ((end (point))
+             (begin (line-beginning-position)))
+        (when begin
+          (let ((state (parse-partial-sexp begin
+                                           end)))
+            (and (elt state 3)
+                 (null (elt state 4)))))))))
 
 (defconst +python-plain-format-directive-regexp+
   (rx-let ((conversion-flag (regexp "[#0- +]"))

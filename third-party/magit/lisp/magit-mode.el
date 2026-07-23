@@ -1077,6 +1077,7 @@ and `magit-unwind-refresh-hook'."
                        c a (* (/ c (* a 1.0)) 100)))))
       (run-hooks 'magit-unwind-refresh-hook))))
 
+;;;###autoload
 (defun magit-refresh-all ()
   "Refresh all buffers belonging to the current repository.
 

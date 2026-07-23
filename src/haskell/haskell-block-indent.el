@@ -38,7 +38,7 @@ haskell block at current indentation level."
              (lambda (start)
                (goto-char start)
                (if (eobp)
-                   (backward-delete-char count)
+                   (delete-char (- count))
                  (delete-char count)))))
         (if function-applied?
             (progn

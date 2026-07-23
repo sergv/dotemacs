@@ -10,8 +10,10 @@
   (require 'cl-lib)
   (require 'el-patch)
   (require 'macro-util)
+  (require 'pcomplete)
   (require 'set-up-platform))
 
+(require 'base-emacs-autoload)
 (require 'common-constants)
 (require 'common)
 (require 'el-patch)
@@ -21,12 +23,11 @@
 ;; (require 'ivy-posframe)
 (require 'flx)
 
-(eval-after-load "pcomplete"
-  '(progn
-     (require 'pcmpl-gnu)
-     (require 'pcmpl-linux)
-     (require 'pcmpl-rpm)
-     (require 'pcmpl-unix)))
+(with-eval-after-load 'pcomplete
+  (require 'pcmpl-gnu)
+  (require 'pcmpl-linux)
+  (require 'pcmpl-rpm)
+  (require 'pcmpl-unix))
 
 ;; Vanilla completion
 
@@ -137,25 +138,26 @@
 (when-emacs-version (<= 28 it)
   (setf completion-ignore-case t))
 
+(defun default-command-completion ()
+  (pcomplete-here
+   (pcomplete-entries nil
+                      (lambda (filename)
+                        (or (file-executable-p filename)
+                            (string-match-p (rx (or ".hs"
+                                                    ".sh"
+                                                    ".py"
+                                                    ".exe"
+                                                    ".bat"
+                                                    ".cmd")
+                                                eol)
+                                            filename))))))
+
 (setf pcomplete-dir-ignore (rx bol (or "." "..") "/")
       ;; directory-files-no-dot-files-regexp
       pcomplete-autolist nil
       pcomplete-recexact nil
       pcomplete-cycle-completions t
-      pcomplete-command-completion-function
-      (lambda ()
-        (pcomplete-here
-         (pcomplete-entries nil
-                            (lambda (filename)
-                              (or (file-executable-p filename)
-                                  (string-match-p (rx (or ".hs"
-                                                          ".sh"
-                                                          ".py"
-                                                          ".exe"
-                                                          ".bat"
-                                                          ".cmd")
-                                                      eol)
-                                                  filename)))))))
+      pcomplete-command-completion-function #'default-command-completion)
 
 (setf ivy-use-virtual-buffers t
       ivy-initial-inputs-alist nil

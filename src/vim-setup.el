@@ -10,17 +10,13 @@
   (require 'macro-util)
   (require 'vim-motions))
 
-(declare-function magit-blame-quit "magit-blame")
-(declare-function magit-refresh-all "magit-mode")
-(declare-function server-edit "server")
-(declare-function smerge-next "smerge")
-
+(defvar *mode-indent-functions-table*)
 (defvar awk-buffer-name)
 (defvar magit-blame-mode)
-(defvar *mode-indent-functions-table*)
 (defvar smerge-begin-re)
 (defvar smerge-mode)
 
+(require 'base-emacs-autoload)
 (require 'common)
 (require 'completion-setup)
 (require 'current-column-fixed)
@@ -51,7 +47,7 @@ ta_b_s
   ("t" toggle)
   ("b" hydra-tab-management/body)
 
-  ("n" unnarrow))
+  ("n" widen))
 
 (defhydra-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -77,7 +73,7 @@ _)(_: (… | a b) -> (… | a) b
   ("w"          hydra-window-management/body)
   ("t"          toggle)
   ("b"          hydra-tab-management/body)
-  ("n"          unnarrow)
+  ("n"          widen)
 
   ("cc"         vim:comment-util-comment-lines:interactive)
   ("cu"         vim:comment-util-uncomment-region:interactive)
@@ -500,10 +496,7 @@ Basically swap current point with previous one."
 (vim-emap "no-tabs" #'vim:untabify)
 
 (vim-defcmd vim:indent (nonrepeatable)
-  (aif (gethash major-mode *mode-indent-functions-table*)
-      (save-current-line-column
-        (funcall it))
-    (error "No indentation function defined for %s" major-mode)))
+  (indentation-indent-buffer-for-major-mode! major-mode))
 
 (vim-emap "indent" #'vim:indent)
 
@@ -511,10 +504,10 @@ Basically swap current point with previous one."
 (vim-defcmd vim:magit (nonrepeatable)
   "Show git status for current file's repository."
   (aif buffer-file-name
-      (magit-status)
+      (magit-status-setup-buffer)
     (progn
       (message "Warning: current buffer has no associated file")
-      (magit-status))))
+      (magit-status-setup-buffer))))
 
 (vim-emap "magit" #'vim:magit)
 (vim-emap "g" #'vim:magit)

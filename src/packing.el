@@ -21,6 +21,13 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(declare-function packing-pack-pair "cpacking")
+(declare-function packing-pack-pair "cpacking")
+(declare-function packing-unpack-pair-car "cpacking")
+(declare-function packing-unpack-pair-cdr "cpacking")
+(declare-function packing32-unpack-pair-car "cpacking")
+(declare-function packing32-unpack-pair-cdr "cpacking")
+
 (if (eval-when-compile
       ;; If we’re not little-endian
       (not (equal (byteorder) ?l)))
@@ -210,6 +217,8 @@
 (defvar packing--file-path-idx->component-cache-capacity 32)
 (defvar packing--file-path-idx->component-cache (make-vector packing--file-path-idx->component-cache-capacity nil))
 
+(defvar packing--pack-file-path--cache (make-hash-table :test #'equal :size 997))
+
 (defun packing--reset-caches ()
   (setf packing--file-path-free-idx 1)
   (clrhash packing--file-path-component->idx-cache)
@@ -248,8 +257,6 @@
   (packing--join-path
    (-map #'packing--pack-file-path--idx->component
          (packing-unpack-list packed-path))))
-
-(defvar packing--pack-file-path--cache (make-hash-table :test #'equal :size 997))
 
 (defun packing-pack-file-path-cached (path)
   (cl-assert (stringp path))

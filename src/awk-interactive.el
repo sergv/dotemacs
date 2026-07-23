@@ -13,9 +13,9 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'macro-util)
-  (require 'vim-visual-mode)
+  (require 'vim-visual-mode))
 
-  (defvar awk-mode-map))
+(defvar awk-mode-map)
 
 (require 'common)
 

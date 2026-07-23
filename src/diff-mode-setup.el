@@ -9,11 +9,16 @@
 (eval-when-compile
   (require 'macro-util))
 
-(declare-function diff-hunk-kill "diff-mode")
-(declare-function server-edit "server")
+(autoload 'diff-file-next "diff-mode" nil t)
+(autoload 'diff-file-prev "diff-mode" nil t)
+(autoload 'diff-goto-source "diff-mode" nil t)
+(autoload 'diff-hunk-kill "diff-mode" nil t)
+(autoload 'diff-hunk-next "diff-mode" nil t)
+(autoload 'diff-hunk-prev "diff-mode" nil t)
 
 (defvar outline-heading-alist)
 
+(require 'base-emacs-autoload)
 (require 'common)
 (require 'folding-setup)
 (require 'hydra-setup)

@@ -30,9 +30,8 @@
 (autoload 'htmlize-many-files "htmlize" nil t)
 (autoload 'htmlize-many-files-dired "htmlize" nil t)
 
-(eval-after-load "org"
-  '(progn
-     (require 'org-mode-setup)))
+(with-eval-after-load 'org
+  (require 'org-mode-setup))
 
 (provide 'org-mode-autoload)
 

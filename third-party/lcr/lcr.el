@@ -323,8 +323,8 @@ expands to: (fun1 arg1 (λ (x) (fun2 arg2 (λ (y z) body))))."
      (let ((var (cl-gensym "v")))
        (lcr--transform-n args (lambda (xs)
                                 `(let ((,var (,fun ,@xs))) ,(funcall k var))))))
-    (`(form)
-     (error "Special form %S incorrect or not supported" form))))
+    (other
+     (error "Special form %S incorrect or not supported" other))))
 
 ;; Tests:
 ;; (lcr--transform-1 '(lcr-call f x y) (lambda (x) x))

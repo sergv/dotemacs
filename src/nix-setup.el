@@ -11,9 +11,11 @@
   (require 'macro-util)
   (require 'vim-macs))
 
+(declare-function treesit-font-lock-recompute-features "treesit")
 (declare-function treesit-node-at "treesit")
 
 (require 'align-util)
+(require 'base-emacs-autoload)
 (require 'hydra-setup)
 (require 'indentation)
 (require 'nix-abbrev+)

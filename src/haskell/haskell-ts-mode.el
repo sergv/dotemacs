@@ -124,7 +124,7 @@
     (`hsc
      (haskell-ts-lang-selection-hsc compiled))
     (other
-     (error "Invalid haskell-ts-buffer-lang: %s" haskell-ts-buffer-lang))))
+     (error "Invalid haskell-ts-buffer-lang: %s" other))))
 
 (defconst haskell-ts-font-lock-rules
   (let*
@@ -576,7 +576,7 @@ indented block will be their bounds without any extra processing."
                      (let ((func-node-above (haskell-ts--search-non-comment-nodes
                                              current-node
                                              nil
-                                             (lambda (node typ)
+                                             (lambda (_node typ)
                                                (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
                                                     ;; (haskell-ts--is-toplevel-node? node)
                                                     ))
@@ -584,7 +584,7 @@ indented block will be their bounds without any extra processing."
                            (func-node-below (haskell-ts--search-non-comment-nodes
                                              current-node
                                              t
-                                             (lambda (node typ)
+                                             (lambda (_node typ)
                                                (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
                                                     ;; (haskell-ts--is-toplevel-node? node)
                                                     ))
@@ -680,16 +680,15 @@ indented block will be their bounds without any extra processing."
                           (string= "quasiquote" (treesit-node-type x)))))
          (if-let* ((body (treesit-node-child-by-field-name qq-node "body")))
              (save-position-marker-unsafe
-               (let ((contents (treesit-node-text-no-properties-unsafe body)))
-                 (goto-char (treesit-node-end body))
-                 (delete-region (treesit-node-end body)
-                                (treesit-node-end qq-node))
-                 (insert triple-delim)
-                 (goto-char (treesit-node-start qq-node))
-                 (delete-region (treesit-node-start qq-node)
-                                (treesit-node-start body))
-                 (insert triple-delim)
-                 (haskell-misc--ensure-language-pragma "MultilineStrings")))
+               (goto-char (treesit-node-end body))
+               (delete-region (treesit-node-end body)
+                              (treesit-node-end qq-node))
+               (insert triple-delim)
+               (goto-char (treesit-node-start qq-node))
+               (delete-region (treesit-node-start qq-node)
+                              (treesit-node-start body))
+               (insert triple-delim)
+               (haskell-misc--ensure-language-pragma "MultilineStrings"))
            (error "Point is at quasiquoter node without body")))
         ((string= "string" (treesit-node-type node))
          (let ((start (treesit-node-start node))

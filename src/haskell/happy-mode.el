@@ -233,45 +233,46 @@
 (defun electric-happy-terminator (arg)
   "Insert character and correct line's indentation."
   (interactive "P")
-  (if (happy-in-literal-context? (save-excursion
-                                   (save-match-data
-                                     (if (re-search-backward
-                                          "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-                                          nil
-                                          t)
-                                       (- (match-end 0) 1)
-                                       (point-min))))
-                                 (point))
-    (self-insert-command (prefix-numeric-value arg))
-    (if (and (not arg) (eolp)
-             (not (save-excursion
-                    (beginning-of-line)
-                    (skip-chars-forward " \t")
-                    (= (following-char) ?%))))
-      (progn
-        (and c-auto-newline
-             (progn
-               (if (save-excursion
-                     (beginning-of-line)
-                     (not (looking-at-p "[ \t]*$")))
-                 (newline))
-               (happy-indent-line)
-               (backward-delete-char-untabify 2)))
-        (insert last-command-event)
-        (happy-indent-line)
-        (and c-auto-newline
-             (progn
-               (newline)
-               (setq insertpos (- (point) 2))
-               (happy-indent-line)))
-        (save-excursion
-          (if insertpos (goto-char (1+ insertpos)))
-          (delete-char -1))))
-    (if insertpos
-      (save-excursion
-        (goto-char insertpos)
-        (self-insert-command (prefix-numeric-value arg)))
-      (self-insert-command (prefix-numeric-value arg)))))
+  (let ((insertpos nil))
+    (if (happy-in-literal-context? (save-excursion
+                                     (save-match-data
+                                       (if (re-search-backward
+                                            "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                                            nil
+                                            t)
+                                           (- (match-end 0) 1)
+                                         (point-min))))
+                                   (point))
+        (self-insert-command (prefix-numeric-value arg))
+      (if (and (not arg) (eolp)
+               (not (save-excursion
+                      (beginning-of-line)
+                      (skip-chars-forward " \t")
+                      (= (following-char) ?%))))
+          (progn
+            (and c-auto-newline
+                 (progn
+                   (if (save-excursion
+                         (beginning-of-line)
+                         (not (looking-at-p "[ \t]*$")))
+                       (newline))
+                   (happy-indent-line)
+                   (backward-delete-char-untabify 2)))
+            (insert last-command-event)
+            (happy-indent-line)
+            (and c-auto-newline
+                 (progn
+                   (newline)
+                   (setq insertpos (- (point) 2))
+                   (happy-indent-line)))
+            (save-excursion
+              (if insertpos (goto-char (1+ insertpos)))
+              (delete-char -1))))
+      (if insertpos
+          (save-excursion
+            (goto-char insertpos)
+            (self-insert-command (prefix-numeric-value arg)))
+        (self-insert-command (prefix-numeric-value arg))))))
 
 (defun happy-indent-command (&optional whole-exp)
   "Indent current line as Happy (Bison) code, or in some cases insert a tab character.
