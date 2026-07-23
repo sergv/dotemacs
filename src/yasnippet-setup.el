@@ -19,8 +19,10 @@
 (unless noninteractive
   (el-patch-feature yasnippet))
 
-(setf yas-ignore-filenames-as-triggers t
-      yas-snippet-dirs (list (concat +resources-path+ "/snippets"))
+(defvar yas-snippet-filenames-serve-as-keys? nil
+  "Whether snippet file names serve as keys.")
+
+(setf yas-snippet-dirs (list (concat +resources-path+ "/snippets"))
       yas-prompt-functions '(ivy-yas-completing-prompt)
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w")
@@ -45,7 +47,7 @@ simlifying encoding of several keys for one snippet."
   (let* ((type 'snippet)
          (name (and file
                     (file-name-nondirectory file)))
-         (keys (unless yas-ignore-filenames-as-triggers
+         (keys (when yas-snippet-filenames-serve-as-keys?
                  (and name
                       (list (file-name-sans-extension name)))))
          template
