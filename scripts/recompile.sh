@@ -47,7 +47,7 @@ function define() {
     IFS='\n' read -r -d '' ${1} || true
 }
 
-function update-dir-autoloads() {
+function generate-autoloads() {
     local name="$1"
     shift 1
     declare -a dirs
@@ -64,13 +64,14 @@ function update-dir-autoloads() {
   ;; trouble when files have invalid local variable entries.
   (defun hack-local-variables (&rest ignored) nil)
   (setq debug-on-error t
-        generated-autoload-file "$name"
         make-backup-files nil
         backup-inhibited t
         autoload-compute-prefixes nil)
-  (update-directory-autoloads ${dirs[*]}))
+  ;; Eliminate all doc strings from autoloads file
+  ;; (defun help-add-fundoc-usage (doc args) nil)
+  (loaddefs-generate (list ${dirs[*]}) "$name" nil "(defvar el-patch-features nil)"))
 EOF
-    "$emacs" --batch --eval "$emacs_cmd" >/dev/null 2>&1
+    "$emacs" --batch --eval "$emacs_cmd" #>/dev/null 2>&1
     gzip --best --stdout "$name" >"$name.gz"
     rm "$name"
 }
@@ -105,7 +106,7 @@ find "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -
 find -L "$compilation_dest" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
 
 inform "Generating $compilation_dest/local-autoloads.el"
-update-dir-autoloads \
+generate-autoloads \
     "$compilation_dest/local-autoloads.el" \
     $(gen-el-files "-print0" | xargs -0 grep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
 
