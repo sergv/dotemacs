@@ -32,8 +32,7 @@
 (declare-function eshell/rm "em-unix")
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature eshell))
+(add-to-list 'el-patch-features 'eshell)
 
 (when-emacs-version (< it 30)
   (el-patch-defun eshell-emit-prompt ()

@@ -25,8 +25,7 @@
 (require 'haskell-autoload)
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature grep))
+(add-to-list 'el-patch-features 'grep)
 
 (when-emacs-version (<= 28 it)
   (el-patch-defun grep-expand-template (template &optional regexp files dir excl more-opts)

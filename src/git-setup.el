@@ -31,11 +31,9 @@
 (require 'vim-setup)
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature magit))
+(add-to-list 'el-patch-features 'magit)
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature magit-commit))
+(add-to-list 'el-patch-features 'magit-commit)
 
 (setf magit-completing-read-function 'ivy-completing-read
       magit-branch-read-upstream-first 'fallback
