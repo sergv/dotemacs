@@ -35,8 +35,7 @@
   "List of modes that are considered to be lisp.")
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature lisp-mode))
+(add-to-list 'el-patch-features 'lisp-mode)
 
 (el-patch-defun lisp-indent-line (&optional indent)
   "Indent current line as Lisp code."
