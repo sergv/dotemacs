@@ -18,6 +18,14 @@
   import-qualified-post
   unboxed-tuples)
 
+(defun haskell-ext-tracking-known-exts--default ()
+  (make-haskell-ext-tracking-known-exts
+   :magic-hash nil
+   :import-qualified-post nil
+   :unboxed-tuples nil))
+
+(defvar haskell-ext-tracking-known-exts--store (haskell-ext-tracking-known-exts--default))
+
 (defsubst haskell-ext-tracking-have-magic-hash? ()
   (haskell-ext-tracking-known-exts/magic-hash haskell-ext-tracking-known-exts--store))
 
@@ -26,14 +34,6 @@
 
 (defsubst haskell-ext-tracking-have-unboxed-tuples? ()
   (haskell-ext-tracking-known-exts/unboxed-tuples haskell-ext-tracking-known-exts--store))
-
-(defun haskell-ext-tracking-known-exts--default ()
-  (make-haskell-ext-tracking-known-exts
-   :magic-hash nil
-   :import-qualified-post nil
-   :unboxed-tuples nil))
-
-(defvar haskell-ext-tracking-known-exts--store (haskell-ext-tracking-known-exts--default))
 
 (defun haskell-ext-tracking-enable-magic-hash! ()
   (setf (haskell-ext-tracking-known-exts/magic-hash haskell-ext-tracking-known-exts--store) t))

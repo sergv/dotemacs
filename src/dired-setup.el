@@ -14,6 +14,8 @@
   (require 'keys-def)
   (require 'macro-util))
 
+(defvar image-dired-dir)
+
 (require 'common)
 (require 'el-patch)
 (require 'set-up-paths)
@@ -106,6 +108,7 @@ to them."
                               ;; don't redisplay dired after each file
                               nil))
 
+;;;###autoload
 (defun dired-with-marked-files (f if-none-selected)
   "Open each marked file and call F with its buffer."
   (if-let (files (dired-get-marked-files nil nil #'dired-nondirectory-p))

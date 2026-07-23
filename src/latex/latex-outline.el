@@ -27,9 +27,28 @@
      (save-match-data
        ,@body)))
 
+(defvar-local latex:document-start nil
+  "Marker that marks \\begin{document} in latex file.")
+(set-default 'latex:document-start nil)
 
 (defconst latex-preamble-start "\\\\documentclass\\[.*\\]{.*}")
 (defconst latex-document-start "^ *\\\\begin *{document}[ %]*$")
+
+(defconst latex-sectioning-regexp
+  (rx "\\"
+      (group
+       (or "part"
+           "chapter"
+           "section"
+           "subsection"
+           "subsubsection"
+           "paragraph"
+           "subparagraph"))
+      (? "*")
+      "{"
+      (+? anything)
+      ;; "}" ;; <- this causes bugs when section header ends up on more than one line
+      ))
 
 (defmacro latex-initialize (&rest body)
   (declare (indent defun))
@@ -152,22 +171,6 @@ position at point."
                        (marker-position latex:document-start)
                        t)))
 
-(defconst latex-sectioning-regexp
-  (rx "\\"
-      (group
-       (or "part"
-           "chapter"
-           "section"
-           "subsection"
-           "subsubsection"
-           "paragraph"
-           "subparagraph"))
-      (? "*")
-      "{"
-      (+? anything)
-      ;; "}" ;; <- this causes bugs when section header ends up on more than one line
-      ))
-
 (defun latex:type-of-section (str)
   "Return type of section that STR denotes,
 possible values are 'part, 'chapter, 'section, 'subsection, 'subsubsection,
@@ -177,13 +180,7 @@ of section."
     (when (string-match latex-sectioning-regexp str)
       (string->symbol (match-string-no-properties 1 str)))))
 
-
-(defvar latex:document-start nil
-  "Marker that marks \\begin{document} in latex file.")
-(make-variable-buffer-local 'latex:document-start)
-(set-default 'latex:document-start nil)
-
-
+;;;###autoload
 (defun latex-set-up-document-start-marker ()
   "Set up position of \\begin{document} string in latex file
 for use in utility functions."
@@ -261,6 +258,7 @@ _o_: show subtree"
   ("O" outline-show-all)
   ("o" outline-show-subtree))
 
+;;;###autoload
 (defun latex-setup-folding ()
   (interactive)
   (setq buffer-display-table (make-display-table))

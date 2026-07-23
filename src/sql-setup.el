@@ -11,10 +11,12 @@
   (require 'macro-util)
   (require 'vim-setup))
 
-;;;###autoload
-(eval-after-load "sql"
-  '(progn
-     (load-library "sql-indent")))
+(autoload 'sql-beginning-of-statement "sql" nil t)
+(autoload 'sql-end-of-statement "sql" nil t)
+(autoload 'sql-send-region "sql" nil t)
+
+(with-eval-after-load 'sql
+  (load-library "sql-indent"))
 
 (defhydra-derive hydra-sql-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "

@@ -13,6 +13,8 @@
   (require 'set-up-platform)
   (require 'vim-visual-mode))
 
+(defvar +comment-util-comment-format-alist+)
+
 (require 'base-emacs-fixes)
 (require 'c-preprocessor)
 (require 'comment-util)
@@ -25,12 +27,10 @@
 
 ;;;; Yafolding
 
-(defadvice yafolding-go-parent-element
-    (after
-     yafolding-go-parent-element/skip-whitespace
-     activate
-     compile)
+(defun yafolding-go-parent-element/skip-whitespace (&rest _ignore)
   (skip-to-indentation))
+
+(advice-add 'yafolding-go-parent-element :after #'yafolding-go-parent-element/skip-whitespace)
 
 (setf yafolding-show-fringe-marks nil)
 

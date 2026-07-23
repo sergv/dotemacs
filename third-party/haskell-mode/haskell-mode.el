@@ -621,6 +621,7 @@ run at the same time."
              interactive-haskell-mode
              turn-on-haskell-unicode-input-method))
 
+;;;###autoload
 (defun haskell-fill-paragraph (justify)
   (save-excursion
     ;; Fill paragraph should only work in comments.

@@ -12430,6 +12430,7 @@ Returns nil if point is not in a function."
        (t
         (message "Nothing at point to hide or show"))))))
 
+;;;###autoload
 (defun js2-mode-hide-element ()
   "Fold/hide contents of a block, showing ellipses.
 Show the hidden text with \\[js2-mode-show-element]."
@@ -12456,6 +12457,7 @@ Show the hidden text with \\[js2-mode-show-element]."
               (js2-mode-flag-region (1+ beg) (1- end) 'hide))
           (message "No collapsable element found at point"))))))))
 
+;;;###autoload
 (defun js2-mode-show-element ()
   "Show the hidden element at current point."
   (interactive)
@@ -12464,6 +12466,7 @@ Show the hidden text with \\[js2-mode-show-element]."
         (js2-mode-flag-region (car bounds) (cdr bounds) nil)
       (message "Nothing to un-hide"))))
 
+;;;###autoload
 (defun js2-mode-show-all ()
   "Show all of the text in the buffer."
   (interactive)
@@ -13099,9 +13102,11 @@ and variables NAMES will contain one element."
 
 (defun js2-get-symbol-declaration (node name)
   "Find scope for NAME from NODE."
-  (let ((scope (js2-get-defining-scope
+  (let ((scope
+         (js2-get-defining-scope
           (or (js2-node-get-enclosing-scope node)
-             node) name)))
+              node)
+          name)))
     (if scope (js2-symbol-ast-node (js2-scope-get-symbol scope name)))))
 
 (provide 'js2-mode)
