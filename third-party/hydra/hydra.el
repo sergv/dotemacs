@@ -710,21 +710,33 @@ The expressions can be auto-expanded according to NAME."
                     ""
                   (hydra--hint body heads)))
           (start 0)
-          (inner-regex (format "\\(%s\\)\\(%s\\)" hydra-width-spec-regex hydra-key-regex))
           varlist
           offset)
       (while (setq start
                    (string-match
-                    (format
-                     "\\(?:%%\\( ?-?[0-9]*s?\\)\\(`[a-z-A-Z/0-9]+\\|(\\)\\)\\|\\(?:_%s_\\)\\|\\(?:[?]%s[?]\\)\\|__"
-                     inner-regex
-                     inner-regex)
-                    docstring start))
+                    (rx-let ((inner-regex (seq (group-n 3 (regexp hydra-width-spec-regex))
+                                               (group-n 4 (regexp hydra-key-regex)))))
+                      (rx (or (seq (seq "%"
+                                        (group-n 1
+                                          (? " ")
+                                          (? "-")
+                                          (* (any (?0 . ?9)))
+                                          (? "s")
+                                          ))
+                                   (group-n 2
+                                     (or (seq "`"
+                                              (+ (any (?a . ?z) (?A . ?Z) (?0 . ?9) ?- ?/)))
+                                         "(")))
+                              (or (seq "_" inner-regex "_")
+                                  (seq "?" inner-regex "?")
+                                  "__"))))
+                    docstring
+                    start))
         (cond ((string= "__" (match-string 0 docstring))
                (setq docstring (replace-match "_" nil t docstring))
                (setq start (1- (match-end 0))))
               ((eq ?? (aref (match-string 0 docstring) 0))
-               (let* ((key (match-string 6 docstring))
+               (let* ((key (match-string 4 docstring))
                       (head (assoc key heads)))
                  (if head
                      (progn
@@ -733,7 +745,7 @@ The expressions can be auto-expanded according to NAME."
                              (replace-match
                               (or
                                hydra-doc-format-spec
-                               (concat "%" (match-string 3 docstring) "s"))
+                               (concat "%" (match-string 5 docstring) "s"))
                               t nil docstring)))
                    (setq start (match-end 0))
                    (warn "Unrecognized key: ?%s?" key))))
