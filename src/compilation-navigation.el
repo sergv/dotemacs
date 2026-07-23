@@ -8,14 +8,15 @@
 
 (eval-when-compile
   (require 'macro-util)
-  (require 'trie)
+  (require 'trie))
 
-  (defvar hl-line-mode))
+(defvar hl-line-mode)
 
 (require 'common)
 (require 'compile)
 (require 'configurable-compilation)
 (require 'flycheck-setup)
+(require 'trie)
 
 (cl-defstruct (compilation-error
                (:conc-name compilation-error/))
@@ -96,6 +97,7 @@ Returns cons pair of opened buffers that we found and filename, if any, resolved
                    it
                  (find-file-noselect resolved-filename))))))))))
 
+;;;###autoload
 (defun compilation/find-buffer (filename compilation-root eproj-root)
   "Get buffer that corresponds to FILENAME within current project and/or current root.
 

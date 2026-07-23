@@ -13,8 +13,11 @@
   (require 'macro-util)
   (require 'set-up-platform))
 
+(defvar eproj/languages-table)
+
 (require 'common)
 (require 'eproj-common)
+(require 'eproj-customization)
 (require 'eproj-tag-index)
 (require 'set-up-paths)
 
@@ -159,7 +162,7 @@
 
 ;; tags parsing
 ;;;###autoload
-(defun eproj/ctags-get-tags-from-buffer (proj-root buffer _tags-source)
+(defun eproj/ctags-get-tags-from-buffer (_proj-root buffer _tags-source)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain output of ctags command."
   (with-current-buffer buffer
@@ -439,7 +442,6 @@ BUFFER is expected to contain output of ctags command."
 (defun eproj/format-tag-path-and-line (proj tag tag-from-current-proj?)
   (cl-assert (not (file-name-absolute-p (eproj-tag/file tag))))
   (let* ((tag-file (eproj-tag/file tag))
-         (root (eproj-project/root proj))
          (filename
           (if tag-from-current-proj?
               tag-file

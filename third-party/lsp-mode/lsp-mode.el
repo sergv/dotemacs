@@ -1393,6 +1393,7 @@ See #2049"
                                     (version< emacs-version "27.0")))))
       (apply #'message format args))))
 
+;;;###autoload
 (defun lsp--info (format &rest args)
   "Display lsp info message with FORMAT with ARGS."
   (lsp--message "%s :: %s" (propertize "LSP" 'face 'success) (apply #'format format args)))
@@ -1945,6 +1946,7 @@ etc."
     (goto-char end)
     (exchange-point-and-mark)))
 
+;;;###autoload
 (defun lsp-warn (message &rest args)
   "Display a warning message made from (`format-message' MESSAGE ARGS...).
 This is equivalent to `display-warning', using `lsp-mode' as the type and
@@ -1964,6 +1966,7 @@ case-insensitive.
 On other systems, returns path without change."
   (if (eq system-type 'windows-nt) (downcase path) path))
 
+;;;###autoload
 (defun lsp--uri-to-path (uri)
   "Convert URI to a file path."
   (if-let* ((fn (->> (lsp-workspaces)
@@ -2721,6 +2724,7 @@ WORKSPACE is the workspace that contains the diagnostics."
   (lsp--info "Signature autoactivate %s." (if lsp-signature-auto-activate "enabled" "disabled"))
   (lsp--update-signature-help-hook))
 
+;;;###autoload
 (defun lsp-toggle-on-type-formatting ()
   "Toggle on type formatting."
   (interactive)
@@ -2728,6 +2732,7 @@ WORKSPACE is the workspace that contains the diagnostics."
   (lsp--info "On type formatting is %s." (if lsp-enable-on-type-formatting "enabled" "disabled"))
   (lsp--update-on-type-formatting-hook))
 
+;;;###autoload
 (defun lsp-toggle-symbol-highlight ()
   "Toggle symbol highlighting."
   (interactive)
@@ -3486,6 +3491,7 @@ alist mapping workspace->result."
 synchronously.
 \n(fn BODY)")
 
+;;;###autoload
 (cl-defun lsp-request (method params &key no-wait no-merge)
   "Send request METHOD with PARAMS.
 If NO-MERGE is non-nil, don't merge the results but return alist
@@ -3576,6 +3582,7 @@ Return same value as `lsp--while-no-input' and respecting `non-essential'."
 
 (defvar lsp--cancelable-requests (ht))
 
+;;;###autoload
 (cl-defun lsp-request-async (method params callback
                                     &key mode error-handler cancel-handler no-merge cancel-token)
   "Send METHOD with PARAMS as a request to the language server.
@@ -4877,6 +4884,7 @@ usually omit unsupported capabilities rather than send `false'.
 Distinguishing the two would require parsing JSON `false' to a non-nil
 value, a much wider change.")
 
+;;;###autoload
 (defun lsp--capability (cap &optional capabilities)
   "Return the value of capability CAP.
 If CAPABILITIES is non-nil, look up CAP there; otherwise use the
@@ -5044,6 +5052,7 @@ Added to `before-change-functions'."
   "Alias for `revert-buffer-in-progress' if available, or `revert-buffer-in-progress-p'
 prior to emacs 31.")
 
+;;;###autoload
 (defun lsp-on-change (start end length &optional content-change-event-fn)
   "Executed when a file is changed.
 Added to `after-change-functions'."
@@ -5433,6 +5442,7 @@ This is controlled by `lsp-fix-all-on-save' and `lsp-fix-all-on-save-list'."
                      ,@(when (lsp--save-include-text-p)
                          (list :text (lsp--buffer-content))))))))
 
+;;;###autoload
 (defun lsp--text-document-position-params (&optional identifier position)
   "Make TextDocumentPositionParams for the current point in the current document.
 If IDENTIFIER and POSITION are non-nil, they will be used as the document
@@ -5440,6 +5450,7 @@ identifier and the position respectively."
   (list :textDocument (or identifier (lsp--text-document-identifier))
         :position (or position (lsp--cur-position))))
 
+;;;###autoload
 (defun lsp--text-document-range-params (start end &optional identifier)
   "Make TextDocumentPositionParams for the current point in the current document.
 If IDENTIFIER and POSITION are non-nil, they will be used as the document identifier
@@ -5487,6 +5498,7 @@ and the position respectively."
 
 (defalias 'lsp--cur-line-diagnotics 'lsp-cur-line-diagnostics)
 
+;;;###autoload
 (defun lsp--extract-line-from-buffer (pos)
   "Return the line pointed to by POS (a Position object) in the current buffer."
   (let* ((point (lsp--position-to-point pos))
@@ -5511,6 +5523,7 @@ and the position respectively."
                       (lsp-translate-column start-char))
                      (- end-char start-char))))
 
+;;;###autoload
 (defun lsp--location-uri (loc)
   (if (lsp-location? loc)
       (lsp:location-uri loc)
@@ -5524,6 +5537,7 @@ and the position respectively."
           (goto-char (lsp--position-to-point start)))
       (error "There is no file %s" path))))
 
+;;;###autoload
 (defun lsp--location-range (loc)
   (if (lsp-location? loc)
       (lsp:location-range loc)
@@ -5568,6 +5582,7 @@ type Location, LocationLink, Location[] or LocationLink[]."
          (seq-map #'get-xrefs-in-file)
          (apply #'nconc))))
 
+;;;###autoload
 (defun lsp--location-before-p (left right)
   "Sort first by file, then by line, then by column."
   (let ((left-uri (lsp--location-uri left))
@@ -5578,6 +5593,7 @@ type Location, LocationLink, Location[] or LocationLink[]."
              ((&Range :start right-start) (lsp--location-range right)))
         (lsp--position-compare right-start left-start)))))
 
+;;;###autoload
 (defun lsp--make-reference-params (&optional td-position exclude-declaration)
   "Make a ReferenceParam object.
 If TD-POSITION is non-nil, use it as TextDocumentPositionParams object instead.
@@ -5962,6 +5978,7 @@ When language is nil render as markup if `markdown-mode' is loaded."
   "Extract a representative line from CONTENTS, to show in the echo area."
   (car (s-lines (trim-whitespace (lsp--render-element contents)))))
 
+;;;###autoload
 (defun lsp--render-on-hover-content (contents render-all)
   "Render the content received from `textDocument/hover' request.
 CONTENTS  - MarkedString | MarkedString[] | MarkupContent
@@ -9344,6 +9361,7 @@ When ALL is t, erase all log buffers of the running session."
             (let ((inhibit-read-only t))
               (erase-buffer))))))))
 
+;;;###autoload
 (defun lsp--erase-log-buffer-above (&optional all)
   "Delete contents of current lsp log buffer.
 When ALL is t, erase all log buffers of the running session."
@@ -9362,11 +9380,13 @@ When ALL is t, erase all log buffers of the running session."
   (interactive)
   (lsp--erase-log-buffer t))
 
+;;;###autoload
 (defun lsp-log-io-next (arg)
   "Move to next log entry."
   (interactive "P")
   (ewoc-goto-next lsp--log-io-ewoc (or arg 1)))
 
+;;;###autoload
 (defun lsp-log-io-prev (arg)
   "Move to previous log entry."
   (interactive "P")
@@ -9996,11 +10016,13 @@ This avoids overloading the server with many files when starting Emacs."
     (when-let* ((fn (plist-get lsp--virtual-buffer key)))
       (apply fn args))))
 
+;;;###autoload
 (defun lsp-translate-column (column)
   "Translate COLUMN taking into account virtual buffers."
   (or (lsp-virtual-buffer-call :real->virtual-char column)
       column))
 
+;;;###autoload
 (defun lsp-translate-line (line)
   "Translate LINE taking into account virtual buffers."
   (or (lsp-virtual-buffer-call :real->virtual-line line)

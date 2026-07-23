@@ -309,6 +309,7 @@ the appropriate place for that."
   "Return list of all GLSL keywords."
   (append glsl-builtins-list glsl-deprecated-builtins-list))
 
+;;;###autoload
 (defun glsl-find-man-page (thing)
   "Collects and displays manual entry for GLSL built-in function THING."
   (interactive

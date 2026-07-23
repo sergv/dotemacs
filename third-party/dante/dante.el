@@ -719,6 +719,7 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
       (let ((ty (lcr-call dante-async-call (concat ":type-at " tap))))
         (funcall consume ty)))))
 
+;;;###autoload
 (defun dante--insert-or-show-fontified (expr insert?)
   (if insert?
       (dante--insert-type expr)
@@ -775,6 +776,7 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
 
 (defvar-local dante-interpreted nil)
 
+;;;###autoload
 (defsubst dante-reset-temp-fingerprint! ()
   (setf dante-temp-fingerprint nil))
 

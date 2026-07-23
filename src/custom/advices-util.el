@@ -20,20 +20,23 @@
                                      release-action)
   "Define advice ADV-NAME around FUNC that will surround calls to FUNC
 with locking over LOCK-VAR"
+  (cl-assert (symbolp lock-var))
   (let ((acquired-var '#:is-acquired))
-    `(defadvice ,func (around ,adv-name activate compile)
-       (let ((,acquired-var (and (not ,lock-var)
-                                 ,acquire-pred)))
-         (when ,acquired-var
-           (setq ,lock-var t)
-           ,acquire-action)
+    `(progn
+       (defun ,adv-name (fun &rest args)
+         (let ((,acquired-var (and (not ,lock-var)
+                                   ,acquire-pred)))
+           (when ,acquired-var
+             (setq ,lock-var t)
+             ,acquire-action)
 
-         ad-do-it
+           (apply fun args)
 
-         (when (and ,acquired-var
-                    ,release-pred)
-           (setq ,lock-var nil)
-           ,release-action)))))
+           (when (and ,acquired-var
+                      ,release-pred)
+             (setq ,lock-var nil)
+             ,release-action)))
+       (advice-add ',func :around #',adv-name))))
 
 (defmacro make-light-synchronizing-advice (func adv-name lock-var acquire-pred release-action)
   `(make-synchronizing-advice

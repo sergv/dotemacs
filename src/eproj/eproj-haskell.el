@@ -11,6 +11,8 @@
   (require 'macro-util)
   (require 'nanothunk))
 
+(defvar eproj/languages-table)
+
 (require 'common-heavy)
 (require 'dash)
 (require 'eproj-ctags)

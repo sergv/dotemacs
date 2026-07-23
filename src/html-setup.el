@@ -73,25 +73,24 @@ end1 and end2 should be exclusive ends of tags.")
               (skip-to-indentation))
           (error nil))))))
 
-(eval-when-compile
-  (defmacro with-html-tags-context (bb be eb ee on-found &optional on-not-found)
-    "Execute BODY with BB, BE, EB and EE bound to enclonig tags' boundaries
+(defmacro with-html-tags-context (bb be eb ee on-found &optional on-not-found)
+  "Execute BODY with BB, BE, EB and EE bound to enclonig tags' boundaries
 if such tag can be found."
-    (declare (indent 5))
-    (let ((test-var '#:test))
-      `(let ((,test-var (funcall *markup-tags-context-func*)))
-         (if ,test-var
-             (cl-destructuring-bind ((,bb . ,be) . (,eb . ,ee))
-                 ,test-var
-               ,on-found)
-           ,on-not-found)))))
+  (declare (indent 4))
+  (let ((test-var '#:test))
+    `(let ((,test-var (funcall *markup-tags-context-func*)))
+       (if ,test-var
+           (cl-destructuring-bind ((,bb . ,be) . (,eb . ,ee))
+               ,test-var
+             ,on-found)
+         ,on-not-found))))
 
 ;;;###autoload (autoload 'vim:motion-jump-tag "html-setup" "" t)
 (vim-defmotion vim:motion-jump-tag (inclusive raw-result)
   "If point is positioned inside tag then jump to the beginning
 of the matching tag, else fallback to `vim:motion-jump-item'."
   (cl-macrolet ((inside? (x low high)
-                         `(and (<= ,low ,x) (< ,x ,high))))
+                  `(and (<= ,low ,x) (< ,x ,high))))
     (if (let ((synt (char-syntax (following-char))))
           (or (eq synt ?\()
               (eq synt ?\))))
@@ -108,18 +107,18 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
           ;; handle case when we're inside the tag (_|_ being the point):
           ;; <foo_|_> or </foo_|_>
           (with-html-tags-context pre-bb pre-be pre-eb pre-ee
-                                  (let ((p (point)))
-                                    (cond ((inside? p pre-bb pre-be)
-                                           (setf type 'start-tag
-                                                 tag-start pre-bb))
-                                          ((inside? p pre-eb pre-ee)
-                                           (setf type 'end-tag
-                                                 tag-start pre-eb)))
-                                    (when type
-                                      (setf bb pre-bb
-                                            be pre-be
-                                            eb pre-eb
-                                            ee pre-ee))))
+            (let ((p (point)))
+              (cond ((inside? p pre-bb pre-be)
+                     (setf type 'start-tag
+                           tag-start pre-bb))
+                    ((inside? p pre-eb pre-ee)
+                     (setf type 'end-tag
+                           tag-start pre-eb)))
+              (when type
+                (setf bb pre-bb
+                      be pre-be
+                      eb pre-eb
+                      ee pre-ee))))
           ;; if prev step yielded nothing
           (unless type
             (let (
@@ -133,10 +132,10 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
               (when (memq type '(start-tag end-tag partial-end-tag))
                 (goto-char tag-start)
                 (with-html-tags-context pre-bb pre-be pre-eb pre-ee
-                                        (setf bb pre-bb
-                                              be pre-be
-                                              eb pre-eb
-                                              ee pre-ee))))))
+                  (setf bb pre-bb
+                        be pre-be
+                        eb pre-eb
+                        ee pre-ee))))))
         (if bb ;; if bb is non-nil then interesting type was found
             (let ((next-open (condition-case nil
                                  (1- (scan-lists (point) 1 -1))
@@ -210,8 +209,8 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (defun markup-forward-up-element ()
   "Similar to `vim:lisp-up-list' - jump to the end of enclosing tag exclusively."
   (interactive)
-  (with-html-tags-context _bb _be _eb ee
-                          (goto-char ee)))
+  (with-html-tags-context _bb be _eb ee
+    (goto-char ee)))
 
 ;;;###autoload (autoload 'vim:markup-forward-up-element "html-setup" "" t)
 (vimmize-motion markup-forward-up-element
@@ -288,7 +287,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                      (<= pnt end2)))
         (nxml-backward-up-element 2)
         (setf context (hl-tags-context-nxml-mode)))
-      (cl-destructuring-bind ((start1 . _e1) _ . end2)
+      (cl-destructuring-bind ((start1 . e1) . (_ . end2))
           context
         (reindent-region start1 end2)))
     (goto-char p)

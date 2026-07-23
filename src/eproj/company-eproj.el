@@ -11,13 +11,14 @@
   (require 'macro-util)
   (require 'nanothunk))
 
+(require 'base-emacs-autoload)
 (require 'company-mode-setup)
 (require 'eproj)
 (require 'nanothunk)
 
 (defvar company-eproj-ignore-case nil)
 
-(defun company-eproj (command &optional arg &rest ignored)
+(defun company-eproj (command &optional arg &rest _ignored)
   (interactive (list 'interactive))
   (pcase command
     (`interacative (company-begin-backend 'company-eproj))

@@ -1,4 +1,4 @@
-;;; yafolding.el --- Yet another folding extension for Emacs
+;;; yafolding.el --- Yet another folding extension for Emacs -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013-2017 Zeno Zeng
 

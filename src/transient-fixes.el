@@ -9,9 +9,13 @@
 (eval-when-compile
   (require 'cl-lib))
 
-(defvar transient-values)
-(defvar transient-levels)
 (defvar transient-history)
+(defvar transient-history-file)
+(defvar transient-history-limit)
+(defvar transient-levels)
+(defvar transient-levels-file)
+(defvar transient-values)
+(defvar transient-values-file)
 
 (require 'persistent-store)
 
@@ -77,7 +81,7 @@
   (cl-assert (and (consp old) (symbolp (car old))) nil "Invalid old transient-history contents: %s" old)
   (cl-assert (and (consp new) (symbolp (car new))) nil "Invalid new transient-history contents: %s" new)
   (let ((old-key (car old))
-        (new-key (car new))
+        (_new-key (car new))
         (old-normalised
          (cl-sort (mapcar (lambda (x)
                             (transient-history--merge-entries-normalise x "old"))

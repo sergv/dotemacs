@@ -12,9 +12,8 @@
   (require 'cl-lib)
   (require 'macro-util))
 
-(declare-function server-edit "server")
-
 (require 'align-util)
+(require 'base-emacs-autoload)
 (require 'browse-kill-ring-setup)
 (require 'comint-setup)
 (require 'common)
@@ -47,51 +46,6 @@
 (put 'python-exec 'safe-local-variable #'stringp)
 (put 'python-shell-interpreter 'safe-local-variable #'stringp)
 
-;; (setf python-shell-buffer-name "python repl"
-;;       python-shell-interpreter "python3.3" ;; "python2.7"
-;;       python-shell-internal-buffer-name " python-repl-internal"
-;;       python-shell-interpreter-args "-i"
-;;
-;;       python-shell-prompt-regexp ">>> "
-;;       python-shell-prompt-block-regexp "\\.\\.\\. "
-;;       ;; python-shell-prompt-output-regexp ""
-;;
-;;       python-shell-enable-font-lock t
-;;
-;;       python-shell-completion-setup-code
-;;       "try:
-;;     import readline
-;; except ImportError:
-;;     def __COMPLETER_all_completions(text): []
-;; else:
-;;     import rlcompleter
-;;     readline.set_completer(rlcompleter.Completer().complete)
-;;     def __COMPLETER_all_completions(text):
-;;         import sys
-;;         completions = []
-;;         try:
-;;             i = 0
-;;             while True:
-;;                 res = readline.get_completer()(text, i)
-;;                 if not res: break
-;;                 i += 1
-;;                 completions.append(res)
-;;         except NameError:
-;;             pass
-;;         return completions"
-;;
-;;       ;;    "from IPython.core.completerlib import module_completion"
-;;
-;;       python-shell-completion-module-string-code
-;;       ""
-;;
-;;       python-shell-completion-string-code
-;;       (concat "sys.stdout.write("
-;;               "\"%s\".join(__COMPLETER_all_completions(\"\"\"%s\"\"\"))"
-;;               "+ \"\\x00\\n\""
-;;               ")\n"))
-
-
 ;; ipython setup
 (setf python-shell-buffer-name "python repl"
       python-shell-interpreter "ipython3" ;; "ipython"
@@ -106,20 +60,18 @@
       python-shell-prompt-block-regexp "   \\.\\.*\\.: "
       python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
 
-      python-shell-font-lock-enable t
+      python-shell-font-lock-enable t)
 
-      python-shell-completion-setup-code
-      "\n\nfrom IPython.core.completerlib import module_completion"
-      python-shell-completion-string-code
-      "';'.join(module_completion(\"\"\"%s\"\"\"))\n"
-      python-shell-completion-string-code
-      ;; use "_ =" to ignore return value of write function
-      (concat "_ = sys.stdout.write("
-              "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
-              "+ \"\\x00\\n\""
-              "); #PYTHON-MODE SILENT\n"
-              ;;" SILENT\n"
-              ))
+;; TODO: thys may or may not work any more, haven’t run python in a long while.
+;; Expect to do extensive fixing to make this work.
+(defconst python-setup--completion-string-code
+  ;; use "_ =" to ignore return value of write function
+  (concat "_ = sys.stdout.write("
+          "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
+          "+ \"\\x00\\n\""
+          "); #PYTHON-MODE SILENT\n"
+          ;;" SILENT\n"
+          ))
 
 (defvar python-setup-pprint-code
   "\n\nimport pprint
@@ -178,7 +130,7 @@ in the current *Python* session."
                          (setq completion-accum (concat completion-accum string))
                          "")))))
       (process-send-string python-process
-                           (format python-shell-completion-string-code sep pattern))
+                           (format python-setup--completion-string-code sep pattern))
       (accept-process-output python-process)
       (let ((compl-end-pos (cl-position ?\0 completion-accum)))
         (setq completions
@@ -214,18 +166,6 @@ in the current *Python* session."
 (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
 
 ;;; helper functions
-
-(defun python-point-inside-string-and-not-comment? ()
-  "Return t if point is positioned inside a string."
-  (save-excursion
-    (save-match-data
-      (let* ((end (point))
-             (begin (line-beginning-position)))
-        (when begin
-          (let ((state (parse-partial-sexp begin
-                                           end)))
-            (and (elt state 3)
-                 (null (elt state 4)))))))))
 
 (defalign python-align-on-equals
   (rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="

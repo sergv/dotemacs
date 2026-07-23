@@ -8,11 +8,17 @@
 ;; Fixes for errors in standard emacs files
 
 (eval-when-compile
+  (require 'arc-mode)
+  (require 'autorevert)
   (require 'cl-lib)
-  (require 'set-up-platform)
   (require 'el-patch)
-  (require 'macro-util))
+  (require 'filenotify)
+  (require 'hl-line)
+  (require 'macro-util)
+  (require 'set-up-platform)
+  (require 'shell))
 
+(require 'base-emacs-autoload)
 (require 'el-patch)
 
 ;; added cl-remove-duplicates to avoid scenario when two identical
@@ -118,7 +124,7 @@ running their FOO-mode-hook."
 (eval-after-load "autorevert" '(autorevert-init))
 
 (when-emacs-version (<= 27 it)
-  (el-patch-defun push-mark (&optional location nomsg activate)
+  (el-patch-defun push-mark (&optional location (el-patch-swap nomsg _) activate)
     "Set mark at LOCATION (point, by default) and push old mark on mark ring.
 If the last global mark pushed was not in the current buffer,
 also push LOCATION on the global mark ring.
@@ -753,7 +759,8 @@ Before and after saving the buffer, this function runs
           (count-lines archive-file-list-start
                        (line-beginning-position))
         0)))
-  (eval-after-load "arg-mode" '(arg-mode-init)))
+  (with-eval-after-load 'arc-mode
+    (arc-mode-init)))
 
 (provide 'base-emacs-fixes)
 

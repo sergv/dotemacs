@@ -2257,6 +2257,7 @@ Try to reinstall the package defining this syntax checker." symbol)
     (setf (flycheck-checker-get symbol 'generic-checker-version)
           flycheck-generic-checker-version)))
 
+;;;###autoload
 (defun flycheck-valid-checker-p (checker)
   "Check whether a CHECKER is valid.
 
@@ -2266,6 +2267,7 @@ A valid checker is a symbol defined as syntax checker with
        (= (or (get checker 'flycheck-generic-checker-version) 0)
           flycheck-generic-checker-version)))
 
+;;;###autoload
 (defun flycheck-checker-supports-major-mode-p (checker &optional mode)
   "Whether CHECKER supports the given major MODE.
 
@@ -2289,6 +2291,7 @@ A list of Flycheck syntax checkers included in automatic
 selection for the current buffer.")
 (make-variable-buffer-local 'flycheck--automatically-enabled-checkers)
 
+;;;###autoload
 (defun flycheck-may-enable-checker (checker)
   "Whether a generic CHECKER may be enabled for current buffer.
 
@@ -2867,6 +2870,7 @@ NEXT is a cons or a symbol, as documented in
       (lambda (next) (eq (flycheck--get-next-checker-symbol next) next-symbol))
       (flycheck-checker-get checker 'next-checkers)))))
 
+;;;###autoload
 (defun flycheck-add-next-checker (checker next &optional append)
   "After CHECKER add a NEXT checker.
 
@@ -3075,6 +3079,7 @@ ARG is ‘toggle’; disable the mode otherwise."
 
 
 ;;; Syntax checker selection for the current buffer
+;;;###autoload
 (defun flycheck-get-checker-for-buffer ()
   "Find the checker for the current buffer.
 
@@ -3218,6 +3223,7 @@ Set `flycheck-current-syntax-check' accordingly."
     (apply #'flycheck-report-buffer-checker-status
            syntax-check args)))
 
+;;;###autoload
 (defun flycheck-buffer ()
   "Start checking syntax in the current buffer.
 
@@ -3381,6 +3387,7 @@ change the threshold or `\\[universal-argument] \
     (push checker flycheck--automatically-disabled-checkers)
     t))
 
+;;;###autoload
 (defun flycheck-clear (&optional shall-interrupt)
   "Clear all errors in the current buffer.
 
@@ -3667,6 +3674,12 @@ non-nil, then only do this and skip per-buffer teardown.)"
 
 
 ;;; Errors from syntax checks
+;;;###autoload (autoload 'flycheck-error-buffer "flycheck")
+;;;###autoload (autoload 'flycheck-error-column "flycheck")
+;;;###autoload (autoload 'flycheck-error-filename "flycheck")
+;;;###autoload (autoload 'flycheck-error-level "flycheck")
+;;;###autoload (autoload 'flycheck-error-line "flycheck")
+;;;###autoload (autoload 'flycheck-error-message "flycheck")
 (cl-defstruct (flycheck-error
                (:constructor nil)
                (:constructor
@@ -4724,6 +4737,7 @@ Return ERRORS."
 
 
 ;;; Error analysis
+;;;###autoload
 (defun flycheck-count-errors (errors)
   "Count the number of ERRORS, grouped by level.
 
@@ -4826,6 +4840,7 @@ functions resolves `conditional' style specifications."
                (propertize after 'face delim-face))))
       (other (error "Unsupported highlighting style: %S" other)))))
 
+;;;###autoload
 (defun flycheck-add-overlay (err)
   "Add overlay for ERR.
 
@@ -5142,6 +5157,7 @@ if the error list is already pointing to the current buffer."
                         flycheck-error-list-source-buffer)))
     (flycheck-error-list-set-source (current-buffer))))
 
+;;;###autoload
 (defun flycheck-error-list-check-source ()
   "Trigger a syntax check in the source buffer of the error list."
   (interactive)
@@ -5464,11 +5480,13 @@ nil, if there is no next error."
                                                    nil (point-min)))))
     pos))
 
+;;;###autoload
 (defun flycheck-error-list-previous-error (n)
   "Go to the N'th previous error in the error list."
   (interactive "P")
   (flycheck-error-list-next-error (- (or n 1))))
 
+;;;###autoload
 (defun flycheck-error-list-next-error (n)
   "Go to the N'th next error in the error list."
   (interactive "P")
@@ -5533,6 +5551,7 @@ non-nil."
             ;; And recenter the error list at this position
             (flycheck-error-list-recenter-at (point))))))))
 
+;;;###autoload
 (defun flycheck-list-errors ()
   "Show the error list for the current buffer."
   (interactive)
@@ -5575,6 +5594,7 @@ non-nil."
     (cancel-timer flycheck-display-error-at-point-timer)
     (setq flycheck-display-error-at-point-timer nil)))
 
+;;;###autoload
 (defun flycheck-display-error-at-point ()
   "Display all the error messages at point.
 
@@ -6853,6 +6873,7 @@ shell execution."
 _NAME is ignored."
   (format "*Flycheck %s*" (buffer-file-name)))
 
+;;;###autoload
 (defun flycheck-compile (checker)
   "Run CHECKER via `compile'.
 

@@ -100,6 +100,7 @@
                          recentf-save-file))
          t)))
 
+;;;###autoload
 (defun backups-ignore-current-buffer! ()
   (setq-local backups--ignore-buffer t))
 

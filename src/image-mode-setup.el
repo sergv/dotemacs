@@ -10,6 +10,8 @@
   (require 'macro-util)
   (require 'keys-def))
 
+(require 'image-mode)
+
 ;;;###autoload
 (defun image-mode-setup ()
   (def-keys-for-map image-mode-map

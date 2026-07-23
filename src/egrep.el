@@ -10,7 +10,7 @@
   (require 'cl-lib)
   (require 'macro-util))
 
-(declare-function eproj-get-absolute-ignored-dirs "eproj" (proj))
+(declare-function haskell-native-grep (fold-platform-os-type "libemacs-native" "emacs-native"))
 
 (defvar select-mode--current-state)
 
@@ -20,6 +20,7 @@
 (require 'find-files)
 (require 'foreign-setup)
 (require 'macro-util)
+(require 'select-mode)
 
 (autoload 'grep-read-files "grep")
 (autoload 'grep-read-regexp "grep")

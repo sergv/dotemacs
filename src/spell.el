@@ -11,6 +11,9 @@
 (require 'flyspell)
 (require 'ispell)
 
+(defconst ispell-russian-dictionary "russian")
+(defconst ispell-english-dictionary "english")
+
 (setf ispell-program-name "aspell"
       ;; my dictionary-alist, using for redefinition russian dictionary
       ispell-dictionary-alist
@@ -34,8 +37,6 @@
          utf-8))
       ispell-aspell-dictionary-alist ispell-dictionary-alist
 
-      ispell-russian-dictionary "russian"
-      ispell-english-dictionary "english"
       flyspell-default-dictionary ispell-russian-dictionary
       ispell-dictionary ispell-english-dictionary
       ;; ispell-local-dictionary ispell-russian-dictionary
@@ -64,8 +65,7 @@
 ;; ;;;###autoload
 ;; (add-hook 'text-mode-hook 'flyspell-mode)
 
-(setf ispell-have-new-look t
-      flyspell-case-fold-duplications t)
+(setf flyspell-case-fold-duplications t)
 
 (provide 'spell)
 

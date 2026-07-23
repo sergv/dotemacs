@@ -10,6 +10,8 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(defvar tuareg-interactive-mode-map)
+
 (require 'common)
 (require 'comint-setup)
 (require 'indentation)
@@ -56,14 +58,6 @@
 
 ;;; ocaml repl
 
-(defun ocaml-interactive-send-input ()
-  "Send current line, appending ;; if necessary."
-  (interactive)
-  (unless (tuareg-interactive-end-of-phrase)
-    (insert ";;"))
-  (comint-send-input)
-  (goto-char (point-max)))
-
 ;;;###autoload
 (defun ocaml-interactive-setup ()
   (init-repl :bind-return nil)
@@ -71,7 +65,7 @@
   (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map tuareg-interactive-mode-map
     ("C-SPC"      vim:comint-clear-buffer-above-prompt:interactive)
-    ("<return>"   ocaml-interactive-send-input)
+    ("<return>"   tuareg-interactive-send-input-end-of-phrase)
     ("SPC SPC"    comint-clear-prompt)
     ("<f6>"       tuareg-interrupt-ocaml)))
 

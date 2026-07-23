@@ -200,6 +200,7 @@ But nesting of more than one sexp is not supported yet
            (state (parse-partial-sexp begin end)))
       (elt state 3))))
 
+;;;###autoload
 (defun lisp-point-inside-string-or-comment? ()
   "Return t if point is positioned inside a string or comment."
   (save-excursion
@@ -209,11 +210,10 @@ But nesting of more than one sexp is not supported yet
             (if (beginning-of-defun)
                 (point)
               (line-beginning-position)))
-           (state (parse-partial-sexp begin
-                                      end))
-           (inside-stringp (elt state 3))
-           (inside-commentp (elt state 4)))
-      (or inside-stringp inside-commentp))))
+           (state (parse-partial-sexp begin end))
+           (inside-string? (nth 3 state))
+           (inside-comment? (nth 4 state)))
+      (or inside-string? inside-comment?))))
 
 (defun lisp-point-inside-comment? ()
   "Return t if point is inside comment starting at nearest defun or beginning
@@ -597,7 +597,6 @@ _o_: show sexps in region"
   ("c"      hs-hide-sexps-in-region)
   ("o"      hs-show-sexps-in-region))
 
-;;;###autoload
 (cl-defun lisp-setup (&key (use-whitespace nil) (use-fci t))
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only

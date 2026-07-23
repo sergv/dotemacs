@@ -33,6 +33,9 @@ is currently done. The state will be created when there’s highlighting to show
 (defsubst hl-paren-move-overlay-to (overlay pos)
   (move-overlay overlay pos (1+ pos)))
 
+(defsubst hl-paren-set-overlay-highlighting (ov is-enabled?)
+  (overlay-put ov 'face (and is-enabled? 'hl-paren-selection-face)))
+
 (defun hl-paren-make-overlay (pos tag)
   (cl-assert (symbolp tag))
   (cl-assert (memq tag '(first second)))
@@ -40,9 +43,6 @@ is currently done. The state will be created when there’s highlighting to show
     (hl-paren-set-overlay-highlighting ov t)
     (overlay-put ov 'hl-paren-overlay tag)
     ov))
-
-(defsubst hl-paren-set-overlay-highlighting (ov is-enabled?)
-  (overlay-put ov 'face (and is-enabled? 'hl-paren-selection-face)))
 
 (defun hl-paren-enable-overlays! ()
   (when (and hl-paren-state
@@ -152,8 +152,7 @@ Turn off highlighting if character at point is not parentheses."
   "Fixup ‘hl-paren--match-overlays’ in indirect buffer by detaching from the original buffer."
   (when hl-paren-mode
     (let ((first nil)
-          (second nil)
-          (result nil))
+          (second nil))
       (with-all-matching-overlays
           ov
           ov-tag

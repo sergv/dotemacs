@@ -121,12 +121,11 @@ strings.")
   (nth 4 (assq lang
                typopunct-language-alist)))
 
-(defcustom typopunct-buffer-language 'deutsch
+(defvar-local typopunct-buffer-language 'deutsch
   "Default language of a buffer.
 When inserting quotation marks, TypoPunct mode relies on the
 typographical conventions used by that language.  See the variable
 `typopunct-language-alist'.")
-(make-variable-buffer-local 'typopunct-buffer-language)
 
 (defvar typopunct-xml-max-search 1000
   "Maximum chars to search back for the opening of an XML tag.")
