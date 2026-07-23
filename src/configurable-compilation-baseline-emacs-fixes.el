@@ -13,8 +13,7 @@
 (require 'el-patch)
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature compile))
+(add-to-list 'el-patch-features 'compile)
 
 (defvar-local compilation-start-timestamp nil
   "Time when current compilation started")
