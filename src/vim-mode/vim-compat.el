@@ -49,7 +49,7 @@ of a match for REGEXP."
 (defun vim-initialize-keymaps (enable)
   "Initialize keymaps when vim-mode is enabled."
   (if enable
-    (add-to-list 'emulation-mode-map-alists 'vim-emulation-mode-alist t)
+      (add-to-list 'emulation-mode-map-alists 'vim-emulation-mode-alist t)
     (setq emulation-mode-map-alists
           (delq 'vim-emulation-mode-alist emulation-mode-map-alists))))
 
