@@ -64,6 +64,7 @@
 (require 'cl-lib)
 (require 'subr-x)
 (require 'pcase)
+(require 'semnav)
 
 (defgroup company nil
   "Extensible inline text completion mechanism."
@@ -1184,12 +1185,9 @@ MAX-LEN is how far back to try to match the IDLE-BEGIN-AFTER-RE regexp."
   'company-grab-symbol-cons
   'company-grab-symbol-parts "1.0")
 
-(defun company-in-string-or-comment ()
+(defsubst company-in-string-or-comment ()
   "Return non-nil if point is within a string or comment."
-  (let ((ppss (syntax-ppss)))
-    (or (car (setq ppss (nthcdr 3 ppss)))
-        (car (setq ppss (cdr ppss)))
-        (nth 3 ppss))))
+  (point-inside-string-or-comment?))
 
 (defun company-substitute-prefix (prefix strings)
   (let ((len (length prefix)))
