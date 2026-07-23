@@ -69,7 +69,7 @@
 
 (defvar paredit--put-space-before-open-paren? nil)
 
-(defun paredit-setup--put-space-before-open-paren? (endp delim)
+(defun paredit-setup--put-space-before-open-paren? (_endp delim)
   (if (eq delim ?\()
       paredit--put-space-before-open-paren?
     t))
@@ -281,6 +281,7 @@ This macro is similar to `vim:do-motion'."
                                (vim:motion-bwd-symbol:wrapper :count count))))
   (vim:motion-bwd-symbol:wrapper :count count))
 
+;;;###autoload
 (defun paredit-setup--wrap-or-insert (open close escape?)
   "Wrap the following expression or the active region with PAIR."
   (let* ((p (point))
@@ -325,41 +326,49 @@ This macro is similar to `vim:do-motion'."
     (goto-char start)
     (paredit-forward-for-quote end)))
 
+;;;###autoload
 (defun vim-wrap-parens ()
   "Wrap region in (...)."
   (interactive)
   (paredit-setup--wrap-or-insert ?\( ?\) nil))
 
+;;;###autoload
 (defun vim-wrap-braces ()
   "Wrap region in [...]."
   (interactive)
   (paredit-setup--wrap-or-insert ?\[ ?\] nil))
 
+;;;###autoload
 (defun vim-wrap-brackets ()
   "Wrap region in {...}."
   (interactive)
   (paredit-setup--wrap-or-insert ?\{ ?\} nil))
 
+;;;###autoload
 (defun vim-wrap-angles ()
   "Wrap region in <...>."
   (interactive)
   (paredit-setup--wrap-or-insert ?\< ?\> nil))
 
+;;;###autoload
 (defun vim-wrap-dquotes ()
   "Wrap region in \"...\"."
   (interactive)
   (paredit-setup--wrap-or-insert ?\" ?\" t))
 
+;;;###autoload
 (defun vim-wrap-typographical-single-quotes ()
   "Wrap region in ‘...’."
   (interactive)
   (paredit-setup--wrap-or-insert ?\‘ ?\’ nil))
 
+;;;###autoload
 (defun vim-wrap-typographical-double-quotes ()
   "Wrap region in “...”."
   (interactive)
   (paredit-setup--wrap-or-insert ?\“ ?\” nil))
 
+;;;###autoload
 (defun vim-wrap-backticks ()
   "Wrap region in `...`."
   (interactive)

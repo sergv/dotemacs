@@ -80,18 +80,14 @@
   (require 'cl-lib)
   (require 'subr-x)
   (require 'macro-util)
-  (require 'nanothunk)
+  (require 'nanothunk))
 
-  (declare-function eproj-query/local-variables "eproj-query")
-  (declare-function flycheck-haskell-clear-config-cache "flycheck-haskell"))
-
-(require 'eproj-customization)
-;; Provide here to resolve load cycles.
-(provide 'eproj)
+(declare-function flycheck-haskell-clear-config-cache "flycheck-haskell")
 
 (require 'common)
 (require 'dash)
 (require 'eproj-common)
+(require 'eproj-customization)
 (require 'eproj-ctags)
 (require 'eproj-haskell)
 (require 'eproj-tag-index)
@@ -105,10 +101,13 @@
 (require 'haskell-regexen)
 (require 'rust-autoloads)
 
-(declare-function eproj/create-haskell-compact-tags "eproj-haskell")
-
 ;;; eproj languages
 
+;;;###autoload (autoload 'eproj-language/extension-re "eproj")
+;;;###autoload (autoload 'eproj-language/normalise-identifier-before-navigation-procedure "eproj")
+;;;###autoload (autoload 'eproj-language/related-modes "eproj")
+;;;###autoload (autoload 'eproj-language/show-tag-kind-procedure "eproj")
+;;;###autoload (autoload 'eproj-language/tag->string-func "eproj")
 (cl-defstruct (eproj-language
                (:conc-name eproj-language/))
   mode
@@ -437,7 +436,8 @@ get proper flycheck checker."
 
 ;;;; projects themselves
 
-;; Thunk below is a function of 0 arguments.
+;;;###autoload (autoload 'eproj-project/root "eproj")
+;;;###autoload (autoload 'eproj-project/tags "eproj")
 (cl-defstruct (eproj-project
                (:conc-name eproj-project/))
   ;; Normalized directory name, without trailing slash.
@@ -451,6 +451,7 @@ get proper flycheck checker."
 
   ;; List of (language-major-mode . <thunk of <eproj-tag-index>>);
   ;; <eproj-tag-index> - datastructure mapping 'symbol-str's to list of 'eproj-tag's. See `eproj-tag-index.el'.
+  ;; <thunk of <eproj-tag-index>> - value of type nanothunk than evaluates to a value of type eproj-tag-index
   (tags                  nil)
   ;; List of other project roots that are related to this one
   ;; (mostly for tag collection and file navigation purposes for now but in general too).
@@ -552,9 +553,21 @@ get proper flycheck checker."
    (eproj-project/root (eproj-get-project-for-buf (current-buffer))))
   (notify "done"))
 
+;;;###autoload
 (defun update-eproj-tags-on-save! ()
   (with-demoted-errors "Failed to update tags on save: %s"
     (eproj-update-current-buffer-within-its-project!)))
+
+(cl-defstruct eproj--cached-files-for-navigation
+  ;; List of relative file names.
+  files)
+
+(defsubst eproj--add-cached-file-for-navigation (fname files-cache)
+  (cl-assert (stringp fname) nil "Invalid cached file: ‘%s’" fname)
+  (push fname (eproj--cached-files-for-navigation-files files-cache)))
+
+(defsubst eproj--reset-cached-files-for-navigation! (files-cache)
+  (setf (eproj--cached-files-for-navigation-files files-cache) nil))
 
 ;; careful: quite complex procedure
 ;;;###autoload
@@ -761,6 +774,7 @@ cache tags in."
           (error "Invalid entry in .eproj-info: %s" entry)))
       info)))
 
+;;;###autoload
 (defun eproj-get-absolute-ignored-dirs (proj)
   "Return list of strings - absolute directory paths to not descend into in
 current project."
@@ -771,6 +785,7 @@ current project."
 
 ;;;; project creation
 
+;;;###autoload
 (defun eproj--make-project-and-register! (root)
   "Create fresh project for ROOT directory and register it within
 `*eproj-projects*'."
@@ -984,6 +999,7 @@ will be interpreted as NIL by this macro."
   "Is set to initial project root (i.e. string) for buffer containing this
 variable or symbol 'unresolved.")
 
+;;;###autoload (autoload 'eproj-get-initial-project-root "eproj")
 (defun-caching eproj-get-initial-project-root (path is-self-contained-file?) eproj-get-initial-project-root/reset-cache path
   "Find closest directory parent of PATH that contains .eproj-info file, cabal.project file, or .git directory."
   (cl-assert (stringp path))
@@ -1043,7 +1059,7 @@ variable or symbol 'unresolved.")
   (list #'eproj--infer-haskell-project
         #'eproj--infer-rust-project))
 
-(defun eproj--infer-rust-project (root is-self-contained-file?)
+(defun eproj--infer-rust-project (root _is-self-contained-file?)
   (when (file-exists-p (concat root "/Cargo.toml"))
     '((languages 'rust-mode))))
 
@@ -1068,6 +1084,7 @@ variable or symbol 'unresolved.")
 Set to project that corresponds to buffer containing this variable or
 symbol 'unresolved.")
 
+;;;###autoload
 (defun eproj-get-project-for-buf (buf)
   "Get project for BUFFER. Throw error if there's no project for it."
   (eproj-get-project-for-path (eproj--get-buffer-directory buf)))
@@ -1110,6 +1127,7 @@ project for PATH."
               nil))
         nil))))
 
+;;;###autoload
 (defun eproj-get-project-for-path (path)
   "Retrieve project that contains PATH as its part."
   (cl-assert (or (file-exists-p path)
@@ -1132,11 +1150,10 @@ project for PATH."
 (defun eproj--filter-ignored-files-from-file-list (proj files)
   "Filter list of FILES using ignored-files-globs of project PROJ."
   (if-let ((regexp (eproj-project/cached-ignored-files-re proj)))
-      (let ((root (eproj-project/root proj)))
-        (cl-delete-if (lambda (x)
-                        (cl-assert (not (file-name-absolute-p x)))
-                        (string-match-p regexp x))
-                      files))
+      (cl-delete-if (lambda (x)
+                      (cl-assert (not (file-name-absolute-p x)))
+                      (string-match-p regexp x))
+                    files)
     files))
 
 (defun eproj-with-all-project-files-for-navigation (proj func)
@@ -1454,6 +1471,7 @@ projects into the mix."
   "If set should be a function that amends paths according to some rule. E.g. when
 running in WSL it could translate c: as /mnt/c, for example.")
 
+;;;###autoload (autoload 'eproj--resolve-to-abs-path-cached "eproj")
 (defun-caching-extended
     eproj--resolve-to-abs-path-cached (path dir)
     nil
@@ -1487,6 +1505,7 @@ not exist anywhere."
           value)
       query)))
 
+;;;###autoload (autoload 'eproj-normalise-file-name-expand-cached "eproj")
 (defun-caching-extended
     eproj-normalise-file-name-expand-cached (path &optional dir)
     eproj-normalise-file-name-expand-cached/with-explicit-cache
@@ -1497,6 +1516,8 @@ not exist anywhere."
     (cons path dir)
   (normalise-file-name (expand-file-name path dir)))
 
+;;;###autoload (autoload 'eproj-normalise-file-name-cached/make-cache "eproj")
+;;;###autoload (autoload 'eproj-normalise-file-name-cached/with-explicit-cache "eproj")
 (defun-caching-extended
     eproj-normalise-file-name-cached (path)
     eproj-normalise-file-name-cached/with-explicit-cache
@@ -1520,6 +1541,12 @@ or `default-directory', if no file is visited."
    eproj/buffer-directory
    #'stringp))
 
+
+;;;###autoload (autoload 'make-eproj-matching-tag "eproj")
+;;;###autoload (autoload 'eproj-matching-tag/major-mode "eproj")
+;;;###autoload (autoload 'eproj-matching-tag/name "eproj")
+;;;###autoload (autoload 'eproj-matching-tag/proj "eproj")
+;;;###autoload (autoload 'eproj-matching-tag/tag "eproj")
 (cl-defstruct (eproj-matching-tag
                (:conc-name eproj-matching-tag/))
   name
@@ -1527,6 +1554,7 @@ or `default-directory', if no file is visited."
   proj
   major-mode)
 
+;;;###autoload
 (defun eproj-get-matching-and-related-tags (proj tag-major-mode lang identifier search-with-regexp?)
   "Returns list of eproj-matching-tag structs."
   (cl-assert (eproj-language-p lang))
@@ -1544,6 +1572,7 @@ or `default-directory', if no file is visited."
                                search-with-regexp?
                                t))))
 
+;;;###autoload
 (defun eproj-get-matching-tags (current-proj tag-major-mode identifier search-with-regexp? deduplicate?)
   "Get all tags from PROJ and its related projects from mode TAG-MAJOR-MODE
 whose name equals IDENTIFIER or matches regexp IDENTIFIER if SEARCH-WITH-REGEXP?
@@ -1625,17 +1654,6 @@ Returns list of eproj-matching-tag structs."
           (cl-assert (functionp deduplicate-matched-tags-func))
           (funcall it resolved-tags))
       resolved-tags)))
-
-(cl-defstruct eproj--cached-files-for-navigation
-  ;; List of relative file names.
-  files)
-
-(defsubst eproj--reset-cached-files-for-navigation! (files-cache)
-  (setf (eproj--cached-files-for-navigation-files files-cache) nil))
-
-(defsubst eproj--add-cached-file-for-navigation (fname files-cache)
-  (cl-assert (stringp fname) nil "Invalid cached file: ‘%s’" fname)
-  (push fname (eproj--cached-files-for-navigation-files files-cache)))
 
 (defvar eproj-switch-to-file--history nil)
 
@@ -1772,9 +1790,12 @@ Returns list of eproj-matching-tag structs."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.eproj-info\\'" . emacs-lisp-mode))
 
+;;;###autoload
 (defun eproj-setup-local-variables (proj)
   (dolist (entry (eproj-query/local-variables proj major-mode nil))
     (set (make-local-variable (car entry)) (cadr entry))))
+
+(provide 'eproj)
 
 ;; Local Variables:
 ;; End:

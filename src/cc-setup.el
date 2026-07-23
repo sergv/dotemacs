@@ -7,13 +7,23 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cc-cmds)
   (require 'cl-lib)
   (require 'macro-util))
 
+(defvar astyle-indent-style)
+(defvar c-basic-offset)
+(defvar c-tab-always-indent)
 (defvar whitespace-line-column)
 
+(autoload 'c-beginning-of-defun "cc-cmds" nil t)
+(autoload 'c-end-of-defun "cc-cmds" nil t)
+(autoload 'c-indent-defun "cc-cmds" nil t)
+(autoload 'c-toggle-auto-newline "cc-cmds" nil t)
+(autoload 'c-toggle-electric-state "cc-cmds" nil t)
+(autoload 'c-toggle-hungry-state "cc-cmds" nil t)
+
 (require 'align-util)
+(require 'base-emacs-autoload)
 (require 'c-preprocessor)
 (require 'common)
 (require 'eproj-query)

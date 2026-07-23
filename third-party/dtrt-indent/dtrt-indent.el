@@ -207,12 +207,6 @@ adjusted transparently."
         (dtrt-indent-try-set-offset))
     (dtrt-indent-undo)))
 
-;;;###autoload
-(define-globalized-minor-mode dtrt-indent-global-mode dtrt-indent-mode
-  (lambda () (dtrt-indent-mode 1))
-  :predicate t '(prog-mode text-mode)
-  :group 'dtrt-indent)
-
 (defvar dtrt-indent-language-syntax-table
   '((c/c++/java ("\""                    0   "\""       nil "\\\\.")
                 ("'"                     0   "'"        nil "\\\\.")

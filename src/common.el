@@ -9,6 +9,7 @@
 ;; Status:
 
 (eval-when-compile
+  (require 'calendar)
   (require 'cl-lib)
   (require 'cl-seq)
   (require 'macro-util)
@@ -35,7 +36,7 @@ by any means other than direct referencing via ‘+undef’.")
 (defun random-shuffle (vect)
   "Randoly shuffle vector VECT inplace with supply
 of random numbers from RANDOM-GEN."
-  (typep vect 'vector)
+  (cl-typep vect 'vector)
   (cl-loop
     for i downfrom (1- (length vect)) to 1
     ;; may yield i

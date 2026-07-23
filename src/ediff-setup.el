@@ -267,9 +267,8 @@ window configuration on end of ediff session."
 (ediff-defvar-local ediff-ignore-whitespace nil
   "If non-nile, don’t show whitespace differences.")
 
-(defcustom ediff-ignore-whitespace-option "-w"
-  "Option that causes the diff program to ignore whitespace differences."
-  :type 'string)
+(defvar ediff-ignore-whitespace-option "-w"
+  "Option that causes the diff program to ignore whitespace differences.")
 
 ;;;###autoload
 (add-to-list 'el-patch-features 'ediff-diff)
@@ -385,11 +384,12 @@ window configuration on end of ediff session."
 	 (limit (ediff-overlay-end
 		 (ediff-get-value-according-to-buffer-type
 		  buf-type ediff-narrow-bounds)))
-	 diff-overlay-list list-element total-diffs
+	 diff-overlay-list list-element (el-patch-remove total-diffs)
 	 begin end pt-saved overlay state-of-diff)
 
     (setq diff-list (cdr diff-list)) ; discard diff list type
-    (setq total-diffs (length diff-list))
+    (el-patch-remove
+      (setq total-diffs (length diff-list)))
 
     ;; shift, if necessary
     (ediff-with-current-buffer buff (setq pt-saved shift))

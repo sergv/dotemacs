@@ -754,7 +754,7 @@ cursor jumps to the other corner of the selected region in the
 current line."
   (pcase vim-visual--mode-type
     ((or `normal `linewise)
-     (vim:visual-exchange-point-and-mark))
+     (vim:visual-exchange-point-and-mark:wrapper))
     (`block
      (let ((mark-col (save-excursion
                        (goto-char (mark t))

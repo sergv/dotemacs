@@ -9,6 +9,11 @@
 (eval-when-compile
   (require 'macro-util))
 
+(defvar compilation-auto-jump-to-first-error)
+(defvar whitespace-style)
+(defvar whitespace-global-modes)
+(defvar yas-expand-fallback)
+
 (require 'hl-paren)
 
 (setq compilation-auto-jump-to-first-error nil

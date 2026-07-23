@@ -13,23 +13,28 @@
   (require 'cond-let)
   (require 'subr-x)
   (require 'macro-util)
-  (require 'set-up-platform)
-  (require 'treesit-utils)
-  (require 'trie))
+  (require 'set-up-platform))
 
 (declare-function treesit-node-at "treesit")
+
+(defvar dante-check-force-interpret)
 
 (require 'advices-util)
 (require 'align-util)
 (require 'common)
+(require 'common-whitespace)
+(require 'comment-util)
 (require 'configurable-compilation)
 (require 'current-column-fixed)
+(require 'dash)
 (require 'eproj)
 (require 'eproj-query)
 (require 'haskell-cabal-components)
 (require 'indentation)
 (require 'macro-util)
+(require 's)
 (require 'search)
+(require 'start-common)
 (require 'treesit-utils)
 (require 'trie)
 
@@ -88,11 +93,13 @@ of my home config.")
         (funcall fallback))
     (funcall fallback)))
 
+;;;###autoload
 (defun haskell-misc-combined-indent-forwards ()
   "Try to indent with treesiter if we can, otherwise fallback to ‘haskell-indentation-indent-line’."
   (interactive "*")
   (haskell-ts-indent-line-or-fallback #'haskell-indentation-indent-line))
 
+;;;###autoload
 (defun haskell-misc-combined-indent-backwards ()
   "Try to indent with treesiter if we can, otherwise fallback to ‘haskell-indentation-indent-backwards’."
   (interactive "*")
@@ -107,8 +114,8 @@ single indentation unit."
   (if simpler-indentation-by-default?
       (progn
         (bind-tab-keys #'indent-relative-forward #'indent-relative-backward)
-        (local-set-key (eval-when-compile (kbd "C-TAB")) haskell-misc-combined-indent-forwards)
-        (local-set-key (eval-when-compile (kbd "C-S-TAB")) haskell-misc-combined-indent-backwards))
+        (local-set-key (eval-when-compile (kbd "C-TAB")) #'haskell-misc-combined-indent-forwards)
+        (local-set-key (eval-when-compile (kbd "C-S-TAB")) #'haskell-misc-combined-indent-backwards))
     (bind-tab-keys #'haskell-misc-combined-indent-forwards
                    #'haskell-misc-combined-indent-backwards))
 
@@ -1127,6 +1134,7 @@ value section should have if it is to be properly indented."
   ;;     (setf c (following-char))))
   )
 
+;;;###autoload
 (defun haskell-on-blank-line? ()
   "Assumes point is at 0th column."
   (cl-assert (= 0 (current-column-fixed-uncached)))
@@ -1135,6 +1143,7 @@ value section should have if it is to be properly indented."
    (eq (following-char) ?#)
    (indent-on-blank-line?)))
 
+;;;###autoload
 (defun haskell-on-blank-line-from-any-column? ()
   "Assumes point is at 0th column."
   (save-excursion
@@ -1155,6 +1164,7 @@ value section should have if it is to be properly indented."
   (vim-save-position)
   (haskell-move-to-topmost-start-impl count))
 
+;;;###autoload
 (defun haskell-move-to-topmost-end ()
   "Move to end of the topmost node, similar to `glisp/end-of-defun'."
   (interactive)
@@ -1278,19 +1288,12 @@ value section should have if it is to be properly indented."
               ;; Nothing to do: either no module keyword so everything is exported.
               nil)))))))
 
-(defadvice haskell-indentation-indent-line (around
-                                            haskell-indentation-indent-line-expand-yafolding
-                                            activate
-                                            compile)
+(defun with-ignored-invisibility-wrap-advice (fun &rest args)
   (with-ignored-invisibility
-   ad-do-it))
+    (apply fun args)))
 
-(defadvice haskell-indentation-indent-backwards (around
-                                                 haskell-indentation-indent-backwards-expand-yafolding
-                                                 activate
-                                                 compile)
-  (with-ignored-invisibility
-   ad-do-it))
+(advice-add 'haskell-indentation-indent-line :around #'with-ignored-invisibility-wrap-advice)
+(advice-add 'haskell-indentation-indent-backwards :around #'with-ignored-invisibility-wrap-advice)
 
 ;;;###autoload
 (defun haskell-misc-cabal-script-buf? (buf)
@@ -1331,8 +1334,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                       (eproj-query/local-variables proj major-mode nil)))
            (val-dante-target (cadr-safe (assq 'dante-target vars)))
            (all-warnings nil)
-           (fname (buffer-file-name buf))
-           (result nil))
+           (fname (buffer-file-name buf)))
       (aif val-dante-target
           (make-dante-configuration-result
            :target it)
@@ -1476,8 +1478,7 @@ Returns (<component name or nil> . <list of warnings>)"
                                                 t ;; Do not sort - faster this way.
                                                 ))
             (have-project? nil)
-            (have-stack? nil)
-            (cabal-files nil))
+            (have-stack? nil))
         (dolist (file interesting-files)
           (cond
             ((string-prefix-p ".#" file)
@@ -1523,6 +1524,7 @@ Returns (<component name or nil> . <list of warnings>)"
 
 (defvar-local haskell-misc--project-root nil)
 
+;;;###autoload
 (defun haskell-misc-get-project-root ()
   (if haskell-misc--project-root
       haskell-misc--project-root

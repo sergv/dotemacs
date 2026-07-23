@@ -2891,6 +2891,7 @@ key bindings do not count.)"
 
 
 
+;;;###autoload
 (defun undo-tree-undo (&optional arg)
   "Undo changes.
 Repeat this command to undo more changes.
@@ -3002,6 +3003,7 @@ changes within the current region."
 
 
 
+;;;###autoload
 (defun undo-tree-redo (&optional arg)
   "Redo changes. A numeric ARG serves as a repeat count.
 

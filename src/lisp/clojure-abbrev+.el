@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'abbrev+)
+(require 'general-lisp-setup)
 (require 'semnav)
 
 (defun clojure-util/quote-format-arguments (x)

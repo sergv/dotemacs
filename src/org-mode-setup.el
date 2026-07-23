@@ -12,8 +12,10 @@
   (require 'cl-lib)
   (require 'keys-def)
   (require 'macro-util)
+  (require 'org-agenda)
   (require 'vim-macs))
 
+(require 'base-emacs-autoload)
 (require 'common)
 (require 'common-font)
 (require 'dash)
@@ -25,6 +27,30 @@
 ;; tangling
 (require 'ob)
 
+(require 'org-loaddefs)
+
+(autoload 'org-agenda-next-line "org-agenda" nil t)
+(autoload 'org-agenda-previous-line "org-agenda" nil t)
+(autoload 'org-agenda-todo "org-agenda" nil t)
+(autoload 'org-beginning-of-line "org" nil t)
+(autoload 'org-end-of-line "org" nil t)
+(autoload 'org-indent-region "org" nil t)
+(autoload 'org-mark-ring-goto "org" nil t)
+(autoload 'org-meta-return "org" nil t)
+(autoload 'org-metadown "org" nil t)
+(autoload 'org-metaleft "org" nil t)
+(autoload 'org-metaright "org" nil t)
+(autoload 'org-metaup "org" nil t)
+(autoload 'org-open-at-point "org" nil t)
+(autoload 'org-self-insert-command "org" nil t)
+(autoload 'org-self-insert-command "org" nil t)
+(autoload 'org-shifttab "org" nil t)
+(autoload 'org-store-link "ol" nil t)
+(autoload 'org-todo "org" nil t)
+(autoload 'org-toggle-inline-images "org" nil t)
+(autoload 'org-toggle-link-display "org" nil t)
+(autoload 'org-toggle-pretty-entities "org" nil t)
+
 ;;;###autoload
 (add-to-list 'el-patch-features 'ob-tangle)
 
@@ -33,7 +59,7 @@
   ("C-c a" org-agenda))
 
 ;; org mode customizations
-(setf org-agenda-ndays 7
+(setf org-agenda-span 7
       org-deadline-warning-days 7
       org-agenda-show-all-dates t
       org-agenda-skip-deadline-if-done t
@@ -58,7 +84,7 @@
       ;; proper mode for block's language.
       org-src-tab-acts-natively t
 
-      org-highlight-latex-fragments-and-specials t
+      org-highlight-latex-and-related '(native)
       org-latex-default-packages-alist
       '(("AUTO" "inputenc"  t)
         ("T1"   "fontenc"   t)
@@ -411,7 +437,7 @@ _C_: hide everything except current entry and its parents"
     ("<f6>"         org-toggle-display-style)
     (("C-m" "<f9>") vim:org-latex-export-to-pdf:interactive)
     ("S-<f9>"       open-buffer-as-pdf)
-    ("C-SPC"        pcomplete)
+    ("C-SPC"        pcomplete-completions-at-point)
     ("<C-return>"   org-meta-return)
     ("<C-down>"     org-metadown)
     ("<C-up>"       org-metaup)

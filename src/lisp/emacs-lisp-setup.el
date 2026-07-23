@@ -15,6 +15,14 @@
   (require 'macro-util)
   (require 'keys-def))
 
+(autoload 'edebug-stop "edebug" nil t)
+(autoload 'edebug-step-mode "edebug" nil t)
+(autoload 'edebug-step-in "edebug" nil t)
+(autoload 'edebug-step-out "edebug" nil t)
+
+(defvar debugger-mode-map)
+(defvar edebug-mode-map)
+
 (require 'company-mode-setup)
 (require 'elisp-slime-nav)
 (require 'emacs-lisp-abbrev+)
@@ -157,13 +165,12 @@ _e_val
 ;;;###autoload
 (add-hook 'emacs-lisp-mode-hook #'emacs-lisp-setup)
 
-(eval-after-load "edebug"
-  '(progn
-     (def-keys-for-map edebug-mode-map
-       ("<f5>" edebug-stop)
-       ("<f6>" edebug-step-mode)
-       ("<f7>" edebug-step-in)
-       ("<f8>" edebug-step-out))))
+(with-eval-after-load 'edebug
+  (def-keys-for-map edebug-mode-map
+    ("<f5>" edebug-stop)
+    ("<f6>" edebug-step-mode)
+    ("<f7>" edebug-step-in)
+    ("<f8>" edebug-step-out)))
 
 (defun eval-print-last-sexp-unlimited-length ()
   (interactive)
