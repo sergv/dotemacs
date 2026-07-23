@@ -14,7 +14,10 @@
 
 (declare-function msys-directory-name-to-emacs "windows-setup")
 (declare-function cygwin-directory-name-to-emacs "windows-setup")
-(declare-function treesit-utils--string-at "treesit-utils")
+(declare-function treesit-node-at "treesit")
+
+(defvar shell-mode-map)
+(defvar shell-mode-syntax-table)
 
 (require 'common)
 (require 'comint-setup)
@@ -125,31 +128,34 @@
        ;; adjust beg function
        nil))
 
-(eval-after-load "shell"
-  '(progn
-     (let ((st shell-mode-syntax-table))
-       (modify-syntax-entry ?\" ".   " st)
-       (modify-syntax-entry ?\\ ".   " st)
-       ;; We add `p' so that M-c on 'hello' leads to 'Hello' rather than 'hello'.
-       (modify-syntax-entry ?' "w p" st)
-       ;; UAX #29 says HEBREW PUNCTUATION GERESH behaves like a letter
-       ;; for the purposes of finding word boundaries.
-       (modify-syntax-entry #x5f3 "w   ")  ; GERESH
-       ;; UAX #29 says HEBREW PUNCTUATION GERSHAYIM should not be a word
-       ;; boundary when surrounded by letters.  Our infrastructure for
-       ;; finding a word boundary doesn't support 3-character
-       ;; definitions, so for now simply make this a word-constituent
-       ;; character.  This leaves a problem of having GERSHAYIM at the
-       ;; beginning or end of a word, where it should be a boundary;
-       ;; FIXME.
-       (modify-syntax-entry #x5f4 "w   ")  ; GERSHAYIM
-       ;; These all should not be a word boundary when between letters,
-       ;; according to UAX #29, so they again are prone to the same
-       ;; problem as GERSHAYIM; FIXME.
-       (modify-syntax-entry #xb7 "w   ")   ; MIDDLE DOT
-       (modify-syntax-entry #x2027 "w   ") ; HYPHENATION POINT
-       (modify-syntax-entry #xff1a "w   ") ; FULLWIDTH COLON
-       )))
+(with-eval-after-load 'shell
+  (def-keys-for-map shell-mode-map
+    ("C-SPC" vim:comint-clear-buffer-above-prompt:interactive)
+    ("TAB"   completion-at-point))
+
+  (let ((st shell-mode-syntax-table))
+     (modify-syntax-entry ?\" ".   " st)
+     (modify-syntax-entry ?\\ ".   " st)
+     ;; We add `p' so that M-c on 'hello' leads to 'Hello' rather than 'hello'.
+     (modify-syntax-entry ?' "w p" st)
+     ;; UAX #29 says HEBREW PUNCTUATION GERESH behaves like a letter
+     ;; for the purposes of finding word boundaries.
+     (modify-syntax-entry #x5f3 "w   ")  ; GERESH
+     ;; UAX #29 says HEBREW PUNCTUATION GERSHAYIM should not be a word
+     ;; boundary when surrounded by letters.  Our infrastructure for
+     ;; finding a word boundary doesn't support 3-character
+     ;; definitions, so for now simply make this a word-constituent
+     ;; character.  This leaves a problem of having GERSHAYIM at the
+     ;; beginning or end of a word, where it should be a boundary;
+     ;; FIXME.
+     (modify-syntax-entry #x5f4 "w   ")  ; GERSHAYIM
+     ;; These all should not be a word boundary when between letters,
+     ;; according to UAX #29, so they again are prone to the same
+     ;; problem as GERSHAYIM; FIXME.
+     (modify-syntax-entry #xb7 "w   ")   ; MIDDLE DOT
+     (modify-syntax-entry #x2027 "w   ") ; HYPHENATION POINT
+     (modify-syntax-entry #xff1a "w   ") ; FULLWIDTH COLON
+     ))
 
 (when-windows
  (require 'windows-setup)
@@ -212,9 +218,6 @@ sexps and indentation levels."
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap
                      shell-mode-map)
-    ("C-SPC"     vim:comint-clear-buffer-above-prompt:interactive)
-    ("TAB"       completion-at-point)
-
     ("M-p"       browse-comint-input-history)
 
     ("C-w"       backward-delete-word)

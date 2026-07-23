@@ -62,8 +62,7 @@ to check whether their modules are imported if functions are already in scope."
           (when module-names
             (let ((result nil)
                   (continue? t)
-                  (tmp module-names)
-                  (entry nil))
+                  (tmp module-names))
               (while continue?
                 (let* ((entry (car tmp))
                        (names (cdr entry)))
@@ -567,7 +566,7 @@ then Bar would be the result."
                                  (not (null x)))
                             (let ((head (car x)))
                               (if (listp head)
-                                  (copy-list head)
+                                  (cl-copy-list head)
                                 (list head))))
                            (t
                             (error "invalid ghc flag specification, string or list with first string element expected but got: %s"

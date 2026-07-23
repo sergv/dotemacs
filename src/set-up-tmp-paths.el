@@ -10,6 +10,8 @@
   (require 'subr-x)
   (require 'set-up-platform))
 
+(defvar tramp-auto-save-directory)
+
 (require 'set-up-paths)
 
 (defconst +tmp-path+

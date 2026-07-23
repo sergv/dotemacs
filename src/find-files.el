@@ -8,8 +8,12 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'set-up-platform))
+
+(defvar w32-quote-process-args)
+
+(declare-function haskell-native-find-rec (fold-platform-os-type "libemacs-native" "emacs-native"))
 
 (require 'common)
 (require 'dash)
@@ -174,7 +178,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                            ignored-directory-prefixes)
   (declare (pure nil) (side-effect-free nil))
   (when (null globs-to-find)
-    (error "No globs to search for under %s" root))
+    (error "No globs to search for under %s" roots))
   (cl-assert (listp ignored-directories))
   (cl-assert (listp ignored-directory-prefixes))
   (cl-assert (listp globs-to-find))

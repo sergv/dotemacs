@@ -189,7 +189,7 @@
 
 Includes Unicode whitespace characters.")
   ;; simplified version of function from string-utils
-  (defun string-utils-compress-whitespace (str-val &optional whitespace-type separator)
+  (defun string-utils-compress-whitespace (str-val &optional _whitespace-type separator)
     "Return STR-VAL with all contiguous whitespace compressed to a single space.
 WHITESPACE-TYPE is ignored.
 SEPARATOR is the string with which to replace any whitespace."
@@ -296,14 +296,14 @@ A plain cons cell, for the purpose of this function, is a single
 cons in which the cdr holds data rather than a pointer to the
 next cons cell, eg
 
-    '(1 . 2)
+    \\='(1 . 2)
 
 In addition, a list which is not nil-terminated is not a proper
 list and will be recognized by this function as a cons cell.
 Such a list is printed using dot notation for the last two
 elements, eg
 
-    '(1 2 3 4 . 5)
+    \\='(1 2 3 4 . 5)
 
 Such improper lists are produced by `cl-list*'."
   (let ((len (safe-length cell)))
@@ -313,7 +313,7 @@ Such improper lists are produced by `cl-list*'."
       (nthcdr len cell))))
 
 ;;;###autoload
-(defun list-utils-make-proper-copy (list &optional tree recur-internal)
+(defun list-utils-make-proper-copy (list &optional tree _recur-internal)
   "Copy a cons cell or improper LIST into a proper list.
 
 If optional TREE is non-nil, traverse LIST, making proper
@@ -323,7 +323,7 @@ Optional RECUR-INTERNAL is for internal use only.
 
 Improper lists consist of proper lists consed to a final
 element, and are produced by `cl-list*'."
-  (cl-assert (or recur-internal (listp list)) nil "LIST is not a list")
+  (cl-assert (or _recur-internal (listp list)) nil "LIST is not a list")
   (cond
     ((not tree)
      (let ((tail (list-utils-cons-cell-p list)))
@@ -342,7 +342,7 @@ element, and are produced by `cl-list*'."
      list)))
 
 ;;;###autoload
-(defun list-utils-make-proper-inplace (list &optional tree recur-internal)
+(defun list-utils-make-proper-inplace (list &optional tree _recur-internal)
   "Make a cons cell or improper LIST into a proper list.
 
 Improper lists consist of proper lists consed to a final
@@ -354,7 +354,7 @@ improper lists contained within into proper lists.
 Optional RECUR-INTERNAL is for internal use only.
 
 Modifies LIST and returns the modified value."
-  (cl-assert (or recur-internal (listp list)) nil "LIST is not a list")
+  (cl-assert (or _recur-internal (listp list)) nil "LIST is not a list")
   (cond
     ((not tree)
      (when (list-utils-cons-cell-p list)
@@ -369,7 +369,7 @@ Modifies LIST and returns the modified value."
 (define-obsolete-function-alias 'list-utils-make-proper 'list-utils-make-proper-inplace "v0.4.2")
 
 ;;;###autoload
-(defun list-utils-make-improper-copy (list &optional tree recur-internal)
+(defun list-utils-make-improper-copy (list &optional tree _recur-internal)
   "Copy a proper LIST into an improper list.
 
 Improper lists consist of proper lists consed to a final
@@ -379,8 +379,8 @@ If optional TREE is non-nil, traverse LIST, making proper
 copies of any improper lists contained within.
 
 Optional RECUR-INTERNAL is for internal use only."
-  (cl-assert (or recur-internal (listp list)) nil "LIST is not a list")
-  (cl-assert (or recur-internal (> (safe-length list) 1)) nil "LIST has only one element")
+  (cl-assert (or _recur-internal (listp list)) nil "LIST is not a list")
+  (cl-assert (or _recur-internal (> (safe-length list) 1)) nil "LIST has only one element")
   (cond
     ((not tree)
      (let ((tail (list-utils-cons-cell-p list)))
@@ -399,7 +399,7 @@ Optional RECUR-INTERNAL is for internal use only."
      list)))
 
 ;;;###autoload
-(defun list-utils-make-improper-inplace (list &optional tree recur-internal)
+(defun list-utils-make-improper-inplace (list &optional tree _recur-internal)
   "Make proper LIST into an improper list.
 
 Improper lists consist of proper lists consed to a final
@@ -411,8 +411,8 @@ proper lists contained within into improper lists.
 Optional RECUR-INTERNAL is for internal use only.
 
 Modifies LIST and returns the modified value."
-  (cl-assert (or recur-internal (listp list)) nil "LIST is not a list")
-  (cl-assert (or recur-internal (> (safe-length list) 1)) nil "LIST has only one element")
+  (cl-assert (or _recur-internal (listp list)) nil "LIST is not a list")
+  (cl-assert (or _recur-internal (> (safe-length list) 1)) nil "LIST has only one element")
   (cond
     ((not tree)
      (unless (list-utils-cons-cell-p list)
@@ -1001,11 +1001,11 @@ Performance: see notes under `list-utils-and'."
 (defun list-utils-partition-dupes (list &optional test hint)
   "Partition LIST into duplicates and singlets, preserving order.
 
-The return value is an alist with two keys: 'dupes and 'singlets.
+The return value is an alist with two keys: \\='dupes and \\='singlets.
 The two values of the alist are lists which, if combined, comprise
 a complete copy of the elements of LIST.
 
-Duplicated elements may still exist in the 'dupes partition.
+Duplicated elements may still exist in the \\='dupes partition.
 
 TEST is an optional comparison function in the form of a
 hash-table-test.  The default is `equal'.  Other valid values

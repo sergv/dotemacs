@@ -210,7 +210,7 @@ The structure of each entry is (NAME TYPE)
     `sw-off'     Switch: turns math-mode of following text  off
     `sw-toggle'  Switch: toggles math mode of following text"
   :group 'texmathp
-  :set '(lambda (symbol value) (set-default symbol value) (texmathp-compile))
+  :set (lambda (symbol value) (set-default symbol value) (texmathp-compile))
   :type
   '(repeat
     (list :value ("" env-on)

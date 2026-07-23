@@ -10,32 +10,19 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'compile)
   (require 'el-patch)
-  (require 'macro-util)
-
-  (defvar inferior-octave-buffer)
-  (defvar inferior-octave-output-list)
-  (defvar inferior-octave-output-list)
-  (defvar inferior-octave-output-string)
-  (defvar inferior-octave-process)
-  (defvar inferior-octave-prompt)
-  (defvar inferior-octave-receive-in-progress)
-  (defvar inferior-octave-receive-in-progress)
-  (defvar octave-send-echo-input)
-  (defvar octave-send-show-buffer)
-  (defvar inferior-octave-mode-map))
-
-(declare-function inferior-octave-send-list-and-digest "octave")
-(declare-function octave-beginning-of-defun "octave")
-(declare-function octave-send-line "octave")
-(declare-function octave-send-defun "octave")
+  (require 'macro-util))
 
 (require 'align-util)
+(require 'base-emacs-autoload)
 (require 'browse-kill-ring-setup)
 (require 'common)
+(require 'compile)
 (require 'el-patch)
 (require 'folding-setup)
 (require 'hydra-setup)
+(require 'octave)
 (require 'octave-abbrev+)
 
 ;;;###autoload
@@ -442,7 +429,6 @@ _j_: send region"
                      vim-insert-mode-local-keymap
                      inferior-octave-mode-map)
     ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
-    ("M-/"      comint-dynamic-complete)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
     ("C-t"      octave-jump-to-prev-prompt)
