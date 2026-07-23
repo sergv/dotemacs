@@ -12,6 +12,8 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(require 'base-emacs-autoload)
+
 (defvar markdown-enable-math)
 (defvar markdown-list-indent-width)
 (defvar markdown-asymmetric-header)

@@ -31,16 +31,14 @@
   "All nix-shell options."
   :group 'nix)
 
-(defcustom nix-shell-inputs '(buildInputs
-			      depsBuildBuild
-			      depsBuildBuildPropagated
-			      nativeBuildInputs
-			      propagatedNativeBuildInputs
-			      depsBuildTarget
-			      depsBuildTargetPropagated)
-  "List of inputs to collect for nix-shell."
-  :type 'list
-  :group 'nix-shell)
+(defvar nix-shell-inputs '(buildInputs
+			   depsBuildBuild
+			   depsBuildBuildPropagated
+			   nativeBuildInputs
+			   propagatedNativeBuildInputs
+			   depsBuildTarget
+			   depsBuildTargetPropagated)
+  "List of inputs to collect for nix-shell.")
 
 (defcustom nix-shell-clear-environment nil
   "Whether to clear the old ‘exec-path’ & environment.
@@ -56,19 +54,19 @@ Similar to ‘--pure’ argument in command line nix-shell."
 (defcustom nix-file nil
   "Nix file to build expressions from.
 Should only be set in dir-locals.el file."
-  :type 'stringp
+  :type 'string
   :group 'nix-shell)
 
 (defcustom nix-flake nil
   "Nix flake to build expressions from.
 Should only be set in dir-locals.el file."
-  :type 'stringp
+  :type 'string
   :group 'nix-shell)
 
 (defcustom nix-attr nil
   "Nix attribute path to use.
 Should only be set in dir-locals.el file."
-  :type 'stringp
+  :type 'string
   :group 'nix-shell)
 
 ;;;###autoload

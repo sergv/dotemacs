@@ -14,21 +14,25 @@
   (require 'vim-macs)
   (require 'vim-setup))
 
-(declare-function server-edit "server")
-
+(defvar flycheck-cherker)
+(defvar rust-ts-mode-syntax-table)
 (defvar whitespace-line-column)
 
 (require 'align-util)
+(require 'base-emacs-autoload)
 (require 'common)
 (require 'compilation-setup)
 (require 'current-column-fixed)
+(require 'eproj)
 (require 'flycheck)
 (require 'indentation)
 (require 'lsp-rust)
 (require 'lsp-setup)
 (require 'lsp-rust-setup)
 (require 'pretty-ligatures)
+(require 'rust-compile)
 (require 'rust-compilation-commands)
+(require 'rust-ts-mode)
 
 (require 'rust-autoloads)
 
@@ -41,13 +45,7 @@
 (defvar flycheck-cargo--default-check-args
   (flycheck-cargo--make-check-args (fold-platform-os-type "/tmp/target" "target")))
 
-(setf rust-indent-method-chain t
-      rust-indent-where-clause t
-
-      rust-playpen-url-format nil
-      rust-shortener-url-format nil
-
-      flycheck-cargo-check-args flycheck-cargo--default-check-args)
+(setf flycheck-cargo-check-args flycheck-cargo--default-check-args)
 
 (let ((cargo-home (getenv "CARGO_HOME"))
       (rustup-home (getenv "RUSTUP_HOME")))
@@ -124,7 +122,7 @@ which is suitable for most programming languages such as C or Lisp."
   (vim:flycheck-clear:wrapper)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
-    (lsp-restart-workspace)))
+    (lsp-workspace-restart)))
 
 (with-eval-after-load 'rust-ts-mode
   (add-hook 'flycheck-mode-hook #'rust-flycheck-configure))
@@ -168,6 +166,7 @@ which is suitable for most programming languages such as C or Lisp."
          ))
   "Regexp to highlight backtrace positions when tests fail.")
 
+;;;###autoload
 (define-compilation-mode rust-compilation-mode "Rust Compilation"
   "Rust-specific `compilation-mode' derivative."
   (setq-local compilation-error-regexp-alist
@@ -196,11 +195,11 @@ which is suitable for most programming languages such as C or Lisp."
 Toggle:
 _f_ormatting on typing             %`lsp-enable-on-type-formatting
 _h_ighlight of symbol at point     %`lsp-enable-symbol-highlighting
-_i_nlay hints                      %`lsp-rust-analyzer-inlay-hints-mode
+_i_nlay hints                      %`lsp-inlay-hints-mode
 _l_ens                             %`lsp-lens-mode"
   ("f" lsp-toggle-on-type-formatting)
   ("h" lsp-toggle-symbol-highlight)
-  ("i" lsp-rust-analyzer-inlay-hints-mode)
+  ("i" lsp-inlay-hints-mode)
   ("l" lsp-lens-mode))
 
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
@@ -250,20 +249,24 @@ _=_: on equals"
   "
 _t_: beginning of defun
 _h_: end of defun"
-  ("t" rust-beginning-of-defun)
-  ("h" rust-end-of-defun))
+  ("t" vim-rust-beginning-of-defun)
+  ("h" vim-rust-end-of-defun))
 
-(defun vim-rust-beginning-of-defun (&optional arg)
+(defun vim-rust-beginning-of-defun (&optional _arg)
   "Vim wrapper around `rust-beginning-of-defun'."
   (interactive "p")
   (vim-save-position)
-  (rust-beginning-of-defun arg))
+  (error "not implemented yet")
+  ;; (rust-beginning-of-defun arg)
+  )
 
 (defun vim-rust-end-of-defun ()
   "Vim wrapper around `rust-end-of-defun'."
   (interactive)
   (vim-save-position)
-  (rust-end-of-defun))
+  (error "not implemented yet")
+  ;; (rust-end-of-defun)
+  )
 
 (defhydra-derive hydra-rust-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -273,7 +276,7 @@ _TAB_: format region _h_: end of defun"
   ("TAB"   rust-format-region)
 
   ("t"     vim-rust-beginning-of-defun)
-  ("h"     vim-rust-end-of-defun:interactive))
+  ("h"     vim-rust-end-of-defun))
 
 (defun rust-insert-unimplemented ()
   "Insert unimplemented!()."

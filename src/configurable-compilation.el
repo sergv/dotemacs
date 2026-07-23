@@ -112,6 +112,11 @@ same for a set of buffers rather than being different."
 
 (defvar-local configurable-compilation--cached-rust-project-root nil)
 
+;;;###autoload (autoload 'cc-command-p "configurable-compilation")
+;;;###autoload (autoload 'cc-command/cmd "configurable-compilation")
+;;;###autoload (autoload 'cc-command/dir "configurable-compilation")
+;;;###autoload (autoload 'cc-command/env "configurable-compilation")
+;;;###autoload (autoload 'cc-command/pretty-cmd "configurable-compilation")
 (cl-defstruct (cc-command
                (:conc-name cc-command/)
                (:constructor make--cc-command))
@@ -159,9 +164,11 @@ same for a set of buffers rather than being different."
                     :pretty-cmd pretty-cmd
                     :eproj-root eproj-root))
 
+;;;###autoload
 (defun configurable-compilation--format-timestamp (x)
   (format-time-string "%a %-d %b %Y %H:%M:%S" x))
 
+;;;###autoload
 (defun configurable-compilation--format-duration (start end)
   (format "%.2f seconds" (float-time (time-subtract end start))))
 

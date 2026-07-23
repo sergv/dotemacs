@@ -12046,6 +12046,7 @@ Prompt user if TAG-NAME isn't provided."
     (goto-char pos)
     (current-indentation)))
 
+;;;###autoload
 (defun web-mode-navigate (&optional pos)
   "Move point to the matching opening/closing tag/block."
   (interactive)

@@ -15,7 +15,10 @@
 
 (declare-function lsp-ui-sideline-mode "lsp-ui-sideline")
 
+(defvar eproj-symbnav/identifier-type)
+
 (require 'align)
+(require 'base-emacs-autoload)
 (require 'browse-kill-ring-setup)
 (require 'comment-util)
 (require 'common)
@@ -25,8 +28,6 @@
 (require 'configurable-compilation)
 (require 'dante)
 (require 'dante-repl)
-(require 'eproj)
-(require 'eproj-query)
 (require 'eproj-symbnav)
 (require 'flycheck-setup)
 (require 'haskell-abbrev+)
@@ -310,6 +311,7 @@ regexps to not be confused by the instance location."
                       t
                       (list `(column . ,(1- col)))))))
 
+;;;###autoload (autoload 'hydra-haskell-lsp-toggle/body "haskell-setup" nil t)
 (defhydra-derive hydra-haskell-lsp-toggle hydra-lsp-toggle (:exit t :foreign-keys nil :hint nil)
   "")
 

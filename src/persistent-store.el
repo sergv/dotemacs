@@ -36,6 +36,7 @@
 (defsubst persistent-store-initialized? ()
   (not (null persistent-store-content)))
 
+;;;###autoload
 (defun persistent-store-init ()
   "Initialize database."
   (unless noninteractive
@@ -274,19 +275,19 @@ performed for some field."
                        "\n"))
                      (sit-for 0.1))))))))))))
 
+(defsubst persistent-store-database-size ()
+  "Return number of entries in database."
+  (hash-table-size persistent-store-content))
+
 (defun persistent-store-debug-print-content ()
   (interactive)
-  (if (= 0 (persistent-store-database-size))
+  (if (zerop (persistent-store-database-size))
       (message "database is empty")
     (let ((counter 0))
       (maphash (lambda (key value)
                  (message "#%d: %S:%S" counter key value)
                  (cl-incf counter))
                persistent-store-content))))
-
-(defsubst persistent-store-database-size ()
-  "Return number of entries in database."
-  (hash-table-size persistent-store-content))
 
 (provide 'persistent-store)
 

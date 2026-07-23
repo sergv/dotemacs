@@ -2066,6 +2066,7 @@ When nil, use `magit-list-refs-sortby'.  If both are nil, use
     (cl-remove-if-not (##file-exists-p (expand-file-name % gitdir))
                       magit-special-refnames)))
 
+;;;###autoload
 (defun magit-list-branch-names ()
   (magit-list-refnames (list "refs/heads" "refs/remotes")))
 

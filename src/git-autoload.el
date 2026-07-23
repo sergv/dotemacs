@@ -6,6 +6,18 @@
 ;; Created: Thursday, 20 August 2015
 ;; Description:
 
+(defvar git-commit-confirm-commit)
+(defvar magit-blame-heading-format)
+(defvar magit-commit-ask-to-stage)
+(defvar magit-diff-refine-hunk)
+(defvar magit-log-arguments)
+(defvar magit-popup-show-common-commands)
+(defvar magit-process-log-max)
+(defvar magit-push-always-verify)
+(defvar magit-refs-show-commit-count)
+(defvar magit-revert-buffers)
+(defvar magit-save-repository-buffers)
+
 (setf ;; magit-completing-read-function
       ;; (lambda (prompt collection &optional predicate require-match initial-input hist def)
       ;;   (ivy-completing-read

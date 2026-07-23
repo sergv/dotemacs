@@ -23,7 +23,6 @@
 
 (setf yas-snippet-dirs (list (concat +resources-path+ "/snippets"))
       yas-prompt-functions '(ivy-yas-completing-prompt)
-      yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w")
       ;; don't reactivate fields on undo/redo
       yas-snippet-revival nil)
@@ -167,8 +166,8 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
 
 (def-keys-for-map yas-keymap
   ("<backspace>"     yas-skip-and-clear-or-delete-backward-char)
-  ("<delete>"        yas-skip-and-clear-or-delete-char)
-  ("S-<backspace>"   yas-skip-and-clear-or-delete-char)
+  ("<delete>"        yas-maybe-skip-and-clear-field)
+  ("S-<backspace>"   yas-maybe-skip-and-clear-field)
   ("S-TAB"           yas-prev-field))
 
 ;; (yas-compile-directory yas-snippet-dirs)
@@ -184,7 +183,7 @@ happens to be located in org's headline."
 
 (advice-add 'org-fix-tags-on-the-fly :around #'org-fix-tags-on-the-fly-yasnippet-field-fix)
 
-(defun ivy-yas-completing-prompt (prompt choices &optional display-fn completion-fn)
+(defun ivy-yas-completing-prompt (prompt choices &optional display-fn)
   (let* ((formatted-choices
           (if display-fn (mapcar display-fn choices) choices))
          (this-command 'ivy-yas-completing-prompt)

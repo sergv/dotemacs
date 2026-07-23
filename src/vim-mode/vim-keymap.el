@@ -77,9 +77,8 @@ and vim-local-`map-command'."
 ;; followed by another key, i.e. not used as a prefix-key, the event
 ;; [escape] is sent, otherwise the interception-keymap is disabled for
 ;; the next command and the ESC event is resent.
-(defcustom vim-intercept-ESC-timeout 0.1
-  "Time in seconds to wait for another key after an ESC event."
-  :group 'vim-mode-general)
+(defconst vim-intercept-ESC-timeout 0.1
+  "Time in seconds to wait for another key after an ESC event.")
 
 (defconst vim-intercept-ESC-keymap (make-sparse-keymap)
   "Keymap to map ESC to [escape].")
@@ -97,7 +96,7 @@ and vim-local-`map-command'."
     (vim-intercept-ESC-mode 1)))
 
 ;; Catch '\e' and convert it to [escape] if not used as prefix key.
-(vim--def-key (kbd "ESC") 'vim-intercept-ESC :keymap vim-intercept-ESC-keymap)
+(define-key vim-intercept-ESC-keymap (kbd "ESC") #'vim-intercept-ESC)
 
 ;; The override keymap, useful especially in normal-mode.
 (defconst vim-override-keymap (make-sparse-keymap)

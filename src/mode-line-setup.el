@@ -7,8 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'common))
+  (require 'cl-lib))
+
+(require 'common)
 
 ;; Display line numbers in mode line even in buffers that have lines
 ;; below this length, on average.
@@ -56,6 +57,7 @@
   "Show number of items that matched last search `mode-line-format'."
   search--mode-line-matches)
 
+;;;###autoload
 (cl-defun use-repl-modeline (&key (show-directory nil))
   "Set up `mode-line' for use in vairous repl."
   (setf mode-line-format
@@ -81,6 +83,7 @@
                 (:eval default-directory)))
           global-mode-string)))
 
+;;;###autoload
 (defun default-mode-line-format (&rest checkers-specs)
   `("%[%b%] "
     (:eval (cond

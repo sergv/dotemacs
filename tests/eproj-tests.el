@@ -45,7 +45,7 @@ under ROOT directory."
   (eproj-tests/sort-file-list items))
 
 (defun eproj-tests/normalize-string-list (items)
-  (sort (copy-list items) #'string<))
+  (sort (cl-copy-list items) #'string<))
 
 (defun eproj-tests/paths=? (path-a path-b)
   (string= (expand-file-name (strip-trailing-slash path-a))

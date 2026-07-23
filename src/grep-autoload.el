@@ -13,6 +13,11 @@
   (require 'haskell-constants)
   (require 'set-up-platform))
 
+(defvar grep-files-aliases)
+(defvar grep-find-ignored-directories)
+(defvar grep-find-template)
+(defvar grep-template)
+
 (setf find-program
       (fold-platform-os-type
        "find"
