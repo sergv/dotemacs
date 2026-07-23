@@ -9,14 +9,10 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'keys-def)
-  (require 'macro-util)
-  (defvar lsp-diagnostics-attributes)
-  (defvar lsp-modeline-code-actions-segments)
-  (defvar lsp-modeline-diagnostics-scope)
-  (defvar lsp-ui-sideline-enable)
-  (defvar lsp-ui-sideline-show-code-actions)
-  (defvar lsp-ui-sideline-show-diagnostics)
-  (defvar lsp-ui-sideline-show-hover))
+  (require 'lsp-diagnostics)
+  (require 'lsp-modeline)
+  (require 'lsp-ui-sideline)
+  (require 'macro-util))
 
 (require 'common)
 
@@ -86,6 +82,10 @@
 
       lsp-inlay-hint-enable t)
 
+(defvar lsp-doc-presentation--prev-contents nil)
+(defvar lsp-doc-presentation--next-contents nil)
+(defvar lsp-doc-presentation--current-doc nil)
+
 ;;;###autoload
 (defun lsp-doc-other-window ()
   (interactive)
@@ -136,10 +136,6 @@
   (setq-local truncate-lines t)
   (read-only-mode +1)
   (hl-line-mode +1))
-
-(defvar lsp-doc-presentation--prev-contents nil)
-(defvar lsp-doc-presentation--next-contents nil)
-(defvar lsp-doc-presentation--current-doc nil)
 
 (defun lsp-doc-presentation-set-up-buffer (contents)
   (with-inhibited-read-only
@@ -201,6 +197,7 @@
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
 
+;;;###autoload
 (defun lsp-symbnav--tag-kind (tag _mode)
   (awhen (eproj-tag/type tag)
     (cl-assert (stringp it) nil "Expected string tag type but got: %s" it)

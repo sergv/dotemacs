@@ -117,11 +117,11 @@ quotes as well as braces are paired auto-magically. Expansion
 does not occur inside comments and strings. Note that you must
 have Font Lock enabled. ${ } is expanded when in a GString"
   ;; initial value.
-  nil
+  :init-value  nil
   ;;indicator for the mode line.
-  " Ge"
+  :lighter  " Ge"
   ;;keymap
-  groovy-mode-map
+  :keymap  groovy-mode-map
   (groovy-electric-setup-keymap))
 
 (defun groovy-electric-setup-keymap()

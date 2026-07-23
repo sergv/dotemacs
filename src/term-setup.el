@@ -32,11 +32,11 @@ See ‘term-bol’.")
 (defun term-setup ()
   (vim:bind-local-keymaps)
 
-  (def-keys-for-map vim-normal-mode-local-keymap
-    ("^" vim:term-bol-motion:interactive)
-    ;; ("<up>" term-previous-input)
-    ;; ("<down>" term-next-input)
-    )
+  ;; (def-keys-for-map vim-normal-mode-local-keymap
+  ;;   ("^" vim:term-bol-motion:interactive)
+  ;;   ;; ("<up>" term-previous-input)
+  ;;   ;; ("<down>" term-next-input)
+  ;;   )
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)

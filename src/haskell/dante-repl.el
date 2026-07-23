@@ -137,6 +137,7 @@ otherwise the command for starting repl will be inferred."
              (dante-repl--make-command-line load-all-on-start?))))
     (dante-repl--start-in-buffer-with-command-line repl-buf command-line initial-repl-command current-dir)))
 
+;;;###autoload
 (defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line initial-repl-command current-dir)
   (cl-assert (cmdline-p command-line))
   (let ((dir (or current-dir
@@ -241,8 +242,8 @@ otherwise the command for starting repl will be inferred."
 
 Specifies filename that should be loaded instead of current buffer’s file.")
 
-(lcr-def dante-repl-get-file-to-load--hsc2hs (buf)
-  (with-current-buffer buf
+(lcr-def dante-repl-get-file-to-load--hsc2hs (buffer)
+  (with-current-buffer buffer
     (let* ((cfg (dante-get-config))
            (component-build-dir (dante-get-component-build-dir cfg t)))
       (if component-build-dir

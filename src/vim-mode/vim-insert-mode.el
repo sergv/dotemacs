@@ -34,10 +34,8 @@
 (defvar vim-insert-mode-on-exit nil
   "Execute this when we have left insert mode and fully enabled normal mode.")
 
-(defcustom vim-insert-mode-replace-cursor 'hbar
-  "Cursor for replace-mode."
-  :group 'vim-cursors
-  :type 'symbolp)
+(defvar vim-insert-mode-replace-cursor 'hbar
+  "Cursor for replace-mode.")
 
 (vim-define-keymap insert-mode "insert-mode" :map-command imap)
 

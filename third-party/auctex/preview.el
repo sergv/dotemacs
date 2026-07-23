@@ -1936,7 +1936,7 @@ BUFFER-MISC is the appropriate data to be used."
   '(if (boundp 'desktop-buffer-mode-handlers)
        (add-to-list 'desktop-buffer-mode-handlers
 		    '(latex-mode . desktop-buffer-preview))
-     (add-hook 'desktop-buffer-handlers '(lambda ()
+     (add-hook 'desktop-buffer-handlers (lambda ()
 					   (desktop-buffer-preview
 					    desktop-buffer-file-name
 					    desktop-buffer-name
@@ -2843,7 +2843,7 @@ name(\\([^)]+\\))\\)\\|\
 ;;;   Too ugly to describe in detail.  In short, we try to catch file
 ;;;   names built from path components that don't contain spaces or
 ;;;   other special characters once the file extension has started.
-;;;  
+;;;
 ;;;   Position for searching immediately after the file name so as to
 ;;;   not miss closing parens or something.
 ;;;   (match-string 3) is the file name.

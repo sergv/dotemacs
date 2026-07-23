@@ -19,11 +19,12 @@
 (defun haskell-grammar-tools-setup ()
   (init-common :use-whitespace 'tabs-only)
 
-  (let ((_proj (haskell-setup-common-project
-                ;; polymode.el will enable indentation within Haskell blocks. On
-                ;; the outside Alex’s or Happy’s indentation rules should apply
-                nil)))
-    )
+
+  (haskell-setup-common-project
+   ;; polymode.el will enable indentation within Haskell blocks. On
+   ;; the outside Alex’s or Happy’s indentation rules should apply
+   nil)
+
   ;; (setq-local tab-always-indent t
   ;;             indent-line-function
   ;;             (lambda ()

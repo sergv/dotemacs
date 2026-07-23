@@ -24,6 +24,13 @@
 (require 'compilation-setup)
 (require 'haskell-autoload)
 
+(defvar *grep-latest-dir* nil
+  "Latest directory used for `rgrep', `rzgrep' or alike.")
+
+(defvar rgrep-ignore-case nil
+  "Dynamically-bound variable that controls whether current
+rgrep invocation should be case-insensetive.")
+
 ;;;###autoload
 (add-to-list 'el-patch-features 'grep)
 
@@ -62,6 +69,21 @@
                            "")
                        t t command)))))))))
 
+(defun grep-filter-make-relative-filename-advice (&rest _ignore)
+  "This advice is simply AWESOME! It replaces common long filename prefixes with \".\"."
+  (save-match-data
+    (save-excursion
+      (let ((end (line-beginning-position))
+            (beg (progn
+                   (goto-char compilation-filter-start)
+                   (line-beginning-position)))
+            (dir (awhen *grep-latest-dir* (strip-trailing-slash it))))
+        (when dir
+          (let ((re (concat "^" (regexp-quote dir))))
+            (goto-char beg)
+            (while (re-search-forward re end t)
+              (replace-match "."))))))))
+
 (defun grep-init-after-load ()
   (def-keys-for-map grep-mode-map
     +vi-keys+
@@ -86,37 +108,14 @@
     ("SPC"      compilation/goto-error-other-window)
     ("o"        compilation/goto-error-other-window))
 
-  (defvar *grep-latest-dir* nil
-    "Latest directory used for `rgrep', `rzgrep' or alike.")
-
   (setf grep-expand-keywords
         (cons '("<E>" . (if (funcall fixed-string? regexp) "-F" "-E"))
               grep-expand-keywords))
 
-  (defadvice grep-filter (before grep-filter-make-relative-filename-advice
-                                 activate
-                                 compile)
-    "This advice is simply AWESOME! It replaces common long filename prefixes with \".\"."
-    (save-match-data
-      (save-excursion
-        (let ((end (line-beginning-position))
-              (beg (progn
-                     (goto-char compilation-filter-start)
-                     (line-beginning-position)))
-              (dir (awhen *grep-latest-dir* (strip-trailing-slash it))))
-          (when dir
-            (let ((re (concat "^" (regexp-quote dir))))
-              (goto-char beg)
-              (while (re-search-forward re end t)
-                (replace-match ".")))))))))
+  (advice-add 'grep-filter :before #'grep-filter-make-relative-filename-advice))
 
-(eval-after-load
-    "grep"
-  '(grep-init-after-load))
-
-(defvar rgrep-ignore-case nil
-  "Dynamically-bound variable that controls whether current
-rgrep invocation should be case-insensetive.")
+(with-eval-after-load 'grep
+  (grep-init-after-load))
 
 (defun rgrep-wrapper (regexp &optional files dir ignore-case)
   "Similar to `rgrep' but ignores case if universal argument was supplied

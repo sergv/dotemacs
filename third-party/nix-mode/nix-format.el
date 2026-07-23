@@ -37,6 +37,7 @@
       (error "Could not locate executable %S" nix-nixfmt-bin))
     nixfmt-bin))
 
+;;;###autoload
 (defun nix-format-buffer ()
   "Format the current buffer using nixfmt."
   (interactive)

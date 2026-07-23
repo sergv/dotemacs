@@ -83,36 +83,6 @@
 
 (defconst ebuf--buffer-classifier (eval-when-compile (ebuf--make-classifier +buffer-groups+)))
 
-(defun ebuf--group-and-sort (buffers)
-  (with-current-buffer (setq ebuf--main-buffer (get-buffer-create "*buffers*"))
-    (let ((by-project-root
-           (ebuf--group-buffers buffers
-                                (lambda (buf)
-                                  (when-let (proj (eproj-get-project-for-buf-lax buf))
-                                    (eproj-project/root proj)))))
-          (grouped
-           (make-hash-table :test #'equal))
-          (classifier ebuf--buffer-classifier))
-      (cl-loop
-       for k being the hash-keys of by-project-root using (hash-values buf-group)
-       do
-       (puthash k
-                (ebuf--group-buffers buf-group
-                                     (lambda (buf)
-                                       (ebuf--classify-buffer classifier buf)))
-                grouped))
-      (-map (lambda (x)
-              (let ((proj-root (car x))
-                    (classified (cdr x)))
-                (cons proj-root
-                      (mapcan (lambda (y)
-                                (awhen (gethash y classified)
-                                  (list (cons y (funcall ebuf--buffer-sorting-method it)))))
-                              (ebuf--buffer-classifier-names-order classifier)))))
-            (sort (hash-table->alist grouped)
-                  (lambda (a b)
-                    (string< (car a) (car b))))))))
-
 ;;;; Rendering
 
 (cl-defstruct (ebuf-section
@@ -180,6 +150,36 @@
   :group 'tagged-buflist)
 
 (defconst ebuf--depth-mult 2)
+
+(defun ebuf--group-and-sort (buffers)
+  (with-current-buffer (setq ebuf--main-buffer (get-buffer-create "*buffers*"))
+    (let ((by-project-root
+           (ebuf--group-buffers buffers
+                                (lambda (buf)
+                                  (when-let (proj (eproj-get-project-for-buf-lax buf))
+                                    (eproj-project/root proj)))))
+          (grouped
+           (make-hash-table :test #'equal))
+          (classifier ebuf--buffer-classifier))
+      (cl-loop
+       for k being the hash-keys of by-project-root using (hash-values buf-group)
+       do
+       (puthash k
+                (ebuf--group-buffers buf-group
+                                     (lambda (buf)
+                                       (ebuf--classify-buffer classifier buf)))
+                grouped))
+      (-map (lambda (x)
+              (let ((proj-root (car x))
+                    (classified (cdr x)))
+                (cons proj-root
+                      (mapcan (lambda (y)
+                                (awhen (gethash y classified)
+                                  (list (cons y (funcall ebuf--buffer-sorting-method it)))))
+                              (ebuf--buffer-classifier-names-order classifier)))))
+            (sort (hash-table->alist grouped)
+                  (lambda (a b)
+                    (string< (car a) (car b))))))))
 
 (defun ebuf--sort-by-recency (bufs)
   "Sort buffers in order from most recently used to the least recently used."
@@ -813,6 +813,7 @@ if we’re showing them) match given regexp RE."
       (mapc #'ebuf--unmark-single-buffer removed)
       (ebuf-refresh))))
 
+;;;###autoload
 (defun ebuf-with-marked-buffers (f if-none-selected)
   "Invoke function F on each marked buffer."
   (if (zerop (hash-table-count ebuf--marked-buffers))

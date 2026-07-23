@@ -9,14 +9,20 @@
 (eval-when-compile
   (require 'macro-util))
 
+(defvar js2-basic-offset)
+(defvar js2-bounce-indent-p)
+(defvar js2-highlight-level)
+(defvar json-encoding-default-indentation)
+
+(autoload 'json-pretty-print "json" nil t)
+(autoload 'json-pretty-print-buffer "json" nil t)
+(autoload 'json-pretty-print-buffer-ordered "json" nil t)
+(autoload 'json-pretty-print-ordered "json" nil t)
+
 (require 'indentation)
 
 ;;;###autoload
-(autoload 'js2-mode "js2-mode" nil t)
-;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-;;;###autoload
-(autoload 'json-mode-pretty-print-dwim "json-mode" nil t)
 
 (setf js2-highlight-level 3
       js2-basic-offset 2

@@ -10,6 +10,12 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(defvar snippet-mode-map)
+
+(autoload 'yas--compute-major-mode-and-parents "yasnippet")
+(autoload 'yas--read-table "yasnippet")
+(autoload 'yas-load-snippet-buffer "yasnippet" nil t)
+
 ;;;###autoload
 (autoload 'snippet-mode "yasnippet" nil t)
 

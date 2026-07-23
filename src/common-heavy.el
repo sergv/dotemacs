@@ -1102,6 +1102,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
   "Face for text that will evaporate when modified/overwritten."
   :group 'common-heavy)
 
+;;;###autoload
 (defun evaporate-region (beg end)
   "Make the region evaporate when typed over."
   (interactive "r")

@@ -191,6 +191,7 @@
   (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
        (treesit-haskell--is-inside-node? p node)))
 
+;;;###autoload
 (defun treesit-utils--string-at (node string-node-type-pred)
   (declare (pure nil) (side-effect-free t))
   (treesit-utils-find-closest-parent
@@ -215,8 +216,8 @@
     (treesit-node-type node)))
 
 (cl-defmacro treesit-with-evaluated-anchor-and-offset
-    ((evaluated-anchor-pos-var anchor)
-     (evaluated-offset-num-var offset)
+    ((_evaluated-anchor-pos-var anchor)
+     (_evaluated-offset-num-var offset)
      &rest body)
   (declare (indent 2))
   (let ((anchor-var '#:anchor)
