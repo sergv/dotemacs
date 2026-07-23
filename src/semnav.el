@@ -9,13 +9,13 @@
 ;; SEMantic NAVigation.
 
 (defsubst parse-partial-sexp--inside-string? (state)
-  (elt state 3))
+  (nth 3 state))
 
 (defsubst parse-partial-sexp--inside-comment? (state)
-  (elt state 4))
+  (nth 4 state))
 
 (defsubst parse-partial-sexp--comment-or-string-start (state)
-  (elt state 8))
+  (nth 8 state))
 
 (defvar point-inside-string?-override nil)
 (defvar point-inside-comment?-override nil)
@@ -69,7 +69,13 @@
   (declare (pure nil) (side-effect-free t))
   (save-excursion
     (let ((state (syntax-ppss (or pos (point)))))
-      (parse-partial-sexp--comment-or-string-start state))))
+      ;; Should be the same as (nth 8 state) (aka
+      ;; ‘parse-partial-sexp--comment-or-string-start’) but company
+      ;; did it this way and it seems reasonable to take everything
+      ;; ‘parse-partial-sexp’ has to offer into account.
+      (or (car (setq state (nthcdr 3 state)))
+          (car (setq state (cdr state)))
+          (nth 3 state)))))
 
 (defsubst point-not-inside-string-or-comment?--default (&optional pos)
   (declare (pure nil) (side-effect-free t))
