@@ -72,13 +72,6 @@ when Data.Map is the candidate.
                        (string :tag "Import lines")))
   :group 'haskell-interactive)
 
-(defcustom haskell-stylish-on-save nil
-  "Whether to run stylish-haskell on the buffer before saving.
-If this is true, `haskell-add-import' will not sort or align the
-imports."
-  :group 'haskell
-  :type 'boolean)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Accessor functions
 
