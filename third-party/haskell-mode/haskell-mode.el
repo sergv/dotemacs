@@ -590,7 +590,6 @@ Minor modes that work well with `haskell-mode':
   (setq-local dabbrev-case-replace nil)
   (setq-local dabbrev-abbrev-char-regexp "\\sw\\|[.]")
   (setq haskell-literate nil)
-  (add-hook 'before-save-hook 'haskell-mode-before-save-handler nil t)
   ;; provide non-interactive completion function
   (add-hook 'completion-at-point-functions
             'haskell-completions-completion-at-point
@@ -832,13 +831,6 @@ See `haskell-check-command' for the default."
     (haskell-sort-imports)
     (haskell-align-imports)
     (move-to-column col)))
-
-(declare-function haskell-mode-stylish-buffer "haskell-commands")
-
-(defun haskell-mode-before-save-handler ()
-  "Function that will be called before buffer's saving."
-  (when haskell-stylish-on-save
-    (ignore-errors (haskell-mode-stylish-buffer))))
 
 ;; From Bryan O'Sullivan's blog:
 ;; http://www.serpentine.com/blog/2007/10/09/using-emacs-to-insert-scc-annotations-in-haskell-code/
