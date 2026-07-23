@@ -63,10 +63,9 @@ Return the root node of the syntax tree."
                    #'treesit-grand-parent-bol))
 
 ;;;###autoload
-(when (and (not noninteractive)
-           (fboundp 'treesit-available-p)
+(when (and (fboundp 'treesit-available-p)
            (treesit-available-p))
-  (el-patch-feature treesit))
+  (add-to-list 'el-patch-features 'treesit))
 
 (defvar treesit-indent-region--indent-line-impl #'treesit--indent-1)
 
