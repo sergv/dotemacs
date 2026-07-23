@@ -6,8 +6,6 @@
 ;; Created: 15 February 2025
 ;; Description:
 
-(declare-function eproj--resolve-to-abs-path-cached "eproj")
-
 (require 'eproj-tag-index)
 
 (defmacro eproj-resolve-to-abs-path (path proj)

@@ -9,16 +9,23 @@
 (eval-when-compile
   (require 'macro-util))
 
-;;;###autoload
-(defun xref-setup ()
+(autoload 'xref-next-line "xref" nil t)
+(autoload 'xref-prev-line "xref" nil t)
+
+(defvar xref--xref-buffer-mode-map)
+
+(with-eval-after-load 'xref
   (def-keys-for-map xref--xref-buffer-mode-map
     ("n" nil)
     ("p" nil)
-    ("H" xref-revert-buffer)
+    ("H" revert-buffer)
     ("h" xref-next-line)
     ("t" xref-prev-line)
 
     (("q" "<escape>") quit-window)))
+
+;;;###autoload
+(defun xref-setup ())
 
 ;;;###autoload
 (add-hook 'xref--xref-buffer-mode-hook #'xref-setup)

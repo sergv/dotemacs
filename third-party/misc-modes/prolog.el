@@ -349,15 +349,14 @@ gnu     - GNU Prolog"
 ;; NB: This alist can not be processed in prolog-mode-variables to
 ;; create a prolog-system-version-i variable since it is needed
 ;; prior to the call to prolog-mode-variables.
-(defcustom prolog-system-version
+(defvar prolog-system-version
   '((sicstus  (3 . 6))
     (swi      (0 . 0))
     (mercury  (0 . 0))
     (eclipse  (3 . 7))
     (gnu      (0 . 0)))
   "*Alist of Prolog system versions.
-The version numbers are of the format (Major . Minor)."
-  :group 'prolog)
+The version numbers are of the format (Major . Minor).")
 
 ;; Indentation
 
@@ -1257,6 +1256,7 @@ If COMPILEP is non-nil then use compilation, otherwise consulting."
 
 ;;; Interactive interface functions, used by both the standard
 ;;; and the experimental consultation and compilation functions
+;;;###autoload
 (defun prolog-consult-file ()
   "Consult file of current buffer."
   (interactive)

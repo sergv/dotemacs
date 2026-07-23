@@ -866,6 +866,7 @@ not turn on `read-only-mode'."
     (goto-char (point-min))
     (forward-line (1- orig-line))))
 
+;;;###autoload (autoload 'magit-blame-quit "magit-blame" nil t)
 (transient-define-suffix magit-blame-quit ()
   "Turn off Magit-Blame mode.
 If the buffer was created during a recursive blame,

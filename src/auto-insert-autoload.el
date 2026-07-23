@@ -6,8 +6,12 @@
 ;; Created: 16 August 2023
 ;; Description:
 
-(eval-when-compile
-  (declare-function auto-insert-update "auto-insert-setup"))
+(declare-function auto-insert-update "auto-insert-setup")
+
+(defvar auto-insert-directory)
+(defvar auto-insert)
+(defvar auto-insert-query)
+(defvar auto-insert-alist)
 
 (setf auto-insert-directory (concat +resources-path+ "/auto-insert")
       auto-insert 'other

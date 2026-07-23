@@ -845,7 +845,7 @@ Entries should be a list of of elements of the form
                    (9 (2 4 6 8) (2 4 6 8 9))
                    (10 (2 4 6 8) (2 4 6 8 10))))
     (let ((elem (car entry))
-          (input (copy-list (cadr entry)))
+          (input (cl-copy-list (cadr entry)))
           (expected (caddr entry)))
       (should (equal (haskell-indentation--add-to-sorted-list! input elem)
                      expected)))))
