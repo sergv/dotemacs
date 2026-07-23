@@ -66,10 +66,11 @@ function update-dir-autoloads() {
   (setq debug-on-error t
         generated-autoload-file "$name"
         make-backup-files nil
-        backup-inhibited t)
+        backup-inhibited t
+        autoload-compute-prefixes nil)
   (update-directory-autoloads ${dirs[*]}))
 EOF
-    "$emacs" --batch --eval "$emacs_cmd"
+    "$emacs" --batch --eval "$emacs_cmd" >/dev/null 2>&1
     gzip --best --stdout "$name" >"$name.gz"
     rm "$name"
 }
@@ -140,7 +141,16 @@ define eval_prelude <<EOF
 
   (setf cl--optimize-speed 3
         cl--optimize-safety 0
-        byte-compile-warnings '(not docstrings-wide docstrings))
+        byte-compile-warnings
+        (let ((input "INPUT")
+              (should-report-warnings? nil))
+          (dolist (dir '("src" "third-party/dante"))
+            (setf should-report-warnings?
+                  (or should-report-warnings?
+                      (string-prefix-p (concat +emacs-config-path+ "/" dir "/") input))))
+          (if should-report-warnings?
+              '(not docstrings-wide docstrings)
+            nil)))
 
   (setf with-editor-emacsclient-executable nil
         byte-compile-dest-file-function
@@ -181,11 +191,12 @@ if [[ "$native_comp" = "t" ]]; then
 
 else
     gen-el-files "-print0" | \
-        xargs -0 -P "$jobs" -n 1 \
+        xargs -0 -P "$jobs" -n 1 -I INPUT \
               "$emacs" -Q --batch \
               "${load_path[@]}" \
               --eval "$eval_prelude" \
-              -f batch-byte-compile
+              -l "$compilation_dest/local-autoloads.el.gz" \
+              -f batch-byte-compile INPUT
     # todo: use zipped_el_dest
 fi
 
