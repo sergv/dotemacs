@@ -16,8 +16,7 @@
 (require 'yasnippet)
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature yasnippet))
+(add-to-list 'el-patch-features 'yasnippet)
 
 (defvar yas-snippet-filenames-serve-as-keys? nil
   "Whether snippet file names serve as keys.")

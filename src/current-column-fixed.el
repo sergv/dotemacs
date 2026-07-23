@@ -65,8 +65,7 @@ or when using tabs for indentation."
   (- (point) (line-beginning-position)))
 
 ;;;###autoload
-(unless noninteractive
-  (el-patch-feature smie))
+(add-to-list 'el-patch-features 'smie)
 
 (el-patch-defun smie-indent--current-column ()
   "Like `current-column', but if there's a comment before us, use that."
