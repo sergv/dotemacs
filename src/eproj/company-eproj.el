@@ -21,7 +21,7 @@
   (interactive (list 'interactive))
   (pcase command
     (`interacative (company-begin-backend 'company-eproj))
-    (`prefix (and (not (company-in-string-or-comment))
+    (`prefix (and (not (point-inside-string-or-comment?))
                   (company-grab-symbol)))
     (`candidates
      (company-eproj--candidates arg))
