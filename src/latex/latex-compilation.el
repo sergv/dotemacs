@@ -8,18 +8,14 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'compile))
+
 (defconst latex-compile-error-regexp
   "^\\(\\(?:/[^/\n\t]+\\)*?/?[^/\n\t]+\\):\\([0-9]+\\): ")
 
 (defconst latex-compile-warning-regexp
   "\\(?:Latex\\|LaTeX\\|Package\\).*Warning:")
-
-(defun latex-compile ()
-  "Start compilation of LaTeX file."
-  (interactive)
-  (save-buffer-if-modified)
-  (compilation-start compile-command
-                     #'latex-compilation-mode))
 
 (define-compilation-mode latex-compilation-mode "LaTeX"
   (setq-local compilation-scroll-output 'first-error
@@ -28,6 +24,14 @@
               (list
                (list latex-compile-warning-regexp nil)
                (list latex-compile-error-regexp 1 2))))
+
+;;;###autoload
+(defun latex-compile ()
+  "Start compilation of LaTeX file."
+  (interactive)
+  (save-buffer-if-modified)
+  (compilation-start compile-command
+                     #'latex-compilation-mode))
 
 (provide 'latex-compilation)
 

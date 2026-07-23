@@ -384,6 +384,7 @@ Return the created process."
        (or (rust--format-error-handler)
            (signal (car err) (cdr err)))))))
 
+;;;###autoload
 (defun rust-format-region ()
   "Format the current buffer using rustfmt."
   (interactive)

@@ -38,6 +38,7 @@ that next 2 characters are AFTER1 and AFTER2."
                (eq real-after1  after1)
                (eq real-after2  after2)))))
 
+;;;###autoload
 (defun smart-operators--point-surrounded-by (before after)
   "Check if point is surrounded by BEFORE and AFTER characters."
   (let (pt-before

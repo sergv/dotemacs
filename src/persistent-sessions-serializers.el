@@ -162,7 +162,7 @@ can allows value to be decoded back fully.)"
         (marker-position m)
         (marker-insertion-type m)))
 
-(defun sessions/versioned/restore-marker (version encoded-data)
+(defun sessions/versioned/restore-marker (_version encoded-data)
   (sessions/assert (and (listp encoded-data)
                         encoded-data
                         (eq (car encoded-data) 'marker))
@@ -193,6 +193,20 @@ can allows value to be decoded back fully.)"
     (sessions/map-ring (lambda (x) (sessions/versioned/restore-value version x)) ring)))
 
 ;;;; Store/restore strings
+
+(defun sessions/strip-text-properties (val)
+  (cond
+    ((stringp val)
+     (substring-no-properties val))
+    ((ring-p val)
+     (let ((result (make-ring (ring-size val))))
+       (dotimes (n (ring-length val))
+         (ring-insert result
+                      (sessions/strip-text-properties
+                       (ring-ref val n))))
+       result))
+    (t
+     val)))
 
 (defun sessions/store-string (str &optional do-not-store-properties ignored-text-properties)
   (list 'string
@@ -265,6 +279,7 @@ can allows value to be decoded back fully.)"
 (provide 'persistent-sessions-serializers)
 
 ;; Local Variables:
+;; byte-compile-warnings: (not obsolete)
 ;; End:
 
 ;; persistent-sessions-serializers.el ends here

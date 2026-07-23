@@ -15,15 +15,16 @@
   (require 'vim-macs))
 
 (declare-function vim-execute-command "vim-core")
+(declare-function flycheck-cargo--make-check-args "rust-setup")
 
 (defvar compilation-command)
+(defvar flycheck-cargo--default-check-args)
 (defvar vim-active-mode)
 
 (require 'persistent-sessions-global-vars)
 
 (require 'configurable-compilation)
 (require 'eproj-query)
-(require 'rust-mode)
 (require 'rust-ts-mode)
 (require 's)
 
@@ -38,7 +39,7 @@
             (when target-dir
               (setf args (cons "--target-dir" (cons target-dir args))))
 
-            (setf args (cons rust-cargo-bin (cons cmd args)))
+            (setf args (cons "cargo" (cons cmd args)))
 
             (lambda (proj-dir eproj-root)
               (make-optional-nix-cc-command args env proj-dir eproj-root))))))

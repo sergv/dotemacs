@@ -71,7 +71,7 @@
   (def-keys-for-map vim-normal-mode-local-keymap
     ("<f9>" lean-std-exe)
     ("C-."  lean-find-symbol)
-    ("C-,"  xref-pop-marker-stack)))
+    ("C-,"  xref-go-back)))
 
 ;;;###autoload
 (add-hook 'lean-mode-hook #'lean-setup)

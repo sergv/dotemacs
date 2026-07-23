@@ -933,7 +933,6 @@
           org-drill-failed-count-color magenta
           org-drill-mature-count-color orange
           ansi-color-names-vector (vector primary-content red green yellow blue magenta cyan secondary-content)
-          ansi-color-map (ansi-color-make-color-map)
           xterm-color-names ansi-color-names-vector
           xterm-color-names-bright xterm-color-names
           fci-rule-color primary-content

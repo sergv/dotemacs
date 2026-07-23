@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(defvar select-mode-map)
+
 (require 'common)
 (require 'keys-def)
 

@@ -301,6 +301,7 @@ returned to avoid that the echo area grows uncomfortably."
          (lsp-cpp-flycheck-clang-tidy-error-explainer e))
         (t (flycheck-error-message e))))
 
+;;;###autoload
 (defun lsp-clangd-find-other-file (&optional new-window)
   "Switch between the corresponding C/C++ source and header file.
 If NEW-WINDOW (interactively the prefix argument) is non-nil,

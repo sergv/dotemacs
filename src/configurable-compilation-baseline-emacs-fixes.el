@@ -10,6 +10,7 @@
   (require 'macro-util)
   (require 'set-up-platform))
 
+(require 'compile)
 (require 'el-patch)
 
 ;;;###autoload

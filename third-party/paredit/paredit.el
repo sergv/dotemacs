@@ -2057,16 +2057,16 @@ With a prefix argument, skip the balance check."
 
 ;;;; Point Motion
 
-(eval-and-compile
-  (defmacro defun-motion (name bvl doc &rest body)
-    `(defun ,name ,bvl
-       ,doc
-       ;;++ Not sure this is sufficient for the `^'.
-       ,(if (fboundp 'handle-shift-selection)
-            '(interactive "^p")
-          '(interactive "p"))
-       ,@body)))
+(defmacro defun-motion (name bvl doc &rest body)
+  `(defun ,name ,bvl
+     ,doc
+     ;;++ Not sure this is sufficient for the `^'.
+     ,(if (fboundp 'handle-shift-selection)
+          '(interactive "^p")
+        '(interactive "p"))
+     ,@body))
 
+;;;###autoload (autoload 'paredit-forward "paredit" nil t)
 (defun-motion paredit-forward (&optional arg)
   "Move forward an S-expression, or up an S-expression forward.
 If there are no more S-expressions in this one before the closing
@@ -2231,12 +2231,14 @@ With a prefix argument N, encompass all N S-expressions forward."
                     (throw 'exit (+ (point) horizontal-direction)))))))
       nil)))
 
+;;;###autoload (autoload 'paredit-forward-down "paredit" nil t)
 (defun-motion paredit-forward-down (&optional argument)
   "Move forward down into a list.
 With a positive argument, move forward down that many levels.
 With a negative argument, move backward down that many levels."
   (paredit-up/down (or argument +1) -1))
 
+;;;###autoload (autoload 'paredit-backward-up "paredit" nil t)
 (defun-motion paredit-backward-up (&optional argument)
   "Move backward up out of the enclosing list.
 With a positive argument, move backward up that many levels.
@@ -2244,6 +2246,7 @@ With a negative argument, move forward up that many levels.
 If in a string initially, that counts as one level."
   (paredit-up/down (- 0 (or argument +1)) +1))
 
+;;;###autoload (autoload 'paredit-forward-up "paredit" nil t)
 (defun-motion paredit-forward-up (&optional argument)
   "Move forward up out of the enclosing list.
 With a positive argument, move forward up that many levels.
@@ -2251,6 +2254,7 @@ With a negative argument, move backward up that many levels.
 If in a string initially, that counts as one level."
   (paredit-up/down (or argument +1) +1))
 
+;;;###autoload (autoload 'paredit-backward-down "paredit" nil t)
 (defun-motion paredit-backward-down (&optional argument)
   "Move backward down into a list.
 With a positive argument, move backward down that many levels.

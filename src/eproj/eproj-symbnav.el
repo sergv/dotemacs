@@ -13,6 +13,9 @@
   (require 'nanothunk)
   (require 'subr-x))
 
+(defvar eproj/languages-table)
+
+(require 'base-emacs-autoload)
 (require 'eproj-customization)
 (require 'nanothunk)
 (require 'select-mode)
@@ -52,6 +55,7 @@
 search for in tags. This should be a symbol
 as accepted by `bounds-of-thing-at-point'.")
 
+;;;###autoload
 (defun eproj-symbnav/identifier-at-point (&optional noerror)
   (if (region-active-p)
       (trim-whitespace (get-region-string-no-properties))
@@ -145,6 +149,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                               (eproj-tag/line tag)
                                               (eproj-tag/column tag)))
 
+;;;###autoload
 (defun eproj-symbnav--jump-to-location (file line column current-home-entry tag-name)
   (cl-assert (stringp file))
   (cl-assert (fixnump line))
@@ -175,6 +180,7 @@ as accepted by `bounds-of-thing-at-point'.")
                          :position (point-marker)
                          :symbol nil))
 
+;;;###autoload
 (defun eproj-symbnav-get-file-name ()
   (cond
     (buffer-file-name

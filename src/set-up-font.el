@@ -7,13 +7,12 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl-lib))
 
-  (defvar dumping?))
-
+(defvar dumping?)
 (defvar default-composition-function-table)
 
-(when dumping?
+(when (bound-and-true-p dumping?)
   (error "Should not be reached when dumping"))
 
 (require 'set-up-platform)

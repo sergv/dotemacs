@@ -83,9 +83,6 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 
 (define-derived-mode select-mode fundamental-mode "Selection"
   "Major mode for queries in auxiliary buffer."
-  ;; Fringe line tracking.
-  (when (bound-and-true-p linum-mode)
-    (linum-mode -1))
   ;; Disable font-lock-mode so that strings propertized with 'face property
   ;; will display correctly. Also there’s nothing to propertize for font-lock
   ;; in select-mode buffers, so no reason to have it enabled in the fist place.
@@ -292,6 +289,7 @@ by the user)."
                     (point-min)
                     (point-min)))))
 
+;;;###autoload
 (defun select-mode-select-previous-item ()
   "Select previous item with wraparound."
   (interactive)
@@ -301,6 +299,7 @@ by the user)."
         (select-mode--state-items-count select-mode--current-state))
    t))
 
+;;;###autoload
 (defun select-mode-select-next-item ()
   "Select next item with wraparound."
   (interactive)

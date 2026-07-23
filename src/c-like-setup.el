@@ -11,117 +11,119 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(defvar c-default-style)
+(defvar c-style-alist)
+
 (require 'custom-predicates)
 
-(eval-after-load "cc-styles"
-  '(progn
-     (unless (assoc "my-c-style" c-style-alist)
-       ;; inherited from linux style
-       (push '("my-c-style"
-               (c-basic-offset  . 4)
-               (indent-tabs-mode . nil)
-               (c-comment-only-line-offset . 0)
-               (c-hanging-braces-alist . ((brace-list-open)
-                                          (brace-entry-open)
-                                          (substatement-open after)
-                                          (block-close . c-snug-do-while)
-                                          (arglist-cont-nonempty)))
-               (c-cleanup-list . (brace-else-brace))
-               (c-offsets-alist . ((statement-block-intro . +)
-                                   (knr-argdecl-intro     . 0)
-                                   (substatement-open     . 0)
-                                   (substatement-label    . 0)
-                                   (label                 . 0)
-                                   (statement-cont        . +)
-                                   (innamespace           . 0))))
-             c-style-alist))
+(with-eval-after-load 'cc-styles
+  (unless (assoc "my-c-style" c-style-alist)
+    ;; inherited from linux style
+    (push '("my-c-style"
+            (c-basic-offset  . 4)
+            (indent-tabs-mode . nil)
+            (c-comment-only-line-offset . 0)
+            (c-hanging-braces-alist . ((brace-list-open)
+                                       (brace-entry-open)
+                                       (substatement-open after)
+                                       (block-close . c-snug-do-while)
+                                       (arglist-cont-nonempty)))
+            (c-cleanup-list . (brace-else-brace))
+            (c-offsets-alist . ((statement-block-intro . +)
+                                (knr-argdecl-intro     . 0)
+                                (substatement-open     . 0)
+                                (substatement-label    . 0)
+                                (label                 . 0)
+                                (statement-cont        . +)
+                                (innamespace           . 0))))
+          c-style-alist))
 
-     ;; (setf c-style-alist
-     ;;       (remove* "my-java-style" c-style-alist :test #'string=? :key #'first))
-     (unless (assoc "my-java-style" c-style-alist)
-       ;; inherited from linux style
-       (push `("my-java-style"
+  ;; (setf c-style-alist
+  ;;       (remove* "my-java-style" c-style-alist :test #'string=? :key #'first))
+  (unless (assoc "my-java-style" c-style-alist)
+    ;; inherited from linux style
+    (push `("my-java-style"
+            (c-basic-offset . 4)
+            (indent-tabs-mode . nil)
+            (c-comment-only-line-offset 0 . 0)
+            (c-offsets-alist
+             ;; just like in clojure sources
+             (topmost-intro . 0)
+             (inclass . ,(if (platform-use? 'work)
+                             '+
+                           0))
+             (arglist-intro . +)
+             (arglist-close . +)
+             (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
+             (arglist-cont c-lineup-gcc-asm-reg 0)
+
+             (inline-open . 0)
+             (topmost-intro-cont . +)
+             (statement-block-intro . +)
+             (knr-argdecl-intro . 5)
+             (substatement-open . +)
+             (substatement-label . +)
+             (label . +)
+             (statement-case-open . +)
+             (statement-cont . +)
+             ;; (arglist-intro . c-lineup-arglist-intro-after-paren)
+             ;; (arglist-close . c-lineup-arglist)
+             (access-label . 0)
+             (inher-cont . c-lineup-java-inher)
+             (func-decl-cont . c-lineup-java-throws)))
+          c-style-alist))
+
+  (let ((android-java-style-rules
+         '((c-comment-only-line-offset 0 . 0)
+           (c-offsets-alist
+            (topmost-intro . 0)
+            (inclass . +)
+            (inexpr-class . 0)
+
+            (arglist-intro . +)
+            (arglist-close . 0)
+            (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
+            (arglist-cont c-lineup-gcc-asm-reg 0)
+
+            (inline-open . 0)
+            (topmost-intro-cont . +)
+            (statement-block-intro . +)
+            (knr-argdecl-intro . 5)
+            (substatement-open . +)
+            (substatement-label . +)
+            (label . +)
+            (statement-case-open . +)
+            (statement-cont . +)
+            (access-label . 0)
+            (inher-cont . c-lineup-java-inher)
+            (func-decl-cont . c-lineup-java-throws)))))
+
+    (unless (assoc "android-java-style" c-style-alist)
+      (push (append
+             `("android-java-style"
                (c-basic-offset . 4)
-               (indent-tabs-mode . nil)
-               (c-comment-only-line-offset 0 . 0)
-               (c-offsets-alist
-                ;; just like in clojure sources
-                (topmost-intro . 0)
-                (inclass . ,(if (platform-use? 'work)
-                                '+
-                              0))
-                (arglist-intro . +)
-                (arglist-close . +)
-                (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
-                (arglist-cont c-lineup-gcc-asm-reg 0)
+               (indent-tabs-mode . nil))
+             android-java-style-rules)
+            c-style-alist))
 
-                (inline-open . 0)
-                (topmost-intro-cont . +)
-                (statement-block-intro . +)
-                (knr-argdecl-intro . 5)
-                (substatement-open . +)
-                (substatement-label . +)
-                (label . +)
-                (statement-case-open . +)
-                (statement-cont . +)
-                ;; (arglist-intro . c-lineup-arglist-intro-after-paren)
-                ;; (arglist-close . c-lineup-arglist)
-                (access-label . 0)
-                (inher-cont . c-lineup-java-inher)
-                (func-decl-cont . c-lineup-java-throws)))
-             c-style-alist))
+    (unless (assoc "android-java-tabs-style" c-style-alist)
+      (push (append
+             `("android-java-tabs-style"
+               (c-basic-offset . 8)
+               (indent-tabs-mode . t))
+             android-java-style-rules)
+            c-style-alist)))
 
-     (let ((android-java-style-rules
-            '((c-comment-only-line-offset 0 . 0)
-              (c-offsets-alist
-               (topmost-intro . 0)
-               (inclass . +)
-               (inexpr-class . 0)
+  (setf c-default-style
+        `((java-mode . "my-java-style")
+          (awk-mode . "awk")
+          (c++-mode . "my-c-style")
+          (other . ,(cond ((assoc "my-c-style" c-style-alist)
+                           "my-c-style")
+                          (t
+                           "linux")))))
 
-               (arglist-intro . +)
-               (arglist-close . 0)
-               (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
-               (arglist-cont c-lineup-gcc-asm-reg 0)
-
-               (inline-open . 0)
-               (topmost-intro-cont . +)
-               (statement-block-intro . +)
-               (knr-argdecl-intro . 5)
-               (substatement-open . +)
-               (substatement-label . +)
-               (label . +)
-               (statement-case-open . +)
-               (statement-cont . +)
-               (access-label . 0)
-               (inher-cont . c-lineup-java-inher)
-               (func-decl-cont . c-lineup-java-throws)))))
-
-       (unless (assoc "android-java-style" c-style-alist)
-         (push (append
-                `("android-java-style"
-                  (c-basic-offset . 4)
-                  (indent-tabs-mode . nil))
-                android-java-style-rules)
-               c-style-alist))
-
-       (unless (assoc "android-java-tabs-style" c-style-alist)
-         (push (append
-                `("android-java-tabs-style"
-                  (c-basic-offset . 8)
-                  (indent-tabs-mode . t))
-                android-java-style-rules)
-               c-style-alist)))
-
-     (setf c-default-style
-           `((java-mode . "my-java-style")
-             (awk-mode . "awk")
-             (c++-mode . "my-c-style")
-             (other . ,(cond ((assoc "my-c-style" c-style-alist)
-                              "my-c-style")
-                             (t
-                              "linux")))))
-
-     (setq-default c-basic-offset 4)))
+  (setq-default c-basic-offset 4))
 
 ;; (setf c-style-alist
 ;;       (--filter (not (string-match-p "android" (car it))) c-style-alist))

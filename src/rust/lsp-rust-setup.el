@@ -7,20 +7,14 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'set-up-platform)
+  (require 'lsp-protocol)
+  (require 'lsp-rust)
+  (require 'set-up-platform))
 
-  (defvar lsp-rust-analyzer-cargo-load-out-dirs-from-check)
-  (defvar lsp-rust-analyzer-display-chaining-hints)
-  (defvar lsp-rust-analyzer-display-parameter-hints)
-  (defvar lsp-rust-analyzer-proc-macro-enable)
-  (defvar lsp-rust-analyzer-server-args)
-  (defvar lsp-rust-analyzer-server-command)
-  (defvar lsp-rust-analyzer-server-display-inlay-hints)
-  (defvar lsp-rust-crate-blacklist)
-  (defvar lsp-rust-full-docs)
-  (defvar lsp-rust-racer-completion)
-  (defvar lsp-rust-server)
-  (defvar lsp-rust-target-dir))
+(autoload 'lsp:markup-content-kind "lsp-protocol")
+(autoload 'lsp:markup-content-value "lsp-protocol")
+(autoload 'lsp-markup-content? "lsp-protocol")
+(autoload 'lsp:hover-contents "lsp-protocol")
 
 (require 'common-whitespace)
 (require 'common)
@@ -29,10 +23,9 @@
 
 (setf lsp-rust-server 'rust-analyzer
       ;; lsp-rust-analyzer-server-command '("/tmp/target/release/rust-analyzer")
-      lsp-rust-analyzer-server-command '("rust-analyzer")
-      lsp-rust-analyzer-server-args '(nil "--log-file" "/tmp/rust-analyzer-log.txt")
+      lsp-rust-analyzer-server-command '("rust-analyzer" "--log-file" "/tmp/rust-analyzer-log.txt")
 
-      lsp-rust-crate-blacklist []
+      lsp-rust-crate-blocklist []
       lsp-rust-racer-completion nil
       lsp-rust-target-dir (fold-platform-os-type "/tmp/target/rls" nil)
       lsp-rust-full-docs t

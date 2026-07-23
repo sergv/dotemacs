@@ -11,6 +11,8 @@
 
 (defvar treesit--indent-region-batch-size)
 
+(declare-function treesit-indent-region "treesit")
+
 (require 'common)
 (require 'flycheck-haskell)
 (require 'haskell-regexen)

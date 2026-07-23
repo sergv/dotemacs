@@ -71,6 +71,7 @@
     ;; restore old value
     (setq compile-command cc)))
 
+;;;###autoload
 (defun lean-std-exe ()
   (interactive)
   (lean-execute))

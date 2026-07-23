@@ -3787,6 +3787,7 @@ otherwise a newline is inserted and the lines are indented."
     (comint-send-input))
    (t (tuareg-interactive--indent-line))))
 
+;;;###autoload
 (defun tuareg-interactive-send-input-end-of-phrase ()
   (interactive)
   (goto-char (point-max))
@@ -3869,6 +3870,7 @@ If the region is active, evaluate all phrases intersecting the region."
           (tuareg-skip-blank-and-comments))
       (goto-char opoint))))
 
+;;;###autoload
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
   (interactive)
@@ -3920,6 +3922,7 @@ If the region is active, evaluate all phrases intersecting the region."
           (delete-overlay tuareg-interactive-next-error-olv))
         (goto-char beg)))))
 
+;;;###autoload
 (defun tuareg-interrupt-ocaml ()
   (interactive)
   (when (comint-check-proc tuareg-interactive-buffer-name)

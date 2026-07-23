@@ -419,7 +419,8 @@ function doesn't affect the waiting list."
   "[internal] Return a list of the deferred objects those are waiting for
 value binding.
 
-This function doesn't affect the waiting list and doesn't refer the parent environment."
+This function doesn't affect the waiting list and doesn't refer the
+parent environment."
   (cl-loop for i in (cc:dataflow-list df)
            with test = (cc:dataflow-test df)
            if (funcall test key (cc:dataflow-key i))

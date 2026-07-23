@@ -76,7 +76,6 @@
       ;; Open current buffer in new tab
       tab-bar-new-tab-choice t
       tab-bar-close-button-show nil
-      tab-bar-new-button-show nil
       tab-bar-tab-hints t
       tab-bar-tab-name-truncated-max 32
       tab-bar-tab-name-function #'tab-bar-tab-name-current-truncated-with-count
@@ -112,6 +111,7 @@
           menu-item ""
           ,(alist-get 'close-binding tab)))))))
 
+;;;###autoload
 (defun tab-bar-close-tabs-to-the-right ()
   "Close tabs to the right of the selected one."
   (interactive)
@@ -122,6 +122,7 @@
                                       (lambda (idx _)
                                         (< current-index idx)))))
 
+;;;###autoload
 (defun tab-bar-close-tabs-to-the-left ()
   "Close tabs to the right of the selected one."
   (interactive)

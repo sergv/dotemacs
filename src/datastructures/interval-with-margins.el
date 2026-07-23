@@ -155,7 +155,7 @@
 
 (defun interval-with-margins-merge-overlapping! (intervals)
   (cl-assert (listp intervals))
-  (setf internals (sort intervals
+  (setf intervals (sort intervals
                         :lessp (lambda (x y) (< (interval-with-margins/start x) (interval-with-margins/start y)))
                         :in-place t))
   (let ((tmp intervals))
