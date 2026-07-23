@@ -100,7 +100,7 @@ and vim-local-`map-command'."
 (vim--def-key (kbd "ESC") 'vim-intercept-ESC :keymap vim-intercept-ESC-keymap)
 
 ;; The override keymap, useful especially in normal-mode.
-(defconst vim-override-keymap (make-keymap)
+(defconst vim-override-keymap (make-sparse-keymap)
   "Global parent keymap to override some Emacs default bindings.")
 (suppress-keymap vim-override-keymap)
 
