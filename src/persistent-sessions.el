@@ -9,15 +9,19 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'subr-x)
-  (require 'macro-util)
-  (defvar eshell-history-ring)
-  (defvar eshell-buffer-name)
-  (defvar haskell-compilation-mode)
-  (defvar rust-compilation-mode)
-  (defvar dante-repl-mode))
+  (require 'macro-util))
+
+(defvar dante-repl--last-command-line)
+(defvar dante-repl-mode)
+(defvar eshell-buffer-name)
+(defvar eshell-history-ring)
+(defvar haskell-compilation-mode)
+(defvar rust-compilation-mode)
 
 (require 'frameset)
 
+(require 'base-emacs-autoload)
+(require 'cc-autoload)
 (require 'common)
 (require 'dash)
 (require 'haskell-constants)
@@ -25,6 +29,7 @@
 (require 'persistent-sessions-global-vars)
 (require 'persistent-sessions-serializers)
 (require 'pp)
+(require 'rust-autoloads)
 
 ;; nil - No 'version field in session data structure.
 ;;     - Encode strings and rings as-is via prin1.
@@ -568,13 +573,15 @@ entries."
            (insert (sessions/pp-to-string entry nil))
            ;; (print entry (current-buffer))
            (insert "\n"))))
-      (insert "))\n")
-      (insert "\n\n;; Local Variables:
+      (insert "))\n\n;; Local ")
+      (insert "Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; coding: utf-8
-;; mode: emacs-lisp
-;; End:")
+;; mode: emacs-lisp\n"
+              ";; "
+              "End"
+              ":")
       (write-region (point-min) (point-max) file)
       (make-file-executable file))))
 
@@ -747,20 +754,6 @@ entries."
       (autoload-do-load func))
     (funcall (symbol-function sym))))
 
-(defun sessions/strip-text-properties (val)
-  (cond
-    ((stringp val)
-     (substring-no-properties val))
-    ((ring-p val)
-     (let ((result (make-ring (ring-size val))))
-       (dotimes (n (ring-length val))
-         (ring-insert result
-                      (sessions/strip-text-properties
-                       (ring-ref val n))))
-       result))
-    (t
-     val)))
-
 (defun sessions/truncate-long-sequences (val)
   "Truncate overly long sequences."
   (let ((max-size 2000))
@@ -824,7 +817,7 @@ entries."
    (and encoded-bindings
         (listp encoded-bindings)
         (eq (car encoded-bindings) 'buffer-local-vars))
-   "Invalid buffer-local variables: %s"
+   "Invalid buffer-local variables %s"
    encoded-bindings)
   (dolist (bind (cadr encoded-bindings))
     (let ((var (car bind)))

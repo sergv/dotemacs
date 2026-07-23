@@ -9,21 +9,24 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'doc-view)
+(require 'image-mode)
+
 (require 'keys-def)
 (require 'persistent-store)
 
-(eval-after-load
-    "doc-view"
-  '(progn
-     ;; don't bind nor vi-keys nor vim's word-motion keys here as the're useless
-     ;; when navigating pdfs
-     (def-keys-for-map doc-view-mode-map
-       +vim-special-keys+
-       ("d" image-backward-hscroll)
-       ("h" doc-view-next-line-or-next-page)
-       ("t" doc-view-previous-line-or-previous-page)
-       ("n" image-forward-hscroll)
-       ("p" nil))))
+(with-eval-after-load 'doc-view
+  ;; Don't bind neither vi-keys nor vim's word-motion keys here as
+  ;; the're useless when navigating pdfs.
+  (def-keys-for-map doc-view-mode-map
+    +vim-special-keys+
+    ("d"        image-backward-hscroll)
+    ("h"        doc-view-next-line-or-next-page)
+    ("t"        doc-view-previous-line-or-previous-page)
+    ("n"        image-forward-hscroll)
+    ("p"        nil)
+    ("S-<up>"   doc-view-previous-page)
+    ("S-<down>" doc-view-next-page)))
 
 ;;;###autoload
 (autoload 'doc-view-current-page "doc-view" "" nil 'macro)

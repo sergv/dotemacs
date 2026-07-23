@@ -7,8 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util)
-  (require 'vim-setup))
+  (require 'macro-util))
 
 (require 'current-column-fixed)
 
@@ -26,6 +25,12 @@
   "Hash table of (major-mode . function) pairs, where functions
 should take no arguments and destructively indent current buffer.")
 
+(defun indentation-indent-buffer-for-major-mode! (mode)
+  (aif (gethash mode *mode-indent-functions-table*)
+      (save-current-line-column
+        (funcall it))
+    (error "No indentation function defined for %s" mode)))
+
 (defun indent-to! (col)
   "Indent current line to exactly COL'th column with spaces."
   (save-excursion
@@ -42,7 +47,7 @@ to mode and write new contents back to FILENAME."
     (insert-file-contents filename)
     (let ((buffer-file-name filename))
       (normal-mode)
-      (vim:indent:wrapper)
+      (indentation-indent-buffer-for-major-mode! major-mode)
       (write-region (point-min) (point-max) filename))))
 
 ;;;###autoload

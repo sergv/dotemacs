@@ -16,6 +16,8 @@
 
 (setf sml-indent-level 2)
 
+(autoload 'sml-prog-proc-send-region "sml-mode" nil t)
+
 ;;;###autoload (autoload 'switch-to-sml-repl "sml-setup" nil t)
 (define-switch-to-interpreter
   switch-to-sml-repl
@@ -44,7 +46,7 @@
   (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC" switch-to-sml-repl))
   (def-keys-for-map vim-visual-mode-local-keymap
-    ("j" sml-send-region)))
+    ("j" sml-prog-proc-send-region)))
 
 ;;;###autoload
 (add-hook 'sml-mode-hook #'sml-mode-setup)

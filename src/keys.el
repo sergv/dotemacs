@@ -9,6 +9,13 @@
 (eval-when-compile
   (require 'macro-util))
 
+(autoload 'widget-backward "cus-edit")
+(autoload 'widget-forward "cus-edit")
+
+(defvar custom-mode-map)
+(defvar doc-view-mode-map)
+(defvar view-mode-map)
+
 (require 'common)
 (require 'ivy)
 (require 'keys-def)
@@ -110,7 +117,7 @@
     +vim-search-extended-keys+
     +vim-word-motion-keys+
     +vim-special-keys+
-    ("SPC"      help-follow)
+    ("SPC"      help-follow-symbol)
     ("<up>"     help-go-back)
     ("<down>"   help-go-forward)
     ("C-."      elisp-slime-nav-find-elisp-thing-at-point)
@@ -122,36 +129,22 @@
   '(help-mode-init))
 
 ;; view-mode
-(eval-after-load "view"
-  '(progn
-     (def-keys-for-map view-mode-map
-       +vi-keys+)))
+(with-eval-after-load 'view
+  (def-keys-for-map view-mode-map
+    +vi-keys+))
 
-(eval-after-load "cus-edit"
-  '(progn
-     (def-keys-for-map custom-mode-map
-       +vi-keys+
-       +vim-special-keys+
-       +vim-word-motion-keys+
-       ("- w"      customize-save-customized)
-       ("w"        vim:motion-fwd-word:interactive)
-       ("b"        vim:motion-bwd-word:interactive)
-       ("e"        vim:motion-fwd-word-end:interactive)
+(with-eval-after-load 'cus-edit
+  (def-keys-for-map custom-mode-map
+    +vi-keys+
+    +vim-special-keys+
+    +vim-word-motion-keys+
+    ("- w"      customize-save-customized)
+    ("w"        vim:motion-fwd-word:interactive)
+    ("b"        vim:motion-bwd-word:interactive)
+    ("e"        vim:motion-fwd-word-end:interactive)
 
-       ("<down>"   widget-forward)
-       ("<up>"     widget-backward))
-
-     (def-keys-for-map Custom-mode-map
-       +vi-keys+
-       +vim-special-keys+
-       +vim-word-motion-keys+
-       ("- w"      customize-save-customized)
-       ("w"        vim:motion-fwd-word:interactive)
-       ("b"        vim:motion-bwd-word:interactive)
-       ("e"        vim:motion-fwd-word-end:interactive)
-
-       ("<down>"   widget-forward)
-       ("<up>"     widget-backward))))
+    ("<down>"   widget-forward)
+    ("<up>"     widget-backward)))
 
 (def-keys-for-map completion-list-mode-map
   ("<escape>" quit-window))
@@ -160,12 +153,6 @@
   (("t" "<up>")   custom-occur-prev)
   (("h" "<down>") custom-occur-next)
   ("q"            remove-buffer))
-
-(eval-after-load "doc-view"
-  '(progn
-     (def-keys-for-map doc-view-mode-map
-       ("S-<up>"   doc-view-previous-page)
-       ("S-<down>" doc-view-next-page))))
 
 (defun define-cyrillic-keys ()
   ;; just all choices from set, 2**n, n - sets' power

@@ -31,9 +31,9 @@
 (defcustom vim-substitute-case 'sensitive
   "The case behaviour of the search command."
   :type '(radio (const :tag "Same as interactive search." nil)
-                (const :tag "Case sensitive." 'sensitive)
-                (const :tag "Case insensitive." 'insensitive)
-                (const :tag "Smart case." 'smart))
+                (const :tag "Case sensitive." sensitive)
+                (const :tag "Case insensitive." insensitive)
+                (const :tag "Smart case." smart))
   :group 'vim-ex-mode)
 
 (defcustom vim-substitute-highlight-all t

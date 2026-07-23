@@ -10,6 +10,7 @@
 (require 'flycheck-setup)
 (require 'hydra-setup)
 (require 'isar-mode)
+(require 'lsp-isar)
 (require 'lsp-setup)
 
 (require 'isabelle-abbrev+)

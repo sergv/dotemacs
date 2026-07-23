@@ -175,6 +175,7 @@ nil value stands for no predicate and hence no such check.")
       (c2 t)
       (t nil))))
 
+;;;###autoload
 (defun abbrev+-expand ()
   "Expand text before point that matches against one of triggers
 of `abbrev-abbreviations'. Returns boolean indicating whether

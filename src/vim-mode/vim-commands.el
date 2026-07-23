@@ -435,7 +435,7 @@ and switches to insert-mode."
     (goto-char last-pos)
     (exchange-point-and-mark)
     (setq yank-undo-function
-          (lambda (start end)
+          (lambda (_start _end)
             (when (eq buffer-undo-list t)
               (user-error "No undo information in this buffer"))
             (let ((pending (vim--copy-list-until buffer-undo-list undo-at-start)))
@@ -728,7 +728,6 @@ indented according to the current mode."
 
 (vim-defcmd vim:cmd-toggle-case-one-char (count)
   "Toggles the case of a single character at point and moves the point forward."
-  (interactive)
   (vim:cmd-toggle-case (vim:motion-right:wrapper :count count) nil nil nil nil))
 
 (vim-defcmd vim:cmd-make-upcase (motion)

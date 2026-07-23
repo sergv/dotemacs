@@ -35,11 +35,13 @@
           (cl-incf n)))
       (cl-incf n -1))))
 
+;;;###autoload
 (defun custom-occur-next (&optional n)
   "Move to the Nth (default 1) next match in an Occur mode buffer."
   (interactive "p")
   (custom-occur-find-match n t t))
 
+;;;###autoload
 (defun custom-occur-prev (&optional n)
   "Move to the Nth (default 1) previous match in an Occur mode buffer."
   (interactive "p")

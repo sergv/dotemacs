@@ -51,7 +51,7 @@
 (defvar-local prettify-symbols--alist-cache nil
   "Hash table that caches content of ‘prettify-symbols-alist’ to speed up ‘prettify-symbols--compose-symbol’.")
 
-(el-patch-defun prettify-symbols--compose-symbol (alist)
+(el-patch-defun prettify-symbols--compose-symbol ((el-patch-swap alist _))
   "Compose a sequence of characters into a symbol.
 Regexp match data 0 specifies the characters to be composed."
   ;; Check that the chars should really be composed into a symbol.

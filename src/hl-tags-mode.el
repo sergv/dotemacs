@@ -34,6 +34,11 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(defvar *markup-tags-context-func*)
+
+(require 'nxml-mode)
+(require 'nxml-rap)
+
 (require 'common)
 
 (defvar-local hl-tags-start-overlay nil)
@@ -48,9 +53,11 @@
       (cons (sgml-tag-start ctx) (sgml-tag-end ctx))
     '(1 . 1)))
 
+;;;###autoload
 (defun hl-tags-context-sgml-mode ()
   (save-excursion
-    (when (looking-at-p "<") (forward-char 1))
+    (when (eq (following-char) ?<)
+      (forward-char 1))
     (let* ((ctx (hl-tags-sgml-get-context))
            (boundaries
             (and ctx (cl-case (sgml-tag-type ctx)
@@ -70,9 +77,7 @@
 ;;;###autoload
 (defun hl-tags-context-nxml-mode ()
   (ignore-errors
-
-    (when (or (not (boundp 'nxml-prolog-end))
-              (not nxml-prolog-end))
+    (unless (bound-and-true-p nxml-prolog-end)
       (nxml-scan-prolog))
 
     (save-excursion
@@ -145,7 +150,6 @@ boundaries of the current start and end tag , or nil."
       (remove-hook 'post-command-hook 'hl-tags-update t)
       (remove-hook 'change-major-mode-hook 'hl-tags-hide t)
       (hl-tags-hide))))
-
 
 (provide 'hl-tags-mode)
 ;;; hl-tags-mode.el --- ends here

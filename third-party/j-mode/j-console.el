@@ -120,6 +120,7 @@ the containing buffer"
   (switch-to-buffer-other-window (process-buffer (j-console-ensure-session)))
   (inferior-j-mode))
 
+;;;###autoload
 (defun j-console-execute-region (start end)
   "Sends current region to the j-console-cmd session and exectues it"
   (interactive "r")
@@ -133,11 +134,13 @@ the containing buffer"
       (comint-send-input))
     (display-buffer buffer)))
 
+;;;###autoload
 (defun j-console-execute-line ()
   "Sends current line to the j-console-cmd session and exectues it"
   (interactive)
   (j-console-execute-region (pos-bol) (pos-eol)))
 
+;;;###autoload
 (defun j-console-execute-buffer ()
   "Sends current buffer to the j-console-cmd session and exectues it"
   (interactive)

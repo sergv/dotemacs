@@ -7,13 +7,12 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'set-up-platform)
-  (defvar dumping?))
+  (require 'set-up-platform))
 
-(defcustom use-foreign-libraries? t
-  "Whether to use foreign extensions to Emacs."
-  :type 'boolean
-  :group 'common)
+(defvar dumping?)
+
+(defvar use-foreign-libraries? t
+  "Whether to use foreign extensions to Emacs.")
 
 (when (and use-foreign-libraries?
            ;; Ideally we don’t even want to load *.el files when compiling.
@@ -22,8 +21,8 @@
            ;; emacs --batch -f batch-byte-compile
            ;; We’re not there yet but foreign modules severely impede that goal.
            (not (bound-and-true-p byte-compile-current-file))
-           (not dumping?))
-  (load (fold-platform-os-type "libemacs-native" "emacs-native")))
+           (not (bound-and-true-p dumping?)))
+  (load (fold-platform-os-type "libemacs-native" "emacs-native") nil noninteractive))
 
 (provide 'foreign-setup)
 

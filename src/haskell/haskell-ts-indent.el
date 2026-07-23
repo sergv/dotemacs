@@ -12,9 +12,15 @@
   (require 'macro-util)
   (require 'treesit-utils))
 
+(declare-function haskell-backspace-with-block-dedent--impl "haskell-block-indent")
+(declare-function haskell-misc--indent-line--fingerprint "haskell-misc")
+(declare-function haskell-on-blank-line? "haskell-misc")
+(declare-function haskell-space-with-block-indent--impl "haskell-block-indent")
+(declare-function haskell-ts-query-resolve "haskell-ts-mode")
 (declare-function treesit-node-at "treesit")
 
 (defvar haskell-indent-offset)
+(defvar haskell-misc--multiway-if-query)
 
 (require 'common)
 (require 'common-whitespace)
@@ -360,7 +366,6 @@
   (save-excursion
     (let ((curr parent)
           (prev1 node)
-          (prev2 nil)
           (tmp nil))
       (catch 'term
         (while curr
@@ -380,8 +385,7 @@
               ((treesit-utils-is-standalone-node? curr)
                (throw 'term curr))
               (t
-               (setq prev2 prev1
-                     prev1 curr
+               (setq prev1 curr
                      curr (treesit-node-parent curr))))))))))
 
 (defun haskell-ts-indent--prev-non-comment-sibling (node)
@@ -467,7 +471,7 @@
              (throw 'term nil))
             ((treesit-utils-is-standalone-node? curr)
              (throw 'term curr))
-            (
+            (t
              ;; skip
              ))
           (setf curr (treesit-node-parent curr)))))))
@@ -514,7 +518,7 @@
         (t
          candidate)))))
 
-(defun haskell-ts-indent--function-arrow-indent (node _parent _bol)
+(defun haskell-ts-indent--function-arrow-indent (_node _parent _bol)
   (lambda (matched-anchor)
     (if (string= "::" (treesit-node-type matched-anchor))
         0
@@ -630,9 +634,8 @@
   (let ((gp (treesit-node-parent parent)))
     (cl-assert (string= (treesit-node-type gp) "prefix"))
 
-    (let* ((ggp (treesit-node-parent gp))
-           (ggp-type (treesit-node-type ggp)))
-      (cl-assert (string= ggp-type "gadt_constructor"))
+    (let ((ggp (treesit-node-parent gp)))
+      (cl-assert (string= (treesit-node-type ggp) "gadt_constructor"))
 
       (let ((context (haskell-ts-indent--get-gadt-constructor-context ggp))
             (forall (haskell-ts-indent--get-gadt-constructor-forall ggp)))
@@ -644,7 +647,7 @@
           (t
            (haskell-ts-indent--type-function-context-anchor node parent bol)))))))
 
-(defun haskell-ts-indent--type-function-in-context-first-arg-anchor (node parent _bol)
+(defun haskell-ts-indent--type-function-in-context-first-arg-anchor (_node parent _bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
   (let* ((gp (treesit-node-parent parent))
          (context gp)
@@ -652,7 +655,7 @@
     (cl-assert (string= (treesit-node-type gp) "context"))
     (haskell-ts-indent--type-function-in-context-first-arg-anchor--impl context forall)))
 
-(defun haskell-ts-indent--type-function-result-anchor (node parent _bol)
+(defun haskell-ts-indent--type-function-result-anchor (_node parent _bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
   (let ((func-arrow (haskell-ts-indent--get-function-arrow parent)))
     (if (treesit-utils-is-standalone-node? func-arrow)
@@ -706,13 +709,13 @@
                         ("gadt_constructor"
                          (haskell-ts-indent--get-gadt-constructor-double-colon parent))
                         (_
-                         (error "Unhandled parent of forall node: %s" x)))))
+                         (error "Unhandled parent of forall node: %s" parent)))))
     (if (treesit-utils-is-standalone-node? double-colon)
         double-colon
       parent)))
 
-(defun _haskell-ts-indent--context-arrow-anchor (node parent _bol)
-  (cl-assert (string= (treesit-node-type node) "=>"))
+(defun _haskell-ts-indent--context-arrow-anchor (_node parent _bol)
+  (cl-assert (string= (treesit-node-type _node) "=>"))
   (cl-assert (string= (treesit-node-type parent) "context"))
   (let* ((p (treesit-node-parent parent))
          (anchor (if (and p
@@ -721,8 +724,8 @@
                    p)))
     (haskell-ts-indent--context-anchor anchor)))
 
-(defun haskell-ts-indent--context-dot-anchor (node parent _bol)
-  (cl-assert (string= (treesit-node-type node) "."))
+(defun haskell-ts-indent--context-dot-anchor (_node parent _bol)
+  (cl-assert (string= (treesit-node-type _node) "."))
   (cl-assert (string= (treesit-node-type parent) "forall"))
   (let ((anchor (treesit-node-parent parent)))
     (haskell-ts-indent--context-anchor anchor)))
@@ -793,7 +796,7 @@
          :anchor-node datatype-anchor
          :flags '(indent-0))))))
 
-(defun haskell-ts-indent--comment-in-datatype-offset (node parent _bol)
+(defun haskell-ts-indent--comment-in-datatype-offset (_node _parent _bol)
   (lambda (matched-anchor)
     (if (memq 'indent-0
               (treesit-computed-indent-flags matched-anchor))
@@ -866,14 +869,14 @@
 
              ((node-is "in") parent 0)
              ((match nil "let_in" "expression" nil nil)
-              ,(lambda (node parent _)
+              ,(lambda (_node parent _)
                  (let* ((in-node (haskell-ts-indent--get-let-node-in parent))
                         (in-node-start (treesit-node-start in-node))
                         (parent-start (treesit-node-start parent)))
                    (if (haskell-ts--positions-on-the-same-line? in-node-start parent-start)
                        parent
                      in-node)))
-              ,(lambda (node _ _)
+              ,(lambda (_node _ _)
                  (lambda (matched-anchor)
                    (if (string= "let_in" (treesit-matched-anchor-node-type matched-anchor))
                        0
@@ -1020,7 +1023,7 @@
                    (if (string= (treesit-node-type anchor) "local_binds")
                        (haskell-ts-getters--local-binds-first-binding anchor)
                      anchor)))
-              ,(lambda (node parent bol-pos)
+              ,(lambda (_node _parent _bol-pos)
                  (lambda (matched-anchor)
                    (if (string= (treesit-node-type matched-anchor) "let")
                        haskell-indent-offset
@@ -1281,7 +1284,7 @@
                     (field-is "parameter")))
               haskell-ts-indent--type-function-first-arg-anchor
               ,(lambda (_ parent _)
-                 (lambda (matched-anchor)
+                 (lambda (_matched-anchor)
                    (if-let* ((parent)
                              ((string= (treesit-node-type parent) "function"))
                              (arrow (haskell-ts-indent--get-function-arrow parent))

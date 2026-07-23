@@ -9,21 +9,32 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'dash)
-  (require 'flycheck)
   (require 'keys-def)
   (require 'macro-util)
   (require 'vim-ex))
 
-(defvar lsp-document-sync-method)
-
 (defvar dante-check-force-interpret)
+(defvar flycheck-check-syntax-automatically)
+(defvar flycheck-checker)
+(defvar flycheck-current-errors)
+(defvar flycheck-display-errors-delay)
+(defvar flycheck-error-list-mode-map)
+(defvar flycheck-error-message-buffer)
+(defvar flycheck-highlighting-mode)
+(defvar flycheck-indication-mode)
+(defvar flycheck-last-status-change)
+(defvar flycheck-mode)
+(defvar flycheck-relevant-error-other-file-minimum-level)
+(defvar lsp--sync-full)
+(defvar lsp-debounce-full-sync-notifications)
+(defvar lsp-document-sync-method)
+(defvar lsp-mode)
 
 (require 'common)
 (require 'dash)
 (require 'eproj-query)
 
 (require 'current-column-fixed)
-
 
 (defvar-local flycheck-enhancements--error-overlays nil
   "List of flycheck error overlays in current buffer. Overlays may be invalid/deleted,
@@ -85,14 +96,12 @@ do check that ‘overlay-buffer’ is non-nil before use.")
 ;;;###autoload
 (add-hook 'flycheck-error-list-mode-hook #'flycheck-error-list-setup)
 
-(defadvice flycheck-display-error-messages
-    (before
-     flycheck-display-error-messages-set-mode-in-error-buffer
-     activate
-     compile)
+(defun flycheck-display-error-messages-set-mode-in-error-buffer (&rest _ignore)
   (unless (buffer-live-p flycheck-error-message-buffer)
     (with-current-buffer (get-buffer-create flycheck-error-message-buffer)
       (text-mode))))
+
+(advice-add 'flycheck-display-error-messages :before #'flycheck-display-error-messages-set-mode-in-error-buffer)
 
 ;;;###autoload
 (defun flycheck-eligible-checker? (checker)
@@ -134,6 +143,8 @@ scheme and it’s view of current buffer is malformed."
 (vim-defcmd vim:flycheck-compile (nonrepeatable)
   (call-interactively #'flycheck-compile))
 
+;;;###autoload (autoload 'vim:flycheck-clear "flycheck-setup" nil t)
+;;;###autoload (autoload 'vim:flycheck-clear:wrapper "flycheck-setup" nil t 'macro)
 (vim-defcmd vim:flycheck-clear (nonrepeatable)
   (flycheck-clear
    t ;; interrupt running process
@@ -243,9 +254,7 @@ scheme and it’s view of current buffer is malformed."
              (car other-errors))
             (current-file-errors
              ;; Search in current file.
-             (let* ((current-line (line-number-at-pos))
-                    (current-col (1+ (current-column-fixed)))
-                    (current-pos (cons current-line current-col))
+             (let* (
                     ;; Make sure that current error will go to the
                     ;; end of the candidate list regardless of the
                     ;; direction we're searching.
@@ -270,8 +279,7 @@ scheme and it’s view of current buffer is malformed."
              (car other-all))
             (t nil)))
 
-         (next-error (car next-error-and-overlay))
-         (next-error-overlay (cdr next-error-and-overlay)))
+         (next-error (car next-error-and-overlay)))
 
     (if next-error
         (let ((switched?
@@ -318,6 +326,7 @@ scheme and it’s view of current buffer is malformed."
       (let ((message-log-max nil))
         (message "No more flycheck errors")))))
 
+;;;###autoload
 (defun flycheck-enhancements-previous-error-with-wraparound ()
   (interactive)
   (if flycheck-mode
@@ -325,6 +334,7 @@ scheme and it’s view of current buffer is malformed."
                                                               (flycheck-enhancements--get-error-overlays))
     (error "Flycheck not enabled")))
 
+;;;###autoload
 (defun flycheck-enhancements-next-error-with-wraparound ()
   (interactive)
   (if flycheck-mode
