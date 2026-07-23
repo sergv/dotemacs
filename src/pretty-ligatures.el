@@ -17,8 +17,7 @@
 
 (require 'common-font)
 
-(unless noninteractive
-  (el-patch-feature prog-mode))
+(add-to-list 'el-patch-features 'prog-mode)
 
 (el-patch-defun prettify-symbols--post-command-hook ()
   (cl-labels ((get-prop-as-list
