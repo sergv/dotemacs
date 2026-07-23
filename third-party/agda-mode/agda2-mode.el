@@ -1815,6 +1815,7 @@ the buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Go to definition site
 
+;;;###autoload
 (defun agda2-goto-definition-keyboard (&optional other-window)
   "Go to the definition site of the name under point (if any).
 If this function is invoked with a prefix argument then another window is used
@@ -1831,6 +1832,7 @@ Otherwise, yank (see `mouse-yank-primary')."
     ;; (call-interactively (key-binding ev))?  --Stef
     (mouse-yank-primary ev)))
 
+;;;###autoload
 (defun agda2-go-back nil
   "Go back to the previous position in which
 `agda2-goto-definition-keyboard' or `agda2-goto-definition-mouse' was

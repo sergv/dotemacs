@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(defvar c-mode-map)
+
 (require 'common)
 (require 'cc-setup)
 (require 'c-abbrev+)

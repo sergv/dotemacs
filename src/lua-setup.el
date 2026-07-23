@@ -11,6 +11,7 @@
   (require 'macro-util))
 
 (require 'hydra-setup)
+(require 'lua-mode)
 (require 'vim-setup)
 
 ;;;###autoload

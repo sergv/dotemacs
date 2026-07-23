@@ -10,8 +10,9 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'common-heavy)
   (require 'macro-util))
+
+(require 'abbrev+)
 
 ;; set up abbrev+ for latex
 

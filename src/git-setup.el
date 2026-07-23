@@ -76,7 +76,7 @@ or \"detached head\" will be substituted for %s."
                              nil)
       (user-error "Nothing selected")))
 
-(el-patch-defun magit-rebase-interactive-assert (since &optional delay-edit-confirm rebase-merges)
+(el-patch-defun magit-rebase-interactive-assert (since &optional (el-patch-swap delay-edit-confirm _) rebase-merges)
   (el-patch-remove
     (let* ((commit (magit-rebase--target-commit since))
            (branches (magit-list-publishing-branches commit)))
@@ -104,7 +104,7 @@ or \"detached head\" will be substituted for %s."
         (?a "[a]bort" (user-error "Quit")))
     since))
 
-(el-patch-defun magit-commit-amend-assert (&optional commit)
+(el-patch-defun magit-commit-amend-assert (&optional (el-patch-swap commit _))
   (el-patch-swap
     (cond-let--when-let ((branches (magit-list-publishing-branches commit)))
       (let ((m1 "This commit has already been published to ")
@@ -437,7 +437,6 @@ _j_: default vim hydra
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap
                      git-commit-mode-map)
-    ("C-c C-q" magit-log-edit-cancel-log-message)
     ("<up>"    git-commit-prev-message ;; log-edit-previous-comment
      )
     ("<down>"  git-commit-next-message ;; log-edit-next-comment
@@ -466,6 +465,7 @@ e_x_ec"
 
   ("q" with-editor-cancel))
 
+;;;###autoload (autoload 'hydra-git-rebase-from-vim-normal/body "git-setup" nil t)
 (defhydra-derive hydra-git-rebase-from-vim-normal hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   ""
   ("#" with-editor-finish))
@@ -488,7 +488,7 @@ e_x_ec"
 
     ("n"              nil)
     ("q"              with-editor-cancel)
-    ("a"              git-rebase-abort)
+    ("a"              magit-rebase-abort)
 
     ("s"              git-rebase-squash)
     ("p"              git-rebase-pick)

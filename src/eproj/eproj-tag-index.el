@@ -34,6 +34,7 @@
 ;; type       - nil, character or string
 ;; props      - alist of language -dependent properties
 ;; is-public? - boolean, t if name is visible in other projects (previous default), nil if only in the current one.
+;;;###autoload
 (defun make-eproj-tag (file line type is-public? props)
   (declare (pure t) (side-effect-free t))
   (cl-assert (or (null props) (consp props)))
@@ -87,6 +88,12 @@
          (car rest)
        rest))))
 
+(defsubst eproj-tag/get-prop (prop tag-struct)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (symbolp prop))
+  (cl-assert (eproj-tag-p tag-struct))
+  (cdr (assq prop (eproj-tag/properties tag-struct))))
+
 (defun eproj-tag/type (tag-struct)
   (declare (pure t) (side-effect-free t))
   (cl-assert (eproj-tag-p tag-struct))
@@ -122,12 +129,6 @@
     (if (consp rest)
         (cdr rest)
       nil)))
-
-(defsubst eproj-tag/get-prop (prop tag-struct)
-  (declare (pure t) (side-effect-free t))
-  (cl-assert (symbolp prop))
-  (cl-assert (eproj-tag-p tag-struct))
-  (cdr (assq prop (eproj-tag/properties tag-struct))))
 
 (defsubst eproj-tag-index--create (tbl)
   (declare (pure t) (side-effect-free t))

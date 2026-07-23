@@ -17,6 +17,7 @@
 (require 'set-up-tmp-paths)
 
 (defvar *formula-images-cache* (make-hash-table :test 'equal))
+(defvar *formula-index* 0)
 
 ;;;###autoload
 (defun render-buffer-flush-cache ()

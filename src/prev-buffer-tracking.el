@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'dash))
 
+;;;###autoload
 (defun switch-to-prev-buffer-in-window ()
   "Switch to previous alive buffer for selected window, if there's one."
   (interactive)

@@ -12,6 +12,7 @@
   (require 'macro-util)
   (require 'vim-setup))
 
+(require 'base-emacs-autoload)
 (require 'browse-kill-ring-setup)
 (require 'dash)
 
