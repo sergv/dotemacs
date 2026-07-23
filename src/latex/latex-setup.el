@@ -53,7 +53,7 @@
   "Toggle russian spell checking in current buffer."
   (if latex:russian-spellcheck
       (progn
-        (flyspell-mode-off)
+        (flyspell--mode-off)
         (def-keys-for-map vim-normal-mode-local-keymap
           ("'"  nil)
           ("\"" nil)))

@@ -6,6 +6,13 @@
 ;; Created:  2 July 2026
 ;; Description:
 
+(autoload 'tramp-compile-disable-ssh-controlmaster-options "tramp-integration")
+
+(defvar magit-tramp-pipe-stty-settings)
+(defvar tramp-copy-size-limit)
+(defvar tramp-use-scp-direct-remote-copying)
+(defvar tramp-verbose)
+
 (setq remote-file-name-inhibit-locks nil
       tramp-use-scp-direct-remote-copying t
       remote-file-name-inhibit-auto-save-visited t

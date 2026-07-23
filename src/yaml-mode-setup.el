@@ -9,8 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
-;;;###autoload
-(autoload 'yaml-mode "yaml-mode.el" "Simple mode to edit YAML." t)
+(require 'haskell-compilation-commands)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-mode))

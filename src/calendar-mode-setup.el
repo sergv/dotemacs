@@ -10,6 +10,8 @@
   (require 'keys-def)
   (require 'macro-util))
 
+(defvar calendar-mode-map)
+
 ;;;###autoload
 (setf calendar-date-style 'iso)
 

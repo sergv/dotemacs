@@ -5317,6 +5317,7 @@ Otherwise, do normal delete by repeating
         (forward-line 1)))
     mincol))
 
+;;;###autoload
 (defun markdown-indent-region (beg end arg)
   "Indent the region from BEG to END using some heuristics.
 When ARG is non-nil, outdent the region instead.
@@ -6904,6 +6905,7 @@ the surrounding context in light of Markdown syntax.  For that, see
   (skip-chars-backward " \t\n")
   (forward-line))
 
+;;;###autoload
 (defun markdown-backward-paragraph (&optional arg)
   "Move the point to the start of the current paragraph.
 With argument ARG, do it ARG times; a negative argument ARG = -N
@@ -6958,6 +6960,7 @@ means move forward N blocks."
           (unless (bobp)
             (forward-line 1))))))))
 
+;;;###autoload
 (defun markdown-forward-paragraph (&optional arg)
   "Move forward to the next end of a paragraph.
 With argument ARG, do it ARG times; a negative argument ARG = -N
@@ -7195,6 +7198,7 @@ regular expression."
           (goto-char (or (match-beginning 1) (match-beginning 4))))))
     (if (= (point) start) nil (point))))
 
+;;;###autoload
 (defun markdown-next-visible-heading (arg)
   "Move to the next visible heading line of any level.
 With argument, repeats or can move backward if negative. ARG is
@@ -7202,6 +7206,7 @@ passed to `outline-next-visible-heading'."
   (interactive "p")
   (markdown-move-heading-common #'outline-next-visible-heading arg 'adjust))
 
+;;;###autoload
 (defun markdown-previous-visible-heading (arg)
   "Move to the previous visible heading line of any level.
 With argument, repeats or can move backward if negative. ARG is
@@ -7262,6 +7267,7 @@ Stop at the first and last headings of a superior heading."
             (setq arg (1- arg)))
         (user-error "No previous same-level heading")))))
 
+;;;###autoload
 (defun markdown-up-heading (arg &optional interactive)
   "Move to the visible heading line of which the present line is a subheading.
 With argument, move up ARG levels.  When called interactively (or
@@ -7355,6 +7361,7 @@ setext header, but should not be folded."
                          nil)))
 
 ;; This function was originally derived from `org-cycle' from org.el.
+;;;###autoload
 (defun markdown-cycle (&optional arg)
   "Visibility cycling for Markdown mode.
 This function is called with a `\\[universal-argument]' or if ARG is t, perform
@@ -7436,6 +7443,7 @@ visibility of the corresponding subtree.  Otherwise, indent the current line
    (t
     (indent-for-tab-command))))
 
+;;;###autoload
 (defun markdown-shifttab ()
   "Handle S-TAB keybinding based on context.
 When in a table, move backward one cell.
@@ -9210,6 +9218,7 @@ or \\[markdown-toggle-inline-images]."
                     (overlay-put ov 'face 'default)
                     (push ov markdown-inline-image-overlays)))))))))))
 
+;;;###autoload
 (defun markdown-toggle-inline-images ()
   "Toggle inline image overlays in the buffer."
   (interactive)

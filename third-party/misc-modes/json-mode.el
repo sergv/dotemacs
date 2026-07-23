@@ -106,6 +106,7 @@ information."
   (pcase (cons method arg)
     (`(:elem . basic) json-mode-indent-level)))
 
+;;;###autoload
 (defun json-mode-pretty-print-dwim (&optional alphabetical)
   "Pretty print region if active, else pretty print the buffer.
 `json-mode-indent-level' will be used as indentation offset.  If
@@ -125,6 +126,7 @@ JSON object members will be sorted alphabetically by their keys."
            'json-pretty-print-buffer-ordered
          'json-pretty-print-buffer)))))
 
+;;;###autoload
 (defun json-mode-show-path ()
   "Show the path to the JSON value under point.
 The value is also copied to the kill ring."

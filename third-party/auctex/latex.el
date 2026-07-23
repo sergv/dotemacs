@@ -4729,7 +4729,7 @@ Setting this variable directly does not take effect;
 use \\[customize]."
   :group 'LaTeX-math
   :initialize 'custom-initialize-default
-  :set '(lambda (symbol value)
+  :set (lambda (symbol value)
 	  (define-key LaTeX-math-mode-map (LaTeX-math-abbrev-prefix) t)
 	  (set-default symbol value)
 	  (define-key LaTeX-math-mode-map
@@ -5381,7 +5381,9 @@ the symbols will be surrounded by dollar signs.  The following
 commands are defined:
 
 \\{LaTeX-math-mode-map}"
-  nil nil (list (cons (LaTeX-math-abbrev-prefix) LaTeX-math-keymap))
+  :init-value nil
+  :lighter nil
+  :keymap (list (cons (LaTeX-math-abbrev-prefix) LaTeX-math-keymap))
   (if LaTeX-math-mode
       (easy-menu-add LaTeX-math-mode-menu LaTeX-math-mode-map)
     (easy-menu-remove LaTeX-math-mode-menu))

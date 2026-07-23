@@ -14,8 +14,7 @@
   (let* ((forward (> count 0))
          (increment (if forward -1 1))
          (search-function (if forward #'re-search-forward #'re-search-backward))
-         (target-depth 0)
-         result)
+         (target-depth 0))
     (while (/= count 0)
       (let ((depth 0)
             (found nil))
@@ -59,7 +58,7 @@
                 (setq found (point))))))
         (or found
             (error "No containing preprocessor conditional"))
-        (goto-char (setq result found)))
+        (goto-char found))
       (setq count (+ count increment)))))
 
 (defconst +c-preprocessor-directives-re+

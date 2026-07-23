@@ -9,9 +9,20 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'macro-util)
-  (require 'set-up-platform)
+  (require 'set-up-platform))
 
-  (defvar lv-wnd))
+(defvar calendar-latitude)
+(defvar calendar-location-name)
+(defvar calendar-longitude)
+(defvar default-buffer-file-coding-system)
+(defvar desktop-save)
+(defvar fill-colunm)
+(defvar global-auto-revert-ignore-modes)
+(defvar lv-wnd)
+(defvar native-comp-jit-compilation)
+(defvar so-long-predicate)
+(defvar so-long-variable-overrides)
+(defvar so-long-variable-overrides)
 
 (declare-function so-long-statistics-excessive-p "so-long")
 
@@ -71,8 +82,6 @@
 (blink-cursor-mode -1)
 
 (setq-default major-mode 'text-mode)
-
-(remove-hook 'temp-buffer-setup-hook #'help-mode-setup)
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
@@ -154,7 +163,7 @@
       read-process-output-max 32768
 
       ;; I’ll compile everything I need ahead of time.
-      native-comp-deferred-compilation nil
+      native-comp-jit-compilation nil
 
       ;; Whether to save existing clipboard value in kill-ring when doing a kill/yank operation.
       save-interprogram-paste-before-kill nil

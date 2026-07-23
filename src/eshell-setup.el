@@ -14,6 +14,14 @@
   (require 'macro-util)
   (require 'set-up-platform))
 
+(autoload 'eshell/echo "em-basic")
+(autoload 'eshell/rm "em-unix")
+(autoload 'eshell-next-matching-input-from-input "em-hist" nil t)
+(autoload 'eshell-previous-matching-input-from-input "em-hist" nil t)
+
+(defvar eshell-command-aliases-list)
+(defvar eshell-command-completions-alist)
+
 (require 'em-prompt)
 (require 'em-term)
 (require 'em-cmpl)
@@ -27,9 +35,6 @@
 (require 'folding-setup)
 
 (require 'eshell-autoload)
-
-(declare-function eshell/echo "em-basic")
-(declare-function eshell/rm "em-unix")
 
 ;;;###autoload
 (add-to-list 'el-patch-features 'eshell)
@@ -214,7 +219,7 @@
         (eshell/rm files)
       (eshell/echo "No files to cleanup found"))))
 
-(defun eshell/clear ()
+(defun eshell/clear-above-prompt ()
   (interactive)
   (save-excursion
     (with-inhibited-read-only
@@ -227,8 +232,7 @@
 (defun eshell-clear-prompt ()
   "Clear eshell prompt from input"
   (interactive)
-  (eshell-bol)
-  (delete-region (point) (line-end-position)))
+  (delete-region (line-beginning-position) (line-end-position)))
 
 ;; property-based jumps, work better than regexp ones
 
@@ -273,7 +277,7 @@
     ("M-p"              browse-eshell-input-history)
     ("C-d"              eshell-send-eof-to-process)
     ("TAB"              completion-at-point)
-    ("C-SPC"            eshell/clear)))
+    ("C-SPC"            eshell/clear-above-prompt)))
 
 (provide 'eshell-setup)
 

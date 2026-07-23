@@ -14,9 +14,14 @@
 (require 'set-up-paths)
 (require 'treesit-utils)
 
-(defvar treesit-max-buffer-size)
-(defvar treesit-font-lock-level)
+(defvar treesit--indent-region-batch-size)
 (defvar treesit-extra-load-path)
+(defvar treesit-font-lock-level)
+(defvar treesit-max-buffer-size)
+(defvar treesit-simple-indent-presets)
+
+(declare-function treesit--indent-1 "treesit")
+(declare-function treesit-update-ranges "treesit")
 
 (setf treesit-max-buffer-size (* 100 1024 1024)
       treesit-font-lock-level 4)
@@ -24,6 +29,7 @@
 (when (and (fboundp 'treesit-available-p)
            (treesit-available-p))
   (require 'treesit)
+
   (when (treesit-language-available-p 'json)
     (add-to-list 'major-mode-remap-alist
                  '(json-mode . json-ts-mode)))

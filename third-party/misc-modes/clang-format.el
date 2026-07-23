@@ -68,7 +68,7 @@ of the buffer."
       (when (listp node)
         (let* ((children (xml-node-children node))
                (text (car children)))
-          (cl-case (xml-node-name node)
+          (pcase (xml-node-name node)
             ('replacement
              (let* ((offset (xml-get-attribute-or-nil node 'offset))
                     (length (xml-get-attribute-or-nil node 'length)))

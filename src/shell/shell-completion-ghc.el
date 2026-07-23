@@ -7,8 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util)
-  (require 'shell-completion))
+  (require 'macro-util))
+
+(require 'shell-completion)
 
 (eval-and-compile
   (defconst pcomplete-ghc-flags

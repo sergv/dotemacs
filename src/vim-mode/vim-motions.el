@@ -53,6 +53,7 @@
   (require 'subr-x))
 
 (require 'common-whitespace)
+(require 'semnav)
 (require 'vim-defs)
 (require 'vim-macs)
 (require 'vim-core)
