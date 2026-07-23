@@ -692,7 +692,11 @@ HEAD's binding is returned as a string wrapped with [] or {}."
     ("⌦" . "<deletechar>")
     ("⏎" . "RET")))
 
-(defconst hydra-width-spec-regex " ?-?[0-9]*?"
+(defconst hydra-width-spec-regex
+  (rx (? " ")
+      (or (*? (any (?0 . ?9)))
+          (seq "-"
+               (+? (any (?0 . ?9))))))
   "Regex for the width spec in keys and %` quoted sexps.")
 
 (defvar hydra-key-regex "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?"
