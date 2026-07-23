@@ -447,23 +447,25 @@ _j_: default vim hydra
 
 (defhydra-ext hydra-git-rebase (:exit t :foreign-keys warn :hint nil)
   "
-_d_elete  _k_: undo  _a_bort
-_e_dit               _q_uit
+_d_elete  _k_: undo  _q_uit
+_e_dit
 _f_ixup
 _p_ick
-_r_eword
+_r_e_w_ord
 _s_quash
 e_x_ec"
-  ("s" git-rebase-squash)
+  ("d" git-rebase-kill-line)
+  ("e" git-rebase-edit)
+  ("f" git-rebase-fixup)
   ("p" git-rebase-pick)
-  ("k" git-rebase-undo)
-  ("x" git-rebase-exec)
   ("r" git-rebase-reword)
   ("w" git-rebase-reword)
-  ("e" git-rebase-edit)
   ("s" git-rebase-squash)
-  ("f" git-rebase-fixup)
-  ("d" git-rebase-kill-line))
+  ("x" git-rebase-exec)
+
+  ("k" git-rebase-undo)
+
+  ("q" with-editor-cancel))
 
 (defhydra-derive hydra-git-rebase-from-vim-normal hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   ""
