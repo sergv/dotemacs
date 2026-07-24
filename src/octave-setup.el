@@ -392,9 +392,7 @@ _j_: send region"
                                'display
                                " ... "))))
 
-  (bind-tab-keys #'tab-to-tab-stop
-                 #'tab-to-tab-stop-backward
-                 :enable-yasnippet t)
+  (bind-tab-keys #'tab-to-tab-stop #'tab-to-tab-stop-backward)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ("<f6>"    octave-load-current-file)

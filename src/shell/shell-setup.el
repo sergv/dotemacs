@@ -71,9 +71,7 @@
     (setq-local semnav-bounds-of-string-at-override #'semnav-bounds-of-string-at--ts-bash))
 
   (which-function-mode -1)
-  (bind-tab-keys #'indent-for-tab-command
-                 nil
-                 :enable-yasnippet t)
+  (bind-tab-keys #'indent-for-tab-command nil)
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)

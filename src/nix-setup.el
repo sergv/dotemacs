@@ -141,7 +141,8 @@ _a_lign"
 
 ;;;###autoload
 (defun nix-setup ()
-  (init-common :use-whitespace t)
+  (init-common :use-whitespace t
+               :use-yasnippet nil)
 
   (setq-local vim-shift-width 2
               search-syntax-table nix-search-fixed-syntax-table)
@@ -160,9 +161,7 @@ _a_lign"
   (company-mode +1)
   (setq-local company-backends '(company-nix))
 
-  (bind-tab-keys nil
-                 #'tab-to-tab-stop-backward
-                 :enable-yasnippet nil)
+  (bind-tab-keys nil #'tab-to-tab-stop-backward)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ("g" hydra-nix-vim-normal-g-ext/body))
@@ -172,10 +171,8 @@ _a_lign"
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-SPC"                           company-complete)
-    ("C-<return>"                      nix--simple-indent-newline-indent)
-    ("C-<tab>"                         indent-relative-forward)
-    (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward))
+    ("C-SPC"      company-complete)
+    ("C-<return>" nix--simple-indent-newline-indent))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap)

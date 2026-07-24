@@ -40,9 +40,7 @@
                :use-comment t
                :use-render-formula t
                :use-fci t)
-  (bind-tab-keys #'indent-for-tab-command
-                 nil
-                 :enable-yasnippet t)
+  (bind-tab-keys #'indent-for-tab-command nil)
   (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC" switch-to-sml-repl))
   (def-keys-for-map vim-visual-mode-local-keymap
