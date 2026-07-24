@@ -47,9 +47,7 @@
                :use-render-formula t
                :use-whitespace 'tabs-only
                :use-fci t)
-  (bind-tab-keys #'electric-verilog-tab
-                 nil
-                 :enable-yasnippet t))
+  (bind-tab-keys #'electric-verilog-tab nil))
 
 ;;;###autoload
 (add-hook 'verilog-mode-hook #'verilog-setup)
