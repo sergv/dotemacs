@@ -26,9 +26,7 @@
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w")
       ;; don't reactivate fields on undo/redo
-      yas-snippet-revival nil
-      ;; Make `yas-expand' return nil if it fails to expand a snippet.
-      yas-fallback-behavior nil)
+      yas-snippet-revival nil)
 
 (add-to-list 'ivy-re-builders-alist
              '(ivy-yas-completing-prompt . ivy--regex-fuzzy))
@@ -187,15 +185,6 @@ happens to be located in org's headline."
     (apply old-org-fix-tags-on-the-fly args)))
 
 (advice-add 'org-fix-tags-on-the-fly :around #'org-fix-tags-on-the-fly-yasnippet-field-fix)
-
-(defvar-local yas-expand-fallback
-  (lambda () (error "yas-expand-fallback not set to proper callback")))
-
-;;;###autoload
-(defun yas-expand-or-fallback ()
-  (interactive)
-  (or (yas-expand)
-      (call-interactively yas-expand-fallback)))
 
 (defun ivy-yas-completing-prompt (prompt choices &optional display-fn completion-fn)
   (let* ((formatted-choices
