@@ -46,8 +46,8 @@ _e_: consult predicate"
 
 (defhydra-derive hydra-prolog-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_<tab>_: reindent predicate"
-  ("<tab>" prolog-indent-predicate))
+_TAB_: reindent predicate"
+  ("TAB" prolog-indent-predicate))
 
 ;;;###autoload
 (defun prolog-setup ()
@@ -98,7 +98,6 @@ _<tab>_: reindent predicate"
     ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
-    ("<tab>"    nil)
 
     ("M-p"      browse-comint-input-history)
 
