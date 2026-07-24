@@ -169,9 +169,7 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
   ("<backspace>"     yas-skip-and-clear-or-delete-backward-char)
   ("<delete>"        yas-skip-and-clear-or-delete-char)
   ("S-<backspace>"   yas-skip-and-clear-or-delete-char)
-
-  ("<S-iso-lefttab>" yas-prev-field)
-  ("S-<tab>"         yas-prev-field))
+  ("S-TAB"           yas-prev-field))
 
 ;; (yas-compile-directory yas-snippet-dirs)
 ;; now load snippets using enhanced functions (re)defined above
