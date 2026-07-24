@@ -136,9 +136,7 @@ _o_: show c sexps in region"
     ("\{"                  pseudoparedit-insert-brace)
     ("\}"                  smart-operators-close-brace))
 
-  (bind-tab-keys #'indent-for-tab-command
-                 #'tab-to-tab-stop-backward
-                 :enable-yasnippet t)
+  (bind-tab-keys #'indent-for-tab-command #'tab-to-tab-stop-backward)
 
   (when define-special-keys
     (def-keys-for-map vim-normal-mode-local-keymap

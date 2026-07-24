@@ -802,9 +802,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
               (lambda ()
                 (indent-to standard-indent)))
 
-  (bind-tab-keys #'tab-to-tab-stop
-                 #'tab-to-tab-stop-backward
-                 :enable-yasnippet t)
+  (bind-tab-keys #'tab-to-tab-stop #'tab-to-tab-stop-backward)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC" haskell-cabal-find-related-file)
