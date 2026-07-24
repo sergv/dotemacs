@@ -166,9 +166,10 @@
           (define-key kmap (kbd "<tab>") tab-binding))))
     (when backtab-binding
       (dolist (kmap keymaps)
-        (dolist (binding (list (kbd "<backtab>")
-                               (kbd "S-<tab>")
-                               (kbd "S-<iso-lefttab>")))
+        (dolist (binding (eval-when-compile
+                           (list (kbd "<backtab>")
+                                 (kbd "S-<tab>")
+                                 (kbd "S-<iso-lefttab>"))))
           (define-key kmap binding backtab-binding))))))
 
 (provide 'start-common)
