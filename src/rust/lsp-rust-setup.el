@@ -40,7 +40,6 @@
       lsp-rust-analyzer-proc-macro-enable t
       lsp-rust-analyzer-cargo-run-build-scripts t
 
-      lsp-rust-analyzer-server-display-inlay-hints t
       lsp-rust-analyzer-display-parameter-hints t
       lsp-rust-analyzer-display-chaining-hints t)
 
