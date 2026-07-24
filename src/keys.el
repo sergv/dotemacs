@@ -56,8 +56,6 @@
   ("M-b"      switch-to-prev-buffer-in-window)
 
   ;; for icicle
-  ("<M-tab>"  nil)
-  ("M-<tab>"  nil)
   ("M-TAB"    nil)
   ("C-SPC"    nil)
   ("M-SPC"    nil)
@@ -86,7 +84,6 @@
 
   ("C-<home>" nil)
   ("C-<end>"  nil)
-  ("C-<tab>"  nil)
 
   (("DEL" "<backspace>") pseudoparedit-backspace)
   ("\""                  pseudoparedit-insert-double-quote)
@@ -97,8 +94,8 @@
   ("\{"                  pseudoparedit-insert-brace)
   ("\}"                  smart-operators-close-brace)
 
-  ("C-<tab>"                         indent-relative-forward)
-  (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward)
+  ("C-TAB"               indent-relative-forward)
+  ("C-S-TAB"             indent-relative-backward)
 
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("\e\e\e" nil))
@@ -207,7 +204,7 @@
   ("<down>" next-completion))
 
 (def-keys-for-map read-expression-map
-  ("<tab>"   completion-at-point)
+  ("TAB"     completion-at-point)
   ("C-w"     backward-delete-word)
   ("C-S-w"   backward-delete-word*))
 

@@ -23,9 +23,7 @@
   (setq-local whitespace-line-column 80
               whitespace-style '(face tabs lines-tail))
 
-  (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
-    ("<tab>"                               tab-to-tab-stop)
-    (("<backtab>" "S-<tab>" "S-<iso-tab>") tab-to-tab-stop-backward))
+  (bind-tab-keys #'tab-to-tab-stop #'tab-to-tab-stop-backward)
 
   (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-gitconfig-vim-visual-g-ext/body))
