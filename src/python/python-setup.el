@@ -441,9 +441,7 @@ _j_: send region to repl"
   (def-keys-for-map vim-motion-mode-local-keymap
     ("q"            python-nav-up-list))
 
-  (bind-tab-keys #'tab-to-tab-stop
-                 #'tab-to-tab-stop-backward
-                 :enable-yasnippet t)
+  (bind-tab-keys #'tab-to-tab-stop #'tab-to-tab-stop-backward)
   (python-abbrev+-setup)
 
   ;; pabbrev isn't powerful enough

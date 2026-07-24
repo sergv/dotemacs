@@ -36,20 +36,12 @@
       markdown-indent-on-enter nil
       markdown-fontify-code-blocks-natively t)
 
-(defun markdown--yasnippet-indent-fallback ()
-  (interactive)
-  (let ((this-command 'markdown-cycle))
-    (call-interactively #'markdown-cycle)))
-
 ;;;###autoload
 (defun markdown-setup ()
   (init-common :use-yasnippet t
                :use-whitespace 'tabs-only)
   ;; (setq-local yas-indent-line 'fixed)
-  (bind-tab-keys #'markdown-cycle
-                 #'markdown-shifttab
-                 :enable-yasnippet t
-                 :yasnippet-fallback #'markdown--yasnippet-indent-fallback)
+  (bind-tab-keys #'markdown-cycle #'markdown-shifttab)
   (typography-setup)
   (flyspell-english)
   (setup-indent-size 4)
