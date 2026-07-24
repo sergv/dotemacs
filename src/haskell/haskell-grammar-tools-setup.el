@@ -65,8 +65,6 @@
     ("DEL"             haskell-backspace-with-block-dedent)
     ("<backspace>"     haskell-backspace-with-block-dedent)
 
-    ("S-<tab>"         nil)
-    ("<S-iso-lefttab>" nil)
     ("<return>"        haskell-newline-with-signature-expansion)))
 
 (provide 'haskell-grammar-tools-setup)
