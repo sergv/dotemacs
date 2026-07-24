@@ -904,21 +904,16 @@ a single entity."
   (when track-extensions?
     (haskell-ext-tracking-mode +1))
   (when bind-colon
-    (define-key keymap
-      (kbd ":")
-      #'haskell-smart-operators-self-insert))
+    (define-key keymap (eval-when-compile (kbd ":")) #'haskell-smart-operators-self-insert))
   (when bind-hyphen
     (def-keys-for-map keymap
       ("-" haskell-smart-operators-hyphen)))
-  (define-key keymap
-    (kbd "!")
-    #'haskell-smart-operators-exclamation-mark)
-  (dolist (key (list (kbd "=") (kbd "+") (kbd "*") (kbd "<") (kbd ">")
-                     (kbd "%") (kbd "^") (kbd "&") (kbd "/")
-                     (kbd "?") (kbd "|") (kbd "~") (kbd "@")))
-    (define-key keymap
-      key
-      #'haskell-smart-operators-self-insert))
+  (define-key keymap (eval-when-compile (kbd "!")) #'haskell-smart-operators-exclamation-mark)
+  (dolist (key (eval-when-compile
+                 (list (kbd "=") (kbd "+") (kbd "*") (kbd "<") (kbd ">")
+                       (kbd "%") (kbd "^") (kbd "&") (kbd "/")
+                       (kbd "?") (kbd "|") (kbd "~") (kbd "@"))))
+    (define-key keymap key #'haskell-smart-operators-self-insert))
   (def-keys-for-map keymap
     ("$"   haskell-smart-operators-$)
     ("#"   haskell-smart-operators-hash)
