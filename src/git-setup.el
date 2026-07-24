@@ -177,8 +177,8 @@ _a_lign"
   (setq-local indent-tabs-mode nil)
 
   (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
-    ("<tab>"                               tab-to-tab-stop)
-    (("<backtab>" "S-<tab>" "S-<iso-tab>") tab-to-tab-stop-backward))
+    ("TAB"   tab-to-tab-stop)
+    ("S-TAB" tab-to-tab-stop-backward))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-gitconfig-vim-visual-g-ext/body)))
 
@@ -363,9 +363,8 @@ _j_: default vim hydra
     ("X"               magit-reset)
 
     ;; ("SPC"             magit-visit-thing-other-window)
-    (("TAB" "<tab>")   magit-section-cycle)
-    (("S-TAB" "<S-tab>" "S-<tab>" "<S-iso-lefttab>" "S-<iso-lefttab>")
-                       magit-section-cycle-global)
+    ("TAB"             magit-section-cycle)
+    ("S-TAB"           magit-section-cycle-global)
 
     ("C-1"             magit-section-show-level-1-all)
     ("C-2"             magit-section-show-level-2-all)
