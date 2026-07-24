@@ -90,6 +90,12 @@ cpu time or allocations that the value of this variable.")
   (interactive)
   (ghc-profiling-mode--search-for-expensive-entry backward))
 
+(defvar ghc-profiling-mode-map
+  (let ((keymap (make-sparse-keymap)))
+    (def-keys-for-map keymap
+      ("TAB" yafolding-toggle-element))
+    keymap))
+
 ;;;###autoload
 (define-derived-mode ghc-profiling-mode prog-mode "GHC-Prof"
   "Major mode for viewing Haskell profiling reports."
@@ -115,7 +121,6 @@ cpu time or allocations that the value of this variable.")
   (def-keys-for-map vim-normal-mode-local-keymap
     ("C-h"   ghc-profiling-mode-search-for-expensive-entry-forward)
     ("C-t"   ghc-profiling-mode-search-for-expensive-entry-backward)
-    ("<tab>" yafolding-toggle-element)
     ("'"     ghc-profiling-mode-back-up-indent-level)))
 
 (provide 'ghc-profiling-mode)

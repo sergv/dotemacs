@@ -67,8 +67,8 @@ _,_: kill hunk"
     (("C-<down>" "M-h") diff-file-next)
     (("<return>" "SPC") diff-goto-source)
     ("g"                hydra-diff-vim-normal-g-ext/body)
-    ("<tab>"            outline-cycle)
-    ("<backtab>"        outline-cycle-buffer)
+    ("TAB"              outline-cycle)
+    ("S-TAB"            outline-cycle-buffer)
     ("'"                diff-up-heading)))
 
 ;;;###autoload

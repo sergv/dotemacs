@@ -213,7 +213,7 @@ sexps and indentation levels."
                      vim-insert-mode-local-keymap
                      shell-mode-map)
     ("C-SPC"     vim:comint-clear-buffer-above-prompt:interactive)
-    ("<tab>"     completion-at-point)
+    ("TAB"       completion-at-point)
 
     ("M-p"       browse-comint-input-history)
 
