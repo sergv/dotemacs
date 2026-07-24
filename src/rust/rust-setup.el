@@ -368,9 +368,7 @@ foo {
         (append rust-setup--extra-ts-indent-rules
                 (cdr (car treesit-simple-indent-rules))))
 
-  (bind-tab-keys #'indent-for-tab-command
-                 #'tab-to-tab-stop-backward
-                 :enable-yasnippet t)
+  (bind-tab-keys #'indent-for-tab-command #'tab-to-tab-stop-backward)
 
   (setf vim-shift-width rust-ts-mode-indent-offset
         tab-width rust-ts-mode-indent-offset)

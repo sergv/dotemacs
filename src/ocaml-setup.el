@@ -43,9 +43,7 @@
 ;;;###autoload
 (defun ocaml-setup ()
   (init-common :use-render-formula t)
-  (bind-tab-keys #'indent-for-tab-command
-                 nil
-                 :enable-yasnippet t)
+  (bind-tab-keys #'indent-for-tab-command nil)
   (pretty-ligatures-install-safe!)
   (def-keys-for-map (vim-normal-mode-local-keymap)
     ("SPC SPC" switch-to-ocaml-repl)

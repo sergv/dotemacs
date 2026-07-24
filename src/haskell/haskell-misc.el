@@ -106,21 +106,13 @@ single indentation unit."
 
   (if simpler-indentation-by-default?
       (progn
-        (bind-tab-keys #'indent-relative-forward
-                       #'indent-relative-backward
-                       :enable-yasnippet t)
+        (bind-tab-keys #'indent-relative-forward #'indent-relative-backward)
         (def-keys-for-map (vim-normal-mode-local-keymap
                            vim-insert-mode-local-keymap)
           ("C-<tab>"                         haskell-misc-combined-indent-forwards)
           (("C-S-<tab>" "C-S-<iso-lefttab>") haskell-misc-combined-indent-backwards)))
-    (progn
-      (bind-tab-keys #'haskell-misc-combined-indent-forwards
-                     #'haskell-misc-combined-indent-backwards
-                     :enable-yasnippet t)
-      (def-keys-for-map (vim-normal-mode-local-keymap
-                         vim-insert-mode-local-keymap)
-        ("C-<tab>"                         indent-relative-forward)
-        (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward))))
+    (bind-tab-keys #'haskell-misc-combined-indent-forwards
+                   #'haskell-misc-combined-indent-backwards))
 
   (when treesit-simple-indent-rules
     (setq-local indent-region-function #'treesit-indent-region))

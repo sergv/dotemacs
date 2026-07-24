@@ -17,9 +17,7 @@
                :use-render-formula t
                :use-whitespace 'tabs-only
                :use-fci t)
-  (bind-tab-keys #'vhdl-electric-tab
-                 nil
-                 :enable-yasnippet t))
+  (bind-tab-keys #'vhdl-electric-tab nil))
 
 ;;;###autoload
 (add-hook 'vhdl-mode-hook #'vhdl-setup)
