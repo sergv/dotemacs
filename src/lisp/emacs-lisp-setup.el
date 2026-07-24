@@ -142,11 +142,7 @@ _e_val
     ("C-."     elisp-slime-nav-find-elisp-thing-at-point)
     ("C-,"     eproj-symbnav/go-back)
 
-    ("<tab>"        indent-for-tab-command)
     (("C-m" "<f9>") elisp-compile-and-move))
-
-  (def-keys-for-map vim-insert-mode-local-keymap
-    ("<tab>"   indent-for-tab-command))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
