@@ -116,9 +116,7 @@ _f_: next goal"
                :use-fci t
                :use-whitespace 'tabs-only)
   (setup-indent-size 2)
-  (bind-tab-keys #'eri-indent
-                 #'eri-indent-reverse
-                 :enable-yasnippet t)
+  (bind-tab-keys #'eri-indent #'eri-indent-reverse)
   (dolist (cmd '("load" "lo" "l"))
     (vim-local-emap cmd #'vim:agda-load-file))
   (def-keys-for-map vim-normal-mode-local-keymap

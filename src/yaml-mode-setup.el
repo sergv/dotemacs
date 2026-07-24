@@ -21,9 +21,7 @@
 (defun yaml-setup ()
   (init-common :use-render-formula nil
                :typography nil)
-  (bind-tab-keys #'indent-relative-forward
-                 #'indent-relative-backward
-                 :enable-yasnippet t)
+  (bind-tab-keys #'indent-relative-forward #'indent-relative-backward)
   (when-buffer-has-file
     (when (string-match-p "^stack.*\\.yaml$"
                           (file-name-nondirectory (buffer-file-name)))
