@@ -15,9 +15,7 @@
                :use-render-formula t
                :use-whitespace 'tabs-only
                :use-fci t)
-  (bind-tab-keys #'tab-to-tab-stop
-                 #'tab-to-tab-stop-backward
-                 :enable-yasnippet t))
+  (bind-tab-keys #'tab-to-tab-stop #'tab-to-tab-stop-backward))
 
 ;;;###autoload
 (add-hook 'tcl-mode-hook #'tcl-setup)
