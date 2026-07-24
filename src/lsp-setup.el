@@ -82,7 +82,9 @@
 
       lsp-diagnostics-attributes
       '((unnecessary :foreground "#666666")
-        (deprecated  :strike-through t)))
+        (deprecated  :strike-through t))
+
+      lsp-inlay-hint-enable t)
 
 ;;;###autoload
 (defun lsp-doc-other-window ()
