@@ -56,7 +56,7 @@
     ("C-<return>" ispell-word))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("`"   vim-wrap-backticks)
-    (("<tab>" "TAB") markdown-indent-region)))
+    ("TAB" markdown-indent-region)))
 
 ;;;###autoload
 (add-hook 'markdown-mode-hook #'markdown-setup)

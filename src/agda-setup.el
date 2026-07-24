@@ -126,10 +126,7 @@ _f_: next goal"
     ("C-,"             agda2-go-back)
     ("-"               hydra-agda/body)
     ("C-t"             agda2-previous-goal)
-    ("C-h"             agda2-next-goal)
-
-    ("<tab>"           eri-indent)
-    (("S-<tab>" "S-<lefttab>" "S-<iso-lefttab>") eri-indent-reverse))
+    ("C-h"             agda2-next-goal))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("- e" agda2-compute-normalised-region)
     ("g"   hydra-agda-vim-visual-g-ext/body))
