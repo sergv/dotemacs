@@ -71,8 +71,8 @@ _=_: on equals"
 
 (defhydra-derive hydra-c-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_<tab>_: reindent function  _t_: jump to function start
-                            _h_: jump to function end"
+_TAB_: reindent function  _t_: jump to function start
+                          _h_: jump to function end"
   ("TAB" c-indent-defun)
 
   ("t"   c-beginning-of-defun-vim)
