@@ -360,8 +360,8 @@ _e_xport
 
 (defhydra-derive hydra-cabal-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_<tab>_: align and sort subsection"
-  ("<tab>" haskell-misc-cabal-align-and-sort-subsection))
+_TAB_: align and sort subsection"
+  ("TAB" haskell-misc-cabal-align-and-sort-subsection))
 
 (defhydra-derive-special-docstring hydra-haskell-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   (lambda (str)
@@ -381,22 +381,22 @@ _<tab>_: align and sort subsection"
 
 (defhydra-derive hydra-haskell-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_i_:     jump to imports  _t_: jump to topmost node start
-_<tab>_: reindent         _h_: jump to topmont node end"
+_i_:   jump to imports  _t_: jump to topmost node start
+_TAB_: reindent         _h_: jump to topmont node end"
   ("i"     vim:haskell-navigate-imports:interactive)
-  ("<tab>" haskell-reindent-at-point)
+  ("TAB"   haskell-reindent-at-point)
 
   ("t"     haskell-move-to-topmost-start)
   ("h"     haskell-move-to-topmost-end))
 
 (defhydra-derive hydra-haskell-ts-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_i_:     jump to imports  _t_: jump to topmost function/entity start
-_<tab>_: reindent         _h_: jump to topmont function/entity end
+_i_:   jump to imports  _t_: jump to topmost function/entity start
+_TAB_: reindent         _h_: jump to topmont function/entity end
                         _\"_: convert string literal to multiline
 "
   ("i"     vim:haskell-navigate-imports:interactive)
-  ("<tab>" haskell-ts-reindent-at-point)
+  ("TAB"   haskell-ts-reindent-at-point)
 
   ("t"     haskell-ts-beginning-of-defun)
   ("h"     haskell-ts-end-of-defun)
@@ -404,20 +404,20 @@ _<tab>_: reindent         _h_: jump to topmont function/entity end
 
 (defhydra-derive hydra-haskell-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_a_lign            _t_: jump to topmost node start
-_<tab>_: reindent  _h_: jump to topmont node end"
+_a_lign          _t_: jump to topmost node start
+_TAB_: reindent  _h_: jump to topmont node end"
   ("a"     hydra-haskell-align/body)
-  ("<tab>" haskell-reindent-region)
+  ("TAB"   haskell-reindent-region)
 
   ("t"     haskell-move-to-topmost-start)
   ("h"     haskell-move-to-topmost-end))
 
 (defhydra-derive hydra-haskell-ts-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_a_lign            _t_: jump to topmost function/entity start
-_<tab>_: reindent  _h_: jump to topmont function/entity end"
+_a_lign          _t_: jump to topmost function/entity start
+_TAB_: reindent  _h_: jump to topmont function/entity end"
   ("a"     hydra-haskell-align/body)
-  ("<tab>" haskell-ts-reindent-region)
+  ("TAB"   haskell-ts-reindent-region)
 
   ("t"     haskell-ts-beginning-of-defun)
   ("h"     haskell-ts-end-of-defun))
@@ -565,9 +565,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
     ;; Consider using haskell-indentation-newline-and-indent.
     ("<return>"    haskell-newline-with-signature-expansion)
-    ("C-<return>"  haskell--simple-indent-newline-indent)
-
-    (("S-<tab>" "<S-iso-lefttab>" "<backtab>") nil))
+    ("C-<return>"  haskell--simple-indent-newline-indent))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap
@@ -607,8 +605,8 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
     ("g"   hydra-haskell-ts-vim-normal-g-ext/body))
 
   (def-keys-for-map vim-visual-mode-local-keymap
-    ("<tab>" haskell-ts-reindent-region)
-    ("g"     hydra-haskell-ts-vim-visual-g-ext/body))
+    ("TAB" haskell-ts-reindent-region)
+    ("g"   hydra-haskell-ts-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
@@ -760,7 +758,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("<tab>"    completion-at-point)
+    ("TAB"      completion-at-point)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
 

@@ -404,7 +404,7 @@ _C_: hide everything except current entry and its parents"
     ("C-9"      org-mode-show-level-9))
 
   (def-keys-for-map vim-visual-mode-local-keymap
-    ("<tab>"   org-indent-region))
+    ("TAB" org-indent-region))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)

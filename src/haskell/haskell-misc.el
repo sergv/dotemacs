@@ -107,10 +107,8 @@ single indentation unit."
   (if simpler-indentation-by-default?
       (progn
         (bind-tab-keys #'indent-relative-forward #'indent-relative-backward)
-        (def-keys-for-map (vim-normal-mode-local-keymap
-                           vim-insert-mode-local-keymap)
-          ("C-<tab>"                         haskell-misc-combined-indent-forwards)
-          (("C-S-<tab>" "C-S-<iso-lefttab>") haskell-misc-combined-indent-backwards)))
+        (local-set-key (eval-when-compile (kbd "C-TAB")) haskell-misc-combined-indent-forwards)
+        (local-set-key (eval-when-compile (kbd "C-S-TAB")) haskell-misc-combined-indent-backwards))
     (bind-tab-keys #'haskell-misc-combined-indent-forwards
                    #'haskell-misc-combined-indent-backwards))
 
