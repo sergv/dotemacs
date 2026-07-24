@@ -154,13 +154,10 @@
   (when tab-binding
     (local-set-key (eval-when-compile (kbd "TAB")) tab-binding))
   (when backtab-binding
-    (dolist (binding (eval-when-compile
-                       (list (kbd "<backtab>")
-                             (kbd "S-TAB")
-                             ;; (kbd "S-<tab>")
-                             ;; (kbd "S-<iso-lefttab>")
-                             )))
-      (local-set-key binding backtab-binding))))
+    ;; (kbd "<backtab>")
+    ;; (kbd "S-<tab>")
+    ;; (kbd "S-<iso-lefttab>")
+    (local-set-key (eval-when-compile (kbd "S-TAB")) backtab-binding)))
 
 (provide 'start-common)
 
