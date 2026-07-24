@@ -48,13 +48,13 @@
 
 (defvar happy-grammar-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (define-key keymap ";"                     #'electric-happy-semi)
-    (define-key keymap ":"                     #'electric-happy-colon)
-    (define-key keymap "|"                     #'electric-happy-colon)
-    (define-key keymap (kbd "<backspace>")     #'backward-delete-char-untabify)
-    (define-key keymap (kbd "<tab>")           #'happy-indent-command)
-    (define-key keymap (kbd "S-<tab>")         #'happy-dedent-command)
-    (define-key keymap (kbd "S-<iso-lefttab>") #'happy-dedent-command)
+    (def-keys-for-map keymap
+      (";"           electric-happy-semi)
+      (":"           electric-happy-colon)
+      ("|"           electric-happy-colon)
+      ("<backspace>" backward-delete-char-untabify)
+      ("TAB"         happy-indent-command)
+      ("S-TAB"       happy-dedent-command))
     keymap)
   "Keymap used in happy mode.")
 

@@ -272,7 +272,7 @@
 
     ("M-p"              browse-eshell-input-history)
     ("C-d"              eshell-send-eof-to-process)
-    ("<tab>"            completion-at-point)
+    ("TAB"              completion-at-point)
     ("C-SPC"            eshell/clear)))
 
 (provide 'eshell-setup)

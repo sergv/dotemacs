@@ -559,9 +559,9 @@ _a_ll"
 
 (defhydra-derive hydra-lisp-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_<tab>_: reindent defun  _t_: jump to function start
+_TAB_: reindent defun  _t_: jump to function start
                        _h_: jump to function end"
-  ("<tab>" paredit-reindent-defun)
+  ("TAB"   paredit-reindent-defun)
 
   ("t"     glisp/beginning-of-defun)
   ("h"     glisp/end-of-defun))
@@ -695,7 +695,6 @@ _o_: show sexps in region"
     ("C-SPC"       vim:comint-clear-buffer-above-prompt:interactive)
     ("C-w"         backward-delete-word)
     ("C-S-w"       backward-delete-word*)
-    ("<tab>"       nil)
 
     ("M-p"         browse-comint-input-history)
 
