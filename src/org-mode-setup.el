@@ -375,9 +375,7 @@ _C_: hide everything except current entry and its parents"
   (typography-setup)
   (setup-indent-size 2)
   (setq-local tab-width 8)
-  (bind-tab-keys #'org-cycle
-                 #'org-shifttab
-                 :enable-yasnippet t)
+  (bind-tab-keys #'org-cycle #'org-shifttab)
   (vim-local-emap "beamer" #'vim:org-mode-make-beamer-presentation)
   (vim-local-emap "export" #'vim:org-mode-export)
   (vim-local-emap "tangle" #'vim:org-mode-tangle)
