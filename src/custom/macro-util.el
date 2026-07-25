@@ -365,27 +365,6 @@ value on all subsequent invokations."
   `(when buffer-file-name
      ,@body))
 
-
-(defun quoted? (x)
-  (eq 'quote (car-safe x)))
-
-(defun def-keys-for-map--expand-key (key)
-  "Expand key definition akin to `kbd' but may also add some
-compatibility mappings for unexpected environments."
-  (cond
-    ((vectorp key)
-     (list key))
-    ((stringp key)
-     (let ((kbd-expanded (eval `(kbd ,key))))
-       ;; Rebind "C-h" for terminals that refuse to send "C-h" and
-       ;; send "C-<backspace>" instead.
-       (if (equal kbd-expanded (kbd "C-h"))
-           (list kbd-expanded
-                 (kbd "C-<backspace>"))
-         (list kbd-expanded))))
-    (t
-     (error "Cannot expand key: %s" key))))
-
 (defmacro def-keys-for-map (mode-map &rest key-command-list)
   "Bind keys specified by KEY-COMMAND-LIST into map MODE-MAP. MODE-MAP can
 be either a single map or a list of maps.
@@ -394,61 +373,162 @@ KEY-COMMAND-LIST can be list of the following:
 1. Symbols - they will be treated as variables and their contents treated as
 another KEY-COMMAND-LIST spliced in place of a variable;
 2. Entries - 2-element lists (KEYS COMMAND) where:
-2.a. KEYS    - string or list of string defining keys, in `kbd' format;
+2.a. KEYS    - string or list of string defining keys, in ‘key-parse’ format;
 2.b. COMMAND - symbol or inline interactive lambda to be invoked on pressing a key.
 "
   (declare (indent 1))
-  (letrec ((def-key
-             (lambda (map key command)
-               (cl-assert (or (stringp key)
-                              (vectorp key)
-                              (symbolp key))
-                          nil
-                          "Invalid key: %s"
-                          key)
-               `(define-key ,map
-                  ,key
-                  ,(cond
-                     ((and (listp command)
-                           (or (eq 'function (car command))
-                               (eq 'quote (car command))))
-                      command)
-                     ((and (listp command)
-                           (eq 'lambda (car command)))
-                      (list 'function command))
-                     (t
-                      (list 'quote command))))))
+  (letrec ((singleton-vector?
+            (lambda (xs)
+              (and (vectorp xs)
+                   (= 1 (length xs)))))
+           (def-key
+            (lambda (map key command)
+              (unless (or (stringp key)
+                          (vectorp key)
+                          (listp key)
+                          (symbolp key))
+                (error "Invalid key: ‘%s’" key))
+              (let ((cmd (cond
+                           ((and (listp command)
+                                 (eq 'function (car command)))
+                            command)
+                           ((and (listp command)
+                                 (eq 'quote (car command)))
+                            (cadr command))
+                           ((and (listp command)
+                                 (eq 'lambda (car command)))
+                            (list 'function command))
+                           (t
+                            (list 'function command)))))
+                (if (funcall singleton-vector? key)
+                    (let ((elem (aref key 0)))
+                      `(define-key ,map
+                                   (vector ,(if (symbolp elem)
+                                                (list 'quote elem)
+                                              elem))
+                                   ,cmd))
+                  `(define-key ,map ,key ,cmd)))))
+           (expand-key
+            ;; Expand key definition akin to ‘key-parse’ but may also
+            ;; add some compatibility mappings for unexpected
+            ;; environments.
+            (lambda (key)
+              (when (characterp key)
+                (setf key (char-to-string key)))
+              (cond
+                ((vectorp key)
+                 (list key))
+                ((stringp key)
+                 (unless (key-valid-p key)
+                   (error "Invalid key: ‘%s’" key))
+                 (let ((expanded (key-parse key)))
+                   ;; Rebind "C-h" for terminals that refuse to send "C-h" and
+                   ;; send "C-<backspace>" instead.
+                   (if (equal expanded (eval-when-compile (key-parse "C-h")))
+                       (list expanded
+                             (eval-when-compile (key-parse "C-<backspace>")))
+                     (list expanded))))
+                (t
+                 (error "Cannot expand key: ‘%s’" key)))))
+           (singleton-vector-of-chars?
+            (lambda (xs)
+              (and (funcall singleton-vector? xs)
+                   (characterp (aref xs 0)))))
+           (expand-key-spec
+            (lambda (key handle-single-keybinding)
+              (when (characterp key)
+                (setf key (char-to-string key)))
+              (cond
+                ((listp key)
+                 (list
+                  (let ((expanded-keys (mapcan expand-key key)))
+                    (cond
+                      ((cl-every singleton-vector-of-chars? expanded-keys)
+                       `(mapc (lambda (key)
+                                ,(funcall handle-single-keybinding '(vector key)))
+                              ,(apply #'concat
+                                      (mapcar (lambda (x)
+                                                (let ((def (aref x 0)))
+                                                  (cond
+                                                    ((characterp def) (char-to-string def))
+                                                    (t
+                                                     (error "Unexpected key definition: ‘%s’, please investigate further" def)))))
+                                              expanded-keys))))
+                      ((cl-every singleton-vector? expanded-keys)
+                       `(mapc (lambda (key)
+                                ,(funcall handle-single-keybinding '(vector key)))
+                              ',(mapcar (lambda (x)
+                                          (let ((def (aref x 0)))
+                                            (if (or (symbolp def)
+                                                    (numberp def))
+                                                def
+                                              (error "Unexpected key definition: ‘%s’, please investigate further" def))))
+                                        expanded-keys)))
+                      (t
+                       `(dolist (key ',expanded-keys)
+                          ,(funcall handle-single-keybinding 'key)))))))
+                ((stringp key)
+                 (unless (key-valid-p key)
+                   (error "Invalid key: ‘%s’" key))
+                 (let ((parsed (key-parse key)))
+                   (if (funcall singleton-vector-of-chars? parsed)
+                       (list (funcall handle-single-keybinding
+                                      `(vector
+                                        ,(let ((def (aref parsed 0)))
+                                           (if (symbolp def)
+                                               `(quote ,def)
+                                             def)))))
+                     (list (funcall handle-single-keybinding parsed)))))
+                (t
+                 (error "Invalid key: ‘%s’" key)))))
+           (quoted?
+            (lambda (x)
+              (eq 'quote (car-safe x))))
            (process-key-command-list
             (lambda (map-var key-command-list)
               (cl-loop
-                for entry in key-command-list
-                appending (if (symbolp entry)
-                              (funcall process-key-command-list map-var (symbol-value entry))
-                            (cl-destructuring-bind (key command)
-                                (if (quoted? entry)
-                                    (eval entry)
-                                  entry)
-                              (cond
-                                ((listp key)
-                                 (list
-                                  `(dolist (key ',(mapcan #'def-keys-for-map--expand-key key))
-                                     ,(funcall def-key map-var 'key command))))
-                                ((stringp key)
-                                 (list (funcall def-key map-var (eval `(kbd ,key)) command)))
-                                (t
-                                 (error "Invalid key: %s" key)))))))))
+               for entry in key-command-list
+               appending (if (symbolp entry)
+                             (funcall process-key-command-list map-var (symbol-value entry))
+                           (pcase (if (funcall quoted? entry)
+                                      (eval entry)
+                                    entry)
+                             (`(,key-spec :remove)
+                              (funcall expand-key-spec
+                                       key-spec
+                                       (lambda (single-key)
+                                         `(remove-key! ,single-key ,map-var))))
+                             (`(,key-spec ,command)
+                              (when (eq command nil)
+                                (error "Use :remove instead of nil to undefine keys"))
+                              (funcall expand-key-spec
+                                       key-spec
+                                       (lambda (single-key)
+                                         (funcall def-key map-var single-key command))))
+                             (invalid
+                              (error "Invalid entry: %s" invalid))))))))
     (let* ((map-var '#:keymap)
            (bindings
-            `(dolist (,map-var
-                      (list
-                       ,@(cond
-                           ((listp mode-map)
-                            mode-map)
-                           (t (list mode-map)))))
-               (when (null ,map-var)
-                 ;; don't silently ignore potential problems
-                 (error ,(format "warning: map %s is nil" map-var)))
-               ,@(funcall process-key-command-list map-var key-command-list))))
+            (if (listp mode-map)
+                (if (funcall quoted? mode-map)
+                    `(let ((,map-var ,(cadr mode-map)))
+                       (cl-assert (not (null ,map-var))
+                                  nil
+                                  "warning: map %s is nil"
+                                  ',map-var)
+                       ,@(funcall process-key-command-list map-var key-command-list))
+                  `(dolist (,map-var (list ,@mode-map))
+                     (cl-assert (not (null ,map-var))
+                                nil
+                                "warning: map %s is nil"
+                                ',map-var)
+                     ,@(funcall process-key-command-list map-var key-command-list)))
+              `(let ((,map-var ,mode-map))
+                 (cl-assert (not (null ,map-var))
+                            nil
+                            "warning: map %s is nil"
+                            ',map-var)
+                 ,@(funcall process-key-command-list map-var key-command-list)))))
       (unless bindings
         (error "No keys bound for %S using following key-command-list %S"
                mode-map

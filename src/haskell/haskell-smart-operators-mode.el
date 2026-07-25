@@ -716,17 +716,15 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 
 (defvar haskell-smart-operators-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (dolist (key (list (kbd "=") (kbd "+") (kbd "*") (kbd "<") (kbd ">")
-                       (kbd "%") (kbd "^") (kbd "&") (kbd "/")
-                       (kbd "?") (kbd "|") (kbd "~")
-                       (kbd "@") (kbd ":")))
-      (define-key keymap key #'haskell-smart-operators-self-insert))
-    (define-key keymap (kbd "!") #'haskell-smart-operators-exclamation-mark)
-    (define-key keymap (kbd "-") #'haskell-smart-operators-hyphen)
-    (define-key keymap (kbd "#") #'haskell-smart-operators-hash)
-    (define-key keymap (kbd ",") #'haskell-smart-operators-comma)
-    (define-key keymap (kbd ".") #'haskell-smart-operators-dot)
-    (define-key keymap (kbd "$") #'haskell-smart-operators-$)
+    (def-keys-for-map keymap
+      (("=" "+" "*" "<" ">" "%" "^" "&" "/" "?" "|" "~" "@" ":")
+           haskell-smart-operators-self-insert)
+      ("!" haskell-smart-operators-exclamation-mark)
+      ("-" haskell-smart-operators-hyphen)
+      ("#" haskell-smart-operators-hash)
+      ("," haskell-smart-operators-comma)
+      ("." haskell-smart-operators-dot)
+      ("$" haskell-smart-operators-$))
     keymap))
 
 ;;;###autoload

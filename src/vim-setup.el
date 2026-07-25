@@ -262,9 +262,9 @@ _<right>_: move tab to the right"
   ("C--" vim-universal-argument-minus)
 
   ("G"   vim:motion-go-to-first-non-blank-end:interactive)
-  ("j"   nil)
+  ("j"   :remove)
 
-  ("%"   nil)
+  ("%"   :remove)
   ;; short for matching
   ("m"   vim:motion-jump-item:interactive))
 
@@ -274,8 +274,8 @@ _<right>_: move tab to the right"
   ("-"   vim-universal-argument-minus))
 
 (def-keys-for-map vim-operator-pending-mode-keymap
-  (("is" "s") vim:motion-inner-symbol:interactive)
-  ("as"       vim:motion-outer-symbol:interactive))
+  (("i s" "s") vim:motion-inner-symbol:interactive)
+  ("a s"       vim:motion-outer-symbol:interactive))
 
 (def-keys-for-map (vim-operator-pending-mode-keymap
                    vim-motion-mode-keymap)
@@ -323,7 +323,7 @@ _<right>_: move tab to the right"
   ("C-w"           backward-delete-word)
   ("C-S-w"         backward-delete-word*)
 
-  ("Z"       nil)
+  ("Z"       :remove)
 
   ("Q"       vim-cmd-toggle-macro-recording))
 
@@ -344,7 +344,7 @@ _<right>_: move tab to the right"
   ("p"         vim:cmd-paste-after:interactive)
   ("P"         vim:cmd-paste-before:interactive)
 
-  ("C-y"       nil)
+  ("C-y"       :remove)
   ;; names of these two functions are swapped for unknown reason
   ;; anyway, so don't change order
   ("{"          scroll-up)
@@ -427,7 +427,7 @@ _<right>_: move tab to the right"
   ("S-<delete>"    delete-whitespace-forward)
   ("C-w"           backward-delete-word)
   ("C-S-w"         backward-delete-word*)
-  ("C-r"           nil)
+  ("C-r"           :remove)
   ("C-S-p"         browse-kill-ring)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up:interactive)
@@ -447,8 +447,8 @@ _<right>_: move tab to the right"
 (def-keys-for-map vim-ex-keymap
   ("C-v"     set-mark-command)
   ("C-y"     copy-region-as-kill)
-  ("<prior>" nil)
-  ("<next>"  nil))
+  ("<prior>" :remove)
+  ("<next>"  :remove))
 
 (vim-defcmd vim:jump-to-prev-saved-position (nonrepeatable keep-visual)
   "Jump to position pointed to by ' mark.
