@@ -436,9 +436,9 @@ otherwise results will be incorrect.")
 (defconst haskell-regexen/ghci-info-definition-site
   (rx "-- Defined in "
       ?\‘
-      (group-n 1
-        (+ (not (any ?: ?\n ?\r ?\t))))
-      ":"
+      (? (group-n 1
+           (+ (not (any ?: ?\n ?\r ?\t))))
+         ":")
       (group-n 2
         (+ (not (any ?\n ?\r ?\t))))
       ?\’
