@@ -247,8 +247,9 @@ in GROUP-NUMS."
 ;;;
 
 (defvar octave-error-keymap
-  (let ((k (make-keymap)))
-    (define-key k (kbd "<return>") #'octave-jump-to-error)
+  (let ((k (make-sparse-keymap)))
+    (def-keys-for-map k
+      ("<return>" octave-jump-to-error))
     k))
 
 (defun octave-highlight-errors ()
