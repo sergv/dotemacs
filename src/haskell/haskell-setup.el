@@ -258,12 +258,14 @@ regexps to not be confused by the instance location."
                 ;; useful to narrow down tag search.
                 ((string-match haskell-regexen/ghci-info-definition-site info)
                  (let* ((mod-name (match-string-no-properties 2 info))
-                        (pkg-name (haskell-misc--strip-package-version (match-string-no-properties 1 info)))
-                        ;; (packages (lcr-call dante-async-call ":show packages"))
                         (pkgs-without-versions
-                         ;; Can narrow search down to a single package.
-                         ;; (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages)
-                         (list pkg-name)))
+                         (if-let ((pkg-with-version (match-string-no-properties 1 info))
+                                  (pkg-name (haskell-misc--strip-package-version pkg-with-version)))
+                             ;; Can narrow search down to a single package.
+                             (list pkg-name)
+                           ;; Take all packages in scope since :info didn’t specify a package.
+                           (haskell-go-to-symbol-home--strip-ghci-packages-of-versions
+                            (lcr-call dante-async-call ":show packages")))))
                    (funcall wrap-func
                             #'haskell-go-to-symbol-home--jump-to-filtered-tags
                             (list identifier
