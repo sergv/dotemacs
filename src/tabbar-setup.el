@@ -7,15 +7,18 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'common)
   (require 'dash)
   (require 'macro-util)
-  (require 'set-up-platform))
+  (require 'set-up-platform)
+  (require 'tab-bar))
 
+(require 'common)
 (require 'el-patch)
 
 (defsubst tabbar--at-least-2-elements? (x)
   (cdr x))
+
+(setf tab-bar-select-tab-modifiers nil)
 
 ;;;###autoload
 (defun next-tab-or-frame (arg)
@@ -30,6 +33,22 @@
   (if (tabbar--at-least-2-elements? (tab-bar-tabs))
       (tab-previous arg)
     (prev-f arg)))
+
+;; tab-bar-mode--tab-key-bind
+
+;;;###autoload
+(defun tab-bar-init ()
+  (remove-key! (key-parse "t") ctl-x-map)
+  (map-keymap-internal (lambda (key _def)
+                         (remove-key! (vector key) tab-bar-mode-map))
+                       tab-bar-mode-map)
+
+  (setf tab-bar-mode-map (make-sparse-keymap)
+        tab-prefix-map (make-sparse-keymap)))
+
+;;;###autoload
+(with-eval-after-load 'tab-bar
+  (tab-bar-init))
 
 ;;;; tab bar
 
