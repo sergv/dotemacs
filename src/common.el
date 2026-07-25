@@ -1653,6 +1653,10 @@ returned non-nil."
             result)
         (nconc ys-uniq tmp)))))
 
+;;;;
+
+(defun remove-key! (key keymap)
+  (define-key keymap key nil t))
 
 (provide 'common)
 
