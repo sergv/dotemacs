@@ -21,9 +21,10 @@
 
 (defun c-init ()
   (def-keys-for-map c-mode-map
-    (("\(" "\)" "\[" "\]" "\{" "\}") nil)))
+    (("\(" "\)" "\[" "\]" "\{" "\}") :remove)))
 
-(eval-after-load 'cc-mode '(c-init))
+(with-eval-after-load 'cc-mode
+  (c-init))
 
 ;;;###autoload
 (defun c-setup ()

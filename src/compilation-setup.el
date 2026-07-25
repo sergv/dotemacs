@@ -56,7 +56,7 @@
 
 (defun compilation-init-after-load ()
   (def-keys-for-map compilation-button-map
-    ("C-m" nil)))
+    ("C-m" :remove)))
 
 (eval-after-load "compile"
   '(compilation-init-after-load))

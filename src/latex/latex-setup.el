@@ -55,8 +55,8 @@
       (progn
         (flyspell--mode-off)
         (def-keys-for-map vim-normal-mode-local-keymap
-          ("'"  nil)
-          ("\"" nil)))
+          ("'"  :remove)
+          ("\"" :remove)))
     (progn
       (def-keys-for-map vim-normal-mode-local-keymap
         ("'"  ispell-word)
