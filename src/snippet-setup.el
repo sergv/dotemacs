@@ -47,8 +47,8 @@ otherwise."
     ("S-<f9>"       yas-tryout-snippet))
 
   (def-keys-for-map snippet-mode-map
-    ("C-c C-c" nil)
-    ("C-c C-t" nil)))
+    ("C-c C-c" :remove)
+    ("C-c C-t" :remove)))
 
 ;;;###autoload
 (add-hook 'snippet-mode-hook #'snippet-setup)
