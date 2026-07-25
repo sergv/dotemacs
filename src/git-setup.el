@@ -332,7 +332,7 @@ _j_: default vim hydra
                      magit-untracked-section-map
                      magit-mode-map
                      map)
-    ("u" nil)
+    ("u" :remove)
     ("s" vim-ex-read-command))
   (def-keys-for-map map
     +vim-special-keys+
@@ -341,7 +341,7 @@ _j_: default vim hydra
     ("<up>"            backward-line)
 
     ("e"               magit-ediff)
-    ("E"               nil)
+    ("E"               :remove)
 
     ("h"               magit-section-forward)
     ("t"               magit-section-backward)
@@ -372,7 +372,7 @@ _j_: default vim hydra
     ("C-4"             magit-section-show-level-4-all)
 
     ;; Unbind "y" since it's too slow.
-    ("y"               nil)
+    ("y"               :remove)
     ;; I don't use "Y" so swap it with "y"
     ("Y"               magit-show-refs)))
 
@@ -441,7 +441,7 @@ _j_: default vim hydra
      )
     ("<down>"  git-commit-next-message ;; log-edit-next-comment
      )
-    ("M-p"     nil)))
+    ("M-p"     :remove)))
 
 (defhydra-ext hydra-git-rebase (:exit t :foreign-keys warn :hint nil)
   "
@@ -486,7 +486,7 @@ e_x_ec"
     ("g"              hydra-git-rebase-from-vim-normal/body)
     ("-"              hydra-git-rebase/body)
 
-    ("n"              nil)
+    ("n"              :remove)
     ("q"              with-editor-cancel)
     ("a"              magit-rebase-abort)
 
