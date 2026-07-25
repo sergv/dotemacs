@@ -24,7 +24,7 @@
     ("h"        doc-view-next-line-or-next-page)
     ("t"        doc-view-previous-line-or-previous-page)
     ("n"        image-forward-hscroll)
-    ("p"        nil)
+    ("p"        :remove)
     ("S-<up>"   doc-view-previous-page)
     ("S-<down>" doc-view-next-page)))
 
