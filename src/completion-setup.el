@@ -236,8 +236,8 @@ Puts directories before files unless they're invisible."
         (string< x y)))))
 
 (def-keys-for-map ivy-minibuffer-map
-  (("C-h" "<C-up>")   ivy-next-history-element)
-  (("C-t" "<C-down>") ivy-previous-history-element)
+  (("C-h" "C-<up>")   ivy-next-history-element)
+  (("C-t" "C-<down>") ivy-previous-history-element)
   ("C-p"              yank)
   ("C-S-p"            browse-kill-ring)
   ("C-w"              ivy-backward-kill-word)
@@ -248,7 +248,7 @@ Puts directories before files unless they're invisible."
   ("C-d"              kill-region)
 
   ("C-SPC"            delete-minibuffer-contents)
-  ("<C-return>"       ivy-immediate-done))
+  ("C-<return>"       ivy-immediate-done))
 
 (provide 'completion-setup)
 

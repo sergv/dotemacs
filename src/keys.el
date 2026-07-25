@@ -21,14 +21,14 @@
 (require 'keys-def)
 
 (def-keys-for-map help-map
-  ("h" nil))
+  ("h" :remove))
 
 (def-keys-for-map global-map
   ;; Unbind so that I don’t accidetally invoke tutorial, news or other such nonsense.
-  ("C-h"      nil)
+  ("C-h"      :remove)
 
   ("<f1>"     help-command)
-  ("<f1> t"   nil)
+  ("<f1> t"   :remove)
   ("<f2>"     vim-universal-argument)
 
   ("<f5>"     revert-buffer)
@@ -44,10 +44,10 @@
   ("<escape>" abort-recursive-edit)
   ("C-!"      shell-command)
   ("C-|"      shell-command-on-region)
-  ("M-!"      nil)
-  ("M-|"      nil)
-  ("C-v"      nil)
-  ("C-r"      nil)
+  ("M-!"      :remove)
+  ("M-|"      :remove)
+  ("C-v"      :remove)
+  ("C-r"      :remove)
   ("C-v"      set-mark-command)
   ("C-y"      copy-region-as-kill)
   ("C-f"      read-and-insert-filename)
@@ -56,30 +56,30 @@
   ("C-S-w"    backward-delete-word*)
   ("C-s"      indirect-aware-save-buffer)
 
-  ("C-t"      nil)
-  ("C-<down>" nil)
-  ("C-<up>"   nil)
+  ("C-t"      :remove)
+  ("C-<down>" :remove)
+  ("C-<up>"   :remove)
   ("C-b"      hydra-switching/body)
   ("M-b"      switch-to-prev-buffer-in-window)
 
   ;; for icicle
-  ("M-TAB"    nil)
-  ("C-SPC"    nil)
-  ("M-SPC"    nil)
-  ("M-."      nil)
-  ("C-/"      nil)
-  ("M-/"      nil)
-  ("M-f"      nil)
-  ("M-m"      nil)
-  ("M-M"      nil)
+  ("M-TAB"    :remove)
+  ("C-SPC"    :remove)
+  ("M-SPC"    :remove)
+  ("M-."      :remove)
+  ("C-/"      :remove)
+  ("M-/"      :remove)
+  ("M-f"      :remove)
+  ("M-m"      :remove)
+  ("M-M"      :remove)
 
   ("M-x"      counsel-M-x)
 
-  ("C-x <f1>" nil)
-  ("C-z"      nil)
+  ("C-x <f1>" :remove)
+  ("C-z"      :remove)
   ("C-x f"    find-file)
-  ("C-k"      nil)
-  ("C-S-k"    nil)
+  ("C-k"      :remove)
+  ("C-S-k"    :remove)
   ("<print>"  render-formula-toggle-formulae)
 
   ("<right>"  forward-char)
@@ -89,8 +89,8 @@
 
   ("<mouse-3>" mouse-open-file-at-point-other-window)
 
-  ("C-<home>" nil)
-  ("C-<end>"  nil)
+  ("C-<home>" :remove)
+  ("C-<end>"  :remove)
 
   (("DEL" "<backspace>") pseudoparedit-backspace)
   ("\""                  pseudoparedit-insert-double-quote)
@@ -105,7 +105,7 @@
   ("C-S-TAB"             indent-relative-backward)
 
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
-  ("\e\e\e" nil))
+  ("ESC ESC ESC" :remove))
 
 (def-keys-for-map universal-argument-map
   ("<f2>" universal-argument-more))

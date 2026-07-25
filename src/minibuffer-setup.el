@@ -23,7 +23,7 @@
   ("C-p"               vim-cmd-paste-after-no-adjust)
   ("C-S-p"             browse-kill-ring)
 
-  ("C-/"               nil)
+  ("C-/"               :remove)
   ("C-v"               set-mark-command)
   ("C-y"               copy-region-as-kill)
   ("C-d"               kill-region)

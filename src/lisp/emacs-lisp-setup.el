@@ -145,7 +145,7 @@ _e_val
     ("j"       hydra-emacs-lisp-vim-normal-j-ext/body)
     ("-"       hydra-emacs-lisp-dash/body)
 
-    ("M-:"     nil)
+    ("M-:"     :remove)
     ("C-:"     pp-eval-expression)
     ("C-."     elisp-slime-nav-find-elisp-thing-at-point)
     ("C-,"     eproj-symbnav/go-back)

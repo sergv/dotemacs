@@ -47,7 +47,7 @@ _C_: go to difference closest to the point in buffer C
 (defun ediff-keymap-setup ()
   (def-keys-for-map ediff-mode-map
     +vim-interbuffer-navigation-keys+
-    (("p" "n" " " "C-l" "\C-?" [delete] "G" "E" "m" "##") nil)
+    (("p" "n" "SPC" "C-l" "C-?" [delete] "G" "E" "m" "# #") :remove)
 
     ("z"            hydra-ediff-z-ext/body)
     ("g"            hydra-ediff-g-ext/body)
@@ -57,7 +57,7 @@ _C_: go to difference closest to the point in buffer C
     (("h" "<down>") ediff-next-difference)
     (("t" "<up>")   ediff-previous-difference)
     ("<escape>"     ediff-quit)
-    ("#w"           ediff-toggle-ignore-whitespace)))
+    ("# w"          ediff-toggle-ignore-whitespace)))
 
 (setf ediff-long-help-message-head
       "Move around               Toggle features                     Manipulate"
