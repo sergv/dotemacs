@@ -113,12 +113,12 @@
 
   (def-keys-for-map paredit-mode-map
     ;; ‘fill-paragraph’ is so much better
-    ("\\"        nil)
-    ("M-q"       nil)
-    ("C-k"       nil)
-    ("<return>"  nil)
-    ("C-<left>"  nil)
-    ("C-<right>" nil)
+    ("\\"        :remove)
+    ("M-q"       :remove)
+    ("C-k"       :remove)
+    ("<return>"  :remove)
+    ("C-<left>"  :remove)
+    ("C-<right>" :remove)
     ("M-<left>"  paredit-backward-slurp-sexp)
     ("M-<right>" paredit-backward-barf-sexp)))
 

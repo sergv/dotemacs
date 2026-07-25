@@ -462,10 +462,10 @@ _TAB_: reindent  _h_: jump to topmont function/entity end"
     ("j"  hydra-haskell-vim-visual-j-ext/body))
 
   (def-keys-for-map vim-operator-pending-mode-local-keymap
-    (("is" "s") vim:motion-inner-haskell-symbol:interactive)
-    ("as"       vim:motion-outer-haskell-symbol:interactive)
-    (("iS" "S") vim:motion-inner-qualified-haskell-symbol:interactive)
-    ("aS"       vim:motion-outer-qualified-haskell-symbol:interactive)))
+    (("i s" "s") vim:motion-inner-haskell-symbol:interactive)
+    ("a s"       vim:motion-outer-haskell-symbol:interactive)
+    (("i S" "S") vim:motion-inner-qualified-haskell-symbol:interactive)
+    ("a S"       vim:motion-outer-qualified-haskell-symbol:interactive)))
 
 (defun haskell-setup-common-prelude ()
   (init-common :use-whitespace 'tabs-only)
