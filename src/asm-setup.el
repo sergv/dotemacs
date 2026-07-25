@@ -40,7 +40,7 @@
   ;; do not colorize tabs
   (setq-local whitespace-style (remove 'tabs whitespace-style))
   (def-keys-for-map asm-mode-map
-    (";" nil)))
+    (";" :remove)))
 
 ;;;###autoload
 (add-hook 'asm-mode-hook #'asm-mode-setup)

@@ -16,8 +16,8 @@
 
 (with-eval-after-load 'xref
   (def-keys-for-map xref--xref-buffer-mode-map
-    ("n" nil)
-    ("p" nil)
+    ("n" :remove)
+    ("p" :remove)
     ("H" revert-buffer)
     ("h" xref-next-line)
     ("t" xref-prev-line)
