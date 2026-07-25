@@ -850,7 +850,7 @@ Entries should be a list of of elements of the form
       (should (equal (haskell-indentation--add-to-sorted-list! input elem)
                      expected)))))
 
-(ert-deftest haskell-tests/haskell-regexen/ghci-info-definition-site ()
+(ert-deftest haskell-tests/haskell-regexen/ghci-info-definition-site-1 ()
   (save-match-data
     (let ((str "type Range :: *\ndata Range = Range \{..., _end :: !Position}\n  	-- Defined in ‘lsp-types-1.4.0.1:Language.LSP.Types.Location’"))
       (should (string-match haskell-regexen/ghci-info-definition-site str))
@@ -860,6 +860,14 @@ Entries should be a list of of elements of the form
                      "lsp-types"))
       (should (equal (match-string 2 str)
                      "Language.LSP.Types.Location")))))
+
+(ert-deftest haskell-tests/haskell-regexen/ghci-info-definition-site-2 ()
+  (save-match-data
+    (let ((str "space :: Doc ann 	-- Defined in ‘Prettyprinter.Symbols.Ascii’"))
+      (should (string-match haskell-regexen/ghci-info-definition-site str))
+      (should (equal (match-string 1 str) nil))
+      (should (equal (match-string 2 str)
+                     "Prettyprinter.Symbols.Ascii")))))
 
 (ert-deftest haskell-tests/haskell-go-to-symbol-home--strip-ghci-packages-of-versions ()
   (let ((sample-input "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"))
