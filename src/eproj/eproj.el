@@ -1560,12 +1560,13 @@ or `default-directory', if no file is visited."
   (cl-assert (eproj-language-p lang))
   (let ((related (eproj-language/related-modes lang)))
     (if related
-        (--mapcat (eproj-get-matching-tags proj
-                                           it
+        (mapcan (lambda (mode)
+                  (eproj-get-matching-tags proj
+                                           mode
                                            identifier
                                            search-with-regexp?
-                                           t)
-                  (cons tag-major-mode related))
+                                           t))
+                (cons tag-major-mode related))
       (eproj-get-matching-tags proj
                                tag-major-mode
                                identifier
