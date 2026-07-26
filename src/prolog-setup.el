@@ -47,8 +47,8 @@ _e_: consult predicate"
 
 (defhydra-derive hydra-prolog-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_TAB_: reindent predicate"
-  ("TAB" prolog-indent-predicate))
+_<tab>_: reindent predicate"
+  ("<tab>" prolog-indent-predicate))
 
 ;;;###autoload
 (defun prolog-setup ()
