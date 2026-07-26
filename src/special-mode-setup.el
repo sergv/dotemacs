@@ -1,4 +1,4 @@
-;; special-setup.el --- -*- lexical-binding: t; -*-
+;; special-mode-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -24,9 +24,9 @@
 ;;;###autoload
 (add-hook 'special-mode-hook #'special-mode-setup)
 
-(provide 'special-setup)
+(provide 'special-mode-setup)
 
 ;; Local Variables:
 ;; End:
 
-;; special-setup.el ends here
+;; special-mode-setup.el ends here
