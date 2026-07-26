@@ -19,7 +19,6 @@
 (declare-function haskell-abbrev+--insert-pragma "haskell-abbrev+")
 
 (require 'haskell-ext-tracking)
-(require 'haskell-ghc-support)
 (require 'haskell-mode)
 (require 'haskell-smart-operators-utils)
 (require 'haskell-syntax-table)
