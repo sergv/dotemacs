@@ -141,7 +141,6 @@
 (require 'flymake-proc)
 (require 'outline)
 (require 'cl-lib)
-(require 'haskell-ghc-support)
 (require 'haskell-complete-module)
 (require 'haskell-align-imports)
 (require 'haskell-lexeme)
@@ -590,11 +589,6 @@ Minor modes that work well with `haskell-mode':
   (setq-local dabbrev-case-replace nil)
   (setq-local dabbrev-abbrev-char-regexp "\\sw\\|[.]")
   (setq haskell-literate nil)
-  ;; provide non-interactive completion function
-  (add-hook 'completion-at-point-functions
-            'haskell-completions-completion-at-point
-            nil
-            t)
 
   ;; Avoid Emacs 25 bug with electric-pair inside comments
   (when (eq 25 emacs-major-version)
