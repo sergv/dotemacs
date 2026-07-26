@@ -1221,10 +1221,12 @@ foo x
     (haskell-mode)
     (insert "main = do\n  lala\n  ")
 
-    (execute-kbd-macro (kbd "TAB"))
+    ;; (execute-kbd-macro (key-parse "TAB"))
+    (execute-kbd-macro (key-parse "<tab>"))
     (should (equal 4 (- (point) (line-beginning-position))))
 
-    (execute-kbd-macro (kbd "<backtab>"))
+    ;; (execute-kbd-macro (key-parse "<backtab>"))
+    (execute-kbd-macro (key-parse "S-<tab>"))
     (should (equal 2 (- (point) (line-beginning-position))))))
 
 (ert-deftest haskell-indentation-altj-comment ()

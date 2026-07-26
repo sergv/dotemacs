@@ -157,12 +157,12 @@
 (cl-defun bind-tab-keys (tab-binding
                          backtab-binding)
   (when tab-binding
-    (local-set-key (eval-when-compile (kbd "TAB")) tab-binding))
+    (local-set-key (eval-when-compile (key-parse "<tab>")) tab-binding))
   (when backtab-binding
     ;; (kbd "<backtab>")
     ;; (kbd "S-<tab>")
     ;; (kbd "S-<iso-lefttab>")
-    (local-set-key (eval-when-compile (kbd "S-TAB")) backtab-binding)))
+    (local-set-key (eval-when-compile (key-parse "S-<tab>")) backtab-binding)))
 
 (provide 'start-common)
 

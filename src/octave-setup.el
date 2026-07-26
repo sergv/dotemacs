@@ -306,11 +306,11 @@ _,_:  on commas"
 
 (defhydra-derive hydra-octave-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_TAB_: indent defun
+_<tab>_: indent defun
 
 _t_: beginning of defun
 _h_: end of defun"
-  ("TAB" prog-indent-sexp)
+  ("<tab>" prog-indent-sexp)
 
   ("t"     octave-beginning-of-defun-interactive)
   ("h"     end-of-defun))
