@@ -50,47 +50,46 @@
 
 (font-lock-add-keywords
  'emacs-lisp-mode
- (-map (lambda (x)
-         (list (concat "(\\(" x "\\)\\_>")
-               1
-               'font-lock-keyword-face))
-       '("aif"
-         "awhen"
-         "if-let"
-         "when-let"
-         "def-keys-for-map"
-         "defvar-local"
-         "with-disabled-undo"
-         "with-current-frame"
-         "with-preserved-buffer-modified-p"
-         "with-inhibited-modification-hooks"
-         "with-inhibited-read-only"
-         "with-hidden-comments"
-         "with-hidden-cloze-hints"
-         "with-hidden-cloze-text")))
+ (list (list (rx "("
+                 (group-n 1
+                   (or "aif"
+                       "awhen"
+                       "if-let"
+                       "when-let"
+                       "def-keys-for-map"
+                       "defvar-local"
+                       "with-disabled-undo"
+                       "with-current-frame"
+                       "with-preserved-buffer-modified-p"
+                       "with-inhibited-modification-hooks"
+                       "with-inhibited-read-only"
+                       "with-hidden-comments"
+                       "with-hidden-cloze-hints"
+                       "with-hidden-cloze-text")
+                   )
+                 symbol-end)
+             1
+             'font-lock-keyword-face)))
 
-(defvar *emacs-lisp-indent-specs*
-  '((autoload nil)
-    (loop 0)
-    (cond 0)
-    (awhen 1)
-    (def-keys-for-map 1)
-    (condition-case 2)
-    (define-derived-mode 3)
-    (with-disabled-undo nil)
-    (with-current-frame 1)
-    (with-preserved-buffer-modified-p nil)
-    (with-inhibited-modification-hooks nil)
-    (with-inhibited-read-only nil)
-    (with-hidden-comments nil)
-    (with-hidden-cloze-hints nil)
-    (with-hidden-cloze-text nil)
-    (c-lang-defconst 1))
-  "Indentation specifications for emacs lisp.")
-
-(dolist (entry *emacs-lisp-indent-specs*)
-  (cl-destructuring-bind (symb indent-spec) entry
-    (put symb 'lisp-indent-function indent-spec)))
+(let ((emacs-lisp-indent-specs
+       '((autoload . nil)
+         (loop . 0)
+         (cond . 0)
+         (awhen . 1)
+         (def-keys-for-map . 1)
+         (condition-case . 2)
+         (define-derived-mode . 3)
+         (with-disabled-undo . nil)
+         (with-current-frame . 1)
+         (with-preserved-buffer-modified-p . nil)
+         (with-inhibited-modification-hooks . nil)
+         (with-inhibited-read-only . nil)
+         (with-hidden-comments . nil)
+         (with-hidden-cloze-hints . nil)
+         (with-hidden-cloze-text . nil)
+         (c-lang-defconst . 1))))
+  (dolist (entry emacs-lisp-indent-specs)
+    (put (car entry) 'lisp-indent-function (cdr entry))))
 
 ;;;;
 
