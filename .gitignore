@@ -1,23 +1,11 @@
 # directories
 compiled
 compiled/
-doc/**
-drills/**
 eshell/**
-experimental/**
 lib/**
-local/**
-local.24.*/**
-local.*/**
-misc/**
-packages/**
-scripts/git-branch-filtering/**
-standalone/**
 tree-sitter/**
-tmp/**
 
 # haskell-mode is already under git
-src/haskell/haskell-mode
 
 # these come from using *.tex files, e.g. exporting *.org into pdf
 auto/**
@@ -61,7 +49,7 @@ last-wconf
 *~
 /doc/dir
 *.info
-*-autoloads.el
+local-autoloads.el
 .dir-locals-2.el
 
 .cask/
