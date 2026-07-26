@@ -27,8 +27,11 @@ all hydras in my setup."
     `(eval-and-compile
        (defhydra ,name ,args-ext
          ,docstring
-         ,@heads
-         ("<escape>" nil)))))
+         ,@(cl-delete-duplicates
+            (append heads
+                    '(("<escape>" nil)))
+            :key #'car
+            :test #'equal)))))
 
 (defmacro defhydra-derive (name parent args &optional docstring &rest heads)
   (declare (indent defun) (doc-string 4))
