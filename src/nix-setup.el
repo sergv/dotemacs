@@ -135,8 +135,8 @@ _a_lign"
 
 (defhydra-derive hydra-nix-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_TAB_: format buffer"
-  ("TAB" nix-format-buffer))
+<tab>: format buffer"
+  ("<tab>" nix-format-buffer))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\<flake\\.lock\\'" . json-mode))
@@ -206,7 +206,7 @@ _TAB_: format buffer"
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("TAB"      completion-at-point)
+    ("<tab>"    completion-at-point)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
 

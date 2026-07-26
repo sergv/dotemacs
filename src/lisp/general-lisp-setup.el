@@ -559,9 +559,9 @@ _a_ll"
 
 (defhydra-derive hydra-lisp-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_TAB_: reindent defun  _t_: jump to function start
+_<tab>_: reindent defun  _t_: jump to function start
                        _h_: jump to function end"
-  ("TAB"   paredit-reindent-defun)
+  ("<tab>" paredit-reindent-defun)
 
   ("t"     glisp/beginning-of-defun)
   ("h"     glisp/end-of-defun))

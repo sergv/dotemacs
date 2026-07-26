@@ -114,8 +114,10 @@ single indentation unit."
   (if simpler-indentation-by-default?
       (progn
         (bind-tab-keys #'indent-relative-forward #'indent-relative-backward)
-        (local-set-key (eval-when-compile (key-parse "C-TAB")) #'haskell-misc-combined-indent-forwards)
-        (local-set-key (eval-when-compile (key-parse "C-S-TAB")) #'haskell-misc-combined-indent-backwards))
+        (def-keys-for-map '(or (current-local-map)
+                               (use-local-map (make-sparse-keymap)))
+          ("C-<tab>"   haskell-misc-combined-indent-forwards)
+          ("C-S-<tab>" haskell-misc-combined-indent-backwards)))
     (bind-tab-keys #'haskell-misc-combined-indent-forwards
                    #'haskell-misc-combined-indent-backwards))
 

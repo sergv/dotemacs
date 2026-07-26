@@ -93,7 +93,7 @@ cpu time or allocations that the value of this variable.")
 (defvar ghc-profiling-mode-map
   (let ((keymap (make-sparse-keymap)))
     (def-keys-for-map keymap
-      ("TAB" yafolding-toggle-element))
+      ("<tab>" yafolding-toggle-element))
     keymap))
 
 ;;;###autoload
