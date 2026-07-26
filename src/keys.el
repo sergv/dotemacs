@@ -102,8 +102,8 @@
   ("\{"                  pseudoparedit-insert-brace)
   ("\}"                  smart-operators-close-brace)
 
-  ("C-TAB"               indent-relative-forward)
-  ("C-S-TAB"             indent-relative-backward)
+  ("C-<tab>"             indent-relative-forward)
+  ("C-S-<tab>"           indent-relative-backward)
 
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("ESC ESC ESC" :remove))
@@ -192,7 +192,7 @@
   ("<down>" next-completion))
 
 (def-keys-for-map read-expression-map
-  ("TAB"     completion-at-point)
+  ("<tab>"   completion-at-point)
   ("C-w"     backward-delete-word)
   ("C-S-w"   backward-delete-word*))
 

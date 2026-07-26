@@ -888,8 +888,8 @@ _r_ecency
 
       ("`"               ebuf-toggle-render-paths)
 
-      ("TAB"             ebuf-cycle-section-at-point)
-      ("S-TAB"           ebuf-cycle-all-toplevel-sections))
+      ("<tab>"           ebuf-cycle-section-at-point)
+      ("S-<tab>"         ebuf-cycle-all-toplevel-sections))
     keymap))
 
 (define-derived-mode ebuf-mode fundamental-mode "Ebuf"

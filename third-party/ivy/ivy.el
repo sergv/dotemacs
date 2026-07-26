@@ -336,6 +336,7 @@ Remove DEF from `counsel-M-x' list."
     (ivy-define-key map (kbd "C-j") #'ivy-alt-done)
     (ivy-define-key map (kbd "C-M-j") #'ivy-immediate-done)
     (ivy-define-key map (kbd "TAB") #'ivy-partial-or-done)
+    (ivy-define-key map (kbd "<tab>") #'ivy-partial-or-done)
     (ivy-define-key map `[remap ,#'next-line] #'ivy-next-line)
     (ivy-define-key map `[remap ,#'previous-line] #'ivy-previous-line)
     (ivy-define-key map (kbd "C-r") #'ivy-reverse-i-search)
