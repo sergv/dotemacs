@@ -152,7 +152,7 @@ Set this to nil to disable fuzzy matching."
      smex-prompt-string)))
 
 (defun smex-prepare-ido-bindings ()
-  (define-key ido-completion-map (kbd "TAB") 'minibuffer-complete)
+  (define-key ido-completion-map (kbd "<tab>") 'minibuffer-complete)
   (define-key ido-completion-map (kbd "C-h f") 'smex-describe-function)
   (define-key ido-completion-map (kbd "C-h w") 'smex-where-is)
   (define-key ido-completion-map (kbd "M-.") 'smex-find-function)
