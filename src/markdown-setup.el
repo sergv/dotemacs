@@ -57,8 +57,8 @@
     ("C-<down>"   flyspell-goto-next-error)
     ("C-<return>" ispell-word))
   (def-keys-for-map vim-visual-mode-local-keymap
-    ("`"   vim-wrap-backticks)
-    ("TAB" markdown-indent-region)))
+    ("`"     vim-wrap-backticks)
+    ("<tab>" markdown-indent-region)))
 
 ;;;###autoload
 (add-hook 'markdown-mode-hook #'markdown-setup)

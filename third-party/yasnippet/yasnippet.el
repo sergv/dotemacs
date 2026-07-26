@@ -423,18 +423,11 @@ The condition will respect the value of `yas-keymap-disable-hook'."
 
 (defvar yas-keymap
   (let ((map (make-sparse-keymap)))
-    ;; Modes should always bind to TAB instead of `tab', so as not to override
-    ;; bindings that should take higher precedence but which bind to `TAB`
-    ;; instead (relying on `function-key-map` to remap `tab` to TAB).
-    ;; If this causes problem because of another package that binds to `tab`,
-    ;; complain to that other package!
-    ;;
     ;; UPD: I stick to <tab> everywhere because C-TAB is not a thing, it either
     ;; doesn’t work (in terminal) or is equal to C-<tab>. I only care about GUI
     ;; so I do the change here. In care terminals will be needed I’ll need to
     ;; fix my config anyway.
     (define-key map (kbd "<tab>") (yas-filtered-definition 'yas-next-field-or-maybe-expand))
-    (define-key map (kbd "TAB")   (yas-filtered-definition 'yas-next-field-or-maybe-expand))
     (define-key map [(shift tab)] (yas-filtered-definition 'yas-prev-field))
     (define-key map [backtab]     (yas-filtered-definition 'yas-prev-field))
     (define-key map (kbd "C-g")   (yas-filtered-definition 'yas-abort-snippet))
@@ -670,13 +663,7 @@ expanded.")
 
 (defvar yas-minor-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; Modes should always bind to TAB instead of `tab', so as not to override
-    ;; bindings that should take higher precedence but which bind to `TAB`
-    ;; instead (relying on `function-key-map` to remap `tab` to TAB).
-    ;; If this causes problem because of another package that binds to `tab`,
-    ;; complain to that other package!
-    ;;(define-key map [tab]     yas-maybe-expand)
-    (define-key map (kbd "TAB") yas-maybe-expand)
+    (define-key map (kbd "<tab>") yas-maybe-expand)
     (define-key map "\C-c&\C-s" #'yas-insert-snippet)
     (define-key map "\C-c&\C-n" #'yas-new-snippet)
     (define-key map "\C-c&\C-v" #'yas-visit-snippet-file)
