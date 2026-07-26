@@ -723,7 +723,7 @@ third-party completion frameworks."
 (defvar-keymap magit-minibuffer-local-ns-map
   :parent minibuffer-local-map
   "SPC" #'magit-whitespace-disallowed
-  "TAB" #'magit-whitespace-disallowed)
+  "<tab>" #'magit-whitespace-disallowed)
 
 (defun magit-whitespace-disallowed ()
   "Beep to tell the user that whitespace is not allowed."
