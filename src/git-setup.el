@@ -445,9 +445,9 @@ _j_: default vim hydra
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap
                      git-commit-mode-map)
-    ("<up>"    git-commit-prev-message ;; log-edit-previous-comment
+    ("C-<up>"    git-commit-prev-message ;; log-edit-previous-comment
      )
-    ("<down>"  git-commit-next-message ;; log-edit-next-comment
+    ("C-<down>"  git-commit-next-message ;; log-edit-next-comment
      )
     ("M-p"     :remove)))
 
