@@ -160,10 +160,11 @@ define eval_prelude <<EOF
   (setf with-editor-emacsclient-executable nil
         byte-compile-dest-file-function
         (lambda (path)
-          (concat
-            "${artifacts_dir}/compiled/elc/"
-            (file-name-sans-extension (file-name-nondirectory path))
-            ".elc"))))
+          (let* ((filename (file-name-nondirectory path))
+                   (dir (if (member filename '("init.el" "early-init.el"))
+                            ""
+                          "compiled/elc/")))
+              (concat "${artifacts_dir}/" dir filename "c")))))
 EOF
 
 # Either 't' or 'nil'
