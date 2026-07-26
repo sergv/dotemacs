@@ -234,6 +234,10 @@ _e_val
 
 (advice-add 'eval-last-sexp :around #'eval-last-sexp--save-mark-around)
 
+(with-eval-after-load 'elisp-mode
+  (def-keys-for-map emacs-lisp-mode-map
+    ("<tab>" indent-for-tab-command)))
+
 (provide 'emacs-lisp-setup)
 
 ;; Local Variables:
