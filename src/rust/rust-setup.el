@@ -270,10 +270,10 @@ _h_: end of defun"
 
 (defhydra-derive hydra-rust-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_a_lign              _t_: beginning of defun
-_TAB_: format region _h_: end of defun"
+_a_lign                _t_: beginning of defun
+_<tab>_: format region _h_: end of defun"
   ("a"     hydra-rust-align/body)
-  ("TAB"   rust-format-region)
+  ("<tab>" rust-format-region)
 
   ("t"     vim-rust-beginning-of-defun)
   ("h"     vim-rust-end-of-defun))
