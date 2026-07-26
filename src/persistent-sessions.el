@@ -18,7 +18,7 @@
 (defvar haskell-compilation-mode)
 (defvar rust-compilation-mode)
 
-(require 'frameset)
+(require 'revive-minimal)
 
 (require 'base-emacs-autoload)
 (require 'cc-autoload)
@@ -445,13 +445,6 @@ entries."
          (not (string-match-p "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
                               (buffer-name buf))))))
 
-(defun persistent-sessions--filter-display-param (current _filtered _parameters _saving)
-  (not (eq (car current) 'display)))
-
-(defun persistent-sessions--frameset-filter-alist ()
-  (cons (cons 'display #'persistent-sessions--filter-display-param)
-        frameset-filter-alist))
-
 (defun sessions--is-polymode-indirect-buffer? (buf)
   (cl-assert (bufferp buf))
   ;; Could be unbound if it wasn’t loaded yet.
@@ -534,16 +527,15 @@ entries."
                                    (buffer-name buf))
                                   (funcall save-func buf)))))
                       buffers)))
-         (frames-entry
-          (list 'frameset (frameset-save (frame-list)
-                                         :filters (persistent-sessions--frameset-filter-alist)))))
+         (frames
+          (revive-plus:window-configuration-printable)))
 
     (list (list 'schema-version +sessions-schema-version+)
           (list 'buffers buffer-data)
           (list 'temporary-buffers temporary-buffer-data)
           (list 'special-buffers special-buffer-data)
+          (list 'frames frames)
           (list 'global-variables (sessions/get-global-variables))
-          frames-entry
           (list 'tab-bar-mode (if tab-bar-mode t nil)))))
 
 ;;;###autoload
@@ -714,12 +706,9 @@ entries."
           (add-hook 'window-setup-hook #'sessions--enable-tab-bar-mode))
       (message "sessions/load-from-data: no 'tab-bar-mode field"))
 
-    (aif (assq 'frameset session-entries)
-        (frameset-restore (cadr it)
-                          :reuse-frames t
-                          :cleanup-frames t
-                          :filters (persistent-sessions--frameset-filter-alist))
-      (message "sessios/load-from-data: no 'frameset field"))
+    (aif (assq 'frames session-entries)
+        (revive-plus:restore-window-configuration (cadr it))
+      (message "sessions/load-from-data: no 'frames field"))
 
     (aif (assq 'global-variables session-entries)
         (sessions/restore-global-variables version (cadr it))
