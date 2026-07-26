@@ -428,12 +428,13 @@ This keymap is used in addition to the section-specific keymap, if any."
   :suppress t
   "<left-fringe> <mouse-1>" #'magit-mouse-toggle-section
   "<left-fringe> <mouse-2>" #'magit-mouse-toggle-section
-  "TAB"       #'magit-section-toggle
-  "C-c TAB"   #'magit-section-cycle
+  "<tab>"     #'magit-section-toggle
+  "C-c <tab>" #'magit-section-cycle
   "C-<tab>"   #'magit-section-cycle
   "M-<tab>"   #'magit-section-cycle
   ;; <backtab> is the most portable binding for Shift+Tab.
   "<backtab>" #'magit-section-cycle-global
+  "S-<tab>"   #'magit-section-cycle-global
   "^"   #'magit-section-up
   "p"   #'magit-section-backward
   "n"   #'magit-section-forward

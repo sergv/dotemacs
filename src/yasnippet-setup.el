@@ -166,7 +166,7 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
 
 (def-keys-for-map yas-keymap
   ("<backspace>"     yas-skip-and-clear-or-delete-backward-char)
-  ("S-TAB"           yas-prev-field)
+  ("S-<tab>"         yas-prev-field)
   ("<delete>"        'yas-maybe-skip-and-clear-field)
   ("S-<backspace>"   'yas-maybe-skip-and-clear-field))
 

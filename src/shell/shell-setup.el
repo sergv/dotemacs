@@ -131,7 +131,7 @@
 (with-eval-after-load 'shell
   (def-keys-for-map shell-mode-map
     ("C-SPC" vim:comint-clear-buffer-above-prompt:interactive)
-    ("TAB"   completion-at-point))
+    ("<tab>" completion-at-point))
 
   (let ((st shell-mode-syntax-table))
      (modify-syntax-entry ?\" ".   " st)

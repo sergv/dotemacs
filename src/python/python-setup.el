@@ -456,7 +456,7 @@ _j_: send region to repl"
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)
 
-    ("TAB"      python-complete)))
+    ("<tab>"    python-complete)))
 
 ;;;###autoload
 (add-hook 'inferior-python-mode-hook #'inferior-python-setup)
