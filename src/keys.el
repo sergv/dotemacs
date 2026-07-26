@@ -75,6 +75,7 @@
 
   ("M-x"      counsel-M-x)
 
+  ("C-x C-c"  :remove)
   ("C-x <f1>" :remove)
   ("C-z"      :remove)
   ("C-x f"    find-file)
