@@ -74,7 +74,7 @@
     (require 'prev-buffer-tracking)
 
     (require 'messages-buffer-setup)
-    (require 'special-setup)
+    (require 'special-mode-setup)
 
     (require 'haskell-syntax-table)
     (require 'nix-syntax-table)
