@@ -1291,7 +1291,7 @@ name, or an interactive lambda, or a single sexp (it will be
 wrapped in an interactive lambda).
 
 HINT is a short string that identifies its head.  It will be
-printed beside KEY in the echo erea if `hydra-is-helpful' is not
+printed beside KEY in the echo area if `hydra-is-helpful' is not
 nil.  If you don't even want the KEY to be printed, set HINT
 explicitly to nil.
 
