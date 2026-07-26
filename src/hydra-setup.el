@@ -24,14 +24,13 @@ all hydras in my setup."
          ;; Supplying (vim--remember-this-command-keys!) for :body-pre makes
          ;; it record key for vim’s repeat facility when `name' is invoked.
          (cons :body-pre (cons '(vim--remember-this-command-keys!) args))))
-    `(eval-and-compile
-       (defhydra ,name ,args-ext
-         ,docstring
-         ,@(cl-delete-duplicates
-            (append heads
-                    '(("<escape>" nil)))
-            :key #'car
-            :test #'equal)))))
+    `(defhydra ,name ,args-ext
+       ,docstring
+       ,@(cl-delete-duplicates
+          (append heads
+                  '(("<escape>" nil)))
+          :key #'car
+          :test #'equal))))
 
 (defmacro defhydra-derive (name parent args &optional docstring &rest heads)
   (declare (indent defun) (doc-string 4))
