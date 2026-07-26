@@ -181,18 +181,12 @@ _e_val
 
 ;;;;
 
-(defun elisp-compile-get-elc-destination (path &optional compilation-dest-root-dir)
-  (if (string= "init.el" (file-name-nondirectory path))
-      (if compilation-dest-root-dir
-          (concat compilation-dest-root-dir "/" (file-name-nondirectory path) "c")
-        (concat path "c"))
-    (let ((new-path
-           (concat
-            (file-name-sans-extension (file-name-nondirectory path))
-            ".elc")))
-      (if compilation-dest-root-dir
-          (concat compilation-dest-root-dir "/compiled/elc/" new-path)
-        (concat +emacs-writable-config-path+ "/compiled/elc/" new-path)))))
+(defun elisp-compile-get-elc-destination (path)
+  (let* ((filename (file-name-nondirectory path))
+         (dir (if (member filename '("init.el" "early-init.el"))
+                  ""
+                "compiled/elc/")))
+    (concat +emacs-writable-config-path+ "/" dir filename "c")))
 
 (defun elisp-compile-and-move ()
   (interactive)
