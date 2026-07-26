@@ -44,7 +44,7 @@ _w_indows
 ta_b_s
 "
   ("w" hydra-window-management/body)
-  ("t" toggle)
+  ("t" hydra-toggle/body)
   ("b" hydra-tab-management/body)
 
   ("n" widen))
