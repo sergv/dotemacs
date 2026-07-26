@@ -22,7 +22,7 @@ all hydras in my setup."
   (declare (indent defun) (doc-string 3))
   (let ((args-ext
          ;; Supplying (vim--remember-this-command-keys!) for :body-pre makes
-         ;; it record key for vim’s repeat facility when `name' is invoked.
+         ;; it record key for vim’s repeat facility when ‘name’ is invoked.
          (cons :body-pre (cons '(vim--remember-this-command-keys!) args))))
     `(defhydra ,name ,args-ext
        ,docstring
@@ -35,8 +35,8 @@ all hydras in my setup."
 (defmacro defhydra-derive (name parent args &optional docstring &rest heads)
   (declare (indent defun) (doc-string 4))
   `(defhydra-ext ,name ,args
-     ,(concat (hydra--prop parent "/docstring")
-              (if (and docstring
+     (concat (hydra--prop ',parent "/docstring")
+             ,(if (and docstring
                        (< 0 (length docstring)))
                   (concat "\n" (trim-whitespace-left docstring))
                 ""))
