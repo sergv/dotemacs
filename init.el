@@ -1,4 +1,9 @@
-;; -*- mode: emacs-lisp; lexical-binding: t; -*-
+;; init.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: at the dawn of time
 
 ;; Added by Package.el. Keep commented, don’t delete.
 ;; (package-initialize)
@@ -164,3 +169,8 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
 ;; Must load this every time so that e.g. temporary directory
 ;; will get reinitialized anew. Or fresh ~/.bashrc will be picked up.
 (load-library "start")
+
+;; Local Variables:
+;; End:
+
+;; init.el ends here
