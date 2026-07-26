@@ -840,23 +840,19 @@ The expressions can be auto-expanded according to NAME."
       (apply #'error format-string args)
     (apply #'message format-string args)))
 
-(defun hydra--doc (body-key body-name heads)
+(defun hydra--doc (_body-key body-name heads)
   "Generate a part of Hydra docstring.
 BODY-KEY is the body key binding.
 BODY-NAME is the symbol that identifies the Hydra.
 HEADS is a list of heads."
   (format
-   "The heads for the associated hydra are:\n\n%s\n\n%s%s."
+   "The heads for the associated hydra are:\n\n%s"
    (mapconcat
     (lambda (x)
       (format "\"%s\":    %s"
               (car x)
               (if (cadr x) (format "`%S'" (cadr x)) "nil")))
-    heads ",\n")
-   (format "The body can be accessed via `%S'" body-name)
-   (if body-key
-       (format ", which is bound to \"%s\"" body-key)
-     "")))
+    heads ",\n")))
 
 (defun hydra--call-interactively-remap-maybe (cmd)
   "`call-interactively' the given CMD or its remapped equivalent.
@@ -889,20 +885,26 @@ BODY-PRE is added to the start of the wrapper.
 BODY-BEFORE-EXIT will be called before the hydra quits.
 BODY-AFTER-EXIT is added to the end of the wrapper."
   (let* ((cmd-name (hydra--head-name head name))
+         (curr-body-fn-sym (intern (format "%S/body" name)))
          (cmd (when (car head)
                 (hydra--make-callable
                  (cadr head))))
          (doc (if (car head)
-                  (format "Call the head `%S' in the \"%s\" hydra.\n\n%s"
-                          (cadr head) name doc)
-                (format "Call the body in the \"%s\" hydra.\n\n%s"
-                        name doc)))
+                  (if (and (null (cadr head))
+                           (hydra--head-property head :exit))
+                      (format "Exiting the \"%s\" hydra." name)
+                    (format "Head ‘%S’ of \"%s\" hydra, cf ‘%s’."
+                            (cadr head)
+                            name
+                            curr-body-fn-sym))
+                (format "Body of the \"%s\" hydra. %s"
+                        name
+                        doc)))
          (hint (intern (format "%S/hint" name)))
          (body-foreign-keys (hydra--body-foreign-keys body))
          (body-timeout (plist-get body :timeout))
          (idle (or (and (eq (cadr head) 'body) (plist-get body :idle))
                    (plist-get (nthcdr 3 head) :idle)))
-         (curr-body-fn-sym (intern (format "%S/body" name)))
          (body-on-exit-t
           `((hydra-keyboard-quit)
             (setq hydra-curr-body-fn ',curr-body-fn-sym)
@@ -1410,18 +1412,19 @@ result of `defhydra'."
                     nil
                     ,(format "Params of %S." name))
                   ',body)
-             (set (defvar ,(intern (format "%S/docstring" name))
-                    nil
-                    ,(format "Docstring of %S." name))
-                  ,docstring)
-             (set (defvar ,(intern (format "%S/heads" name))
-                    nil
-                    ,(format "Heads for %S." name))
-                  ',(mapcar (lambda (h)
-                              (let ((j (copy-sequence h)))
-                                (cl-remf (cl-cdddr j) :cmd-name)
-                                j))
-                            heads))
+             (eval-and-compile
+               (set (defvar ,(intern (format "%S/docstring" name))
+                      nil
+                      ,(format "Docstring of %S." name))
+                    ,docstring)
+               (set (defvar ,(intern (format "%S/heads" name))
+                      nil
+                      ,(format "Heads for %S." name))
+                    ',(mapcar (lambda (h)
+                                (let ((j (copy-sequence h)))
+                                  (cl-remf (cl-cdddr j) :cmd-name)
+                                  j))
+                              heads)))
              ;; create keymap
              (set (defvar ,keymap-name
                     nil
