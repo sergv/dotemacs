@@ -163,23 +163,32 @@ let
   emacs-debug-pkg = pkgs.enableDebugging emacs-bytecode-pkg;
 
   mk-emacs-pkg =
-    exe-name: pkg: wrapper:
+    exe-name: pkg: debug-wrapper:
       pkgs.writeScriptBin exe-name ''
         #!${pkgs.bash}/bin/bash
 
+        declare -a wrap_cmd
+        ${if builtins.stringLength debug-wrapper == 0
+          then ""
+          else ''
+            if [[ "''${EMACS_DEBUG:-1}" == 1 ]]; then
+              wrap_cmd+=(${debug-wrapper})
+            fi
+          ''}
+
         if [[ "''${EMACS_FORCE_PRISTINE:-0}" != 0 ]]; then
-            ${wrapper}${pkg}/bin/emacs "''${@}"
+            ''${wrap_cmd[@]} ${pkg}/bin/emacs "''${@}"
         else
-            if [[ ! -z "''${EMACS_ROOT+x}" ]]; then
+            if [[ -v EMACS_ROOT ]]; then
                 dump_file="$EMACS_ROOT/compiled/${exe-name}.dmp"
             else
                 dump_file="$HOME/.emacs.d/compiled/${exe-name}.dmp"
             fi
 
-            if [[ ! -f "$dump_file" ]]; then
-              ${wrapper}${pkg}/bin/emacs "''${@}"
+            if [[ -f "$dump_file" ]]; then
+              ''${wrap_cmd[@]} ${pkg}/bin/emacs --dump-file "$dump_file" "''${@}"
             else
-              ${wrapper}${pkg}/bin/emacs --dump-file "$dump_file" "''${@}"
+              ''${wrap_cmd[@]} ${pkg}/bin/emacs "''${@}"
             fi
         fi
 
@@ -193,7 +202,7 @@ let
     mk-emacs-pkg
       "emacs-debug"
       emacs-debug-pkg
-      "gdb -ex='set confirm on' -ex=run -ex=quit --args ";
+      ''"gdb" "-ex=set confirm on" "-ex=run" "-ex=quit" "--args"'';
 
 
   desktop-entry = {
