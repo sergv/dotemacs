@@ -126,6 +126,7 @@
       read-file-name-completion-ignore-case t
 
       auto-save-list-file-name nil
+      auto-save-list-file-prefix nil
       auto-save-default nil
       search-whitespace-regexp nil ;; intuitive behavior for interactive regexps
       system-time-locale "C"
@@ -240,9 +241,6 @@
 ;; nuke trailing whitespaces when writing to a file
 (add-to-list 'write-file-functions
              #'delete-trailing-whitespace+)
-
-(setq auto-save-list-file-prefix (path-concat +prog-data-path+
-                                              "auto-save-list/.save-"))
 
 ;;;; color themes, current line etc
 (global-hl-line-mode -1)
