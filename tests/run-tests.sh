@@ -15,10 +15,13 @@ cd "$(dirname "$0")"
 
 emacs="${EMACS:-emacs}"
 
+if [[ ! -v EMACS_DEBUG ]]; then
+   # Disable debugging by default, but still allow allow to override.
+   export EMACS_DEBUG=0
+fi
+
 to_load=""
 matcher=""
-
-compiled_dir="${EMACS_COMPILED_ROOT:-${EMACS_ROOT}}"
 
 declare -a tests
 

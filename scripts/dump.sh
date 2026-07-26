@@ -12,6 +12,7 @@ set -o pipefail
 set -e
 
 export EMACS_FORCE_PRISTINE=1
+export EMACS_DEBUG=0
 emacs="${EMACS:-emacs}"
 
 source "$(dirname "$(readlink -f "$0")")/utils.sh"
