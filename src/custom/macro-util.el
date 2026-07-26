@@ -493,6 +493,11 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                            (pcase (if (funcall quoted? entry)
                                       (eval entry)
                                     entry)
+                             (`(,key-spec :hide-parent-binding)
+                              (funcall expand-key-spec
+                                       key-spec
+                                       (lambda (single-key)
+                                         `(define-key ,map-var ,single-key nil nil))))
                              (`(,key-spec :remove)
                               (funcall expand-key-spec
                                        key-spec
@@ -500,7 +505,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                                          `(remove-key! ,single-key ,map-var))))
                              (`(,key-spec ,command)
                               (when (eq command nil)
-                                (error "Use :remove instead of nil to undefine keys"))
+                                (error "Use :remove or :hide-parent-binding instead of nil to undefine keys"))
                               (funcall expand-key-spec
                                        key-spec
                                        (lambda (single-key)
