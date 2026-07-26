@@ -102,6 +102,7 @@
   ("\{"                  pseudoparedit-insert-brace)
   ("\}"                  smart-operators-close-brace)
 
+  ("<tab>"               indent-for-tab-command)
   ("C-<tab>"             indent-relative-forward)
   ("C-S-<tab>"           indent-relative-backward)
 
