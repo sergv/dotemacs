@@ -1246,9 +1246,13 @@ bound to TAB and backtab."
            (if (not value)
                (progn
                  (define-key map "\t" nil)
-                 (define-key map (kbd "<backtab>") nil))
+                 (define-key map (key-parse "<tab>") nil)
+                 (define-key map (key-parse "S-<tab>") nil)
+                 (define-key map (key-parse "<backtab>") nil))
              (define-key map "\t" #'js2-indent-bounce)
-             (define-key map (kbd "<backtab>") #'js2-indent-bounce-backward)))))
+             (define-key map (key-parse "<tab>") #'js2-indent-bounce)
+             (define-key map (key-parse "S-<tab>") #'js2-indent-bounce-backward)
+             (define-key map (key-parse "<backtab>") #'js2-indent-bounce-backward)))))
 
 (defconst js2-mode-identifier-re "[[:alpha:]_$][[:alnum:]_$]*")
 

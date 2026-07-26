@@ -53,8 +53,8 @@
       (":"           electric-happy-colon)
       ("|"           electric-happy-colon)
       ("<backspace>" backward-delete-char-untabify)
-      ("TAB"         happy-indent-command)
-      ("S-TAB"       happy-dedent-command))
+      ("<tab>"       happy-indent-command)
+      ("S-<tab>"     happy-dedent-command))
     keymap)
   "Keymap used in happy mode.")
 

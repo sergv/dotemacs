@@ -178,9 +178,9 @@ _a_ctions"
 
 (defhydra-derive hydra-c++-vim-visual-g-ext hydra-c-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_TAB_: format region
+_<tab>_: format region
 "
-  ("TAB" c++-format-region))
+  ("<tab>" c++-format-region))
 
 ;;;###autoload
 (defun c++-setup ()

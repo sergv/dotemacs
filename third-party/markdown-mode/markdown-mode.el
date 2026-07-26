@@ -5689,12 +5689,11 @@ Assumes match data is available for `markdown-regex-italic'."
     (define-key map (kbd "C-c >") 'markdown-indent-region)
     (define-key map (kbd "C-c <") 'markdown-outdent-region)
     ;; Visibility cycling
-    (define-key map (kbd "TAB") 'markdown-cycle)
+    (define-key map (kbd "<tab>") 'markdown-cycle)
     ;; S-iso-lefttab and S-tab should both be mapped to `backtab' by
     ;; (local-)function-key-map.
     ;;(define-key map (kbd "<S-iso-lefttab>") 'markdown-shifttab)
-    ;;(define-key map (kbd "<S-tab>")  'markdown-shifttab)
-    (define-key map (kbd "<backtab>") 'markdown-shifttab)
+    (define-key map (kbd "S-<tab>")  'markdown-shifttab)
     ;; Heading and list navigation
     (define-key map (kbd "C-c C-n") 'markdown-outline-next)
     (define-key map (kbd "C-c C-p") 'markdown-outline-previous)
