@@ -314,8 +314,16 @@ _j_: default vim hydra
   ("b" hydra-tab-management/body)
   ("j" hydra-vim-normal-read-only-j-ext/body))
 
+;;;###autoload
+(defun magit-section-mode-setup ()
+  (def-keys-for-map magit-section-mode-map
+    ("C-SPC" :hide-parent-binding)))
+
+;;;###autoload
+(add-hook 'magit-section-mode-hook #'magit-section-mode-setup)
+
 (defun magit-bind-common-vimless-mode-keymap (map)
-  (def-keys-for-map (magit-mode-map)
+  (def-keys-for-map magit-mode-map
     ("," magit-discard))
   (def-keys-for-map (magit-unstaged-section-map
                      magit-file-section-map
