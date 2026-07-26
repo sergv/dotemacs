@@ -77,7 +77,7 @@
       ("S-<backspace>"          delete-whitespace-backward)
 
       ("?"                      self-insert-command)
-      ("TAB"                    minibuffer-complete)
+      ("<tab>"                  minibuffer-complete)
       (("<return>" "RET" "C-j") vim-ex-mode-exit)
       ("C-g"                    vim-ex-mode-abort)
       ("<up>"                   previous-history-element)
