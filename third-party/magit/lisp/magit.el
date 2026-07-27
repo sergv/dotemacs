@@ -73,6 +73,8 @@
 (require 'format-spec)
 (require 'with-editor)
 
+(defvar dumping?)
+
 ;;; Options
 
 (defcustom magit-openpgp-default-signing-key nil
@@ -731,7 +733,8 @@ the output in the kill ring.
      ;; See comment above.
      "https://github.com/magit/magit/wiki/Don't-set-$GIT_DIR-and-alike"))
   ;; Git isn't required while building Magit.
-  (when (not (bound-and-true-p byte-compile-current-file))
+  (when (and (not (bound-and-true-p byte-compile-current-file))
+             (not (bound-and-true-p dumping?)))
     (magit-git-version-assert))
   (when (version< emacs-version magit--minimal-emacs)
     (display-warning 'magit (format "\
