@@ -154,79 +154,6 @@ is no final newline."
       (read-from-minibuffer "")
     (error nil)))
 
-(defmacro with-script-path-unix (cmdvar func &rest body)
-  "Temporarily substitute a command line executable.
-
-Creates a temporary executable script and sets CMDVAR to point to
-the script. When the script is run it spawns another Emacs
-instance and executes function FUNC. Substitution is in effect
-throughout BODY.
-
-In FUNC variable `argv' is a list of all arguments that the
-script received when invoked. If the FUNC returns a number then
-it will be used as exit code for `kill-emacs' function, otherwise
-0 will be used."
-  (declare (indent 2) (debug t))
-  `(let ((,cmdvar (make-temp-file "haskell-mode-tests-script")))
-     (with-current-buffer (find-file-noselect ,cmdvar)
-
-       (insert "#!/bin/sh\n")
-       (insert "\":\"; exec \"" invocation-directory invocation-name "\" -Q --batch -l \"$0\" -- \"$@\"\n")
-       (insert "(setq debug-on-error t)\n")
-       (insert "(pop argv)\n")
-       (insert "(setq load-path '" (format "%S" load-path) ")\n")
-       (insert "(load \"" (symbol-file ',func) "\" nil t)\n")
-       (insert "(let ((return-value (" (symbol-name ',func) ")))\n")
-       (insert " (if (numberp return-value)\n")
-       (insert "    (kill-emacs return-value)\n")
-       (insert "    (kill-emacs 0)))\n")
-       (basic-save-buffer)
-       (kill-buffer))
-     (set-file-modes ,cmdvar (string-to-number "700" 8))
-     (unwind-protect
-         (progn ,@body)
-       (delete-file ,cmdvar))))
-
-(defmacro with-script-path-windows (cmdvar func &rest body)
-  "Temporarily substitute a command line executable.
-
-Creates a temporary executable script and sets CMDVAR to point to
-the script. When the script is run it spawns another Emacs
-instance and executes function FUNC. Substitution is in effect
-throughout BODY.
-
-In FUNC variable `argv' is a list of all arguments that the
-script received when invoked. If the FUNC returns a number then
-it will be used as exit code for `kill-emacs' function, otherwise
-0 will be used."
-  (declare (indent 2) (debug t))
-  `(let* ((,cmdvar (make-temp-file "haskell-mode-tests-script" nil ".bat"))
-          (el (concat (file-name-sans-extension ,cmdvar) ".el")))
-     (with-current-buffer (find-file-noselect ,cmdvar)
-       (insert "@\"" invocation-directory invocation-name "\" -Q --batch -l \"%~dpn0.el\" -- %*\n")
-       (basic-save-buffer)
-       (kill-buffer))
-
-     (with-current-buffer (find-file-noselect el)
-
-       (insert "(setq debug-on-error t)\n")
-       (insert "(pop argv)\n")
-       (insert "(setq load-path '" (format "%S" load-path) ")\n")
-       (insert "(load \"" (symbol-file ',func) "\" nil t)\n")
-       (insert "(let ((return-value (" (symbol-name ',func) ")))\n")
-       (insert " (if (numberp return-value)\n")
-       (insert "    (kill-emacs return-value)\n")
-       (insert "    (kill-emacs 0)))\n")
-       (basic-save-buffer)
-       (kill-buffer))
-     (unwind-protect
-         (progn ,@body)
-       (delete-file ,cmdvar)
-       (delete-file el))))
-
-(if (equal system-type 'windows-nt)
-      (defalias 'with-script-path 'with-script-path-windows)
-  (defalias 'with-script-path 'with-script-path-unix))
 
 (defun create-directory-structure (entries)
   (dolist (entry entries)
@@ -246,32 +173,6 @@ it will be used as exit code for `kill-emacs' function, otherwise
       (make-directory (car entry))
       (let ((default-directory (file-name-as-directory (concat default-directory (car entry)))))
         (create-directory-structure (cdr entry)))))))
-
-(defmacro with-temp-dir-structure (entries &rest body)
-  "Create a temporary directory structure.
-
-ENTRIES is an alist with file or directory names as keys. If
-associated value is a string or buffer then a file is created, if
-value is an association list then a directory is created
-recursively.
-
-Throughout BODY `default-directory' is set to the root of the
-hierarchy created.
-
-Whole hierarchy is removed after BODY finishes and value of
-`default-directory' is restored."
-  (declare (indent 2) (debug t))
-  `(let ((tmpdir (make-temp-name (concat (or small-temporary-file-directory
-                                             temporary-file-directory)
-                                         "/haskell-mode-test-dir"))))
-     (make-directory tmpdir)
-     (with-temp-buffer
-       (unwind-protect
-           (progn
-             (cd tmpdir)
-             (create-directory-structure ',entries)
-             ,@body)
-         (delete-directory tmpdir t)))))
 
 (defun haskell-bypass-confirmation (function &rest args)
   "Call FUNCTION with ARGS, bypassing all prompts.
@@ -306,14 +207,10 @@ event of an error or nonlocal exit."
   (when (buffer-live-p (get-buffer buffer))
     (haskell-bypass-confirmation #'kill-buffer buffer)))
 
-(defun haskell-stylish--skip-if-no-stylish-available ()
-  (when (not (or (file-executable-p haskell-mode-stylish-haskell-path)
-                 (executable-find haskell-mode-stylish-haskell-path)))
-    (ert-skip "no stylish-haskell")))
-
-(defun haskell-stylish--skip-if-no-stack-available ()
-  (unless (executable-find "stack")
-    (ert-skip "no tack")))
-
 (provide 'haskell-test-utils)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; haskell-test-utils.el ends here
