@@ -207,7 +207,7 @@ sexps and indentation levels."
 
   (with-editor-export-editor '("EDITOR" "GIT_EDITOR"))
 
-  (add-hook 'comint-preoutput-filter-functions #'xterm-color-filter nil t)
+  (add-hook 'comint-preoutput-filter-functions #'xterm-color-filter-strip nil t)
   (setq-local comint-scroll-to-bottom-on-input t)
 
   (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
