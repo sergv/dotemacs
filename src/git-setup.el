@@ -609,6 +609,30 @@ cop_y_ hash    _t_: prev chunk
   ("<up>"           vim:motion-up:interactive)
   (("q" "<escape>") vim:blame-quit:interactive))
 
+;; todo: think about how this would work
+;; (defun magit-region-history (file fn commit)
+;;   "Show log for the definition at point."
+;;   (interactive (list (or (magit-file-relative-name)
+;;                          (user-error "Buffer isn't visiting a file"))
+;;                      (or (funcall magit-log-trace-definition-function)
+;;                          (user-error "No function at point found"))
+;;                      (or magit-buffer-refname
+;;                          (magit-get-current-branch)
+;;                          "HEAD")))
+;;   (with-region-bounds start end
+;;
+;;     (let ((from (line-number-at-pos start t))
+;;           (to   (line-number-at-pos (1- end) t)))
+;;       (magit-log-setup-buffer
+;;        (list commit)
+;;        (cons (format "-L%s,%s:%s"
+;;                      from
+;;                      to
+;;                      file)
+;;              (cl-delete "-L" (car (magit-log-arguments))
+;;                         :test #'string-prefix-p))
+;;        nil magit-log-buffer-file-locked))))
+
 ;;; End
 
 (provide 'git-setup)
