@@ -554,9 +554,8 @@ newlines."
 
 (eval-after-load "comint" '(comint-init))
 
-(when-emacs-version (and (= 30 it) (native-comp-available-p))
+(when-emacs-version (and (<= 30 it) (native-comp-available-p))
   (require 'dump-init)
-  (defvar dump--emacs-dir)
   ;; Overwrite the definition with a new one.
   (defun load--fixup-all-elns ()
     "Fix all compilation unit filename.
@@ -567,13 +566,13 @@ directory got moved.  This is set to be a pair in the form of:
       (setq eln-dest-dir
             (concat load--eln-dest-dir "native-lisp/" comp-native-version-dir "/"))
       (maphash (lambda (_ cu)
-                 ;; Changed part: condition of ‘when’ completely replaced.
+                 ;; Changed part: condition of ‘when’ got second part of and.
                  (when (and (stringp (native-comp-unit-file cu))
                             (not
                              ;; Keep my locally-produced .eln files under my .emacs.d directory,
                              ;; don’t
                              (string-prefix-p (expand-file-name
-                                               (concat dump--emacs-dir "/compiled"))
+                                               (concat +emacs-config-path+ "/compiled"))
                                               (expand-file-name
                                                (native-comp-unit-file cu))
                                               (fold-platform-os-type nil t))))
