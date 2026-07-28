@@ -11,10 +11,16 @@
       inputs.nixpkgs-unstable.follows = "nixpkgs";
       # inputs.haskellNix.follows = "haskellNix";
     };
+
+    trix = {
+      url = "github:aanderse/trix";
+      flake = true;
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { self, nixpkgs, haskell-nixpkgs-improvements }:
+    { self, nixpkgs, haskell-nixpkgs-improvements, trix }:
     let
       systems = [
         "x86_64-linux"
@@ -72,13 +78,13 @@
             # arch = arch.gccArch;
           };
 
-          emacs = emacs-pkg.raw.emacs-bytecode;
+          emacs-raw = emacs-pkg.raw.emacs-bytecode;
+          emacs = emacs-pkg.wrapped.emacs-bytecode;
           # emacs = emacs-pkg.raw.emacs-native;
 
           buildTreesitterModule = { dir, subdir, name }:
-            # todo: use subdir within dir
             pkgs.stdenv.mkDerivation {
-              pname = name;
+              pname   = "tree-sitter-grammar-" + name;
               version = "0.1";
               src     = dir;
               # buildInputs = [ ];
@@ -151,7 +157,7 @@
           };
 
           buildEmacsConfig = pkgs:
-            pkgs.stdenv.mkDerivation {
+            pkgs.stdenvNoCC.mkDerivation {
               pname   = "emacs-config";
               version = "0.9";
               src     = ./.;
@@ -162,49 +168,109 @@
               ] ++
               treesitter-derivs;
               nativeBuildInputs = [
-                emacs
+                emacs-raw
+                # emacs
                 # pkgs.ghc
                 pkgs.gzip
                 pkgs.xz
               ] ++
               treesitter-derivs;
-              buildCommand = ''
-                mkdir "$out"
-                mkdir "$out/compiled"
-                mkdir "$out/lib"
-                mkdir "$out/resources"
-                mkdir "$out/tree-sitter"
-                rm -f "$out/compiled"/*
-                rm -f "$out/lib"/*
-                rm -f "$out/resources"/*
-                rm -f "$out/tree-sitter"/*
+              # dest="$out"
+              buildPhase = ''
+                runHook preBuild
 
-                ln -s "${libemacs-native-so}" "$out/lib/"
+                dest="_build"
+                mkdir "$dest"
+                dest_abs="$(readlink -f "$dest")"
+
+                mkdir "$dest/bin"
+                mkdir "$dest/compiled"
+                mkdir "$dest/lib"
+                mkdir "$dest/resources"
+                mkdir "$dest/tree-sitter"
+
+                ln -s "${emacs}/bin/emacs" "$dest/bin"
+
+                ln -s "${libemacs-native-so}" "$dest/lib/"
                 ${builtins.concatStringsSep "\n"
-                  (builtins.map (x: ''ln -s "${x}/lib"/*.so "$out/tree-sitter/"'') treesitter-derivs)}
+                  (builtins.map (x: ''ln -s "${x}/lib"/*.so "$dest/lib/"'') treesitter-derivs)}
 
-                ln -s "${get-cabal-configuration}" "$out/compiled/get-cabal-configuration"
-                export EMACS="${emacs}/bin/emacs"
+                ln -s "${get-cabal-configuration}" "$dest/compiled/get-cabal-configuration"
 
-                export EMACS_ROOT="$src"
-                export EMACS_COMPILED_ROOT="$out"
                 # Prevent config from searching for ~/.bash_env
                 export BASHRC_ENV_LOADED="1"
-                bash "$src/scripts/recompile.sh" "$src" "$out"
 
-                cp -r "$src/resources/auto-insert" "$out/resources/"
-                cp -r "$src/resources/snippets" "$out/resources/"
+                echo "[Build]"
+                EMACS="${emacs-raw}/bin/emacs" bash "$src/scripts/recompile.sh" "$src" "$dest_abs"
 
-                cp "$src/resources/good-fortunes.txt" "$out/resources/"
+                cp -r "$src/resources/auto-insert" "$dest/resources/"
+                cp -r "$src/resources/snippets" "$dest/resources/"
 
+                cp "$src/resources/good-fortunes.txt" "$dest/resources/"
+
+                echo "[Dump]"
+
+                EMACS="${emacs-raw}/bin/emacs" bash "$src/scripts/dump.sh" "$dest_abs"
+
+
+                runHook postBuild
               '';
+
+              doCheck = true;
+              nativeCheckInputs = [
+                pkgs.universal-ctags
+                pkgs.unzip
+                haskell-nixpkgs-improvements.packages."${system}".faster-richer-tags
+
+                # Dependencies for dante tests which won’t work anyway because
+                # there’s no internet in nix sandboxes and cabal won’t work without it.
+                # trix.packages."${system}".trix
+                # haskell-nixpkgs-improvements.packages."${system}".cabal
+                # haskell-pkgs.ghc
+              ];
+              checkPhase = ''
+                runHook preCheck
+
+                dest="_build"
+                dest_abs="$(readlink -f "$dest")"
+
+                # Work around logic in ‘ert-x.el’ than initializes
+                # ‘ert-remote-temporary-file-directory’ and does
+                # ‘setenv HOME’ which breaks expansion in ~ in filepaths
+                # because Emacs cached HOME value before setenv.
+                export REMOTE_TEMPORARY_FILE_DIRECTORY=1
+
+                echo "[Test dumped snapshot]"
+                EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" bash "$src/tests/run-tests.sh"
+
+                echo "[Test with asserts]"
+                EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" EMACS_SKIP_ELC=1 EMACS_FORCE_PRISTINE=1 bash "$src/tests/run-tests.sh" '"t"'
+
+                runHook postCheck
+              '';
+
+              dontPatchShebangs = true;
+              installPhase = ''
+                mkdir "$out"
+                cp -r "_build"/* "$out/"
+              '';
+
+              # doInstallCheck = true;
+              # installCheckPhase = ''
+              #   runHook preCheck
+              #   echo "Performing install check 1"
+              #
+              #   echo "Performing install check 2" >&2
+              #   exit 1
+              #   runHook postCheck
+              # '';
             };
 
         in {
           default         = buildEmacsConfig pkgs;
           # default         = builtins.head treesitter-derivs;
           emacs-native-so = haskell-pkgs-with-emacs-native.emacs-native;
-          emacs           = emacs;
+          emacs-raw       = emacs-raw;
         };
     in {
 
