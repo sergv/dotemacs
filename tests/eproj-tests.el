@@ -84,7 +84,7 @@ under ROOT directory."
              ,@body))))))
 
 (defconst eproj-tests/project-dir
-  (concat +emacs-config-path+ "/tests/eproj-sample-projects"))
+  (concat +test-utils--test-root+ "/eproj-sample-projects"))
 
 (defconst eproj-tests/folder-with-related-projects
   (expand-file-name (concat eproj-tests/project-dir "/related-projects")))
