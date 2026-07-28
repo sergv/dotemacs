@@ -28,7 +28,7 @@
 
 (defun compilation--apply-ansi-colours-filter (f proc string)
   "Turn ANSI colour codes into colourful text!"
-  (funcall f proc (xterm-color-filter string)))
+  (funcall f proc (xterm-color-filter-strip string)))
 
 (advice-add 'compilation-filter :around #'compilation--apply-ansi-colours-filter)
 
