@@ -17,10 +17,14 @@
 
   (unless emacs-dir
     (setf emacs-dir user-emacs-directory))
-  (setf dump--emacs-dir emacs-dir)
 
+  ;; (when (boundp 'native-comp-eln-load-path)
+  ;;   (startup-redirect-eln-cache (concat emacs-dir "/compiled")))
   (when (boundp 'native-comp-eln-load-path)
-    (startup-redirect-eln-cache (concat emacs-dir "/compiled")))
+    (while (cdr native-comp-eln-load-path)
+      (setf native-comp-eln-load-path (cdr native-comp-eln-load-path)))
+    (push (directory-file-name (concat emacs-dir "/compiled/eln"))
+          native-comp-eln-load-path))
 
   (let ((init-file
          (cl-find-if #'file-exists-p
@@ -242,6 +246,11 @@
     (dolist (buf (buffer-list))
       (with-current-buffer buf
         (mapc #'delete-overlay (overlays-in (point-min) (point-max)))))
+
+    ;; Clean up value that points to HOME as it was during nix build, which
+    ;; doesn’t exist. The standard startup.el module will reset it anyway.
+    (setf abbreviated-home-dir nil)
+
     (dump-emacs-portable dump-target)
 
     (mapc (lambda (func)

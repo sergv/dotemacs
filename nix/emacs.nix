@@ -45,8 +45,8 @@ let
       (old: {
         src = pkgs.fetchgit {
           url    = "https://github.com/sergv/emacs.git";
-          rev    = "3b9730ce5522861b30e66d1f925baba1ca1fe34b";
-          sha256 = "sha256-56c26FA/RQhy9pnHz9/BJFB2DFyM4Q1wUWzrIKeSiko="; # pkgs.lib.fakeSha256;
+          rev    = "381a5672b06f731db167111a8e1b8694306f448c";
+          sha256 = "sha256-9rrAE6fogey3Ys05o2hMyNXaFKNrimMBgQY00IVGlG4="; #pkgs.lib.fakeSha256;
         };
 
         # NixOS 25.05 patches do not apply to 30.2 any more. Remove throwing away of
@@ -176,22 +176,31 @@ let
             fi
           ''}
 
-        if [[ "''${EMACS_FORCE_PRISTINE:-0}" != 0 ]]; then
-            ''${wrap_cmd[@]} ${pkg}/bin/emacs "''${@}"
-        else
-            if [[ -v EMACS_ROOT ]]; then
-                dump_file="$EMACS_ROOT/compiled/${exe-name}.dmp"
-            else
-                dump_file="$HOME/.emacs.d/compiled/${exe-name}.dmp"
-            fi
+        default_root="$(realpath "$(dirname "$(dirname "$(realpath --no-symlinks "''${BASH_SOURCE[0]}")")")")"
 
-            if [[ -f "$dump_file" ]]; then
-              ''${wrap_cmd[@]} ${pkg}/bin/emacs --dump-file "$dump_file" "''${@}"
-            else
-              ''${wrap_cmd[@]} ${pkg}/bin/emacs "''${@}"
-            fi
+        if [[ -v EMACS_ROOT && -d "$EMACS_ROOT" ]]; then
+            root="$EMACS_ROOT"
+        else
+            root="$default_root"
         fi
 
+        if [[ "''${EMACS_FORCE_PRISTINE:-0}" != 0 ]]; then
+            ''${wrap_cmd[@]} ${pkg}/bin/emacs --init-directory="$root" "''${@}"
+        else
+            if [[ -v EMACS_ROOT ]]; then
+                dump_file="$root/compiled/${exe-name}.dmp"
+            fi
+            if [[ ! -v dump_file || ! -f "$dump_file" ]]; then
+                dump_file="$default_root/compiled/emacs.dmp"
+
+                if [[ ! -f "$dump_file" ]]; then
+                    echo "Default dump file does not exist: $dump_file" >&2
+                    exit 1
+                fi
+            fi
+
+            ''${wrap_cmd[@]} ${pkg}/bin/emacs --init-directory="$root" --dump-file "$dump_file" "''${@}"
+        fi
       '';
 
   emacs-native-wrapped = mk-emacs-pkg "emacs-native" emacs-native-pkg "";

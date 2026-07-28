@@ -15,6 +15,14 @@
 (require 'el-patch)
 (require 'ert)
 
+(defconst +test-utils--test-root+
+  (strip-trailing-slash
+   (file-name-directory
+    (or load-file-name
+        (when (boundp 'byte-compile-current-file)
+          byte-compile-current-file)
+        buffer-file-name))))
+
 (defun tests-utils--multiline (&rest lines)
   (mapconcat #'identity lines "\n"))
 
