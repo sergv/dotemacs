@@ -149,11 +149,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783873936,
-        "narHash": "sha256-4Y1ZxtOlcv5Z/mFIc8oK9x8ASjZO4t3dykWZPKDBGz4=",
+        "lastModified": 1785062770,
+        "narHash": "sha256-kdUL+Kp2LK4pOCpRvXbiGW5zDlcqPZNzqg7BQr14gac=",
         "owner": "sergv",
         "repo": "haskell-nixpkgs-improvements",
-        "rev": "8a844cc1eb509b57e8782055dabfa0da0639a19a",
+        "rev": "f43e8fa266ba8bb57f87f125d0bbf1e22fc3dfbd",
         "type": "github"
       },
       "original": {
@@ -703,7 +703,8 @@
     "root": {
       "inputs": {
         "haskell-nixpkgs-improvements": "haskell-nixpkgs-improvements",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "trix": "trix"
       }
     },
     "stackage": {
@@ -719,6 +720,26 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "stackage.nix",
+        "type": "github"
+      }
+    },
+    "trix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1780743636,
+        "narHash": "sha256-8tDRX5NxpZUO8kDsMUWIkB7lZ8qQO8ye7rHfTorGclU=",
+        "owner": "aanderse",
+        "repo": "trix",
+        "rev": "b1424f440043f249bbd23ed5d200b2c01a07a5e4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "aanderse",
+        "repo": "trix",
         "type": "github"
       }
     }
