@@ -706,16 +706,12 @@ is not recommended.
 If USE-OVERLAYS is non-nil, colors are applied to the buffer using overlays
 instead of text properties. A C-u prefix arg causes overlays to be used."
   (interactive "P")
-  (let ((read-only-p buffer-read-only))
-    (when read-only-p
-      (unless (y-or-n-p "Buffer is read only, continue colorizing? ")
-        (cl-return-from xterm-color-colorize-buffer))
-      (read-only-mode -1))
-    (insert (xterm-color-filter (delete-and-extract-region (point-min) (point-max))))
-    (when (and xterm-color-render use-overlays)
-      (xterm-color--convert-text-properties-to-overlays (point-min) (point-max)))
-    (goto-char (point-min))
-    (when read-only-p (read-only-mode 1))))
+  (save-current-line-column
+    (with-preserved-buffer-modified-p
+     (with-inhibited-read-only
+      (insert (xterm-color-filter (delete-and-extract-region (point-min) (point-max))))
+      (when (and xterm-color-render use-overlays)
+        (xterm-color--convert-text-properties-to-overlays (point-min) (point-max)))))))
 
 ;;;###autoload
 (defun xterm-color-clear-cache ()
