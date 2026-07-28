@@ -21,7 +21,6 @@ bombardment, explosions, cave-ins, and/or frogs falling from the sky.
 
 ## Environment variables
 - `EMACS_ROOT`          - path
-- `EMACS_COMPILED_ROOT` - path, where config compilation results go
 - `EMACS_WRITABLE_ROOT` - path
 - `EMACS_SYSTEM_TYPE`   - e.g. `(linux home)`
 - `EMACS_ENV_DEFS`      - redirect .bashrc
@@ -36,4 +35,4 @@ bombardment, explosions, cave-ins, and/or frogs falling from the sky.
    1. EMACS_ROOT - path to .emacs.d directory.
    2. EMACS_ENV_DEFS - paths to .bash_env file - shell script that sets up environment variables on the system for current user.
    3. BASHRC_ENV_LOADED - whether ~/.bash_env was already loaded.
-   4. EMACS_COMPILED_ROOT
+   4. EMACS_TEST_ROOT - alternative to EMACS_ROOT when running tests
