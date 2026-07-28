@@ -37,7 +37,7 @@
              ,@body))))))
 
 (defconst find-file-tests-tests/project-dir
-  (concat +emacs-config-path+ "/tests/test-data/egrep"))
+  (concat +test-utils--test-root+ "/test-data/egrep"))
 
 (find-files-tests--define-tests
     find-files-tests-1

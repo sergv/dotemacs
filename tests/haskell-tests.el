@@ -9606,7 +9606,7 @@ Entries should be a list of of elements of the form
    ""))
 
 (defconst haskell-tests/cabal-test-data
-  (concat +emacs-config-path+ "/tests/test-data/cabal"))
+  (concat +test-utils--test-root+ "/test-data/cabal"))
 
 (defun map-first (f x)
   (cons (funcall f (car x))
