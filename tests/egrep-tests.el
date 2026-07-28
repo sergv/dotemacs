@@ -44,7 +44,7 @@
    (egrep-match-offset entry)))
 
 (defconst egrep-tests/project-dir
-  (concat +emacs-config-path+ "/tests/test-data/egrep"))
+  (concat +test-utils--test-root+ "/test-data/egrep"))
 
 (defconst egrep-tests--bar-matches
   (vector

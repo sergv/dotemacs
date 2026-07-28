@@ -7,12 +7,13 @@
 ;; Description:
 
 (require 'ert)
+(require 'tests-utils)
 
 (require 'compilation-setup)
 (require 'haskell-compile)
 
 (defvar compilation-tests--resources-root
-  (concat +emacs-config-path+ "/tests/test-data"))
+  (concat +test-utils--test-root+ "/test-data"))
 
 (defun compilation-error< (err-a err-b)
   (let ((file-a (compilation-error/filename err-a))
