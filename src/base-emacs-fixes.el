@@ -15,8 +15,12 @@
   (require 'filenotify)
   (require 'hl-line)
   (require 'macro-util)
+  (require 'man)
   (require 'set-up-platform)
   (require 'shell))
+
+(autoload 'Man-softhyphen-to-minus "man")
+(autoload 'Man-highlight-references "man")
 
 (require 'base-emacs-autoload)
 (require 'el-patch)
@@ -761,6 +765,72 @@ Before and after saving the buffer, this function runs
         0)))
   (with-eval-after-load 'arc-mode
     (arc-mode-init)))
+
+;;;###autoload
+(add-to-list 'el-patch-features 'man)
+
+(when-emacs-version (<= 30 it)
+  (with-eval-after-load 'man
+    (el-patch-defun Man-fontify-manpage ()
+      "Convert overstriking and underlining to the correct fonts.
+Same for the ANSI bold and normal escape sequences."
+      (interactive nil man-common)
+      (goto-char (point-min))
+      ;; Fontify ANSI escapes.
+      (el-patch-swap
+        (let ((ansi-color-apply-face-function #'ansi-color-apply-text-property-face)
+	      (ansi-color-basic-faces-vector Man-ansi-color-basic-faces-vector))
+          (ansi-color-apply-on-region (point-min) (point-max)))
+        (insert (xterm-color-filter (delete-and-extract-region (point-min) (point-max)))))
+      ;; Other highlighting.
+      (let ((buffer-undo-list t))
+        (if (< (buffer-size) (position-bytes (point-max)))
+	    ;; Multibyte characters exist.
+	    (progn
+	      (goto-char (point-min))
+	      (while (and (search-forward "__\b\b" nil t) (not (eobp)))
+	        (delete-char -4)
+                (put-text-property (point) (1+ (point))
+                                   'font-lock-face 'Man-underline))
+	      (goto-char (point-min))
+	      (while (search-forward "\b\b__" nil t)
+	        (delete-char -4)
+                (put-text-property (1- (point)) (point)
+                                   'font-lock-face 'Man-underline))))
+        (goto-char (point-min))
+        (while (and (search-forward "_\b" nil t) (not (eobp)))
+          (delete-char -2)
+          (put-text-property (point) (1+ (point)) 'font-lock-face 'Man-underline))
+        (goto-char (point-min))
+        (while (search-forward "\b_" nil t)
+          (delete-char -2)
+          (put-text-property (1- (point)) (point) 'font-lock-face 'Man-underline))
+        (goto-char (point-min))
+        (while (re-search-forward "\\(.\\)\\(\b+\\1\\)+" nil t)
+          (replace-match "\\1")
+          (put-text-property (1- (point)) (point) 'font-lock-face 'Man-overstrike))
+        (goto-char (point-min))
+        (while (re-search-forward "o\b\\+\\|\\+\bo" nil t)
+          (replace-match "o")
+          (put-text-property (1- (point)) (point) 'font-lock-face 'bold))
+        (goto-char (point-min))
+        (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
+          (replace-match "+")
+          (put-text-property (1- (point)) (point) 'font-lock-face 'bold))
+        ;; When the header is longer than the manpage name, groff tries to
+        ;; condense it to a shorter line interspersed with ^H.  Remove ^H with
+        ;; their preceding chars (but don't put Man-overstrike).  (Bug#5566)
+        (goto-char (point-min))
+        (while (re-search-forward ".\b" nil t) (delete-char -2))
+        (goto-char (point-min))
+        ;; Try to recognize common forms of cross references.
+        (Man-highlight-references)
+        (Man-softhyphen-to-minus)
+        (goto-char (point-min))
+        (while (re-search-forward Man-heading-regexp nil t)
+          (put-text-property (match-beginning 0)
+			     (match-end 0)
+			     'font-lock-face 'Man-overstrike))))))
 
 (provide 'base-emacs-fixes)
 
