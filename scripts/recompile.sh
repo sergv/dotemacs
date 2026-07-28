@@ -20,13 +20,13 @@ if [[ -z "${2:-}" ]]; then
     artifacts_dir="${emacs_dir}"
     zipped_el_dest="nil"
 else
-    artifacts_dir=${2:-"${EMACS_COMPILED_ROOT:-${emacs_dir}}"}
+    artifacts_dir=${2:-"${emacs_dir}"}
     zipped_el_dest="\"${artifacts_dir}\""
 fi
 
 compilation_dest="$artifacts_dir/compiled"
 
-source "$(dirname "$(readlink -f ""${BASH_SOURCE[0]}"")")/utils.sh"
+source "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/utils.sh"
 
 if [[ ! -d "$emacs_dir" ]]; then
     echo "Emacs directory is not configured properly: either set EMACS_ROOT environment variable or pass directory to this script"
@@ -145,18 +145,15 @@ define eval_prelude <<EOF
 (progn
   (defconst +emacs-config-path+ "$emacs_dir")
 
+  (defconst +recompile--zipped-el-dest+ $zipped_el_dest)
+
+  (setf treesit-extra-load-path '("$artifacts_dir/lib"))
+
   (setf cl--optimize-speed 3
         cl--optimize-safety 0
-        byte-compile-warnings
-        (let ((input "INPUT")
-              (should-report-warnings? nil))
-          (dolist (dir '("src" "third-party/dante"))
-            (setf should-report-warnings?
-                  (or should-report-warnings?
-                      (string-prefix-p (concat +emacs-config-path+ "/" dir "/") input))))
-          (if should-report-warnings?
-              '(not docstrings-wide docstrings)
-            nil)))
+        ;; byte-compile-error-on-warn t
+        compilation-safety 0
+        jka-compr-verbose nil)
 
   (setf with-editor-emacsclient-executable nil
         byte-compile-dest-file-function
@@ -165,7 +162,49 @@ define eval_prelude <<EOF
                    (dir (if (member filename '("init.el" "early-init.el"))
                             ""
                           "compiled/elc/")))
-              (concat "${artifacts_dir}/" dir filename "c")))))
+              (concat "${artifacts_dir}/" dir filename "c"))))
+
+  (defun recompile--write-zipped-el (zipped-el-dest emacs-dir file)
+    (let* ((dest-base
+            (concat zipped-el-dest (strip-string-prefix (directory-file-name emacs-dir) file)))
+           (dest (concat dest-base ".gz")))
+      (with-temp-buffer
+        (if (zerop
+             (call-process "gzip"
+                           file
+                           (current-buffer)
+                           nil
+                           "--best"
+                           "--stdout"))
+            (progn
+              (make-directory (file-name-directory dest) t)
+              (jka-compr-run-real-handler
+               'write-region
+               (list (point-min) (point-max) dest)))
+          (error "Failed to compress source ‘%s’ to ‘%s’:\n%s" file dest (buffer-substring-no-properties (point-min) (point-max)))))))
+
+  (load "bytecomp" nil t))
+EOF
+
+define compile_loop <<'EOF'
+(dolist (file command-line-args-left)
+
+  (let ((should-report-warnings? nil))
+    (dolist (dir '("src/" "third-party/dante/" "third-party/misc-modes/revive-minimal.el"))
+      (setf should-report-warnings?
+            (or should-report-warnings?
+                (string-prefix-p (concat +emacs-config-path+ "/" dir) file))))
+    (if should-report-warnings?
+        (setq byte-compile-warnings '(not docstrings-wide docstrings lexical)
+              bytecomp--inhibit-lexical-cookie-warning nil)
+      (setq byte-compile-warnings nil
+            bytecomp--inhibit-lexical-cookie-warning t)))
+
+  (if (batch-byte-compile-file file)
+      (when (stringp +recompile--zipped-el-dest+)
+        (recompile--write-zipped-el +recompile--zipped-el-dest+ +emacs-config-path+ file))
+    ;; (error "Compilation errors in %s" file)
+  ))
 EOF
 
 # Either 't' or 'nil'
@@ -183,6 +222,21 @@ if [[ "$native_comp" = "t" ]]; then
     echo "todo: native compilation" >&2
     exti 1
 
+    # (condition-case err
+    #     (let ((no-native-compile nil)
+    #           (byte-native-compiling t)
+    #           (byte-native-qualities nil)
+    #           ;; Batch compilation has memory leak thanks to libgccjit.
+    #           (comp-running-batch-compilation nil)
+    #           (native-comp-debug 0)
+    #           ;; (native-comp-compiler-options '("-O2"))
+    #           ;; (native-comp-driver-options '("-march=native"))
+    #           )
+    #       (native-compile file
+    #                       (comp-el-to-eln-filename file)))
+    #   (error
+    #    (message "[recompile.el] %s failed to native-compile %s: %s" k file (cdr err))))
+
     # # # Generate config and native-compile trampolines
     # # "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
     # #
@@ -198,12 +252,19 @@ if [[ "$native_comp" = "t" ]]; then
 
 else
     gen-el-files "-print0" | \
-        xargs -0 -P "$jobs" -n 1 -I INPUT \
+        # Marginally more checking but three times slower.
+        # xargs -0 -P "$jobs" -n 1 \
+        xargs -0 -P "$jobs" -n 5 \
               "$emacs" -Q --batch \
+              -L "$artifacts_dir/lib" \
               "${load_path[@]}" \
               --eval "$eval_prelude" \
               -l "$compilation_dest/local-autoloads.el.gz" \
-              -f batch-byte-compile INPUT
+              --eval "$compile_loop"
+    if [ $? -ne 0 ]; then
+        echo "Byte compilation failed" >&2
+        exit 1
+    fi
     # todo: use zipped_el_dest
 fi
 

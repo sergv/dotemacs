@@ -16,18 +16,21 @@
 (require 'ert)
 (require 'tests-utils)
 
+(defconst dante-test-data/resources-root
+  (concat +test-utils--test-root+ "/test-data"))
+
 (defconst dante-test-data/simple-check-test-project
-  (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project"))
+  (concat dante-test-data/resources-root "/dante/simple-check-project"))
 
 (defconst dante-test-data/simple-test-project-archive
-  (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project.zip"))
+  (concat dante-test-data/resources-root "/dante/simple-check-project.zip"))
 
 (defconst dante-test-data/simple-test-project-name-shadowing-error
-  (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project-name-shadowing-error"))
+  (concat dante-test-data/resources-root "/dante/simple-check-project-name-shadowing-error"))
 
 (defconst dante-test-data/simple-check-project-error-with-relative-path-from-subproject-archive
-  (concat +emacs-config-path+
-          "/tests/test-data/dante/simple-check-project-error-with-relative-path-from-subproject.zip"))
+  (concat dante-test-data/resources-root
+          "/dante/simple-check-project-error-with-relative-path-from-subproject.zip"))
 
 (defconst dante-test-data/native-flake
   (concat +emacs-config-path+
@@ -38,13 +41,13 @@
           "/native/rure-ffi/flake.lock"))
 
 (defconst dante-test-data/simple-repl-test-project
-  (concat +emacs-config-path+ "/tests/test-data/dante/simple-repl-project"))
+  (concat dante-test-data/resources-root "/dante/simple-repl-project"))
 
 (defconst dante-test-data/simple-check-test-project-with-hsc-archive
-  (concat +emacs-config-path+ "/tests/test-data/dante/simple-check-project-with-hsc.zip"))
+  (concat dante-test-data/resources-root "/dante/simple-check-project-with-hsc.zip"))
 
 (defconst dante-test-data/simple-repl-test-project-with-hsc
-  (concat +emacs-config-path+ "/tests/test-data/dante/simple-repl-project-with-hsc"))
+  (concat dante-test-data/resources-root "/dante/simple-repl-project-with-hsc"))
 
 (defmacro dante-tests/with-file (path &rest body)
   (declare (indent 1))
@@ -306,6 +309,11 @@
        (should (string= ty "myreplicate :: Int -> [a] -> [[a]]"))))))
 
 (defun dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl (enable-flakes?)
+  (unless (executable-find dante-cabal-executable)
+    (ert-skip "cabal not available"))
+  (unless (executable-find "ghc")
+    (ert-skip "ghc not available"))
+
   (test-utils--with-unzipped-project
       dante-test-data/simple-check-project-error-with-relative-path-from-subproject-archive
       tmp-dir
@@ -315,6 +323,8 @@
       (when enable-flakes?
         (dolist (x (list dante-test-data/native-flake
                          dante-test-data/native-flake-lock))
+          (unless (file-exists-p x)
+            (ert-skip "flakes not available"))
           (copy-file x (concat proj-dir "/" (file-name-nondirectory x)))))
 
       (dante-tests/with-file-no-clean
