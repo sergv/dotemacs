@@ -67,7 +67,8 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
                                                         ))
                           (let ((p (concat path "/" entry)))
                             (if (file-regular-p p)
-                                (when (string-suffix-p ".el" entry)
+                                (when (or (string-suffix-p ".el" entry)
+                                          (string-suffix-p ".el.gz" entry))
                                   (setf has-elisp-files? t))
                               (funcall collect-dirs p (concat rel-path "/" entry)))))
                         (when (and has-elisp-files?
@@ -116,7 +117,7 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
                                           buffer-file-name))
                  ;; +emacs-config-path+
                  "/third-party")
-         ;; Ignored third-party dirs. Keep in sync with recompile.el.
+         ;; Ignored third-party dirs.
          (rx
           (or
            (seq bow (or "tests" "doc" "examples" ".cask" ".stack-work.*") eol)
@@ -151,9 +152,10 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
        (list (directory-file-name (concat +emacs-config-path+ "/native/fakecygpty")))))
     load-path))
 
-  ;; By default Emacs will use (concat +emacs-config-path+ "/tree-sitter") here
-  ;; so no extra configuration is needed.
-  ;; (add-to-list 'treesit-extra-load-path (concat +emacs-config-path+ "/lib"))
+  ;; By default Emacs will use "~/.emacs.d/tree-sitter" here
+  ;; which fails in flakes build where $HOME will point to non-existent
+  ;; place during build. That leads to errors locating treesitter when dumping.
+  (setf treesit-extra-load-path (list (concat +emacs-config-path+ "/lib")))
 
   ;; (let ((compiled-dir (concat emacs-dir "/compiled")))
   ;;   (unless (equal (car native-comp-eln-load-path) compiled-dir)

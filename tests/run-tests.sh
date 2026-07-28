@@ -11,14 +11,17 @@ set -u
 set -o pipefail
 set -e
 
-cd "$(dirname "$0")"
-
 emacs="${EMACS:-emacs}"
+emacs_tests_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+
+root="${EMACS_TEST_ROOT:-${EMACS_ROOT:-$(dirname "$emacs_tests_dir")}}"
 
 if [[ ! -v EMACS_DEBUG ]]; then
    # Disable debugging by default, but still allow allow to override.
    export EMACS_DEBUG=0
 fi
+
+cd "$(dirname "$0")"
 
 to_load=""
 matcher=""
@@ -36,7 +39,7 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
 if [[ -z "$to_load" ]]; then
-    for x in "$EMACS_ROOT/tests"/*.el; do
+    for x in "$emacs_tests_dir"/*.el; do
         tests+=( "$(basename "${x%%.el}")" )
         # tests="$tests -l $x"
         # tests="$tests (require '$(basename "${x%%.el}"))"
@@ -44,7 +47,7 @@ if [[ -z "$to_load" ]]; then
 
     # "lsp-mode/test"
     for y in "haskell-mode/tests" "nix-mode/tests" "nix-ts-mode/test" "f.el/test" "rainbow-delimiters" "poly-mode/tests"; do
-        for x in "$EMACS_ROOT/third-party/$y"/*.el; do
+        for x in "$emacs_tests_dir/../third-party/$y"/*.el; do
             if [[ ! -f "$x" ]]; then
                 echo "Test file does not exist: '$x'" >&2
                 exit 1
@@ -59,10 +62,10 @@ if [[ -z "$to_load" ]]; then
 fi
 
 # "$emacs" -Q \
-#       -L "$EMACS_ROOT/src" \
-#       -L "$EMACS_ROOT/src/custom" \
-#       -L "$EMACS_ROOT/tests" \
-#       -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
+#       -L "$root/src" \
+#       -L "$root/src/custom" \
+#       -L "$root/tests" \
+#       -L "$root/third-party/haskell-mode/tests" \
 #       --eval "(progn (require 'cl))" \
 #       --eval "(progn (require 'cl-lib))" \
 #       -l start \
@@ -82,6 +85,16 @@ requires=$(cat <<EOF
 EOF
 )
 
+if [[ -f "$root/init.elc" ]]; then
+    init_file="$root/init.elc"
+elif [[ -f "$root/init.el" ]]; then
+    init_file="$root/init.el"
+elif [[ -f "$root/init.el.gz" ]]; then
+    init_file="$root/init.el.gz"
+else
+    echo "Unable to locate init file in root directory: ‘$root’" >&2
+    exit 1
+fi
 
 if [[ -z "$matcher" ]]; then
 
@@ -101,16 +114,20 @@ if [[ "\$m" != "nil" ]]; then
 else
     suffix=""
 fi
-"$emacs" -Q --batch \\
-    --init-directory="$EMACS_ROOT" \\
-    -l "$EMACS_ROOT/init.el" \\
-    -L "$EMACS_ROOT/tests" \\
-    -L "$EMACS_ROOT/third-party/haskell-mode/tests" \\
-    -L "$EMACS_ROOT/third-party/nix-mode/tests" \\
-    -L "$EMACS_ROOT/third-party/nix-ts-mode/test" \\
-    -L "$EMACS_ROOT/third-party/f.el/test" \\
-    -L "$EMACS_ROOT/third-party/rainbow-delimiters" \\
-    -L "$EMACS_ROOT/third-party/poly-mode/tests" \\
+"$emacs" \\
+    -Q \\
+    --batch \\
+    --eval '(setf jka-compr-verbose nil)' \\
+    --init-directory="$root" \\
+    -l "$init_file" \\
+    -L "$emacs_tests_dir" \\
+    -L "$emacs_tests_dir/../third-party/haskell-mode/tests" \\
+    -L "$emacs_tests_dir/../third-party/nix-mode/tests" \\
+    -L "$emacs_tests_dir/../third-party/nix-ts-mode/test" \\
+    -L "$emacs_tests_dir/../third-party/f.el/test" \\
+    -L "$emacs_tests_dir/../third-party/rainbow-delimiters" \\
+    -L "$emacs_tests_dir/../third-party/poly-mode" \\
+    -L "$emacs_tests_dir/../third-party/poly-mode/tests" \\
     --eval "$requires" \\
     --eval "(require '\${mod_name})" \\
     --eval "(ert-run-tests-batch-and-exit \${m})" 2>"$logs_dest/\${mod_name}\${suffix}.log"
@@ -122,17 +139,29 @@ EOF
 
     mkdir -p "$logs_dest"
 
+    jobs="1"
+    if [[ -v NIX_BUILD_CORES ]]; then
+        jobs="$NIX_BUILD_CORES"
+    else
+        cores="$(getconf _NPROCESSORS_ONLN)"
+        if [[ "$OSTYPE" == "linux-gnu" ]] && command -v lscpu >/dev/null 2>&1; then
+            threads_per_core=$(lscpu | awk '/^ *Thread\(s\) per core:/ { print $NF; }')
+            jobs=$(( "$cores" / "$threads_per_core" ))
+            # jobs=$(lscpu | awk 'BEGIN { cores = 0; threads = 0; } /^ *CPU\(s\):/ { cores = $NF; } /^ *Thread\(s\) per core:/ { threads = $NF; } END { print (cores / threads); }')
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            jobs="$cores"
+            # jobs=$(sysctl machdep.cpu.core_count | cut -w -f2)
+        elif [[ -e /proc/cpuinfo ]]; then
+            jobs="$(awk '/processor/' /proc/cpuinfo | wc -l)"
+        fi
+    fi
+    if [[ "$jobs" -gt 5 ]]; then
+        jobs="5"
+    fi
+
+    echo "Running $(( ${#tests[@]} - 1 )) test modules using $jobs threads"
+
     set +e
-
-    n="1"
-    if [[ -e /proc/cpuinfo ]]; then
-        n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
-    fi
-    if [[ "$n" -gt 5 ]]; then
-        n="5"
-    fi
-
-    echo "Running $(( ${#tests[@]} - 1 )) test modules using $n threads"
 
     for x in "${tests[@]}"; do
         # if [[ "$x" == "vim-tests" ]]; then
@@ -143,26 +172,32 @@ EOF
         #     echo "$x,nil"
         # fi
         echo "$x,nil"
-    done | xargs -P "$n" -I INPUT bash -c "$command"
+    done | xargs -P "$jobs" -I INPUT bash -c "$command"
+
+    # Make sure exit codes propagate back so that flake can know that tests failed.
+    set -e
 
     "$emacs" -Q --batch -l ert -f ert-summarize-tests-batch-and-exit "$logs_dest"/*.log
-
 else
-    # -L "$EMACS_ROOT/third-party/lsp-mode/test"
-  "$emacs" -Q --batch \
-        --init-directory="$EMACS_ROOT" \
-        -l "$EMACS_ROOT/init.el" \
-        -L "$EMACS_ROOT/tests" \
-        -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
-        -L "$EMACS_ROOT/third-party/nix-mode/tests" \
-        -L "$EMACS_ROOT/third-party/nix-ts-mode/test" \
-        -L "$EMACS_ROOT/third-party/f.el/test" \
-        -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
-        -L "$EMACS_ROOT/third-party/poly-mode/tests" \
-        $to_load \
-        --eval "$requires" \
-        --eval "(mapcar #'require '(${tests[*]}))" \
-        --eval "(ert-run-tests-batch-and-exit $matcher)"
+    # -L "$root/third-party/lsp-mode/test"
+  "$emacs" \
+      -Q \
+      --batch \
+      --eval '(setf jka-compr-verbose nil)' \
+      --init-directory="$root" \
+      -l "$init_file" \
+      -L "$emacs_tests_dir" \
+      -L "$emacs_tests_dir/../third-party/haskell-mode/tests" \
+      -L "$emacs_tests_dir/../third-party/nix-mode/tests" \
+      -L "$emacs_tests_dir/../third-party/nix-ts-mode/test" \
+      -L "$emacs_tests_dir/../third-party/f.el/test" \
+      -L "$emacs_tests_dir/../third-party/rainbow-delimiters" \
+      -L "$emacs_tests_dir/../third-party/poly-mode" \
+      -L "$emacs_tests_dir/../third-party/poly-mode/tests" \
+      $to_load \
+      --eval "$requires" \
+      --eval "(mapcar #'require '(${tests[*]}))" \
+      --eval "(ert-run-tests-batch-and-exit $matcher)"
 fi
 
 exit 0
