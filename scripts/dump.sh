@@ -15,12 +15,13 @@ export EMACS_FORCE_PRISTINE=1
 export EMACS_DEBUG=0
 emacs="${EMACS:-emacs}"
 
-source "$(dirname "$(readlink -f "$0")")/utils.sh"
-
-native_comp="$(native-comp-available)"
+emacs_dir=${1:-"${EMACS_ROOT:-.}"}
 
 "$emacs" \
-    --batch --quick --no-window-system -L src --load src/dump.el --eval "(progn (dump-main \"~/.emacs.d\" \"~/.emacs.d/compiled/$(basename "$emacs").dmp\"))"
+    --batch --quick --no-window-system \
+    -L "${emacs_dir}/src" \
+    --load "${emacs_dir}/src/dump.el" \
+    --eval "(dump-main \"${emacs_dir}\" \"${emacs_dir}/compiled/$(basename "$emacs").dmp\")"
 
 exit 0
 

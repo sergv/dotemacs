@@ -10,6 +10,9 @@
   (require 'cl-lib)
   (require 'cl-lib))
 
+(require 'haskell-setup)
+(require 'haskell-ts-mode)
+
 (require 'common)
 (require 'ert)
 (require 'tests-utils)
