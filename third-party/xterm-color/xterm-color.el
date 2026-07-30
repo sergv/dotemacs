@@ -921,6 +921,8 @@ effect when called from a buffer that does not have a cache."
   (interactive)
   (let* ((name (generate-new-buffer-name "*xterm-color-test*"))
          (buf (get-buffer-create name)))
+    (with-current-buffer buf
+      (text-mode))
     (switch-to-buffer buf))
 
   (xterm-color--test-xterm)
