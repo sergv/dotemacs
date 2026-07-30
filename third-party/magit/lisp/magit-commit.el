@@ -48,12 +48,6 @@
   :group 'magit-commands
   :type 'boolean)
 
-(defcustom magit-commit-extend-override-date t
-  "Whether using `magit-commit-extend' changes the committer date."
-  :package-version '(magit . "2.3.0")
-  :group 'magit-commands
-  :type 'boolean)
-
 (defcustom magit-commit-reword-override-date t
   "Whether using `magit-commit-reword' changes the committer date."
   :package-version '(magit . "2.3.0")
@@ -134,21 +128,11 @@ Also see https://github.com/magit/magit/issues/4132."
   [["Create"
     ("c" "Commit"         magit-commit-create)]
    ["Edit HEAD"
-    ("e" "Extend"         magit-commit-extend)
-    ""
     ("a" "Amend"          magit-commit-amend)
-    ""
     ("w" "Reword"         magit-commit-reword)
     ("d" "Reshelve"       magit-commit-reshelve :level 0)]
-   ["Edit"
-    ("f" "Fixup"          magit-commit-fixup)
-    ("s" "Squash"         magit-commit-squash)
-    ("A" "Alter"          magit-commit-alter)
-    ("n" "Augment"        magit-commit-augment)
-    ("W" "Revise"         magit-commit-revise)]
    ["Edit and rebase"
     ("F" "Instant fixup"  magit-commit-instant-fixup)
-    ("S" "Instant squash" magit-commit-instant-squash)
     ""
     ""
     ("R" "Reword past"    magit-rebase-reword-commit :level 0)]
@@ -203,27 +187,6 @@ Also see https://github.com/magit/magit/issues/4132."
 ;;;; Edit HEAD
 
 ;;;###autoload
-(defun magit-commit-extend (&optional args override-date)
-  "Amend staged changes to the last commit, without editing its message.
-
-With a prefix argument do not update the committer date; without an
-argument update it.  The option `magit-commit-extend-override-date'
-can be used to inverse the meaning of the prefix argument.  Called
-non-interactively, the optional OVERRIDE-DATE argument controls this
-behavior, and the option is of no relevance."
-  (interactive (list (magit-commit-arguments)
-                     (if current-prefix-arg
-                         (not magit-commit-extend-override-date)
-                       magit-commit-extend-override-date)))
-  (when (setq args (magit-commit-assert args))
-    (magit-commit-amend-assert)
-    (if override-date
-        (magit-run-git-with-editor "commit" "--amend" "--no-edit" args)
-      (with-environment-variables
-          (("GIT_COMMITTER_DATE" (magit-rev-format "%cD")))
-        (magit-run-git-with-editor "commit" "--amend" "--no-edit" args)))))
-
-;;;###autoload
 (defun magit-commit-amend (&optional args)
   "Amend staged changes (if any) to the last commit, and edit its message."
   (interactive (list (magit-commit-arguments)))
@@ -253,92 +216,6 @@ behavior, and the option is of no relevance."
 
 ;;;; Edit
 
-;;;###autoload
-(defun magit-commit-fixup (&optional commit args)
-  "Create a fixup commit, leaving the original commit message untouched.
-
-If there is a reachable commit at point, target that.  Otherwise prompt
-for a commit.  If `magit-commit-squash-confirm' is non-nil, always make
-the user explicitly select a commit, in a buffer dedicated to that task.
-
-During a later rebase, when this commit gets squashed into its targeted
-commit, the original message of the targeted commit is used as-is.
-
-In other words, call \"git commit --fixup=COMMIT --no-edit\"."
-  (interactive (list (magit-commit-at-point)
-                     (magit-commit-arguments)))
-  (magit-commit-squash-internal "--fixup=" commit args))
-
-;;;###autoload
-(defun magit-commit-squash (&optional commit args)
-  "Create a squash commit, without the user authoring a commit message.
-
-If there is a reachable commit at point, target that.  Otherwise prompt
-for a commit.  If `magit-commit-squash-confirm' is non-nil, always make
-the user explicitly select a commit, in a buffer dedicated to that task.
-
-During a later rebase, when this commit gets squashed into its targeted
-commit, the user is given a chance to edit the original message to take
-the changes from the squash commit into account.
-
-In other words, call \"git commit --squash=COMMIT --no-edit\"."
-  (interactive (list (magit-commit-at-point)
-                     (magit-commit-arguments)))
-  (magit-commit-squash-internal "--squash=" commit args))
-
-;;;###autoload
-(defun magit-commit-alter (&optional commit args)
-  "Create a squash commit, authoring the final commit message now.
-
-If there is a reachable commit at point, target that.  Otherwise prompt
-for a commit.  If `magit-commit-squash-confirm' is non-nil, always make
-the user explicitly select a commit, in a buffer dedicated to that task.
-
-During a later rebase, when this commit gets squashed into its targeted
-commit, the original message of the targeted commit is replaced with the
-message of this commit, without the user automatically being given a
-chance to edit again.
-
-In other words, call \"git commit --fixup=amend:COMMIT --edit\"."
-  (interactive (list (magit-commit-at-point)
-                     (magit-commit-arguments)))
-  (magit-commit-squash-internal "--fixup=amend:" commit args nil 'edit))
-
-;;;###autoload
-(defun magit-commit-augment (&optional commit args)
-  "Create a squash commit, authoring a new temporary commit message.
-
-If there is a reachable commit at point, target that.  Otherwise prompt
-for a commit.  If `magit-commit-squash-confirm' is non-nil, always make
-the user explicitly select a commit, in a buffer dedicated to that task.
-
-During a later rebase, when this commit gets squashed into its targeted
-commit, the user is asked to write a final commit message, in a buffer
-that starts out containing both the original commit message, as well as
-the temporary commit message of the squash commit.
-
-In other words, call \"git commit --squash=COMMIT --edit\"."
-  (interactive (list (magit-commit-at-point)
-                     (magit-commit-arguments)))
-  (magit-commit-squash-internal "--squash=" commit args nil 'edit))
-
-;;;###autoload
-(defun magit-commit-revise (&optional commit args)
-  "Reword the message of an existing commit, without editing its tree.
-
-If there is a reachable commit at point, target that.  Otherwise prompt
-for a commit.  If `magit-commit-squash-confirm' is non-nil, always make
-the user explicitly select a commit, in a buffer dedicated to that task.
-
-During a later rebase, when this commit gets squashed into its targeted
-commit, a combined commit is created which uses the message of the fixup
-commit and the tree of the targeted commit.
-
-In other words, call \"git commit --fixup=reword:COMMIT --edit\"."
-  (interactive (list (magit-commit-at-point)
-                     (magit-commit-arguments)))
-  (magit-commit-squash-internal "--fixup=reword:" commit args 'nopatch 'edit))
-
 ;;;; Edit and Rebase
 
 ;;;###autoload
@@ -355,23 +232,6 @@ Like `magit-commit-fixup' but also run a `--autofixup' rebase."
   (interactive (list (magit-commit-at-point)
                      (magit-commit-arguments)))
   (magit-commit-squash-internal "--fixup=" commit args nil nil 'rebase))
-
-;;;###autoload
-(defun magit-commit-instant-squash (&optional commit args)
-  "Create a squash commit, and immediately combine it with its target.
-
-If there is a reachable commit at point, target that.  Otherwise prompt
-for a commit.  If `magit-commit-squash-confirm' is non-nil, always make
-the user explicitly select a commit, in a buffer dedicated to that task.
-
-Turing the rebase phase, when the two commits are being squashed, ask
-the user to author the final commit message, based on the original
-message of the targeted commit.
-
-Like `magit-commit-squash' but also run a `--autofixup' rebase."
-  (interactive (list (magit-commit-at-point)
-                     (magit-commit-arguments)))
-  (magit-commit-squash-internal "--squash=" commit args nil nil 'rebase))
 
 ;;;; Internal
 
@@ -640,11 +500,7 @@ an alternative implementation."
 ;;;; Hooks
 
 (defvar magit-post-commit-hook-commands
-  (list #'magit-commit-extend
-        #'magit-commit-fixup
-        #'magit-commit-augment
-        #'magit-commit-instant-fixup
-        #'magit-commit-instant-squash))
+  (list #'magit-commit-instant-fixup))
 
 (defun magit-run-post-commit-hook ()
   (when (and (not this-command)

@@ -35,7 +35,6 @@
   "Reset the `HEAD', index and/or worktree to a previous state."
   :man-page "git-reset"
   [["Reset"
-    ("b" "branch" magit-branch-reset)
     ("f" "file"   magit-file-checkout)]
    ["Reset this"
     ("m" "mixed    (HEAD and index)" magit-reset-mixed)

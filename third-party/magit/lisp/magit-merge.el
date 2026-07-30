@@ -54,12 +54,10 @@
    :if-not magit-merge-in-progress-p
    [("m" "Merge"                  magit-merge-plain)
     ("e" "Merge and edit message" magit-merge-editmsg)
-    ("n" "Merge but don't commit" magit-merge-nocommit)
-    ("a" "Absorb"                 magit-merge-absorb)]
+    ("n" "Merge but don't commit" magit-merge-nocommit)]
    [("p" "Preview merge"          magit-merge-preview)
     ""
-    ("s" "Squash merge"           magit-merge-squash)
-    ("d" "Dissolve"               magit-merge-dissolve)]]
+    ("s" "Squash merge"           magit-merge-squash)]]
   ["Actions"
    :if magit-merge-in-progress-p
    ("m" "Commit merge" magit-commit-create)
@@ -128,91 +126,6 @@ inspect the merge and change the commit message.
   (magit-merge-assert)
   (cl-pushnew "--no-ff" args :test #'equal)
   (magit-run-git-async "merge" "--no-commit" args rev))
-
-;;;###autoload
-(defun magit-merge-dissolve (branch &optional args)
-  "Merge the current branch into BRANCH and remove the former.
-
-Before merging, force push the source branch to its push-remote,
-provided the respective remote branch already exists, ensuring
-that the respective pull-request (if any) won't get stuck on some
-obsolete version of the commits that are being merged.  Finally
-if `forge-branch-pullreq' was used to create the merged branch,
-then also remove the respective remote branch."
-  (interactive
-   (list (let ((branch (magit-get-current-branch)))
-           (magit-read-other-local-branch
-            (format "Merge `%s' into" (or branch (magit-rev-parse "HEAD")))
-            nil
-            (and branch (magit-get-local-upstream-branch branch))))
-         (magit-merge-arguments)))
-  (let ((current (magit-get-current-branch))
-        (head (magit-rev-parse "HEAD")))
-    (when (zerop (magit-call-git "checkout" branch))
-      (if current
-          (magit--merge-absorb current args)
-        (magit-run-git-with-editor "merge" args head)))))
-
-;;;###autoload
-(defun magit-merge-absorb (branch &optional args)
-  "Merge BRANCH into the current branch and remove the former.
-
-Before merging, force push the source branch to its push-remote,
-provided the respective remote branch already exists, ensuring
-that the respective pull-request (if any) won't get stuck on some
-obsolete version of the commits that are being merged.  Finally
-if `forge-branch-pullreq' was used to create the merged branch,
-then also remove the respective remote branch."
-  (interactive (list (magit-read-other-local-branch "Absorb branch")
-                     (magit-merge-arguments)))
-  (magit--merge-absorb branch args))
-
-(defun magit--merge-absorb (branch args &optional message)
-  (when (equal branch (magit-main-branch))
-    (unless (yes-or-no-p
-             (format "Do you really want to merge `%s' into another branch? "
-                     branch))
-      (user-error "Abort")))
-  (cond-let
-    ([target (magit-get-push-branch branch t)]
-     (magit-git-push branch target (list "--force-with-lease"))
-     (set-process-sentinel
-      magit-this-process
-      (lambda (process event)
-        (when (memq (process-status process) '(exit signal))
-          (if (not (zerop (process-exit-status process)))
-              (magit-process-sentinel process event)
-            (process-put process 'inhibit-refresh t)
-            (magit-process-sentinel process event)
-            (magit--merge-absorb-1 branch args))
-          (when message
-            (message message))))))
-    ((magit--merge-absorb-1 branch args))))
-
-(defun magit--merge-absorb-1 (branch args)
-  (if-let ((pr (magit-get "branch" branch "pullRequest")))
-      (magit-run-git-async
-       "merge" args "-m"
-       (format "Merge branch '%s'%s [#%s]"
-               branch
-               (let ((current (magit-get-current-branch)))
-                 (if (equal current (magit-main-branch))
-                     ""
-                   (format " into %s" current)))
-               pr)
-       branch)
-    (magit-run-git-async "merge" args "--no-edit" branch))
-  (set-process-sentinel
-   magit-this-process
-   (lambda (process event)
-     (when (memq (process-status process) '(exit signal))
-       (if (> (process-exit-status process) 0)
-           (magit-process-sentinel process event)
-         (process-put process 'inhibit-refresh t)
-         (magit-process-sentinel process event)
-         (magit-branch-maybe-delete-pr-remote branch)
-         (magit-branch-unset-pushRemote branch)
-         (magit-run-git "branch" "-D" branch))))))
 
 ;;;###autoload
 (defun magit-merge-squash (rev)
