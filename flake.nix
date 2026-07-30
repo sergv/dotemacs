@@ -162,26 +162,25 @@
               version = "0.9";
               src     = ./.;
               buildInputs = [
-                emacs
+                emacs.deriv
                 haskell-pkgs-with-emacs-native.emacs-native
                 # faster-richer-tags
               ] ++
               treesitter-derivs;
               nativeBuildInputs = [
                 emacs-raw
-                # emacs
+                # emacs.deriv
                 # pkgs.ghc
                 pkgs.gzip
                 pkgs.xz
               ] ++
               treesitter-derivs;
-              # dest="$out"
               buildPhase = ''
                 runHook preBuild
 
-                dest="_build"
+                dest="$out"
                 mkdir "$dest"
-                dest_abs="$(readlink -f "$dest")"
+                dest_abs="$(realpath $dest)"
 
                 mkdir "$dest/bin"
                 mkdir "$dest/compiled"
@@ -189,7 +188,7 @@
                 mkdir "$dest/resources"
                 mkdir "$dest/tree-sitter"
 
-                ln -s "${emacs}/bin/emacs" "$dest/bin"
+                ln -s "${emacs.deriv}/bin/${emacs.exe-name}" "$dest/bin/emacs"
 
                 ln -s "${libemacs-native-so}" "$dest/lib/"
                 ${builtins.concatStringsSep "\n"
@@ -231,8 +230,8 @@
               checkPhase = ''
                 runHook preCheck
 
-                dest="_build"
-                dest_abs="$(readlink -f "$dest")"
+                dest="$out"
+                dest_abs="$(realpath $dest)"
 
                 # Work around logic in ‘ert-x.el’ than initializes
                 # ‘ert-remote-temporary-file-directory’ and does
@@ -250,10 +249,10 @@
               '';
 
               dontPatchShebangs = true;
-              installPhase = ''
-                mkdir "$out"
-                cp -r "_build"/* "$out/"
-              '';
+              # installPhase = ''
+              #   mkdir "$out"
+              #   cp -r "_build"/* "$out/"
+              # '';
 
               # doInstallCheck = true;
               # installCheckPhase = ''
