@@ -101,7 +101,7 @@
   :type 'boolean
   :group 'xterm-color)
 
-(defcustom xterm-color-use-bold-for-bright nil
+(defcustom xterm-color-use-bold-for-bright t
   "If non-nil, render bright foreground attribute as bold."
   :type 'boolean
   :group 'xterm-color)
