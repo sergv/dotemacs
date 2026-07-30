@@ -831,6 +831,183 @@ Same for the ANSI bold and normal escape sequences."
 			     (match-end 0)
 			     'font-lock-face 'Man-overstrike))))))
 
+;;;###autoload
+(add-to-list 'el-patch-features 'jka-compr)
+
+(when-emacs-version (<= 30 it)
+  (with-eval-after-load 'jka-compr
+    (el-patch-defun jka-compr-insert-file-contents (file &optional visit beg end replace)
+      (barf-if-buffer-read-only)
+
+      (and (or beg end)
+           visit
+           (error "Attempt to visit less than an entire file"))
+
+      (let* ((filename (expand-file-name file))
+	     (info (jka-compr-get-compression-info filename)))
+
+        (if (not info)
+
+	    (jka-compr-run-real-handler 'insert-file-contents
+                                        (list file visit beg end replace))
+
+          (let ((uncompress-message (jka-compr-info-uncompress-message info))
+                (uncompress-program (jka-compr-info-uncompress-program info))
+                (uncompress-function (jka-compr-info-uncompress-function info))
+                (uncompress-args (jka-compr-info-uncompress-args info))
+                (base-name (file-name-nondirectory filename))
+                (notfound nil)
+                (local-copy
+                 (jka-compr-run-real-handler 'file-local-copy (list filename)))
+                local-file
+                size start)
+
+            (setq local-file (or local-copy filename))
+
+            (and
+             visit
+             (setq buffer-file-name filename))
+
+            (unwind-protect     ; to make sure local-copy gets deleted
+                (progn
+                  (and
+                   uncompress-message
+	           jka-compr-verbose
+                   (message "%s %s..." uncompress-message base-name))
+                  (if (and (el-patch-remove
+                             (or (not (executable-find uncompress-program))
+                                 ;; Android ships a bespoke version of gzip
+                                 ;; that is absolutely useless for Emacs's
+                                 ;; purposes, not supporting decompression or
+                                 ;; reading input from elsewhere than stdin.
+                                 ;;
+                                 ;; This is only true of early releases of the
+                                 ;; OS, but, since zlib is always available on
+                                 ;; Android, simply unconditionally prefer the
+                                 ;; built-in decompression function.
+                                 (eq system-type 'android)))
+                           uncompress-function
+                           (fboundp uncompress-function))
+                      ;; If we don't have the uncompression program, then use the
+                      ;; internal uncompression function (if we have one).
+                      (let ((buf (current-buffer)))
+                        (with-temp-buffer
+                          (set-buffer-multibyte nil)
+                          (insert-file-contents-literally file)
+                          (funcall uncompress-function (point-min) (point-max))
+                          (when end
+                            (delete-region end (point-max)))
+                          (when beg
+                            (delete-region (point-min) beg))
+                          (setq size (buffer-size))
+                          (insert-into-buffer buf))
+                        (goto-char (point-min)))
+                    ;; Use the external uncompression program.
+                    (condition-case error-code
+
+                        (let ((coding-system-for-read 'no-conversion))
+                          (if replace
+                              (goto-char (point-min)))
+                          (setq start (point))
+                          (if (or beg end)
+                              (jka-compr-partial-uncompress
+                               uncompress-program
+                               (concat uncompress-message " " base-name)
+                               uncompress-args
+                               local-file
+                               (or beg 0)
+                               (if (and beg end)
+                                   (- end beg)
+                                 end))
+                            ;; If visiting, bind off buffer-file-name so that
+                            ;; file-locking will not ask whether we should
+                            ;; really edit the buffer.
+                            (let ((buffer-file-name
+                                   (if visit nil buffer-file-name)))
+                              (jka-compr-call-process uncompress-program
+                                                      (concat uncompress-message
+                                                              " " base-name)
+                                                      local-file
+                                                      t
+                                                      nil
+                                                      uncompress-args)))
+                          (setq size (- (point) start))
+                          (if replace
+                              (delete-region (point) (point-max)))
+                          (goto-char start))
+                      (error
+                       ;; If the file we wanted to uncompress does not exist,
+                       ;; handle that according to VISIT as `insert-file-contents'
+                       ;; would, maybe signaling the same error it normally would.
+                       (if (and (eq (car error-code) 'file-missing)
+                                (eq (nth 3 error-code) local-file))
+                           (if visit
+                               (setq notfound error-code)
+                             (signal 'file-missing
+                                     (cons "Opening input file"
+                                           (nthcdr 2 error-code))))
+                         ;; If the uncompression program can't be found,
+                         ;; signal that as a non-file error
+                         ;; so that find-file-noselect-1 won't handle it.
+                         (if (and (memq 'file-error (get (car error-code)
+                                                         'error-conditions))
+                                  (equal (cadr error-code) "Searching for program"))
+                             (error "Uncompression program `%s' not found"
+                                    (nth 3 error-code)))
+                         (signal (car error-code) (cdr error-code)))))))
+
+              (and
+               local-copy
+               (file-exists-p local-copy)
+               (delete-file local-copy)))
+
+            (unless notfound
+              (decode-coding-inserted-region
+               (point) (+ (point) size)
+               (jka-compr-byte-compiler-base-file-name file)
+               visit beg end replace))
+
+            (and
+             visit
+             (progn
+               (unlock-buffer)
+               (setq buffer-file-name filename)
+               (setq jka-compr-really-do-compress t)
+               (set-visited-file-modtime)))
+
+            (and
+             uncompress-message
+	     jka-compr-verbose
+             (message "%s %s...done" uncompress-message base-name))
+
+            (and
+             visit
+             notfound
+             (signal 'file-missing
+                     (cons "Opening input file" (nth 2 notfound))))
+
+            ;; This is done in insert-file-contents after we return.
+            ;; That is a little weird, but better to go along with it now
+            ;; than to change it now.
+
+            ;; ;; Run the functions that insert-file-contents would.
+            ;; (let ((p after-insert-file-functions)
+            ;;       (insval size))
+            ;;   (while p
+            ;;     (setq insval (funcall (car p) size))
+            ;;     (if insval
+            ;;         (progn
+            ;;           (or (integerp insval)
+            ;;       	(signal 'wrong-type-argument
+            ;;       		(list 'integerp insval)))
+            ;;           (setq size insval)))
+            ;;     (setq p (cdr p))))
+
+            (or (jka-compr-info-compress-program info)
+                (message "You can't save this buffer because compression program is not defined"))
+
+            (list filename size)))))))
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
