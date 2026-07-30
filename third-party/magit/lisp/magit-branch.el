@@ -231,16 +231,13 @@ has to be used to view and change branch related variables."
     (6 "o" "new orphan"      magit-branch-orphan)]
    [""
     ("c" "new branch"        magit-branch-and-checkout)
-    ("s" "new spin-off"      magit-branch-spinoff)
     (5 "w" "new worktree"    magit-worktree-checkout)]
    ["Create"
     ("n" "new branch"        magit-branch-create)
-    ("S" "new spin-out"      magit-branch-spinout)
     (5 "W" "new worktree"    magit-worktree-branch)]
    ["Do"
     ("C" "configure..."      magit-branch-configure)
     ("m" "rename"            magit-branch-rename)
-    ("x" "reset"             magit-branch-reset)
     ("k" "delete"            magit-branch-delete)]
    [""
     (7 "h" "shelve"          magit-branch-shelve)
@@ -443,130 +440,6 @@ when using `magit-branch-and-checkout'."
            (format "Branch `%s' already exists; pick another name" branch)
            default-start)
         (list branch (magit-read-starting-point prompt branch default-start))))))
-
-;;;###autoload
-(defun magit-branch-spinout (branch &optional from)
-  "Create new branch from the unpushed commits.
-Like `magit-branch-spinoff' but remain on the current branch.
-If there are any uncommitted changes, then behave exactly like
-`magit-branch-spinoff'."
-  (interactive (list (magit-read-string-ns "Spin out branch")
-                     (car (last (magit-region-values 'commit)))))
-  (magit--branch-spinoff branch from nil))
-
-;;;###autoload
-(defun magit-branch-spinoff (branch &optional from)
-  "Create new branch from the unpushed commits.
-
-Create and checkout a new branch starting at and tracking the
-current branch.  That branch in turn is reset to the last commit
-it shares with its upstream.  If the current branch has no
-upstream or no unpushed commits, then the new branch is created
-anyway and the previously current branch is not touched.
-
-This is useful to create a feature branch after work has already
-began on the old branch (likely but not necessarily \"master\").
-
-If the current branch is a member of the value of option
-`magit-branch-prefer-remote-upstream' (which see), then the
-current branch will be used as the starting point as usual, but
-the upstream of the starting-point may be used as the upstream
-of the new branch, instead of the starting-point itself.
-
-If optional FROM is non-nil, then the source branch is reset
-to `FROM~', instead of to the last commit it shares with its
-upstream.  Interactively, FROM is only ever non-nil, if the
-region selects some commits, and among those commits, FROM is
-the commit that is the fewest commits ahead of the source
-branch.
-
-The commit at the other end of the selection actually does not
-matter, all commits between FROM and `HEAD' are moved to the new
-branch.  If FROM is not reachable from `HEAD' or is reachable
-from the source branch's upstream, then an error is raised."
-  (interactive (list (magit-read-string-ns "Spin off branch")
-                     (car (last (magit-region-values 'commit)))))
-  (magit--branch-spinoff branch from t))
-
-(defun magit--branch-spinoff (branch from checkout)
-  (when (magit-branch-p branch)
-    (user-error "Cannot spin off %s.  It already exists" branch))
-  (when (and (not checkout)
-             (magit-anything-modified-p))
-    (message "Staying on HEAD due to uncommitted changes")
-    (setq checkout t))
-  (cond-let
-    ([current (magit-get-current-branch)]
-     (let ((tracked (magit-get-upstream-branch current))
-           base)
-       (when from
-         (unless (magit-rev-ancestor-p from current)
-           (user-error "Cannot spin off %s.  %s is not reachable from %s"
-                       branch from current))
-         (when (and tracked
-                    (magit-rev-ancestor-p from tracked))
-           (user-error "Cannot spin off %s.  %s is ancestor of upstream %s"
-                       branch from tracked)))
-       (let ((magit-process-raise-error t))
-         (if checkout
-             (magit-call-git "checkout" "-b" branch current)
-           (magit-call-git "branch" branch current)))
-       (when-let ((upstream (magit-get-indirect-upstream-branch current)))
-         (magit-call-git "branch" "--set-upstream-to" upstream branch))
-       (when (and tracked
-                  (setq base
-                        (if from
-                            (concat from "^")
-                          (magit-git-string "merge-base" current tracked)))
-                  (not (magit-rev-eq base current)))
-         (if checkout
-             (magit-call-git "update-ref" "-m"
-                             (format "reset: moving to %s" base)
-                             (concat "refs/heads/" current) base)
-           (magit-call-git "reset" "--hard" base)))))
-    (checkout
-     (magit-call-git "checkout" "-b" branch))
-    ((magit-call-git "branch" branch)))
-  (magit-refresh))
-
-;;;###autoload
-(defun magit-branch-reset (branch to &optional set-upstream)
-  "Reset a branch to the tip of another branch or any other commit.
-
-When the branch being reset is the current branch, then do a
-hard reset.  If there are any uncommitted changes, then the user
-has to confirm the reset because those changes would be lost.
-
-This is useful when you have started work on a feature branch but
-realize it's all crap and want to start over.
-
-When resetting to another branch and a prefix argument is used,
-then also set the target branch as the upstream of the branch
-that is being reset."
-  (interactive
-   (let ((branch (magit-read-local-branch "Reset branch"
-                                          (magit-local-branch-at-point))))
-     (list branch
-           (magit-read-branch-or-commit (format "Reset %s to" branch)
-                                        (magit-get-upstream-branch branch)
-                                        branch)
-           current-prefix-arg)))
-  (let ((magit-inhibit-refresh t))
-    (if (equal branch (magit-get-current-branch))
-        (if (and (magit-anything-modified-p)
-                 (not (yes-or-no-p
-                       "Uncommitted changes will be lost.  Proceed? ")))
-            (user-error "Abort")
-          (magit-reset-hard to))
-      (magit-call-git "update-ref"
-                      "-m" (format "reset: moving to %s" to)
-                      (magit-git-string "rev-parse" "--symbolic-full-name"
-                                        branch)
-                      to))
-    (when (and set-upstream (magit-branch-p to))
-      (magit-set-upstream-branch branch to)
-      (magit-branch-maybe-adjust-upstream branch to)))
-  (magit-refresh))
 
 (defvar magit-branch-delete-never-verify nil
   "Whether `magit-branch-delete' always pushes with \"--no-verify\".")
