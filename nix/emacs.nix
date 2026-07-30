@@ -182,48 +182,52 @@ let
 
   mk-emacs-pkg =
     exe-name: pkg: debug-wrapper:
-      pkgs.writeScriptBin exe-name ''
-        #!${pkgs.bash}/bin/bash
+      {
+        inherit exe-name;
+        deriv =
+          pkgs.writeScriptBin exe-name ''
+            #!${pkgs.bash}/bin/bash
 
-        declare -a wrap_cmd
-        ${if builtins.stringLength debug-wrapper == 0
-          then ""
-          else ''
-            if [[ "''${EMACS_DEBUG:-1}" == 1 ]]; then
-              wrap_cmd+=(${debug-wrapper})
-            fi
-          ''}
-
-        default_root="$(realpath "$(dirname "$(dirname "$(realpath --no-symlinks "''${BASH_SOURCE[0]}")")")")"
-
-        if [[ -v EMACS_ROOT && -d "$EMACS_ROOT" ]]; then
-            root="$EMACS_ROOT"
-        else
-            root="$default_root"
-        fi
-
-        if [[ "''${EMACS_FORCE_PRISTINE:-0}" != 0 ]]; then
-            ''${wrap_cmd[@]} ${pkg}/bin/emacs --init-directory="$root" "''${@}"
-        else
-            if [[ -v EMACS_ROOT ]]; then
-                dump_file="$root/compiled/${exe-name}.dmp"
-            fi
-            if [[ ! -v dump_file || ! -f "$dump_file" ]]; then
-                dump_file="$default_root/compiled/emacs.dmp"
-
-                if [[ ! -f "$dump_file" ]]; then
-                    echo "Default dump file does not exist: $dump_file" >&2
-                    exit 1
+            declare -a wrap_cmd
+            ${if builtins.stringLength debug-wrapper == 0
+              then ""
+              else ''
+                if [[ "''${EMACS_DEBUG:-1}" == 1 ]]; then
+                  wrap_cmd+=(${debug-wrapper})
                 fi
+              ''}
+
+            default_root="$(realpath "$(dirname "$(dirname "$(realpath --no-symlinks "''${BASH_SOURCE[0]}")")")")"
+
+            if [[ -v EMACS_ROOT && -d "$EMACS_ROOT" ]]; then
+                root="$EMACS_ROOT"
+            else
+                root="$default_root"
             fi
 
-            ''${wrap_cmd[@]} ${pkg}/bin/emacs --init-directory="$root" --dump-file "$dump_file" "''${@}"
-        fi
-      '';
+            if [[ "''${EMACS_FORCE_PRISTINE:-0}" != 0 ]]; then
+                ''${wrap_cmd[@]} ${pkg}/bin/emacs --init-directory="$root" "''${@}"
+            else
+                if [[ -v EMACS_ROOT ]]; then
+                    dump_file="$root/compiled/${exe-name}.dmp"
+                fi
+                if [[ ! -v dump_file || ! -f "$dump_file" ]]; then
+                    dump_file="$default_root/compiled/emacs.dmp"
+
+                    if [[ ! -f "$dump_file" ]]; then
+                        echo "Default dump file does not exist: $dump_file" >&2
+                        exit 1
+                    fi
+                fi
+
+                ''${wrap_cmd[@]} ${pkg}/bin/emacs --init-directory="$root" --dump-file "$dump_file" "''${@}"
+            fi
+          '';
+      };
 
   emacs-native-wrapped = mk-emacs-pkg "emacs-native" emacs-native-pkg "";
 
-  emacs-bytecode-wrapped = mk-emacs-pkg "emacs" emacs-bytecode-pkg "";
+  emacs-bytecode-wrapped = mk-emacs-pkg "emacs-bytecode" emacs-bytecode-pkg "";
 
   emacs-debug-wrapped =
     mk-emacs-pkg
