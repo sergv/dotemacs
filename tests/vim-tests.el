@@ -32,6 +32,17 @@
     ;; share things like last cmd events, etc.
     :buffer-id nil))
 
+(defmacro vim-tests--test-fresh-buffer-contents-init-reuse (init action contents expected-value)
+  (declare (indent 2))
+  `(tests-utils--test-buffer-contents
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value
+    :initialisation ,init
+    ;; Don’t reuse buffer to start out in fresh environment each time and don’t
+    ;; share things like last cmd events, etc.
+    :buffer-id nil))
+
 (defmacro vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits (name-prefix actions contentss expected-value)
   (declare (indent 1))
   `(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
@@ -75,7 +86,7 @@
                ,expected-value)))))))
 
 (cl-defmacro vim-tests--test-fresh-buffer-contents-init-all
-    (&key name modes action contents expected-value)
+    (&key name modes action contents expected-value fresh-buffer)
   (declare (indent nil))
   `(tests-utils--test-buffer-contents-for-inits
     :name ,name
@@ -85,7 +96,7 @@
     :expected-value ,expected-value
     ;; Don’t reuse buffer to start out in fresh environment each time and don’t
     ;; share things like last cmd events, etc.
-    :buffer-id nil))
+    :buffer-id ,(if fresh-buffer nil (lambda (mode) (string->symbol (format "vim-tests-%s" mode))))))
 
 ;; Text mode has surprising bindings for <tab>. It doesn’t really matter
 ;; day to day but breaks tests significantly without much benefit testingwise.
@@ -103,7 +114,8 @@
     :contents
     ,contents
     :expected-value
-    ,expected-value))
+    ,expected-value
+    :fresh-buffer t))
 
 (cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-except* (&key skip-modes name action contents expected-value)
   (declare (indent 3))
@@ -119,7 +131,8 @@
     :contents
     ,contents
     :expected-value
-    ,expected-value))
+    ,expected-value
+    :fresh-buffer t))
 
 (cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
     (&key modes
@@ -140,7 +153,30 @@
     :contents
     ,contents
     :expected-value
-    ,expected-value))
+    ,expected-value
+    :fresh-buffer t))
+
+(cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only**
+    (&key modes
+          name
+          action
+          contents
+          expected-value)
+  (declare (indent 0))
+  (cl-assert (listp modes))
+  (cl-assert (cl-every #'symbolp modes))
+  `(vim-tests--test-fresh-buffer-contents-init-all
+    :name
+    ,name
+    :modes
+    ,(--filter (memq it modes) (-map #'car vim-tests--all-known-modes-and-init))
+    :action
+    ,action
+    :contents
+    ,contents
+    :expected-value
+    ,expected-value
+    :fresh-buffer nil))
 
 ;; best default
 ;; todo: migrate to this
@@ -161,7 +197,8 @@
     :modes
     ,(if modes
          (--filter (memq it modes) (-map #'car vim-tests--all-known-modes-and-init))
-       (-map #'car vim-tests--all-known-modes-and-init))))
+       (-map #'car vim-tests--all-known-modes-and-init))
+    :fresh-buffer t))
 
 (cl-defmacro vim-tests--folding-test-fresh-buffer-contents*
     (&key modes
@@ -213,7 +250,8 @@
     :contents
     ,contents
     :expected-value
-    ,expected-value))
+    ,expected-value
+    :fresh-buffer t))
 
 (cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes* (&key name action contents expected-value)
   (declare (indent 2))
@@ -227,7 +265,8 @@
     :contents
     ,contents
     :expected-value
-    ,expected-value))
+    ,expected-value
+    :fresh-buffer t))
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands (names-and-actions contents expected-value)
   (declare (indent 1))
@@ -247,7 +286,8 @@
             :contents
             ,contents
             :expected-value
-            ,expected-value)))))
+            ,expected-value
+            :fresh-buffer t)))))
 
 (cl-defmacro vim-tests--test-fresh-buffer-contents-equivalent-commands* (&key modes names-and-actions contents expected-value)
   (declare (indent nil))
@@ -287,7 +327,8 @@
       :contents
       ,contents
       :expected-value
-      ,expected1)
+      ,expected1
+      :fresh-buffer t)
      (vim-tests--test-fresh-buffer-contents-init-all
       :name
       ,(string->symbol (format "%s-%s" name name2))
@@ -298,7 +339,8 @@
       :contents
       ,contents
       :expected-value
-      ,expected2)))
+      ,expected2
+      :fresh-buffer t)))
 
 (cl-defmacro vim-tests--test-region-result
     (&key name
@@ -884,7 +926,8 @@
   "foo-bazbaz"
   "foo-bazquux"
   "fizz"
-  "frobnicate"))
+  "frobnicate")
+ :fresh-buffer t)
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/block-insert-undo-1
@@ -4658,7 +4701,7 @@ _|_bar")
    "{-# INLINE foobar #-}_|_"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only**
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -4676,7 +4719,7 @@ _|_bar")
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only**
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -4694,7 +4737,7 @@ _|_bar")
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only**
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -9372,7 +9415,8 @@ _|_bar")
   "    (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)"
   "         ;_|_(haskell-ts--is-toplevel-node? node)"
   "         ))"
-  ""))
+  "")
+ :fresh-buffer t)
 
 (vim-tests--test-region-result
  :name vim-tests/vim-count-lines-with-correction-1a
