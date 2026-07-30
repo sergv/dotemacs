@@ -315,7 +315,7 @@
                                    #'datastructures-tests/pair=
                                    #'datastructures-tests/pair<)))
         (should res)
-        (if (= (first target-value) 1)
+        (if (= (cl-first target-value) 1)
           (should (= res 0))
           (should (= res 3)))
         (should (datastructures-tests/pair= target-value (aref items res)))))))
@@ -344,7 +344,7 @@
                                     #'datastructures-tests/pair=
                                     #'datastructures-tests/pair<)))
         (should res)
-        (if (= (first (aref items i)) 1)
+        (if (= (cl-first (aref items i)) 1)
           (should (= res 2))
           (should (= res 4)))
         (should (datastructures-tests/pair= target-value (aref items res)))))))
