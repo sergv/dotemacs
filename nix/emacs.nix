@@ -6,6 +6,24 @@ let
   mtune = if arch == null then "" else "-mtune=${arch}";
   march = if arch == null then "" else "-march=${arch}";
 
+  fetchgit-improved =
+    pkgs.fetchgit // {
+      __functor = self : args :
+        (pkgs.fetchgit.__functor self args).overrideAttrs (old: {
+          # GIT_SSL_NO_VERIFY         = true;
+          # GIT_HTTP_PROXY_AUTHMETHOD = "basic";
+          # Somehow only file is picked up. Individual environment variables aren’t!
+          gitConfigFile =
+            pkgs.writeText
+              "git-proxy-config"
+              ''
+                [http]
+                proxyAuthMethod = "basic"
+                sslverify = false
+              '';
+        });
+    };
+
   emacs-base =
     (pkgs.emacs30.override (_: {
       withNativeCompilation = false;
