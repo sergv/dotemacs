@@ -103,8 +103,8 @@ fi
 
 
 [[ -d "$emacs_dir/eln-cache" ]] && rm -frv "$emacs_dir/eln-cache"
-find "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
-find -L "$compilation_dest" \( -name '*.elc' -o -name '*.eln' -o -name "${emacs}.dmp" \) -delete
+find "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "$(basename "${emacs}.dmp")" \) -delete
+find -L "$compilation_dest" \( -name '*.elc' -o -name '*.eln' -o -name "$(basename "${emacs}.dmp")" \) -delete
 
 inform "Generating $compilation_dest/local-autoloads.el"
 generate-autoloads \
