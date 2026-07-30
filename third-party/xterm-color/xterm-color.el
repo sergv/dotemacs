@@ -554,8 +554,17 @@ in LIFO order."
                                              (fmt-256 (if (and (<= fg 7) (has? +bright+))
                                                           (+ fg 8)
                                                         fg))))))
-            (make-color-bg ()    `(face! :background (cond ((> bg 255) (fmt-24bit (unpack bg)))
-                                                           (t (fmt-256 bg)))))
+            (make-color-bg ()    `(face! :box (cons
+                                               :color
+                                               (cons
+                                                (cond ((> bg 255) (fmt-24bit (unpack bg)))
+                                                      (t (fmt-256 bg)))
+                                                ',(eval-when-compile
+                                                    (list
+                                                     :line-width
+                                                     (if (<= 28 emacs-major-version)
+                                                         ''(-1 . -1)
+                                                       -1)))))))
             (make-face ()        `(let* (k
                                          (table (pack-key-into k)))
                                     (or (gethash k table)
