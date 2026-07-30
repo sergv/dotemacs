@@ -46,25 +46,28 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'solar)
 
 (defun hour-fraction-to-time (date hour-fraction)
   (let*
       ((now (decode-time (current-time)))
 
-       (month (first   date))
-       (day   (second  date))
-       (year  (third   date))
-       (zone  (ninth   now))
+       (month (cl-first   date))
+       (day   (cl-second  date))
+       (year  (cl-third   date))
+       (zone  (cl-ninth   now))
 
        (frac-hour (cl-truncate hour-fraction))
-       (hour (first frac-hour))
+       (hour (cl-first frac-hour))
 
-       (frac-minutes (cl-truncate (* (second frac-hour) 60)))
-       (minute (first frac-minutes))
+       (frac-minutes (cl-truncate (* (cl-second frac-hour) 60)))
+       (minute (cl-first frac-minutes))
 
-       (frac-seconds (cl-truncate (* (second frac-minutes) 60)))
-       (sec (first frac-seconds)))
+       (frac-seconds (cl-truncate (* (cl-second frac-minutes) 60)))
+       (sec (cl-first frac-seconds)))
     (encode-time sec minute hour day month year zone)))
 
 
@@ -86,7 +89,7 @@
   (calendar-gregorian-from-absolute
    (+ 1 (calendar-absolute-from-gregorian (today)))))
 
-(defun +second (time)
+(defun theme-changer-add-second (time)
   (time-add time (seconds-to-time 1)))
 
 (defun change-theme (day-theme night-theme)
@@ -96,21 +99,21 @@
        (today-times    (sunrise-sunset-times (today)))
        (tomorrow-times (sunrise-sunset-times (tomorrow)))
 
-       (sunrise-today (first today-times))
-       (sunset-today (second today-times))
-       (sunrise-tomorrow (first tomorrow-times)))
+       (sunrise-today (cl-first today-times))
+       (sunset-today (cl-second today-times))
+       (sunrise-tomorrow (cl-first tomorrow-times)))
 
     (if (daytime-p sunrise-today sunset-today)
       (progn
         (apply (symbol-function day-theme) '())
-        (run-at-time (+second sunset-today) nil
+        (run-at-time (theme-changer-add-second sunset-today) nil
                      'change-theme day-theme night-theme))
 
       (apply (symbol-function night-theme) '())
       (if (time-less-p now sunrise-today)
-        (run-at-time (+second sunrise-today) nil
+        (run-at-time (theme-changer-add-second sunrise-today) nil
                      'change-theme day-theme night-theme)
-        (run-at-time (+second sunrise-tomorrow) nil
+        (run-at-time (theme-changer-add-second sunrise-tomorrow) nil
                      'change-theme day-theme night-theme)))))
 
 (provide 'theme-changer)
