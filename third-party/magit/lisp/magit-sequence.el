@@ -557,8 +557,7 @@ This discards all changes made since the sequence started."
    [("m" "to modify a commit" magit-rebase-edit-commit)
     ("w" "to reword a commit" magit-rebase-reword-commit)
     ("k" "to remove a commit" magit-rebase-remove-commit)]
-   [("f" "to autosquash"      magit-rebase-autosquash)
-    (6 "t" "to change dates"  magit-reshelve-since)]]
+   [(6 "t" "to change dates"  magit-reshelve-since)]]
   ["Actions"
    :if magit-rebase-in-progress-p
    ("r" "Continue" magit-rebase-continue)
@@ -750,22 +749,6 @@ START has to be selected from a list of recent commits."
   (magit-rebase-interactive-1 commit args
     "Type %p on a commit to rebase it and all commits above it,"
     nil t))
-
-;;;###autoload
-(defun magit-rebase-autosquash (select args)
-  "Combine squash and fixup commits with their intended targets.
-By default only squash into commits that are not reachable from
-the upstream branch.  If no upstream is configured or with a prefix
-argument, prompt for the first commit to potentially squash into."
-  (interactive (list current-prefix-arg
-                     (magit-rebase-arguments)))
-  (magit-rebase-interactive-1
-      (and-let ((_(not select))
-                (upstream (magit-get-upstream-branch)))
-        (magit-git-string "merge-base" upstream "HEAD"))
-      (nconc (list "--autosquash" "--keep-empty") args)
-    "Type %p on a commit to squash into it and then rebase as necessary,"
-    "true" nil t))
 
 ;;;###autoload
 (defun magit-rebase-edit-commit (commit args)
