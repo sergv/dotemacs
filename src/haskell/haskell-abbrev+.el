@@ -412,7 +412,7 @@ then Bar would be the result."
 
 (defun haskell-abbrev+--at-start-of-line? ()
   "Check that the point is at the start of the line."
-  (let ((c (preceding-char)))
+  (let ((c (char-before)))
     ;; By this point we’re assured that we’re
     ;; not in a string or comment via
     ;; ‘abbrev+-do-not-expand-predicate’.
