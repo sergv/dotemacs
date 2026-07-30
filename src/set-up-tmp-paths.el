@@ -10,6 +10,7 @@
   (require 'subr-x)
   (require 'set-up-platform))
 
+(defvar jka-compr-temp-name-template)
 (defvar tramp-auto-save-directory)
 
 (require 'set-up-paths)
@@ -31,7 +32,8 @@ restarts.")
 
 (setf temporary-file-directory +tmp-path+
       small-temporary-file-directory +tmp-path+
-      tramp-auto-save-directory (concat +tmp-path+ "/tramp"))
+      tramp-auto-save-directory (concat +tmp-path+ "/tramp")
+      jka-compr-temp-name-template (expand-file-name "jka-com" +tmp-path+))
 
 (defun clean-tmp-path-on-emacs-exit ()
   "Delete `+tmp-path+' directory on emacs exit."
