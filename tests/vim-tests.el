@@ -156,12 +156,13 @@
     ,expected-value
     :fresh-buffer t))
 
-(cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only**
+(cl-defmacro vim-tests--test-buffer-contents-init-standard-modes-only*
     (&key modes
           name
           action
           contents
-          expected-value)
+          expected-value
+          fresh-buffer)
   (declare (indent 0))
   (cl-assert (listp modes))
   (cl-assert (cl-every #'symbolp modes))
@@ -176,7 +177,7 @@
     ,contents
     :expected-value
     ,expected-value
-    :fresh-buffer nil))
+    :fresh-buffer ,fresh-buffer))
 
 ;; best default
 ;; todo: migrate to this
@@ -4010,7 +4011,7 @@ _|_bar")
   "builtins.trace (\"foo = \" + builtins.toString foo) _|_"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+(vim-tests--test-buffer-contents-init-standard-modes-only*
  :modes
  (nix-mode)
  :name
@@ -4028,577 +4029,718 @@ _|_bar")
   "builtins.trace (\"foo = \" + builtins.toString foo) _|_"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import-1
-    (execute-kbd-macro (kbd "i i m SPC"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "import _|_"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-import-1
+ :action
+ (execute-kbd-macro (kbd "i i m SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import _|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import-2
-    (execute-kbd-macro (kbd "i i SPC"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "import _|_"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-import-2
+ :action
+ (execute-kbd-macro (kbd "i i SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import _|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import-3
-    (execute-kbd-macro (kbd "i SPC i SPC = i SPC + i <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo i = i + _|_i"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-import-3
+ :action
+ (execute-kbd-macro (kbd "i SPC i SPC = i SPC + i <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo i = i + _|_i"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import-4
-    (execute-kbd-macro (kbd "i SPC i m SPC = i m SPC + i m <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo im = im + i_|_m"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-import-4
+ :action
+ (execute-kbd-macro (kbd "i SPC i m SPC = i m SPC + i m <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo im = im + i_|_m"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import-5
-    (execute-kbd-macro (kbd "i SPC i m p SPC = b a r SPC i m p SPC 1 <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo imp = bar imp _|_1"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-import-5
+ :action
+ (execute-kbd-macro (kbd "i SPC i m p SPC = b a r SPC i m p SPC 1 <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo imp = bar imp _|_1"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import-6a
-    (execute-kbd-macro (kbd "i i q SPC F o o <tab> <escape>"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "import qualified Foo as_|_ F"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-import-6a
+ :action
+ (execute-kbd-macro (kbd "i i q SPC F o o <tab> <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import qualified Foo as_|_ F"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import-6b
-    (execute-kbd-macro (kbd "i i q SPC F o o <tab> BB <tab> <escape>"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "import qualified Foo as B_|_B"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-import-6b
+ :action
+ (execute-kbd-macro (kbd "i i q SPC F o o <tab> BB <tab> <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import qualified Foo as B_|_B"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-import--no-expansion-if-not-on-first-column-1
-    (execute-kbd-macro (kbd "i i q SPC F o o <escape>"))
-  (tests-utils--multiline
-   ""
-   " _|_"
-   "")
-  (tests-utils--multiline
-   ""
-   " iq Fo_|_o"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-import--no-expansion-if-not-on-first-column-1
+ :action
+ (execute-kbd-macro (kbd "i i q SPC F o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  " _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  " iq Fo_|_o"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-1
-    (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# UNPACK #-}_|_"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-1
+ :action
+ (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# UNPACK #-}_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-2a
-    (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "foo :: Int -> Int"
-   "foo x = x * x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# UNPACK #-}_|_"
-   "foo :: Int -> Int"
-   "foo x = x * x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-2a
+ :action
+ (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "foo :: Int -> Int"
+  "foo x = x * x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# UNPACK #-}_|_"
+  "foo :: Int -> Int"
+  "foo x = x * x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-2b
-    (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "-- | A function with haddoc docs"
-   "foo :: Int -> Int"
-   "foo x = x * x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# UNPACK #-}_|_"
-   "-- | A function with haddoc docs"
-   "foo :: Int -> Int"
-   "foo x = x * x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-2b
+ :action
+ (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "-- | A function with haddoc docs"
+  "foo :: Int -> Int"
+  "foo x = x * x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# UNPACK #-}_|_"
+  "-- | A function with haddoc docs"
+  "foo :: Int -> Int"
+  "foo x = x * x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-2c
-    (execute-kbd-macro (kbd "i # # SPC i n l i n e <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "bar root ="
-   "  myFold"
-   "    Nothing"
-   "    (\\absPath _ _ -> pure (Just absPath))"
-   "    (Just root)"
-   ""
-   "_|_"
-   "-- | A function with haddoc docs"
-   "--"
-   "-- more docs"
-   "foo :: Int -> Int"
-   "foo x = x * x"
-   "")
-  (tests-utils--multiline
-   ""
-   "bar root ="
-   "  myFold"
-   "    Nothing"
-   "    (\\absPath _ _ -> pure (Just absPath))"
-   "    (Just root)"
-   ""
-   "{-# INLINE foo #-}_|_"
-   "-- | A function with haddoc docs"
-   "--"
-   "-- more docs"
-   "foo :: Int -> Int"
-   "foo x = x * x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-2c
+ :action
+ (execute-kbd-macro (kbd "i # # SPC i n l i n e <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "bar root ="
+  "  myFold"
+  "    Nothing"
+  "    (\\absPath _ _ -> pure (Just absPath))"
+  "    (Just root)"
+  ""
+  "_|_"
+  "-- | A function with haddoc docs"
+  "--"
+  "-- more docs"
+  "foo :: Int -> Int"
+  "foo x = x * x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "bar root ="
+  "  myFold"
+  "    Nothing"
+  "    (\\absPath _ _ -> pure (Just absPath))"
+  "    (Just root)"
+  ""
+  "{-# INLINE foo #-}_|_"
+  "-- | A function with haddoc docs"
+  "--"
+  "-- more docs"
+  "foo :: Int -> Int"
+  "foo x = x * x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-2d
-    (execute-kbd-macro (kbd "i # # SPC i n l i n e <return> <tab>"))
-    (tests-utils--multiline
-     ""
-     "_|_"
-     "-- | General form of gathering directory contents."
-     "--"
-     "-- Treats symlinks the same as regular files and directories. Folding functions can"
-     "-- decide how to handle symlinks."
-     "listContentsRecFold"
-     "  :: forall f a. Foldable f"
-     "  => Maybe Int"
-     "  -- ^ Depth limit if specified, negative values treated the same as positive ones."
-     "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> (IO [a] -> IO [a]) -> IO [a] -> IO [a])"
-     "  -- ^ Fold directory by running passed IO action that will scan its contents."
-     "  -- Can ignore the action to avoid traversing the directory."
-     "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> IO (Maybe a))"
-     "  -- ^ What to do with file"
-     "  -> f OsPath"
-     "  -- ^ Roots to search in, either absolute or relative"
-     "  -> IO [a]"
-     "listContentsRecFold depthLimit foldDir filePred = undefined")
-    (tests-utils--multiline
-     ""
-     "{-# INLINE listContentsRecFold #-}_|_"
-     "-- | General form of gathering directory contents."
-     "--"
-     "-- Treats symlinks the same as regular files and directories. Folding functions can"
-     "-- decide how to handle symlinks."
-     "listContentsRecFold"
-     "  :: forall f a. Foldable f"
-     "  => Maybe Int"
-     "  -- ^ Depth limit if specified, negative values treated the same as positive ones."
-     "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> (IO [a] -> IO [a]) -> IO [a] -> IO [a])"
-     "  -- ^ Fold directory by running passed IO action that will scan its contents."
-     "  -- Can ignore the action to avoid traversing the directory."
-     "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> IO (Maybe a))"
-     "  -- ^ What to do with file"
-     "  -> f OsPath"
-     "  -- ^ Roots to search in, either absolute or relative"
-     "  -> IO [a]"
-     "listContentsRecFold depthLimit foldDir filePred = undefined"))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-2d
+ :action
+ (execute-kbd-macro (kbd "i # # SPC i n l i n e <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "-- | General form of gathering directory contents."
+  "--"
+  "-- Treats symlinks the same as regular files and directories. Folding functions can"
+  "-- decide how to handle symlinks."
+  "listContentsRecFold"
+  "  :: forall f a. Foldable f"
+  "  => Maybe Int"
+  "  -- ^ Depth limit if specified, negative values treated the same as positive ones."
+  "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> (IO [a] -> IO [a]) -> IO [a] -> IO [a])"
+  "  -- ^ Fold directory by running passed IO action that will scan its contents."
+  "  -- Can ignore the action to avoid traversing the directory."
+  "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> IO (Maybe a))"
+  "  -- ^ What to do with file"
+  "  -> f OsPath"
+  "  -- ^ Roots to search in, either absolute or relative"
+  "  -> IO [a]"
+  "listContentsRecFold depthLimit foldDir filePred = undefined")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE listContentsRecFold #-}_|_"
+  "-- | General form of gathering directory contents."
+  "--"
+  "-- Treats symlinks the same as regular files and directories. Folding functions can"
+  "-- decide how to handle symlinks."
+  "listContentsRecFold"
+  "  :: forall f a. Foldable f"
+  "  => Maybe Int"
+  "  -- ^ Depth limit if specified, negative values treated the same as positive ones."
+  "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> (IO [a] -> IO [a]) -> IO [a] -> IO [a])"
+  "  -- ^ Fold directory by running passed IO action that will scan its contents."
+  "  -- Can ignore the action to avoid traversing the directory."
+  "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> IO (Maybe a))"
+  "  -- ^ What to do with file"
+  "  -> f OsPath"
+  "  -- ^ Roots to search in, either absolute or relative"
+  "  -> IO [a]"
+  "listContentsRecFold depthLimit foldDir filePred = undefined"))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-3
-    (execute-kbd-macro (kbd "i # s c c SPC 1 2 3 <tab> <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (_|_ x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar ({-# SCC \"123\" #-_|_} x + 1) y \"foo\""
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-3
+ :action
+ (execute-kbd-macro (kbd "i # s c c SPC 1 2 3 <tab> <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (_|_ x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar ({-# SCC \"123\" #-_|_} x + 1) y \"foo\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-4
-    (execute-kbd-macro (kbd "i h p l n SPC"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (_|_ x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (hPutStrLn_|_ x + 1) y \"foo\""
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-4
+ :action
+ (execute-kbd-macro (kbd "i h p l n SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (_|_ x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (hPutStrLn_|_ x + 1) y \"foo\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-5
-    (execute-kbd-macro (kbd "i h p l n SPC"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   "  _|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   "  hPutStrLn _|_"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-5
+ :action
+ (execute-kbd-macro (kbd "i h p l n SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y \"foo\""
+  "  _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y \"foo\""
+  "  hPutStrLn _|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-6
-    (execute-kbd-macro (kbd "i p n SPC $"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_do"
-   "  bar (x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = putStrLn $ _|_do"
-   "  bar (x + 1) y \"foo\""
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-6
+ :action
+ (execute-kbd-macro (kbd "i p n SPC $"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_do"
+  "  bar (x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = putStrLn $ _|_do"
+  "  bar (x + 1) y \"foo\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-7
-    (execute-kbd-macro (kbd "i i m p o r t s SPC"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "import Data.Set (Set)"
-   "import qualified Data.Set as S_|_"
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-7
+ :action
+ (execute-kbd-macro (kbd "i i m p o r t s SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "foo x = do"
+  "  bar (x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Data.Set (Set)"
+  "import qualified Data.Set as S_|_"
+  "foo x = do"
+  "  bar (x + 1) y \"foo\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-7a
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (execute-kbd-macro (kbd "i i m p o r t s SPC")))
-  (tests-utils--multiline
-   ""
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "_|_"
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.Set (Set)"
-   "import Data.Set qualified as S_|_"
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-7a
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (execute-kbd-macro (kbd "i i m p o r t s SPC")))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "_|_"
+  "foo x = do"
+  "  bar (x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.Set (Set)"
+  "import Data.Set qualified as S_|_"
+  "foo x = do"
+  "  bar (x + 1) y \"foo\""
+  "")
+ :fresh-buffer t)
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-8
-    (execute-kbd-macro (kbd "i # # SPC i n l i n <return> \( + + + <tab> <escape>"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "(+++) :: Int -> Int"
-   "(+++) x y = x + y"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE (+++) #-_|_}"
-   "(+++) :: Int -> Int"
-   "(+++) x y = x + y"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-8
+ :action
+ (execute-kbd-macro (kbd "i # # SPC i n l i n <return> \( + + + <tab> <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "(+++) :: Int -> Int"
+  "(+++) x y = x + y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE (+++) #-_|_}"
+  "(+++) :: Int -> Int"
+  "(+++) x y = x + y"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-9
-    (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import qualified Debug.Trace"
-   "import qualified Prettyprinter.Combinators as PP"
-   "import Prettyprinter.Instances ()"
-   ""
-   "foo x = do"
-   "  (\\result ->"
-   "    Debug.Trace.trace"
-   "      (PP.renderString $ PP.ppDictHeader \"header\""
-   "        [ \"x\"      PP.--> x"
-   "        , \"y\"      PP.--> y"
-   "        , \"result\" PP.--> result"
-   "        ])"
-   "      result) $_|_"
-   "  bar x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-9
+ :action
+ (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import qualified Debug.Trace"
+  "import qualified Prettyprinter.Combinators as PP"
+  "import Prettyprinter.Instances ()"
+  ""
+  "foo x = do"
+  "  (\\result ->"
+  "    Debug.Trace.trace"
+  "      (PP.renderString $ PP.ppDictHeader \"header\""
+  "        [ \"x\"      PP.--> x"
+  "        , \"y\"      PP.--> y"
+  "        , \"result\" PP.--> result"
+  "        ])"
+  "      result) $_|_"
+  "  bar x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-9a
-    (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
-  (tests-utils--multiline
-   "import Data.List"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import qualified Debug.Trace"
-   "import qualified Prettyprinter.Combinators as PP"
-   "import Prettyprinter.Instances ()"
-   ""
-   "import Data.List"
-   ""
-   "foo x = do"
-   "  (\\result ->"
-   "    Debug.Trace.trace"
-   "      (PP.renderString $ PP.ppDictHeader \"header\""
-   "        [ \"x\"      PP.--> x"
-   "        , \"y\"      PP.--> y"
-   "        , \"result\" PP.--> result"
-   "        ])"
-   "      result) $_|_"
-   "  bar x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-9a
+ :action
+ (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import qualified Debug.Trace"
+  "import qualified Prettyprinter.Combinators as PP"
+  "import Prettyprinter.Instances ()"
+  ""
+  "import Data.List"
+  ""
+  "foo x = do"
+  "  (\\result ->"
+  "    Debug.Trace.trace"
+  "      (PP.renderString $ PP.ppDictHeader \"header\""
+  "        [ \"x\"      PP.--> x"
+  "        , \"y\"      PP.--> y"
+  "        , \"result\" PP.--> result"
+  "        ])"
+  "      result) $_|_"
+  "  bar x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-10
-    (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import Prettyprinter.Combinators"
-   "import Debug.Trace"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import qualified Debug.Trace"
-   "import qualified Prettyprinter.Combinators as PP"
-   "import Prettyprinter.Instances ()"
-   ""
-   "import Prettyprinter.Combinators"
-   "import Debug.Trace"
-   ""
-   "foo x = do"
-   "  (\\result ->"
-   "    Debug.Trace.trace"
-   "      (PP.renderString $ PP.ppDictHeader \"header\""
-   "        [ \"x\"      PP.--> x"
-   "        , \"y\"      PP.--> y"
-   "        , \"result\" PP.--> result"
-   "        ])"
-   "      result) $_|_"
-   "  bar x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-10
+ :action
+ (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import Prettyprinter.Combinators"
+  "import Debug.Trace"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import qualified Debug.Trace"
+  "import qualified Prettyprinter.Combinators as PP"
+  "import Prettyprinter.Instances ()"
+  ""
+  "import Prettyprinter.Combinators"
+  "import Debug.Trace"
+  ""
+  "foo x = do"
+  "  (\\result ->"
+  "    Debug.Trace.trace"
+  "      (PP.renderString $ PP.ppDictHeader \"header\""
+  "        [ \"x\"      PP.--> x"
+  "        , \"y\"      PP.--> y"
+  "        , \"result\" PP.--> result"
+  "        ])"
+  "      result) $_|_"
+  "  bar x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-11
-    (execute-kbd-macro (kbd "i p p i n f o m SPC h e a d e r <return> x <return> y <return> <return>"))
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import Prettyprinter.Combinators"
-   "import Debug.Trace"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import qualified Debug.Trace"
-   "import qualified Prettyprinter.Combinators as PP"
-   "import Prettyprinter.Instances ()"
-   ""
-   "import Prettyprinter.Combinators"
-   "import Debug.Trace"
-   ""
-   "foo x = do"
-   "  Debug.Trace.traceM $ PP.renderString $ PP.ppDictHeader \"header\""
-   "    [ \"x\" PP.--> x"
-   "    , \"y\" PP.--> y"
-   "    ]_|_"
-   "  bar x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-11
+ :action
+ (execute-kbd-macro (kbd "i p p i n f o m SPC h e a d e r <return> x <return> y <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import Prettyprinter.Combinators"
+  "import Debug.Trace"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import qualified Debug.Trace"
+  "import qualified Prettyprinter.Combinators as PP"
+  "import Prettyprinter.Instances ()"
+  ""
+  "import Prettyprinter.Combinators"
+  "import Debug.Trace"
+  ""
+  "foo x = do"
+  "  Debug.Trace.traceM $ PP.renderString $ PP.ppDictHeader \"header\""
+  "    [ \"x\" PP.--> x"
+  "    , \"y\" PP.--> y"
+  "    ]_|_"
+  "  bar x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-12
-    (execute-kbd-macro (kbd "i t r a c e SPC x <return> y <return> <return>"))
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import Debug.Trace"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import qualified Debug.Trace"
-   ""
-   "import Debug.Trace"
-   ""
-   "foo x = do"
-   "  Debug.Trace.trace (\"x = \" ++ show x ++ \", y = \" ++ show y) $ _|_"
-   "  bar x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-12
+ :action
+ (execute-kbd-macro (kbd "i t r a c e SPC x <return> y <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import Debug.Trace"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import qualified Debug.Trace"
+  ""
+  "import Debug.Trace"
+  ""
+  "foo x = do"
+  "  Debug.Trace.trace (\"x = \" ++ show x ++ \", y = \" ++ show y) $ _|_"
+  "  bar x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-13
-    (execute-kbd-macro (kbd "i t r a c e m SPC x <return> y <return> <return>"))
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import Debug.Trace"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "import qualified Debug.Trace"
-   ""
-   "import Debug.Trace"
-   ""
-   "foo x = do"
-   "  Debug.Trace.traceM $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
-   "  bar x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-13
+ :action
+ (execute-kbd-macro (kbd "i t r a c e m SPC x <return> y <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import Debug.Trace"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import qualified Debug.Trace"
+  ""
+  "import Debug.Trace"
+  ""
+  "foo x = do"
+  "  Debug.Trace.traceM $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
+  "  bar x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode)
-    vim-tests/haskell-abbrev-14a
-    (execute-kbd-macro (kbd "i i n f o m SPC x <return> y <return> <return>"))
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "foo x = do"
-   "  putStrLn $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
-   "  bar x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode)
+ :name
+ vim-tests/haskell-abbrev-14a
+ :action
+ (execute-kbd-macro (kbd "i i n f o m SPC x <return> y <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "foo x = do"
+  "  putStrLn $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
+  "  bar x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-14b
-    (execute-kbd-macro (kbd "i i n f o m SPC x <return> y <return> <return>"))
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "foo x = do"
-   "  _|_"
-   "  bar x"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE OverloadedStrings #-}"
-   ""
-   "foo x = do"
-   "  putStrLn $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
-   "  bar x"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-14b
+ :action
+ (execute-kbd-macro (kbd "i i n f o m SPC x <return> y <return> <return>"))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "foo x = do"
+  "  _|_"
+  "  bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "foo x = do"
+  "  putStrLn $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
+  "  bar x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+(vim-tests--test-buffer-contents-init-standard-modes-only*
  :modes
  (haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4636,72 +4778,97 @@ _|_bar")
   "(>>=) x = x"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-1
-    (execute-kbd-macro (kbd "i SPC = b a r <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo pinfo_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo pinfo = ba_|_r"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-1
+ :action
+ (execute-kbd-macro (kbd "i SPC = b a r <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo pinfo_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo pinfo = ba_|_r"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-2
-    (execute-kbd-macro (kbd "i SPC = b a r <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo myppinfo_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo myppinfo = ba_|_r"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-2
+ :action
+ (execute-kbd-macro (kbd "i SPC = b a r <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo myppinfo_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo myppinfo = ba_|_r"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-1
-    (execute-kbd-macro (kbd "i SPC S C C <return> f o o b a r <tab>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# SCC \"foobar\" #-}_|_"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-1
+ :action
+ (execute-kbd-macro (kbd "i SPC S C C <return> f o o b a r <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# SCC \"foobar\" #-}_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-2
-    (execute-kbd-macro (kbd "i SPC unpack <return>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# UNPACK #-}_|_"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-2
+ :action
+ (execute-kbd-macro (kbd "i SPC unpack <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# UNPACK #-}_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-3
-    (execute-kbd-macro (kbd "i SPC i n line <return> foobar <tab>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foobar #-}_|_"
-   ""))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-3
+ :action
+ (execute-kbd-macro (kbd "i SPC i n line <return> foobar <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foobar #-}_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only**
+(vim-tests--test-buffer-contents-init-standard-modes-only*
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -4719,7 +4886,7 @@ _|_bar")
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only**
+(vim-tests--test-buffer-contents-init-standard-modes-only*
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -4737,7 +4904,7 @@ _|_bar")
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only**
+(vim-tests--test-buffer-contents-init-standard-modes-only*
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -4753,16 +4920,21 @@ _|_bar")
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+(vim-tests--test-buffer-contents-init-standard-modes-only*
+  :modes
+  (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  :name
+  vim-tests/haskell-abbrev-pragma-5
+  :action
+  (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+  :contents
   (tests-utils--multiline
    ""
    "##_|_"
    "foo :: a -> a"
    "foo x = x"
    "")
+  :expected-value
   (tests-utils--multiline
    ""
    "{-# INLINE foo #-}_|_"
