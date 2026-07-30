@@ -4658,16 +4658,55 @@ _|_bar")
    "{-# INLINE foobar #-}_|_"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-4
-    (execute-kbd-macro (kbd "i SPC language <return> overstr <return> <tab>"))
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+  :modes
+  (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  :name
+  vim-tests/haskell-abbrev-pragma-4a
+  :action
+  (execute-kbd-macro (kbd "i SPC language <return> overstr <return> <tab>"))
+  :contents
   (tests-utils--multiline
    ""
    "##_|_"
    "")
+  :expected-value
   (tests-utils--multiline
    ""
+   "{-# LANGUAGE OverloadedStrings #-}_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+  :modes
+  (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  :name
+  vim-tests/haskell-abbrev-pragma-4b
+  :action
+  (execute-kbd-macro (kbd "i SPC overstr <return> <tab>"))
+  :contents
+  (tests-utils--multiline
+   ""
+   "#l_|_"
+   "")
+  :expected-value
+  (tests-utils--multiline
+   ""
+   "{-# LANGUAGE OverloadedStrings #-}_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+  :modes
+  (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  :name
+  vim-tests/haskell-abbrev-pragma-4c
+  :action
+  (execute-kbd-macro (kbd "i SPC overstr <return> <tab>"))
+  :contents
+  (tests-utils--multiline
+   "#l_|_"
+   "")
+  :expected-value
+  (tests-utils--multiline
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
