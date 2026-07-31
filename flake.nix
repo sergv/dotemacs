@@ -78,9 +78,11 @@
             # arch = arch.gccArch;
           };
 
+          # emacs-raw = emacs-pkg.raw.emacs-native;
+          # emacs = emacs-pkg.wrapped.emacs-native;
+
           emacs-raw = emacs-pkg.raw.emacs-bytecode;
           emacs = emacs-pkg.wrapped.emacs-bytecode;
-          # emacs = emacs-pkg.raw.emacs-native;
 
           buildTreesitterModule = { dir, subdir, name }:
             pkgs.stdenv.mkDerivation {
@@ -201,18 +203,24 @@
                 # Prevent config from searching for ~/.bash_env
                 export BASHRC_ENV_LOADED="1"
 
-                echo "[Build]"
-                EMACS="${emacs-raw}/bin/emacs" bash "$src/scripts/recompile.sh" "$src" "$dest_abs"
+                while IFS= read -d $'\0' -r path ; do
+                    file_dest="$dest/$(realpath --relative-to="$src" "$path").gz"
+                    mkdir -p "$(dirname "$file_dest")"
+                    gzip --best --stdout <"$path" >"$file_dest"
+                done < <(find "$src" \( -path '*/native' -o -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -name 'scripts' -o -name 'resources' -o -name '.cask' -o -name '.git' \) -prune -o -type f \( -name '*.el' -a -not \( -name '*test.el' -o -name '*tests.el' -o -name '*test-utils*' -o -name '.dir-locals.el' \) \) -print0)
 
                 cp -r "$src/resources/auto-insert" "$dest/resources/"
                 cp -r "$src/resources/snippets" "$dest/resources/"
-
                 cp "$src/resources/good-fortunes.txt" "$dest/resources/"
 
+                echo "[Build]"
+                # NB must have *.el.gz files at their final destination when producing *.elc files
+                # so that when we run emacs without dump snapthot the elc files will have
+                # correct location of their sources.
+                EMACS="${emacs-raw}/bin/emacs" bash "$src/scripts/recompile.sh" "$dest_abs" "$dest_abs"
+
                 echo "[Dump]"
-
                 EMACS="${emacs-raw}/bin/emacs" bash "$src/scripts/dump.sh" "$dest_abs"
-
 
                 runHook postBuild
               '';
