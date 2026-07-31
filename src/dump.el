@@ -15,6 +15,8 @@
 (defun dump-main (emacs-dir dump-target)
   (setf dumping? t)
 
+  (setq jka-compr-verbose nil)
+
   (unless emacs-dir
     (setf emacs-dir user-emacs-directory))
 
@@ -31,7 +33,12 @@
                      (mapcan (lambda (x) (list (concat emacs-dir "/" x)
                                           (expand-file-name (concat "~/.emacs.d/" x))))
                              '("init.elc"
-                               "init.el")))))
+                               "init.el"
+                               "init.el.gz")))))
+
+    (unless init-file
+      (error "Unable to locate init file"))
+
     (load-file init-file)
     ;; (message "Loading start.el...")
     ;; (load-library "start")
