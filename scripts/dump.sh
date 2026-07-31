@@ -17,10 +17,23 @@ emacs="${EMACS:-emacs}"
 
 emacs_dir=${1:-"${EMACS_ROOT:-.}"}
 
+dump_src=""
+for tmp in "${emacs_dir}/src/dump.el" "${emacs_dir}/src/dump.el.gz"; do
+    if [[ -f "$tmp" ]]; then
+        dump_src="$tmp"
+        break
+    fi
+done
+
+if [[ -z "$dump_src" || ! -f "$dump_src" ]]; then
+    echo "Unable to locate dump.el" >&2
+    exit 1
+fi
+
 "$emacs" \
     --batch --quick --no-window-system \
     -L "${emacs_dir}/src" \
-    --load "${emacs_dir}/src/dump.el" \
+    --load "$dump_src" \
     --eval "(dump-main \"${emacs_dir}\" \"${emacs_dir}/compiled/$(basename "$emacs").dmp\")"
 
 exit 0
