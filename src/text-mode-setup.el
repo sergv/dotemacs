@@ -23,6 +23,13 @@
 ;;;###autoload
 (add-hook 'text-mode-hook #'text-mode-setup)
 
+;;;###autoload
+(defun change-log-mode-setup ()
+  (text-mode-setup))
+
+;;;###autoload
+(add-hook 'change-log-mode-hook #'change-log-mode-setup)
+
 (provide 'text-mode-setup)
 
 ;; Local Variables:
