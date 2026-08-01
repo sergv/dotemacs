@@ -446,7 +446,7 @@ and for subsequent lines it's the previous line's indentation."
      ((n-p-gp "^binding_set$" "^let_expression$" nil) parent nix-ts-mode-indent-offset)
      ((n-p-gp "^comment$" "^let_expression$" nil)
       nix-ts-mode--prev-sibling-not-comment
-      ,(lambda (node parent bol)
+      ,(lambda (node parent _bol)
          (let ((sibling (treesit-node-prev-sibling node t)))
            (if (and (< (treesit-node-start node) (treesit-node-start (nix-ts-getters--let-expression-in parent)))
                     (not sibling))
@@ -458,7 +458,7 @@ and for subsequent lines it's the previous line's indentation."
 
      ((parent-is "^function_expression$")
       nix-ts-mode--find-indent-anchor
-      ,(lambda (node parent bol)
+      ,(lambda (_node parent _bol)
          (if (treesit-utils-is-standalone-node? parent)
              0
            nix-ts-mode-indent-offset)))

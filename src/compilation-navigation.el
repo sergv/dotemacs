@@ -12,6 +12,7 @@
 
 (defvar hl-line-mode)
 
+(provide 'base-emacs-autoload)
 (require 'common)
 (require 'compile)
 (require 'configurable-compilation)
