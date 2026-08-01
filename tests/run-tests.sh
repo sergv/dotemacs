@@ -118,7 +118,6 @@ fi
     -Q \\
     --batch \\
     --eval '(setf jka-compr-verbose nil)' \\
-    --init-directory="$root" \\
     -l "$init_file" \\
     -L "$emacs_tests_dir" \\
     -L "$emacs_tests_dir/../third-party/haskell-mode/tests" \\
@@ -184,7 +183,6 @@ else
       -Q \
       --batch \
       --eval '(setf jka-compr-verbose nil)' \
-      --init-directory="$root" \
       -l "$init_file" \
       -L "$emacs_tests_dir" \
       -L "$emacs_tests_dir/../third-party/haskell-mode/tests" \
