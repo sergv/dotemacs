@@ -74,7 +74,8 @@
                              (doc-view-save-page)))))
 
 ;;;###autoload
-(add-hook 'kill-emacs-hook 'doc-view-save-pages-on-kill)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'doc-view-save-pages-on-kill))
 
 (provide 'doc-view-setup)
 
