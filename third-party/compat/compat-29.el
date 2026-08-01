@@ -21,7 +21,7 @@
 
 ;;; Code:
 
-(eval-when-compile (load "compat-macs.el" nil t t))
+(eval-when-compile (require 'compat-macs))
 (compat-require compat-28 "28.1")
 
 ;; Preloaded in loadup.el
