@@ -1439,6 +1439,7 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.STRef" . "Data.STRef")
                          ("GHC.Internal.Stack.Types" . "GHC.Stack.Types")
                          ("GHC.Internal.Stack" . "GHC.Stack")
+                         ("GHC.Internal.Storable" . "GHC.Storable")
                          ("GHC.Internal.System.Exit" . "System.Exit")
                          ("GHC.Internal.Text.Read" . "Text.Read")
                          ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
