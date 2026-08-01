@@ -23,10 +23,10 @@
 
 (eval-when-compile (require 'subr-x))
 
-(defvar eproj-ctags--exec
-  (or (cached-executable-find "universal-ctags")
-      (cached-executable-find "ctags-universal")
-      (cached-executable-find "ctags")))
+(defun-once eproj-ctags--get-ctags-exec
+  (or (executable-find "universal-ctags")
+      (executable-find "ctags-universal")
+      (executable-find "ctags")))
 
 (defvar *ctags-language-flags*
   '((c-mode
@@ -95,10 +95,10 @@
 
 ;;;###autoload
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
-  (unless eproj-ctags--exec
+  (unless (eproj-ctags--get-ctags-exec)
     (error "ctags executable not found"))
-  (unless (file-executable-p eproj-ctags--exec)
-    (error "ctags executable does not exist: %s" eproj-ctags--exec))
+  (unless (file-executable-p (eproj-ctags--get-ctags-exec))
+    (error "ctags executable does not exist: %s" (eproj-ctags--get-ctags-exec)))
   (with-current-buffer out-buffer
     (goto-char (point-max))
     (unless (looking-at-p "^$")
@@ -130,7 +130,7 @@
                       (apply #'call-process-region
                              (point-min)
                              (point-max)
-                             eproj-ctags--exec
+                             (eproj-ctags--get-ctags-exec)
                              nil ;; delete
                              (list out-buffer stderr)
                              nil ;; display
@@ -148,7 +148,7 @@
                          (buffer-substring-no-properties (point-min) (point-max)))
                        stderr-contents
 
-                       (cons eproj-ctags--exec args)))
+                       (cons (eproj-ctags--get-ctags-exec) args)))
               (unless (= 0 (length stderr-contents))
                 (error "ctags reports on stderr:\n%s" stderr-contents))))))))))
 

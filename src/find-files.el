@@ -71,13 +71,7 @@ All predicates are called with full absolute paths."
     accum))
 
 
-(defvar find-files/find-program-type
-  (or (fold-platform-os-type
-       (and (executable-find "find")
-            'find)
-       nil)
-      (and (executable-find "busybox")
-           'busybox))
+(defvar find-files/find-program-type nil
   "Type of find program that `find-files/find-program-executable' refers to.
 Valid values are:
 \\='find        - vanilla gnu find
@@ -86,16 +80,30 @@ Valid values are:
 \\='busybox     - find as found in busybox, does not have as many options as gnu
                find.")
 
-(defvar find-files/find-program-executable
-  (pcase find-files/find-program-type
-    ((or `find `cygwin-find) "find")
-    (`busybox "busybox")))
+(defun find-files/resolve-find-program-type ()
+  (or find-files/find-program-type
+      (setf find-files/find-program-type
+            (or (fold-platform-os-type
+                 (and (executable-find "find")
+                      'find)
+                 nil)
+                (and (executable-find "busybox")
+                     'busybox)))))
+
+(defvar find-files/find-program-executable nil)
+
+(defun find-files/resolve-find-program-executable ()
+  (or find-files/find-program-executable
+      (setf find-files/find-program-executable
+            (pcase (find-files/resolve-find-program-type)
+              ((or `find `cygwin-find) "find")
+              (`busybox "busybox")))))
 
 (defvar find-rec-backend
   (cond
     (use-foreign-libraries?
      'native)
-    (find-files/find-program-type
+    ((find-files/resolve-find-program-type)
      'executable)
     (t
      'elisp))
@@ -234,7 +242,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (declare (pure nil) (side-effect-free nil))
   (when (null globs-to-find)
     (error "No globs to search for under %s" root))
-  (let* ((ignored-dirs-globs
+  (let* ((find-prog-type (find-files/resolve-find-program-type))
+         (ignored-dirs-globs
           (nconc (--map (concat "*/" (strip-trailing-slash it))
                         ignored-directories)
                  (--map (concat "*/" it "*")
@@ -250,24 +259,25 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
            (-map (lambda (glob)
                    (list (fold-platform-os-type "-name" "-iname") glob))
                  ignored-extensions-globs)
-           (pcase find-files/find-program-type
+           (pcase find-prog-type
              ((or `find `cygwin-find `busybox)
               (--map (list (fold-platform-os-type "-path" "-ipath") it)
                      ignored-files-globs))
-             (_
+             (invalid
               (error "find-files/find-program-type has invalid value: %s"
-                     find-files/find-program-type)))))
+                     invalid)))))
          (to-find (-map (lambda (glob) (list "-name" glob))
                         globs-to-find))
-         (find-cmd (or find-files/find-program-executable
+         (find-cmd (or (find-files/resolve-find-program-executable)
                        (error "find-files/find-program-type has invalid value: %s"
-                              find-files/find-program-type)))
+                              find-prog-type)))
          (cmd
           (-flatten
-           (list (when (eq 'busybox find-files/find-program-type)
+           (list (when (eq 'busybox find-prog-type)
                    "find")
                  "-L"
-                 (when (memq find-files/find-program-type '(find cygwin-find))
+                 (when (and (memq system-type '(gnu gnu/linux))
+                            (memq find-prog-type '(find cygwin-find)))
                    "-O3")
                  root
                  (when ignored-dirs
@@ -293,7 +303,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                  "-print")))
          (w32-quote-process-args
           (if (boundp 'w32-quote-process-args)
-              (pcase find-files/find-program-type
+              (pcase find-prog-type
                 (`cygwin-find ?\\)
                 (_ w32-quote-process-args))
             nil)))
