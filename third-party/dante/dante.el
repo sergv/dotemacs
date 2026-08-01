@@ -90,7 +90,8 @@
 
 (defun dante-nix-available? (_buf)
   "Non-nil iff ‘nix’ executable is avaliable."
-  (and (cached-executable-find "nix")
+  (and (or (cached-executable-find "nix")
+           (cached-executable-find "trix"))
        t))
 
 (defun dante-nix-cabal-script-buf? (buf)
