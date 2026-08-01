@@ -18,6 +18,8 @@
 (defun messages-buffer-setup ()
   (hl-line-mode +1)
 
+  (setq buffer-undo-list t)
+
   (def-keys-for-map messages-buffer-mode-map
     ("C-SPC" message-buffer-erase)))
 
