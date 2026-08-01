@@ -156,11 +156,13 @@
             '';
           };
 
+          emacs-config-source = ./.;
+
           buildEmacsConfig = pkgs:
             pkgs.stdenvNoCC.mkDerivation {
               pname   = "emacs-config";
               version = "0.9";
-              src     = ./.;
+              src     = emacs-config-source;
               buildInputs = [
                 emacs.deriv
                 haskell-pkgs-with-emacs-native.emacs-native
@@ -253,6 +255,8 @@
               #   mkdir "$out"
               #   cp -r "_build"/* "$out/"
               # '';
+
+              disallowedReferences = [ emacs-config-source ];
 
               # doInstallCheck = true;
               # installCheckPhase = ''
