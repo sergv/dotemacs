@@ -73,6 +73,17 @@ function generate-autoloads() {
         jka-compr-verbose nil)
   ;; Eliminate all doc strings from autoloads file
   ;; (defun help-add-fundoc-usage (doc args) nil)
+
+  (defun strip-ext (path ext)
+    (if (string-suffix-p ext path)
+        (substring path 0 (- (length ext)))
+      path))
+
+  (defun loaddefs-generate--file-load-name--absolute-name (_old-func file outfile)
+    (strip-ext (strip-ext (file-name-nondirectory file) ".gz") ".el"))
+
+  (advice-add 'loaddefs-generate--file-load-name :around #'loaddefs-generate--file-load-name--absolute-name)
+
   (loaddefs-generate (list ${dirs[*]}) "$name" nil "(defvar el-patch-features nil)"))
 EOF
     "$emacs" --batch --eval "$emacs_cmd" #>/dev/null 2>&1
