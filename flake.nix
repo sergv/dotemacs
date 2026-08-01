@@ -256,11 +256,34 @@
                 # because Emacs cached HOME value before setenv.
                 export REMOTE_TEMPORARY_FILE_DIRECTORY=1
 
-                echo "[Test dumped snapshot]"
+                echo "[Test dumped snapshot with .elc]"
                 EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" bash "$src/tests/run-tests.sh"
 
-                echo "[Test with asserts]"
+                echo "[Test vanilla .el with asserts]"
                 EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" EMACS_SKIP_ELC=1 EMACS_FORCE_PRISTINE=1 bash "$src/tests/run-tests.sh" '"t"'
+
+                echo "[Misc sanity tests]"
+
+                sanity_check_command=$(cat <<EOF
+                (progn
+                  (defun test--function-source (func-symbol)
+                    (let ((def (symbol-function func-symbol)))
+                      (find-lisp-object-file-name func-symbol def)))
+
+                  (let ((src (test--function-source #'magit-status)))
+                    (when (not (member src
+                                       '("$dest_abs/third-party/magit/lisp/magit-status.el.gz"
+                                         "$dest_abs/compiled/elc/magit-status.elc"
+                                         "$dest_abs/compiled/eln/magit-status.eln")))
+                      (error "Function sources must resolve to a file under '$dest_abs' but it resolved to: '%s'" src))))
+                EOF
+                )
+
+                echo "[Function source test for dumped snapshot]"
+                "$dest_abs/bin/emacs" --batch --eval "$sanity_check_command"
+
+                echo "[Function source test for vanilla .elc]"
+                EMACS_FORCE_PRISTINE=1 "$dest_abs/bin/emacs" --batch --load "$dest_abs/init.elc" --eval "$sanity_check_command"
 
                 runHook postCheck
               '';
