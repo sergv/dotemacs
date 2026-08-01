@@ -183,7 +183,7 @@ regexps to not be confused by the instance location."
           (when-let* ((ghci-state (dante-get-ghci-state)))
             (dante-check-ghci-state/ghci-path ghci-state))))
     (unless ghci-root
-      (error "GHCi not configured"))
+      (error "GHCi not ready yet"))
     (lcr-spawn
       (let ((_load_messages (lcr-call dante-async-load-current-buffer nil nil))
             (locations (lcr-call dante-async-call
