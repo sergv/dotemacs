@@ -21,7 +21,7 @@
 
 ;;; Code:
 
-(eval-when-compile (load "compat-macs.el" nil t t))
+(eval-when-compile (require 'compat-macs))
 (compat-require compat-27 "27.1")
 
 (compat-version "28.1")
