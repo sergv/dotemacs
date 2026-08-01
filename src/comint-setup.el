@@ -15,7 +15,28 @@
   (require 'set-up-platform)
   (require 'vim-motions))
 
+(defvar comint--prompt-rear-nonsticky)
+(defvar comint-accum-marker)
+(defvar comint-eol-on-send)
+(defvar comint-get-old-input)
+(defvar comint-highlight-input)
+(defvar comint-input-autoexpand)
+(defvar comint-input-ring-index)
+(defvar comint-input-ring-index)
+(defvar comint-input-sender)
+(defvar comint-last-input-end)
+(defvar comint-last-input-start)
+(defvar comint-last-output-start)
+(defvar comint-mode-map)
+(defvar comint-process-echoes)
+(defvar comint-prompt-read-only)
+(defvar comint-save-input-ring-index)
+(defvar comint-terminfo-terminal)
+(defvar comint-use-prompt-regexp)
+
 (provide 'comint-setup)
+
+(require 'base-emacs-autoload)
 (require 'el-patch)
 
 ;;;###autoload
