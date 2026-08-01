@@ -214,7 +214,7 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/tags-of-c-files"
   (progn
-    (unless (executable-find eproj-ctags--exec)
+    (unless (eproj-ctags--get-ctags-exec)
       (ert-skip "ctags not available"))
 
     (let* ((path eproj-tests/project-with-c-files)
