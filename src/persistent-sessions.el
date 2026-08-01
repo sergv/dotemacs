@@ -15,10 +15,11 @@
 (defvar dante-repl-mode)
 (defvar eshell-buffer-name)
 (defvar eshell-history-ring)
+(defvar frameset--reuse-list)
 (defvar haskell-compilation-mode)
 (defvar rust-compilation-mode)
 
-(require 'revive-minimal)
+(require 'frameset)
 
 (require 'base-emacs-autoload)
 (require 'cc-autoload)
@@ -246,6 +247,17 @@ entries."
     mode-line-process)
   "Local variables to store for `compilation-mode' buffers.")
 
+(defun frameset--reuse-frame--reuse-gui-frames-without-display-parameter (_old-frameset--reuse-frame _display parameters)
+  (when (eq (cdr (assq 'minibuffer parameters)) t)
+    (let ((frame (cl-find-if (lambda (frame)
+                               (eq (frame-parameter frame 'minibuffer) t))
+                             frameset--reuse-list)))
+      (when frame
+        (setq frameset--reuse-list (delq frame frameset--reuse-list)))
+      frame)))
+
+(advice-add 'frameset--reuse-frame :around #'frameset--reuse-frame--reuse-gui-frames-without-display-parameter)
+
 (defvar sessions/special-modes
   (let ((mk-save-repl-buffer
          (lambda (store-extra)
@@ -445,6 +457,13 @@ entries."
          (not (string-match-p "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
                               (buffer-name buf))))))
 
+(defun persistent-sessions--filter-display-param (current _filtered _parameters _saving)
+  (not (eq (car current) 'display)))
+
+(defun persistent-sessions--frameset-filter-alist ()
+  (cons (cons 'display :never)
+        frameset-filter-alist))
+
 (defun sessions--is-polymode-indirect-buffer? (buf)
   (cl-assert (bufferp buf))
   ;; Could be unbound if it wasn’t loaded yet.
@@ -527,15 +546,16 @@ entries."
                                    (buffer-name buf))
                                   (funcall save-func buf)))))
                       buffers)))
-         (frames
-          (revive-plus:window-configuration-printable)))
+         (frames-entry
+          (list 'frameset (frameset-save (frame-list)
+                                         :filters (persistent-sessions--frameset-filter-alist)))))
 
     (list (list 'schema-version +sessions-schema-version+)
           (list 'buffers buffer-data)
           (list 'temporary-buffers temporary-buffer-data)
           (list 'special-buffers special-buffer-data)
-          (list 'frames frames)
           (list 'global-variables (sessions/get-global-variables))
+          frames-entry
           (list 'tab-bar-mode (if tab-bar-mode t nil)))))
 
 ;;;###autoload
@@ -706,9 +726,12 @@ entries."
           (add-hook 'window-setup-hook #'sessions--enable-tab-bar-mode))
       (message "sessions/load-from-data: no 'tab-bar-mode field"))
 
-    (aif (assq 'frames session-entries)
-        (revive-plus:restore-window-configuration (cadr it))
-      (message "sessions/load-from-data: no 'frames field"))
+    (aif (assq 'frameset session-entries)
+        (frameset-restore (cadr it)
+                          :reuse-frames t
+                          :cleanup-frames t
+                          :filters (persistent-sessions--frameset-filter-alist))
+      (message "sessios/load-from-data: no 'frameset field"))
 
     (aif (assq 'global-variables session-entries)
         (sessions/restore-global-variables version (cadr it))
