@@ -778,22 +778,22 @@ Same for the ANSI bold and normal escape sequences."
       ;; Fontify ANSI escapes.
       (el-patch-swap
         (let ((ansi-color-apply-face-function #'ansi-color-apply-text-property-face)
-	      (ansi-color-basic-faces-vector Man-ansi-color-basic-faces-vector))
+              (ansi-color-basic-faces-vector Man-ansi-color-basic-faces-vector))
           (ansi-color-apply-on-region (point-min) (point-max)))
         (insert (xterm-color-filter (delete-and-extract-region (point-min) (point-max)))))
       ;; Other highlighting.
       (let ((buffer-undo-list t))
         (if (< (buffer-size) (position-bytes (point-max)))
-	    ;; Multibyte characters exist.
-	    (progn
-	      (goto-char (point-min))
-	      (while (and (search-forward "__\b\b" nil t) (not (eobp)))
-	        (delete-char -4)
+            ;; Multibyte characters exist.
+            (progn
+              (goto-char (point-min))
+              (while (and (search-forward "__\b\b" nil t) (not (eobp)))
+                (delete-char -4)
                 (put-text-property (point) (1+ (point))
                                    'font-lock-face 'Man-underline))
-	      (goto-char (point-min))
-	      (while (search-forward "\b\b__" nil t)
-	        (delete-char -4)
+              (goto-char (point-min))
+              (while (search-forward "\b\b__" nil t)
+                (delete-char -4)
                 (put-text-property (1- (point)) (point)
                                    'font-lock-face 'Man-underline))))
         (goto-char (point-min))
@@ -828,8 +828,8 @@ Same for the ANSI bold and normal escape sequences."
         (goto-char (point-min))
         (while (re-search-forward Man-heading-regexp nil t)
           (put-text-property (match-beginning 0)
-			     (match-end 0)
-			     'font-lock-face 'Man-overstrike))))))
+                             (match-end 0)
+                             'font-lock-face 'Man-overstrike))))))
 
 ;;;###autoload
 (add-to-list 'el-patch-features 'jka-compr)
@@ -844,11 +844,11 @@ Same for the ANSI bold and normal escape sequences."
            (error "Attempt to visit less than an entire file"))
 
       (let* ((filename (expand-file-name file))
-	     (info (jka-compr-get-compression-info filename)))
+             (info (jka-compr-get-compression-info filename)))
 
         (if (not info)
 
-	    (jka-compr-run-real-handler 'insert-file-contents
+            (jka-compr-run-real-handler 'insert-file-contents
                                         (list file visit beg end replace))
 
           (let ((uncompress-message (jka-compr-info-uncompress-message info))
@@ -872,7 +872,7 @@ Same for the ANSI bold and normal escape sequences."
                 (progn
                   (and
                    uncompress-message
-	           jka-compr-verbose
+                   jka-compr-verbose
                    (message "%s %s..." uncompress-message base-name))
                   (if (and (el-patch-remove
                              (or (not (executable-find uncompress-program))
@@ -977,7 +977,7 @@ Same for the ANSI bold and normal escape sequences."
 
             (and
              uncompress-message
-	     jka-compr-verbose
+             jka-compr-verbose
              (message "%s %s...done" uncompress-message base-name))
 
             (and
@@ -998,8 +998,8 @@ Same for the ANSI bold and normal escape sequences."
             ;;     (if insval
             ;;         (progn
             ;;           (or (integerp insval)
-            ;;       	(signal 'wrong-type-argument
-            ;;       		(list 'integerp insval)))
+            ;;          (signal 'wrong-type-argument
+            ;;                  (list 'integerp insval)))
             ;;           (setq size insval)))
             ;;     (setq p (cdr p))))
 
