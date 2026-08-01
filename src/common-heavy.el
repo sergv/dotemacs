@@ -1006,6 +1006,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
           (forward-line -1)
           nil)))))
 
+;;;###autoload
 (defun text-property-jump-forward (property value cycle? jump-to-end)
   "Jump forward between text property PROPERTY with value VALUE with wraparound."
   (let ((p (search-property 'forward cycle? property value)))
@@ -1019,6 +1020,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
                        (point-max)))
       p)))
 
+;;;###autoload
 (defun text-property-jump-backward (property value cycle? jump-to-end)
   "Jump backward between text property PROPERTY with value VALUE with wraparound."
   (let ((p (search-property 'backward cycle? property value)))
