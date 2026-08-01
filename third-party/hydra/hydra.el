@@ -1319,7 +1319,7 @@ result of `defhydra'."
   (cond ((stringp docstring))
         ((and (consp docstring)
               (memq (car docstring) '(hydra--table concat format)))
-         (setq docstring (concat "\n" (eval docstring))))
+         (setq docstring `(let ((tmp ,docstring)) (if (string-prefix-p "\n" tmp) tmp (concat "\n" tmp)))))
         (t
          (setq heads (cons docstring heads))
          (setq docstring "")))
@@ -1434,7 +1434,7 @@ result of `defhydra'."
              (set
               (defvar ,(intern (format "%S/hint" name)) nil
                 ,(format "Dynamic hint for %S." name))
-              ',(hydra--format name body docstring heads))
+              ',(hydra--format name body (if (stringp docstring) docstring (eval docstring)) heads))
              ;; create defuns
              ,@(mapcar
                 (lambda (head)
