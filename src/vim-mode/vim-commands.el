@@ -146,7 +146,7 @@ and switches to insert-mode."
 (vim-defcmd vim:cmd-replace ()
   "Goes to replace-mode."
   (vim-activate-insert-mode)
-  (vim:insert-mode-toggle-replace))
+  (vim:insert-mode-toggle-replace:wrapper))
 
 (defvar vim--insert-mode-exit-move-point t
   "Whether to move point backwards on `vim:insert-mode-exit'. Can be t, nil or

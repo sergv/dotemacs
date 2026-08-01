@@ -11,6 +11,7 @@
   (require 'subr-x)
   (require 'macro-util))
 
+(defvar comint-input-ring)
 (defvar dante-repl--last-command-line)
 (defvar dante-repl-mode)
 (defvar eshell-buffer-name)
