@@ -19,8 +19,14 @@
   (require 'set-up-platform)
   (require 'shell))
 
-(autoload 'Man-softhyphen-to-minus "man")
 (autoload 'Man-highlight-references "man")
+(autoload 'Man-softhyphen-to-minus "man")
+(autoload 'jka-compr-byte-compiler-base-file-name "jka-compr")
+(autoload 'jka-compr-call-process "jka-compr")
+(autoload 'jka-compr-partial-uncompress "jka-compr")
+(autoload 'jka-compr-run-real-handler "jka-compr")
+
+(defvar jka-compr-really-do-compress)
 
 (require 'base-emacs-autoload)
 (require 'el-patch)
