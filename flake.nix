@@ -175,6 +175,7 @@
                 emacs-raw
                 # emacs.deriv
                 # pkgs.ghc
+                pkgs.bash
                 pkgs.gzip
                 pkgs.xz
               ] ++
@@ -220,13 +221,19 @@
                 EMACS="${emacs-raw}/bin/emacs" bash "$src/scripts/recompile.sh" "$dest_abs" "$dest_abs"
 
                 echo "[Dump]"
-                EMACS="${emacs-raw}/bin/emacs" bash "$src/scripts/dump.sh" "$dest_abs"
+                # Run in empty environment to not capture build environment variables like ‘buildPhase’
+                # that retain references to source directory.
+                #
+                # Run in destination directory so that references to current directory won’t
+                # capture source.
+                (cd "$dest_abs"; env -i PATH="${pkgs.lib.makeBinPath [pkgs.bash pkgs.gzip]}" bash "$src/scripts/dump.sh" "$dest_abs" "${emacs-raw}/bin/emacs")
 
                 runHook postBuild
               '';
 
               doCheck = true;
               nativeCheckInputs = [
+                pkgs.findutils
                 pkgs.universal-ctags
                 pkgs.unzip
                 haskell-nixpkgs-improvements.packages."${system}".faster-richer-tags
@@ -266,15 +273,19 @@
 
               disallowedReferences = [ emacs-config-source ];
 
-              # doInstallCheck = true;
-              # installCheckPhase = ''
-              #   runHook preCheck
-              #   echo "Performing install check 1"
-              #
-              #   echo "Performing install check 2" >&2
-              #   exit 1
-              #   runHook postCheck
-              # '';
+              doInstallCheck = true;
+              installCheckPhase = ''
+                runHook preCheck
+
+                while IFS= read -d $'\0' -r path ; do
+                    if zgrep -q -F '${pkgs.lib.lists.last (builtins.split "/" (builtins.baseNameOf emacs-config-source))}' "$path"; then
+                        echo "Custom install check: file $path retains reference to ${emacs-config-source}"
+                        exit 1
+                    fi
+                done < <(find "$out" -name '*.gz' -o -name '*.eln' -o -name '*.dmp' -print0)
+
+                runHook postCheck
+              '';
             };
 
         in {
