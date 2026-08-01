@@ -15049,7 +15049,7 @@ extended to support more filetypes by customizing
    (put-text-property (point-min) (point-max) 'invisible nil)
    (remove-overlays)
    (setq font-lock-unfontify-region-function 'font-lock-default-unfontify-region)
-   (load "web-mode.el")
+   (load "web-mode")
    (setq web-mode-change-beg nil
          web-mode-change-end nil)
    (web-mode)
