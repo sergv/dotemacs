@@ -51,7 +51,6 @@
 ;;;###autoload
 (defun fortunes-init-scratch-buffer ()
   "Put fortune into scratch buffer."
-  (random t)
   (setf initial-scratch-message
         (fortunes-comment-out-fortune (fortunes-get-current-fortune)))
   (awhen (get-buffer "*scratch*")
