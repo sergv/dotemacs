@@ -19,6 +19,7 @@
 (defvar shell-mode-map)
 (defvar shell-mode-syntax-table)
 
+(provide 'base-emacs-autoload)
 (require 'common)
 (require 'comint-setup)
 (require 'dirtrack)

@@ -12,7 +12,9 @@
 
 (require 'eieio)
 
+(require 'eproj-common)
 (require 'eproj-symbnav)
+(require 'eproj-tag-index)
 
 (defun eproj-xref-symbnav-show-xrefs--impl (fetcher _aux-info enable-shortcut?)
   (let ((proj nil)
