@@ -49,7 +49,6 @@
     (require 'set-up-platform)
     (when-windows
      (require 'windows-setup))
-    (load-library "set-up-environment-variables")
     (require 'set-up-paths)
     (load-library "set-up-tmp-paths")
 
@@ -256,7 +255,8 @@
 
     ;; Clean up value that points to HOME as it was during nix build, which
     ;; doesn’t exist. The standard startup.el module will reset it anyway.
-    (setf abbreviated-home-dir nil)
+    (setf abbreviated-home-dir nil
+          command-line-default-directory nil)
 
     (dump-emacs-portable dump-target)
 

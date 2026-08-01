@@ -11,9 +11,15 @@ set -u
 set -o pipefail
 set -e
 
-export EMACS_FORCE_PRISTINE=1
-export EMACS_DEBUG=0
-emacs="${EMACS:-emacs}"
+if [[ -z "${2:-}" ]]; then
+    export EMACS_FORCE_PRISTINE=1
+    export EMACS_DEBUG=0
+    emacs="${EMACS:-emacs}"
+    snapshot_name="$(basename "$emacs").dmp"
+else
+    emacs="${2}"
+    snapshot_name="emacs.dmp"
+fi
 
 emacs_dir=${1:-"${EMACS_ROOT:-.}"}
 
@@ -34,7 +40,7 @@ fi
     --batch --quick --no-window-system \
     -L "${emacs_dir}/src" \
     --load "$dump_src" \
-    --eval "(dump-main \"${emacs_dir}\" \"${emacs_dir}/compiled/$(basename "$emacs").dmp\")"
+    --eval "(dump-main \"${emacs_dir}\" \"${emacs_dir}/compiled/${snapshot_name}\")"
 
 exit 0
 

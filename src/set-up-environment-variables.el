@@ -6,8 +6,7 @@
 ;; Created: Friday, 27 July 2012
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
-
+(require 'cl-lib)
 (require 'set-up-platform)
 
 ;;;; Environment variables
@@ -40,14 +39,18 @@
                               (substring entry (+ eq-pos 1))))))))))
       (message "Skipping environment configuration because BASHRC_ENV_LOADED variable is set to 1"))))
 
-(defun add-env-var-to-list (env-var list append?)
-  (dolist (dir (parse-colon-path (getenv env-var)))
-    (add-to-list list dir append?)))
-
 (when-windows
  (setenv "HOME" (cygwin-directory-name-to-emacs (getenv "HOME"))))
 
-(add-env-var-to-list "PATH" 'exec-path t)
+(setf exec-path
+      (cl-delete-duplicates
+       (nconc
+        (mapcar
+         ;; Strip trailing slashes so that duplicate removal will work better.
+         #'directory-file-name
+         (parse-colon-path (getenv "PATH")))
+        exec-path)
+       :test #'string=))
 
 (when (executable-find "cat")
   (setenv "PAGER" "cat"))
