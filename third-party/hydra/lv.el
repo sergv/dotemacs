@@ -115,7 +115,7 @@ Only the background color is significant."
                 cursor-type nil
                 display-line-numbers nil
                 display-fill-column-indicator nil
-                buffer-undo-list nil))
+                buffer-undo-list t))
         (pop-to-buffer-same-window lv--buf 'norecord)
         (set-window-hscroll lv-wnd 0)
         (set-window-dedicated-p lv-wnd t)
@@ -146,16 +146,18 @@ Only the background color is significant."
       (when (or lv-force-update
                 (not lv--buf-contents)
                 (not (string= lv--buf-contents str)))
-        (delete-region (point-min) (point-max))
-        (setq lv--buf-contents str
-              lv--buf-contents-newlines-count (s-extras-count-chars-in-string ?\n str))
-        (insert str)
-        (when (and (window-system) lv-use-separator)
-          (unless (looking-back "\n" nil)
-            (insert "\n"))
-          (insert
-           (propertize "__" 'face 'lv-separator 'display '(space :height (1)))
-           (propertize "\n" 'face 'lv-separator 'line-height t))))
+        (with-inhibited-redisplay
+          (with-inhibited-read-only
+           (delete-region (point-min) (point-max))
+           (setq lv--buf-contents str
+                 lv--buf-contents-newlines-count (s-extras-count-chars-in-string ?\n str))
+           (insert str)
+           (when (and (window-system) lv-use-separator)
+             (unless (looking-back "\n" nil)
+               (insert "\n"))
+             (insert
+              (propertize "__" 'face 'lv-separator 'display '(space :height (1)))
+              (propertize "\n" 'face 'lv-separator 'line-height t))))))
       (set (if (local-variable-p 'window-min-height)
                'window-min-height
              (make-local-variable 'window-min-height))
