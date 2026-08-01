@@ -637,7 +637,7 @@ This function is also responsible for setting the X-selection."
          (dotimes (_ (1+ (vim-count-lines-with-correction beg end)))
            (move-to-column-fixed col t)
            (save-excursion
-             (vim:cmd-repeat))
+             (vim:cmd-repeat:wrapper))
            (vim--cmd-paste-after 1 t)
            (forward-line 1)))))))
 
