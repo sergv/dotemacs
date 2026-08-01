@@ -113,11 +113,6 @@ if [[ ! -d "$compilation_dest" && ! -L "$compilation_dest" ]]; then
     mkdir "$compilation_dest"
 fi
 
-if [[ ! -d "$compilation_dest/elc" ]]; then
-    mkdir "$compilation_dest/elc"
-fi
-
-
 [[ -d "$emacs_dir/eln-cache" ]] && rm -frv "$emacs_dir/eln-cache"
 find "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name "$(basename "${emacs}.dmp")" \) -delete
 find -L "$compilation_dest" \( -name '*.elc' -o -name '*.eln' -o -name "$(basename "${emacs}.dmp")" \) -delete
@@ -300,6 +295,10 @@ if [[ "$native_comp" = "t" ]]; then
     fi
 
 else
+    if [[ ! -d "$compilation_dest/elc" ]]; then
+        mkdir "$compilation_dest/elc"
+    fi
+
     gen-el-files "-print0" | \
         # Marginally more checking but three times slower.
         # xargs -0 -P "$jobs" -n 1 \
