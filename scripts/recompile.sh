@@ -160,7 +160,7 @@ define eval_prelude <<EOF
 
   (setf cl--optimize-speed 3
         cl--optimize-safety 0
-        ;; byte-compile-error-on-warn t
+        byte-compile-error-on-warn t
         compilation-safety 0
         jka-compr-verbose nil)
 
