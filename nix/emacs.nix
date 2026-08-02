@@ -178,6 +178,8 @@ let
         withNativeCompilation = false;
       });
 
+  emacs-native-debug-pkg = pkgs.enableDebugging emacs-native-pkg;
+
   emacs-debug-pkg = pkgs.enableDebugging emacs-bytecode-pkg;
 
   mk-emacs-pkg =
@@ -206,7 +208,7 @@ let
             fi
 
             if [[ "''${EMACS_FORCE_PRISTINE:-0}" != 0 ]]; then
-                ''${wrap_cmd[@]} ${pkg}/bin/emacs --init-directory="$root" "''${@}"
+                "''${wrap_cmd[@]}" ${pkg}/bin/emacs --init-directory="$root" "''${@}"
             else
                 if [[ -v EMACS_ROOT ]]; then
                     dump_file="$root/compiled/${exe-name}.dmp"
@@ -220,7 +222,7 @@ let
                     fi
                 fi
 
-                ''${wrap_cmd[@]} ${pkg}/bin/emacs --init-directory="$root" --dump-file "$dump_file" "''${@}"
+                "''${wrap_cmd[@]}" ${pkg}/bin/emacs --init-directory="$root" --dump-file "$dump_file" "''${@}"
             fi
           '';
       };
@@ -229,11 +231,17 @@ let
 
   emacs-bytecode-wrapped = mk-emacs-pkg "emacs-bytecode" emacs-bytecode-pkg "";
 
+  emacs-native-debug-wrapped =
+    mk-emacs-pkg
+      "emacs-native-debug"
+      emacs-native-debug-pkg
+      ''"gdb" "--quiet" "--init-eval-command=set auto-load safe-path /"  "--eval-command=set confirm on" "--eval-command=run" "--eval-command=quit" "--args"'';
+
   emacs-debug-wrapped =
     mk-emacs-pkg
       "emacs-debug"
       emacs-debug-pkg
-      ''"gdb" "-ex=set confirm on" "-ex=run" "-ex=quit" "--args"'';
+      ''"gdb" "--quiet" "--init-eval-command=set auto-load safe-path /" "--eval-command=set confirm on" "--eval-command=run" "--eval-command=quit" "--args"'';
 
 
   desktop-entry = {
@@ -274,14 +282,16 @@ in {
   inherit desktop-entry;
 
   raw = {
-    emacs-bytecode = emacs-bytecode-pkg;
-    emacs-debug    = emacs-debug-pkg;
-    emacs-native   = emacs-native-pkg;
+    emacs-bytecode     = emacs-bytecode-pkg;
+    emacs-debug        = emacs-debug-pkg;
+    emacs-native       = emacs-native-pkg;
+    emacs-native-debug = emacs-native-debug-pkg;
   };
 
   wrapped = {
-    emacs-bytecode = emacs-bytecode-wrapped;
-    emacs-debug    = emacs-debug-wrapped;
-    emacs-native   = emacs-native-wrapped;
+    emacs-bytecode     = emacs-bytecode-wrapped;
+    emacs-debug        = emacs-debug-wrapped;
+    emacs-native       = emacs-native-wrapped;
+    emacs-native-debug = emacs-native-debug-wrapped;
   };
 }
