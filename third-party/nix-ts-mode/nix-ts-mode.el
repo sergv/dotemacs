@@ -454,6 +454,8 @@ and for subsequent lines it's the previous line's indentation."
              0))))
      ((parent-is "^let_expression$") nix-ts-mode--prev-sibling-not-comment 0)
 
+     ((and no-node prev-sibling) prev-sibling 0)
+
      ((and (parent-is "^binding_set$") prev-sibling) nix-ts-mode--prev-sibling-not-comment 0)
 
      ((parent-is "^function_expression$")
