@@ -6,7 +6,12 @@
 #
 
 function native-comp-available() {
-    "$emacs" -Q --batch \
-          --eval "(message \"%s\" (and (fboundp #'native-comp-available-p) (native-comp-available-p)))" 2>&1
+    "$emacs" \
+        -Q \
+        --batch \
+        --eval "(message \"%s\" (and (fboundp #'native-comp-available-p) (native-comp-available-p)))" 2>&1 | \
+        awk '!/Inferior.*exited.*normally/' | \
+        tail -n 1
+
 }
 
