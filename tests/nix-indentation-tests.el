@@ -128,6 +128,56 @@
   "      };"
   "in 2"))
 
+;; This test just documents what’s the curent behaviour is.
+;; Any improvements in it are welcome.
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-binding-5-fix-status-quo
+ :contents
+ (tests-utils--multiline
+  "let"
+  "  compilerOptionsFlags = mk-elisp-flags"
+  "    [ x"
+  "    ] ++"
+  "                     _|_1"
+  "    ;"
+  "in"
+  "1")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  compilerOptionsFlags = mk-elisp-flags"
+  "    [ x"
+  "    ] ++"
+  "  _|_1"
+  "    ;"
+  "in"
+  "1")
+ )
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--let-in-binding-6
+ :contents
+ (tests-utils--multiline
+  "let"
+  "  compilerOptionsFlags ="
+  "    [ x"
+  "    ] ++"
+  "                     _|_1"
+  "    ;"
+  "in"
+  "1")
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  compilerOptionsFlags ="
+  "    [ x"
+  "    ] ++"
+  "    _|_1"
+  "    ;"
+  "in"
+  "1")
+ )
+
 (nix-indentation-tests--test-treesitter
  :name nix-indentation-tests--let-expression-1a
  :contents
@@ -713,6 +763,24 @@
   "  }"
   "  _|_);"
   "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--empty-line-1
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  y = 1;"
+  "_|_"
+  "  z = 2;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  y = 1;"
+  "  _|_"
+  "  z = 2;"
+  "}")
+ )
 
 (provide 'nix-indentation-tests)
 
