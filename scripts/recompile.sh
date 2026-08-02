@@ -203,7 +203,7 @@ define byte_compile_loop <<'EOF'
 (dolist (file command-line-args-left)
 
   (let ((should-report-warnings? nil))
-    (dolist (dir '("src/" "third-party/dante/" "third-party/misc-modes/revive-minimal.el"))
+    (dolist (dir '("src/" "third-party/dante/" "third-party/nix-ts-mode/"))
       (setf should-report-warnings?
             (or should-report-warnings?
                 (string-prefix-p (concat +emacs-config-path+ "/" dir) file))))
