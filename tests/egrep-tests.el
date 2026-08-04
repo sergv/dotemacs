@@ -116,6 +116,13 @@
                     (egrep-tests--normalise-egrep-match x))
                   egrep-tests--bar-gz-matches))))
 
+(grep-tests--define-tests "egrep-tests-no-glob-matches/%s"
+    regexp
+    "hello"
+    "hello"
+  (should-error
+   (egrep--find-matches regexp '("*.decombobulate") nil egrep-tests/project-dir nil nil)))
+
 (provide 'egrep-tests)
 
 ;; Local Variables:
