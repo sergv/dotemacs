@@ -51,6 +51,11 @@
    (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     5 6 "  int " "hello" " = x + y;" 51)
    (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 9 "  return " "hello" ";" 75)))
 
+(defconst egrep-tests--bar-gz-matches
+  (vector
+   (make-egrep-match (concat egrep-tests/project-dir "/bar.c.gz")  "bar.c.gz"  5 6 "  int " "hello" " = x + y;" 51)
+   (make-egrep-match (concat egrep-tests/project-dir "/bar.c.gz")  "bar.c.gz"  6 9 "  return " "hello" ";" 75)))
+
 (defconst egrep-tests--foo-matches
   (vector
    (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 5 "void " "hello" "(char const * name)" 25)))
@@ -97,6 +102,19 @@
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   (vconcat egrep-tests--bar-matches egrep-tests--foo-matches)))))
+
+(grep-tests--define-tests "egrep-tests-gzipped-file/%s"
+    regexp
+    "hello"
+    "hello"
+  (should
+   (equal (cl-map 'vector
+                  #'egrep-tests--normalise-egrep-match
+                  (egrep--find-matches regexp '("*.c.gz") nil egrep-tests/project-dir nil nil))
+          (cl-map 'vector
+                  (lambda (x)
+                    (egrep-tests--normalise-egrep-match x))
+                  egrep-tests--bar-gz-matches))))
 
 (provide 'egrep-tests)
 
