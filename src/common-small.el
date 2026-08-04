@@ -11,9 +11,9 @@
   (require 'macro-util)
   (require 'set-up-platform))
 
-(when-emacs-version (or (< it 28)
-                        (not (and (fboundp #'native-comp-available-p)
-                                  (native-comp-available-p))))
+(when-emacs-version (and (< it 28)
+                         (not (and (fboundp #'native-comp-available-p)
+                                   (native-comp-available-p))))
   (defsubst comp-hint-cons (x)
     (cl-assert (and x (consp x)))
     x)

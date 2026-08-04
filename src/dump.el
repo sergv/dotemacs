@@ -50,7 +50,7 @@
     (when-windows
      (require 'windows-setup))
     (require 'set-up-paths)
-    (load-library "set-up-tmp-paths")
+    (require 'set-up-tmp-paths)
 
     (require 'base-emacs-fixes)
     (require 'base-emacs-opt)
@@ -60,7 +60,7 @@
     (require 'cycle-on-lines)
     (require 'common)
     (require 'common-heavy)
-    (load-library "persistent-store")
+    (require 'persistent-store)
     (persistent-store-init)
 
     (require 'append-list)
