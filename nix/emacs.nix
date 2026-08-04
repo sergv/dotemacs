@@ -24,7 +24,14 @@ let
         });
     };
 
-  emacs-base =
+  emacs-src = pkgs.fetchgit {
+    url    = "https://github.com/sergv/emacs.git";
+    rev    = "381a5672b06f731db167111a8e1b8694306f448c";
+    sha256 = "sha256-9rrAE6fogey3Ys05o2hMyNXaFKNrimMBgQY00IVGlG4="; #pkgs.lib.fakeSha256;
+  };
+
+  mk-emacs-base =
+    { cflags, ldflags, extraConfigureFlags, ... }:
     (pkgs.emacs30.override (_: {
       withNativeCompilation = false;
       noGui                 = false;
@@ -61,20 +68,15 @@ let
 
     })).overrideAttrs
       (old: {
-        src = pkgs.fetchgit {
-          url    = "https://github.com/sergv/emacs.git";
-          rev    = "381a5672b06f731db167111a8e1b8694306f448c";
-          sha256 = "sha256-9rrAE6fogey3Ys05o2hMyNXaFKNrimMBgQY00IVGlG4="; #pkgs.lib.fakeSha256;
-        };
+        src = emacs-src;
 
         # NixOS 25.05 patches do not apply to 30.2 any more. Remove throwing away of
         # nixpkgs patches here when moving to a later NixOS release.
         patches = [ ];
         # version        = "30.2";
 
-        configureFlags = old.configureFlags ++ [
+        configureFlags = old.configureFlags ++ extraConfigureFlags ++ [
           # https://www.jamescherti.com/compiling-emacs/
-          "--enable-link-time-optimization"
           "--enable-largefile"
           "--disable-xattr"
 
@@ -123,12 +125,69 @@ let
           (pkgs.lib.withFeature false "xdbe")
         ];
 
-        CFLAGS  = "-O2 -pipe ${march} ${mtune} -fno-omit-frame-pointer -fno-plt -flto=auto";
-        LDFLAGS = "-Wl,-O2 -Wl,-z,now -Wl,-z,relro -Wl,--sort-common -Wl,--as-needed -Wl,-z,pack-relative-relocs -flto=auto";
+        CFLAGS  = cflags;
+        LDFLAGS = ldflags;
       });
 
-  emacs-native-pkg =
-    (emacs-base.override (_: {
+  emacs-release-cfg = {
+    cflags              = "-O2 ${march} ${mtune} -fno-omit-frame-pointer -fno-plt -flto=auto";
+    ldflags             = "-Wl,-O2 -Wl,-z,now -Wl,-z,relro -Wl,--sort-common -Wl,--as-needed -Wl,-z,pack-relative-relocs -flto=auto";
+    extraConfigureFlags = ["--enable-link-time-optimization"];
+    elispCompilerFlags  =
+      [
+        # The most meaningful optimizations:
+        "-O2"
+        # Reduce .eln size and compilation overhead.
+        "-g0"
+        # Good defensive choice for Emacs stability.
+        "-fno-omit-frame-pointer"
+        "-fno-finite-math-only"
+      ] ++
+      (if builtins.stringLength mtune == 0 then [] else [mtune]) ++
+      (if builtins.stringLength march == 0 then [] else [march]);
+    elispLinkFlags =
+      [
+        # -Wl,-z,pack-relative-relocs compresses
+        # relocation tables to reduce file size and
+        # slightly improve load times.
+        "-Wl,-z,pack-relative-relocs"
+
+        # -Wl,-O2 applies standard linker-level
+        # optimizations (like string merging) to the
+        # generated shared object.
+        "-Wl,-O2"
+
+        # -Wl,--as-needed prevents the linker from
+        # recording dependencies on libraries that
+        # are not actually used by the code.
+        "-Wl,--as-needed"
+      ];
+  };
+
+  emacs-debug-cfg = {
+    cflags              = "-O0 -g3 -fno-omit-frame-pointer";
+    ldflags             = "";
+    extraConfigureFlags = [];
+    # Really slow checks for serious problems.
+    # extraConfigureFlags = ["--enable-checking=yes" "--enable-check-lisp-object-type"];
+    elispCompilerFlags  =
+      [
+        # The most meaningful optimizations:
+        "-O0"
+        # Reduce .eln size and compilation overhead.
+        "-g3"
+        # Good defensive choice for Emacs stability.
+        "-fno-omit-frame-pointer"
+        "-fno-finite-math-only"
+      ];
+    elispLinkFlags = [];
+  };
+
+  mk-elisp-flags = xs: pkgs.lib.concatStringsSep " " (builtins.map (x: ''"${x}"'') xs);
+
+  mk-emacs-native-pkg =
+    emacs-cfg:
+    ((mk-emacs-base emacs-cfg).override (_: {
       withNativeCompilation = true;
     })).overrideAttrs
       (old: {
@@ -138,8 +197,10 @@ let
         # patches = (old.patches or []) ++ [
         patches = [
           (pkgs.replaceVars ./patches/native-comp-driver-options-30.patch {
-            mtuneFlag = if builtins.stringLength mtune == 0 then "" else ''"${mtune}"'';
-            marchFlag = if builtins.stringLength march == 0 then "" else ''"${march}"'';
+
+            compilerOptionsFlags = mk-elisp-flags emacs-cfg.elispCompilerFlags;
+
+            driverOptionsFlags = mk-elisp-flags emacs-cfg.elispLinkFlags;
 
             backendPath =
               let
@@ -170,15 +231,17 @@ let
         ];
       });
 
+  emacs-native-pkg = mk-emacs-native-pkg emacs-release-cfg;
+
   emacs-bytecode-pkg =
-    (emacs-base.override (_: {
+    ((mk-emacs-base emacs-release-cfg).override (_: {
       withNativeCompilation = false;
     })).overrideAttrs
       (_: {
         withNativeCompilation = false;
       });
 
-  emacs-native-debug-pkg = pkgs.enableDebugging emacs-native-pkg;
+  emacs-native-debug-pkg = pkgs.enableDebugging (mk-emacs-native-pkg emacs-debug-cfg);
 
   emacs-debug-pkg = pkgs.enableDebugging emacs-bytecode-pkg;
 
@@ -230,6 +293,8 @@ let
   emacs-native-wrapped = mk-emacs-pkg "emacs-native" emacs-native-pkg "";
 
   emacs-bytecode-wrapped = mk-emacs-pkg "emacs-bytecode" emacs-bytecode-pkg "";
+
+  # "--command=${emacs-src}/src/.gdbinit" "--directory=${emacs-src}/src/"
 
   emacs-native-debug-wrapped =
     mk-emacs-pkg
