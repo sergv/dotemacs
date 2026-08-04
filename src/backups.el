@@ -15,7 +15,8 @@
   (require 'cl-lib)
 
   (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-ex))
 
 (require 'common)
 (require 'set-up-paths)
@@ -75,23 +76,24 @@
 
 (defun backups--perform-backup (buf)
   "Make backup of specified buffer or current buffer if BUF is nil."
-  (with-current-buffer buf
-    (when-buffer-has-file
-      ;; Ensure that destination directory exists.
-      (unless (file-exists-p b/backup-directory)
-        (unless (file-writable-p b/backup-directory)
-          (error "Cannot backup to non-writable directory: ‘%s’" b/backup-directory))
-        (make-directory b/backup-directory t))
-      (let* ((file buffer-file-name)
-             (dest (path-concat b/backup-directory
-                                (b/make-backup-name file))))
-        (when (file-exists? file)
-          (copy-file file dest t t t)
-          ;; (if (file-exists-p dest)
-          ;; (error "make-backup: fatal error: backup file %s already exists"
-          ;; dest)
-          ;; (copy-file file dest t t t))
-          )))))
+  (vim-ex--with-demoted-errors (concat "Error while doing backup of " (buffer-name buf) ": %s")
+   (with-current-buffer buf
+     (when-buffer-has-file
+       ;; Ensure that destination directory exists.
+       (unless (file-exists-p b/backup-directory)
+         (unless (file-writable-p b/backup-directory)
+           (error "Cannot backup to non-writable directory: ‘%s’" b/backup-directory))
+         (make-directory b/backup-directory t))
+       (let* ((file buffer-file-name)
+              (dest (path-concat b/backup-directory
+                                 (b/make-backup-name file))))
+         (when (file-exists? file)
+           (copy-file file dest t t t)
+           ;; (if (file-exists-p dest)
+           ;; (error "make-backup: fatal error: backup file %s already exists"
+           ;; dest)
+           ;; (copy-file file dest t t t))
+           ))))))
 
 (defun backups--should-backup-buffer? (buf)
   (and (not (buffer-local-value 'backups--ignore-buffer buf))
