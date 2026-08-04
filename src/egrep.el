@@ -37,8 +37,17 @@
         (t
          'elisp)))
 
-(defun make-egrep-match (file short-file-name line column matched-prefix matched-text matched-suffix matched-offset)
-  (cons file (cons short-file-name (cons line (cons column (cons matched-prefix (cons matched-text (cons matched-suffix matched-offset))))))))
+(defun make-egrep-match (file short-file-name line column matched-prefix matched-text matched-suffix match-offset)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp file))
+  (cl-assert (stringp short-file-name))
+  (cl-assert (numberp line))
+  (cl-assert (numberp column))
+  (cl-assert (stringp matched-prefix))
+  (cl-assert (stringp matched-text))
+  (cl-assert (stringp matched-suffix))
+  (cl-assert (numberp match-offset))
+  (cons file (cons short-file-name (cons line (cons column (cons matched-prefix (cons matched-text (cons matched-suffix match-offset))))))))
 
 (defsubst egrep-match-file (x)
   (declare (pure t) (side-effect-free t))
@@ -75,6 +84,7 @@
   (cdddr (cddddr x)))
 
 (defun egrep-match< (a b)
+  (declare (pure t) (side-effect-free t))
   (let ((file-a (egrep-match-short-file-name a))
         (file-b (egrep-match-short-file-name b)))
     (or (string< file-a file-b)
