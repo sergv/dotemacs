@@ -152,13 +152,16 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
           +ignored-directory-prefixes+
           ignored-abs-dirs
           ignore-case)))
-    (cl-assert (listp matches))
-    (when (or (null matches)
-              (= (length matches) 0))
-      (error "No matches for regexp \"%s\" across files %s"
-             regexp
-             (mapconcat #'identity globs-to-find ", ")))
-    matches))
+    (cl-assert (or (listp matches) (symbolp matches)))
+    (if (eq matches 'no-files-matched)
+        (error "No files matched glob patterns")
+      (progn
+        (when (or (null matches)
+                  (= (length matches) 0))
+          (error "No matches for regexp \"%s\" across files %s"
+                 regexp
+                 (mapconcat #'identity globs-to-find ", ")))
+        matches))))
 
 (defun egrep--find-matches--elisp (regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs)
   (save-match-data
@@ -219,14 +222,17 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                            ;; line.
                            (end-of-line)))
                        (cdr res)))))))))
-      (when (null matches)
-        (error "No matches for regexp \"%s\" across files %s"
-               regexp
-               (mapconcat #'identity exts-globs ", ")))
-      (when should-report-progress?
-        (message "Finished looking in files")
-        (redisplay t))
-      matches)))
+      (if (null files)
+          (error "No files matched glob patterns")
+        (progn
+          (when (null matches)
+            (error "No matches for regexp \"%s\" across files %s"
+                   regexp
+                   (mapconcat #'identity exts-globs ", ")))
+          (when should-report-progress?
+            (message "Finished looking in files")
+            (redisplay t))
+          matches)))))
 
 (defun egrep-commit-changed-entries ()
   (interactive)
