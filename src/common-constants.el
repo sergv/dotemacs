@@ -32,7 +32,7 @@
      "~" ".bin" ".out" ".lbin" ".elc" ".glo" ".idx" ".lot"
      ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps"
      ".fns" ".kys" ".pgs" ".tps" ".vrs"
-     ".gz" ".tar" ".bz2" ".xz" ".7z")
+     ".tar" ".bz2" ".xz" ".7z")
    (fold-platform-os-type
     '(".so")
     '(".dll")))
