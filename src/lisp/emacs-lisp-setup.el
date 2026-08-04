@@ -195,17 +195,19 @@ _e_val
   (when (and (eq major-mode 'emacs-lisp-mode)
              (not no-byte-compile)
              (not (string= ".eproj-info"
-                           (file-name-nondirectory buffer-file-name)))
-             (file-writable-p (elisp-compile-get-elc-destination buffer-file-name)))
-    (let ((window-config (current-window-configuration))
-          (byte-compile-dest-file-function #'elisp-compile-get-elc-destination))
-      (if (byte-compile-file buffer-file-name)
-          (progn
-            (ignore-errors
-              (kill-buffer "*Compile-Log*"))
-            ;; restore window config
-            (set-window-configuration window-config))
-        (message "Compilation errors, check out *Compile-log*")))))
+                           (file-name-nondirectory buffer-file-name))))
+    (let ((dest (elisp-compile-get-elc-destination buffer-file-name)))
+      (unless (file-writable-p dest)
+        (error "Not updating %s because it’s not writable" dest))
+      (let ((window-config (current-window-configuration))
+            (byte-compile-dest-file-function #'elisp-compile-get-elc-destination))
+        (if (byte-compile-file buffer-file-name)
+            (progn
+              (ignore-errors
+                (kill-buffer "*Compile-Log*"))
+              ;; restore window config
+              (set-window-configuration window-config))
+          (message "Compilation errors, check out *Compile-log*"))))))
 
 ;;; elisp debugger
 
