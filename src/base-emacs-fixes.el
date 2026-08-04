@@ -561,7 +561,6 @@ newlines."
 (eval-after-load "comint" '(comint-init))
 
 (when-emacs-version (and (<= 30 it) (native-comp-available-p))
-  (require 'dump-init)
   ;; Overwrite the definition with a new one.
   (defun load--fixup-all-elns ()
     "Fix all compilation unit filename.
@@ -576,7 +575,7 @@ directory got moved.  This is set to be a pair in the form of:
                  (when (and (stringp (native-comp-unit-file cu))
                             (not
                              ;; Keep my locally-produced .eln files under my .emacs.d directory,
-                             ;; don’t
+                             ;; don’t change their paths.
                              (string-prefix-p (expand-file-name
                                                (concat +emacs-config-path+ "/compiled"))
                                               (expand-file-name
