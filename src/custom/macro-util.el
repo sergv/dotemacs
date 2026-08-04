@@ -20,18 +20,20 @@
 (declare-function symbol->string "common-small")
 (declare-function vim-visual-mode-p "vim-visual-mode")
 
-(when-emacs-version (or (< it 28)
-                        (not (and (fboundp #'native-comp-available-p)
-                                  (native-comp-available-p))))
+(when-emacs-version (and (< it 28)
+                         (not (and (fboundp #'native-comp-available-p)
+                                   (native-comp-available-p))))
   (declare-function comp-hint-cons "common-small"))
 
 (defmacro car-sure (x)
-  (if (fboundp #'comp-hint-cons)
+  (if (and (fboundp #'native-comp-available-p)
+           (native-comp-available-p))
       `(car (comp-hint-cons ,x))
     `(car ,x)))
 
 (defmacro cdr-sure (x)
-  (if (fboundp #'comp-hint-cons)
+  (if (and (fboundp #'native-comp-available-p)
+           (native-comp-available-p))
       `(cdr (comp-hint-cons ,x))
     `(cdr ,x)))
 
@@ -61,12 +63,14 @@
   `(car-sure (cdr-sure (cdr-sure (cdr-sure (cdr-sure ,x))))))
 
 (defmacro setcar-sure (x y)
-  (if (fboundp #'comp-hint-cons)
+  (if (and (fboundp #'native-comp-available-p)
+           (native-comp-available-p))
       `(setcar (comp-hint-cons ,x) ,y)
     `(setcar ,x ,y)))
 
 (defmacro setcdr-sure (x y)
-  (if (fboundp #'comp-hint-cons)
+  (if (and (fboundp #'native-comp-available-p)
+           (native-comp-available-p))
       `(setcdr (comp-hint-cons ,x) ,y)
     `(setcdr ,x ,y)))
 

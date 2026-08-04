@@ -31,18 +31,22 @@
       lib = nixpkgs.lib;
       forEachSystem = lib.genAttrs systems;
 
-      mkEmacsWithConfig = system: pkgs: hlib: hutils:
+      mkEmacsWithConfig = system: pkgs: hutils:
         let
           # cc = pkgs.clang;
           # cc = pkgs.gcc;
           cc = pkgs.stdenv.cc.cc;
 
-          haskell-pkgs =
+          hlib = pkgs.haskell.lib.compose;
+
+          haskell-pkgs-for-tools = haskell-nixpkgs-improvements.haskell-package-sets."${system}".host.default;
+
+          haskell-pkgs-base-for-emacs-native =
             if pkgs.stdenv.isDarwin
-            then haskell-nixpkgs-improvements.haskell-package-sets."${system}".host.default
+            then haskell-pkgs-for-tools
             else haskell-nixpkgs-improvements.haskell-package-sets."${system}".host.ghc914-pie;
 
-          haskell-pkgs-with-emacs-native = hutils.fixedExtend haskell-pkgs (
+          haskell-pkgs-with-emacs-native = hutils.fixedExtend haskell-pkgs-base-for-emacs-native (
             new:
             old:
             builtins.mapAttrs
@@ -78,11 +82,14 @@
             # arch = arch.gccArch;
           };
 
-          # emacs-raw = emacs-pkg.raw.emacs-native;
-          # emacs = emacs-pkg.wrapped.emacs-native;
+          # emacs-raw = emacs-pkg.raw.emacs-native-debug;
+          # emacs = emacs-pkg.wrapped.emacs-native-debug;
 
-          emacs-raw = emacs-pkg.raw.emacs-bytecode;
-          emacs = emacs-pkg.wrapped.emacs-bytecode;
+          emacs-raw = emacs-pkg.raw.emacs-native;
+          emacs = emacs-pkg.wrapped.emacs-native;
+
+          # emacs-raw = emacs-pkg.raw.emacs-bytecode;
+          # emacs = emacs-pkg.wrapped.emacs-bytecode;
 
           buildTreesitterModule = { dir, subdir, name }:
             pkgs.stdenv.mkDerivation {
@@ -121,10 +128,10 @@
             };
 
           treesitter-dirs = root:
-            builtins.map (x: lib.path.append root x)
+            builtins.map (x: pkgs.lib.path.append root x)
               (builtins.attrNames
-                (lib.attrsets.filterAttrs
-                  (filename: typ: lib.strings.hasPrefix "tree-sitter-" filename && typ == "directory")
+                (pkgs.lib.attrsets.filterAttrs
+                  (filename: typ: pkgs.lib.strings.hasPrefix "tree-sitter-" filename && typ == "directory")
                   (builtins.readDir root)));
 
           treesitter-derivs =
@@ -134,7 +141,7 @@
                 (dir: {
                   inherit dir;
                   subdir = "src";
-                  name   = lib.strings.removePrefix "tree-sitter-" (builtins.baseNameOf dir);
+                  name   = pkgs.lib.strings.removePrefix "tree-sitter-" (builtins.baseNameOf dir);
                 })
                 (treesitter-dirs ./native)
               ++
@@ -151,7 +158,7 @@
             pname             = "get-cabal-configuration";
             version           = "0.1";
             src               = ./third-party/flycheck-haskell/get-cabal-configuration.hs;
-            nativeBuildInputs = [ haskell-pkgs.ghc ];
+            nativeBuildInputs = [ haskell-pkgs-for-tools.ghc ];
             buildCommand      = ''
               ghc -Wall -Werror -O2 -o "$out" "$src"
               strip "$out"
@@ -160,7 +167,7 @@
 
           emacs-config-source = ./.;
 
-          buildEmacsConfig = pkgs:
+          emacs-config =
             pkgs.stdenvNoCC.mkDerivation {
               pname   = "emacs-config";
               version = "0.9";
@@ -172,8 +179,10 @@
               ] ++
               treesitter-derivs;
               nativeBuildInputs = [
-                emacs-raw
-                # emacs.deriv
+                #emacs-raw
+                emacs.deriv
+                pkgs.gdb
+
                 # pkgs.ghc
                 pkgs.bash
                 pkgs.gzip
@@ -205,9 +214,15 @@
                 export BASHRC_ENV_LOADED="1"
 
                 while IFS= read -d $'\0' -r path ; do
+                    # Gzip all *.el files to *.el.gz
                     file_dest="$dest/$(realpath --relative-to="$src" "$path").gz"
                     mkdir -p "$(dirname "$file_dest")"
                     gzip --best --stdout <"$path" >"$file_dest"
+
+                    # Keep vanilla *.el files.
+                    # file_dest="$dest/$(realpath --relative-to="$src" "$path")"
+                    # mkdir -p "$(dirname "$file_dest")"
+                    # cp "$path" "$file_dest"
                 done < <(find "$src" \( -path '*/native' -o -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -name 'scripts' -o -name 'resources' -o -name '.cask' -o -name '.git' \) -prune -o -type f \( -name '*.el' -a -not \( -name '*test.el' -o -name '*tests.el' -o -name '*test-utils*' -o -name '.dir-locals.el' \) \) -print0)
 
                 cp -r "$src/resources/auto-insert" "$dest/resources/"
@@ -215,10 +230,10 @@
                 cp "$src/resources/good-fortunes.txt" "$dest/resources/"
 
                 echo "[Build]"
-                # NB must have *.el.gz files at their final destination when producing *.elc files
+                # NB must have *.el.gz files at their final destination when producing *.elc/*.eln files
                 # so that when we run emacs without dump snapthot the elc files will have
                 # correct location of their sources.
-                EMACS="${emacs-raw}/bin/emacs" bash "$src/scripts/recompile.sh" "$dest_abs" "$dest_abs"
+                EMACS="${emacs.deriv}/bin/${emacs.exe-name}" bash "$src/scripts/recompile.sh" "$dest_abs" "$dest_abs"
 
                 echo "[Dump]"
                 # Run in empty environment to not capture build environment variables like ‘buildPhase’
@@ -228,6 +243,12 @@
                 # capture source.
                 (cd "$dest_abs"; env -i PATH="${pkgs.lib.makeBinPath [pkgs.bash pkgs.gzip]}" bash "$src/scripts/dump.sh" "$dest_abs" "${emacs-raw}/bin/emacs")
 
+                # Very important to make config folder read-only after we built everything.
+                # Loading of .eln files likes to rename .eln file with tmp suffix before
+                # performing actual load (presumably to get fresh handle each time) which
+                # breaks concurrent test execution.
+                find "$dest_abs" \( -type f -o -type d \) -exec chmod ugo-w {} \;
+
                 runHook postBuild
               '';
 
@@ -236,13 +257,16 @@
                 pkgs.findutils
                 pkgs.universal-ctags
                 pkgs.unzip
+
                 haskell-nixpkgs-improvements.packages."${system}".faster-richer-tags
 
+                # For rughc for flycheck-haskell.
+                haskell-pkgs-for-tools.ghc
+
                 # Dependencies for dante tests which won’t work anyway because
-                # there’s no internet in nix sandboxes and cabal won’t work without it.
+                # there’s no internet in nix sandboxes and cabal doesn’t work without it yet.
                 # trix.packages."${system}".trix
                 # haskell-nixpkgs-improvements.packages."${system}".cabal
-                # haskell-pkgs.ghc
               ];
               checkPhase = ''
                 runHook preCheck
@@ -256,11 +280,11 @@
                 # because Emacs cached HOME value before setenv.
                 export REMOTE_TEMPORARY_FILE_DIRECTORY=1
 
-                echo "[Test dumped snapshot with .elc]"
+                echo "[Test dumped snapshot with compiled files]"
                 EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" bash "$src/tests/run-tests.sh"
 
                 echo "[Test vanilla .el with asserts]"
-                EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" EMACS_SKIP_ELC=1 EMACS_FORCE_PRISTINE=1 bash "$src/tests/run-tests.sh" '"t"'
+                EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$src" EMACS_SKIP_ELC=1 EMACS_FORCE_PRISTINE=1 EMACS_TEST_EXTRA_EL_DIR="$dest_abs/compiled" EMACS_TEST_EXTRA_SO_DIR="$dest_abs/lib" bash "$src/tests/run-tests.sh" '"t"'
 
                 echo "[Misc sanity tests]"
 
@@ -273,6 +297,8 @@
                   (let ((src (test--function-source #'magit-status)))
                     (when (not (member src
                                        '("$dest_abs/third-party/magit/lisp/magit-status.el.gz"
+                                         "$dest_abs/third-party/magit/lisp/magit-status.el"
+                                         "$dest_abs/third-party/magit/lisp/magit-status.elc"
                                          "$dest_abs/compiled/elc/magit-status.elc"
                                          "$dest_abs/compiled/eln/magit-status.eln")))
                       (error "Function sources must resolve to a file under '$dest_abs' but it resolved to: '%s'" src))))
@@ -282,8 +308,15 @@
                 echo "[Function source test for dumped snapshot]"
                 "$dest_abs/bin/emacs" --batch --eval "$sanity_check_command"
 
-                echo "[Function source test for vanilla .elc]"
-                EMACS_FORCE_PRISTINE=1 "$dest_abs/bin/emacs" --batch --load "$dest_abs/init.elc" --eval "$sanity_check_command"
+                if [[ -f "$dest_abs/init.elc" ]]; then
+                  echo "[Function source test for vanilla .elc]"
+                  EMACS_FORCE_PRISTINE=1 "$dest_abs/bin/emacs" --batch --load "$dest_abs/init.elc" --eval "$sanity_check_command"
+                fi
+
+                if [[ -f "$dest_abs/init.eln" ]]; then
+                  echo "[Function source test for vanilla .eln]"
+                  EMACS_FORCE_PRISTINE=1 "$dest_abs/bin/emacs" --batch --load "$dest_abs/init.eln" --eval "$sanity_check_command"
+                fi
 
                 runHook postCheck
               '';
@@ -312,10 +345,11 @@
             };
 
         in {
-          default         = buildEmacsConfig pkgs;
-          # default         = builtins.head treesitter-derivs;
-          emacs-native-so = haskell-pkgs-with-emacs-native.emacs-native;
-          emacs-raw       = emacs-raw;
+          default = emacs-config;
+
+          # sample-treesitter = builtins.head treesitter-derivs;
+          # emacs-native-so   = haskell-pkgs-with-emacs-native.emacs-native;
+          # emacs-raw         = emacs-raw;
         };
     in {
 
@@ -323,64 +357,11 @@
         system:
         let
           pkgs   = nixpkgs.legacyPackages."${system}";
-          hlib   = pkgs.haskell.lib.compose;
           hutils = haskell-nixpkgs-improvements.lib.make-haskell-utils pkgs;
 
-          emacs-with-config = mkEmacsWithConfig system pkgs hlib hutils;
+          emacs-with-config = mkEmacsWithConfig system pkgs hutils;
         in
         emacs-with-config
-        # {
-        #   default = haskell-pkgs-with-emacs-native.emacs-native;
-        # }
       );
-
-      # devShells = forEachSystem (system:
-      #   let pkgs   = nixpkgs.legacyPackages."${system}";
-      #       stdenv = pkgs.stdenv;
-      #       cc     = stdenv.cc.cc;
-      #       # hpkgs = pkgs.haskell.packages.ghc961;
-      #   in {
-      #     default = pkgs.mkShell {
-      #       nativeBuildInputs = [
-      #         # pkgs.tree-sitter
-      #         cc
-      #         pkgs.libgccjit
-      #         # pkgs.nodejs
-      #         #hpkgs.ghc
-      #         # pkgs.emacs
-      #         # pkgs.emacsNativeComp
-      #
-      #         ## For running tests
-      #         #hpkgs.cabal-install
-      #         #hpkgs.fast-tags
-      #         #pkgs.universal-ctags
-      #       ];
-      #
-      #       # For native compilation
-      #       LIBRARY_PATH=
-      #         "${pkgs.lib.makeLibraryPath [cc pkgs.glibc]}:${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc/${stdenv.hostPlatform.config}/${pkgs.lib.getVersion cc}";
-      #
-      #
-      #       # ${pkgs.lib.getVersion pkgs.stdenv.cc.cc}
-      #       # pkgs.lib.getLib pkgs.stdenv.cc.cc + /lib
-      #       # pkgs.lib.getLib pkgs.stdenv.glibc + /lib
-      #       # pkgs.lib.getLib pkgs.libgccjit + /lib/gcc/x86_64-unknown-linux-gnu/9.3.0
-      #
-      #       # LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeDeps;
-      #
-      #       # # Add executable packages to the nix-shell environment.
-      #       # packages = [
-      #       #   # hpkgs.ghc
-      #       #   # hpkgs.cabal-install
-      #       #   pkgs.zlib
-      #       # ];
-      #
-      #       # Add build dependencies of the listed derivations to the nix-shell environment.
-      #       # inputsFrom = [ pkgs.hello pkgs.gnutar ];
-      #
-      #       # ... - everything mkDerivation has
-      #     };
-      #   }
-      # );
     };
 }
