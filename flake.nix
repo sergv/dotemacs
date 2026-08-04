@@ -31,7 +31,7 @@
       lib = nixpkgs.lib;
       forEachSystem = lib.genAttrs systems;
 
-      mkEmacsWithConfig = system: pkgs: hutils:
+      mkEmacsWithConfig = system: pkgs:
         let
           # cc = pkgs.clang;
           # cc = pkgs.gcc;
@@ -39,12 +39,16 @@
 
           hlib = pkgs.haskell.lib.compose;
 
-          haskell-pkgs-for-tools = haskell-nixpkgs-improvements.haskell-package-sets."${system}".host.default;
+          hutils = haskell-nixpkgs-improvements.lib.make-haskell-utils pkgs;
+
+          haskell-tools = haskell-nixpkgs-improvements.lib.derive-haskell-tools system pkgs null;
+
+          haskell-pkgs-for-tools = haskell-tools.haskell-package-sets.host.ghc914;
 
           haskell-pkgs-base-for-emacs-native =
             if pkgs.stdenv.isDarwin
             then haskell-pkgs-for-tools
-            else haskell-nixpkgs-improvements.haskell-package-sets."${system}".host.ghc914-pie;
+            else haskell-tools.haskell-package-sets.host.ghc914-pie;
 
           haskell-pkgs-with-emacs-native = hutils.fixedExtend haskell-pkgs-base-for-emacs-native (
             new:
@@ -258,7 +262,7 @@
                 pkgs.universal-ctags
                 pkgs.unzip
 
-                haskell-nixpkgs-improvements.packages."${system}".faster-richer-tags
+                haskell-tools.tools.faster-richer-tags
 
                 # For rughc for flycheck-haskell.
                 haskell-pkgs-for-tools.ghc
@@ -266,7 +270,7 @@
                 # Dependencies for dante tests which won’t work anyway because
                 # there’s no internet in nix sandboxes and cabal doesn’t work without it yet.
                 # trix.packages."${system}".trix
-                # haskell-nixpkgs-improvements.packages."${system}".cabal
+                # haskell-tools.tools.cabal
               ];
               checkPhase = ''
                 runHook preCheck
@@ -356,12 +360,9 @@
       packages = forEachSystem (
         system:
         let
-          pkgs   = nixpkgs.legacyPackages."${system}";
-          hutils = haskell-nixpkgs-improvements.lib.make-haskell-utils pkgs;
-
-          emacs-with-config = mkEmacsWithConfig system pkgs hutils;
+          pkgs = nixpkgs.legacyPackages."${system}";
         in
-        emacs-with-config
+        mkEmacsWithConfig system pkgs
       );
     };
 }
