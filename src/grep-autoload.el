@@ -48,7 +48,7 @@
               (mk-globs (lambda (xs)
                           (string-join (--map (concat "*." it) xs) " "))))
           `(("all"      . "*")
-            ("el"       . "*.el .emacs")
+            ("el"       . "*.el *.el.gz .emacs")
             ("c"        . ,(funcall mk-globs +c-source-exts+))
             ("h"        . ,(funcall mk-globs +c-header-exts+))
             ("ch"       . ,(funcall mk-globs (append +c-header-exts+ +c-source-exts+)))
