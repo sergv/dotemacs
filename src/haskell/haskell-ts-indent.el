@@ -855,16 +855,8 @@
               haskell-ts-indent--list-generator-anchor
               haskell-indent-offset)
 
-             ((or (parent-is "field_update")
-                  (node-is "infix"))
+             ((parent-is "field_update" "lambda")
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent
-              haskell-indent-offset)
-
-             ;; Other infix rules
-
-             ;; Lambda
-             ((parent-is "lambda")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
               haskell-indent-offset)
 
              ((node-is "in") parent 0)
@@ -1321,6 +1313,14 @@
                    (if (string= (treesit-node-type matched-anchor) "->")
                        3
                      2))))
+
+             ((parent-is "tuple")
+              parent
+              haskell-indent-offset)
+
+             ((node-is "infix")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-or-tuple-parent
+              haskell-indent-offset)
 
              ((parent-is "parens")
               parent

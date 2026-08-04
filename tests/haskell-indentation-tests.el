@@ -6927,6 +6927,261 @@ have different input states."
   "foo = undefined"
   ""))
 
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-type-24a
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     _|_Foo a"
+    "     ,"
+    "     Bar a"
+    "     )"
+    "  => Int"
+    "foo = undefined"))
+  (:name
+   haskell-indentation-tests--test-treesitter-type-24b
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "                                           _|_Foo a"
+    "     ,"
+    "     Bar a"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+ :expected-value
+ (tests-utils--multiline
+  (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "       _|_Foo a"
+    "     ,"
+    "     Bar a"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-type-25a
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     Foo a"
+    "     ,"
+    "     _|_Bar a"
+    "     )"
+    "  => Int"
+    "foo = undefined"))
+  (:name
+   haskell-indentation-tests--test-treesitter-type-25b
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     Foo a"
+    "     ,"
+    "                                         _|_Bar a"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+ :expected-value
+ (tests-utils--multiline
+  (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     Foo a"
+    "     ,"
+    "       _|_Bar a"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-type-26a
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     _|_Foo"
+    "     ,"
+    "     Bar"
+    "     )"
+    "  => Int"
+    "foo = undefined"))
+  (:name
+   haskell-indentation-tests--test-treesitter-type-26b
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "                                               _|_Foo"
+    "     ,"
+    "     Bar"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+ :expected-value
+ (tests-utils--multiline
+  (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "       _|_Foo"
+    "     ,"
+    "     Bar"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-type-27a
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     Foo"
+    "     ,"
+    "     _|_Bar"
+    "     )"
+    "  => Int"
+    "foo = undefined"))
+  (:name
+   haskell-indentation-tests--test-treesitter-type-27b
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     Foo"
+    "     ,"
+    "                                                     _|_Bar"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+ :expected-value
+ (tests-utils--multiline
+  (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     Foo"
+    "     ,"
+    "       _|_Bar"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-type-28a
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     _|_a `Foo` b"
+    "     ,"
+    "     a `Bar` b"
+    "     )"
+    "  => Int"
+    "foo = undefined"))
+  (:name
+   haskell-indentation-tests--test-treesitter-type-28b
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "                              _|_a `Foo` b"
+    "     ,"
+    "     a `Bar` b"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+ :expected-value
+ (tests-utils--multiline
+  (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "       _|_a `Foo` b"
+    "     ,"
+    "     a `Bar` b"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-type-29a
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     a `Foo` b"
+    "     ,"
+    "     _|_a `Bar` b"
+    "     )"
+    "  => Int"
+    "foo = undefined"))
+  (:name
+   haskell-indentation-tests--test-treesitter-type-29b
+   :contents
+   (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     a `Foo` b"
+    "     ,"
+    "                       _|_a `Bar` b"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+ :expected-value
+ (tests-utils--multiline
+  (tests-utils--multiline
+    "foo"
+    "  :: ("
+    "     a `Foo` b"
+    "     ,"
+    "       _|_a `Bar` b"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-type-30a
+   :contents
+   (tests-utils--multiline
+    "foo :: forall a b."
+    "  ("
+    "                            _|_a `Foo` b"
+    "     ,"
+    "     a `Bar` b"
+    "     )"
+    "  => Int"
+    "foo = undefined")))
+ :expected-value
+ (tests-utils--multiline
+  "foo :: forall a b."
+  "  ("
+  "    _|_a `Foo` b"
+  "     ,"
+  "     a `Bar` b"
+  "     )"
+  "  => Int"
+  "foo = undefined"))
+
+
+
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-guard-1a
  :contents
