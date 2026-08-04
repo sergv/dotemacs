@@ -21,9 +21,35 @@ if [[ ! -v EMACS_DEBUG ]]; then
    export EMACS_DEBUG=0
 fi
 
+function define() {
+    IFS='\n' read -r -d '' ${1} || true
+}
+
+if [[ -v EMACS_TEST_EXTRA_SO_DIR ]]; then
+    test_prelude_setup_flag="--directory=$EMACS_TEST_EXTRA_SO_DIR"
+    define test_prelude_setup <<EOF
+(progn
+  (setf jka-compr-verbose nil)
+  (push "$EMACS_TEST_EXTRA_SO_DIR" treesit-extra-load-path))
+EOF
+else
+    test_prelude_setup_flag=""
+    define test_prelude_setup <<EOF
+(setf jka-compr-verbose nil)
+EOF
+fi
+
+if [[ -v EMACS_TEST_EXTRA_EL_DIR ]]; then
+    test_prelude_setup_flag2="--directory=$EMACS_TEST_EXTRA_EL_DIR"
+else
+    test_prelude_setup_flag2=""
+fi
+
 cd "$(dirname "$0")"
 
-to_load=""
+declare -a to_load
+to_load=()
+
 matcher=""
 
 declare -a tests
@@ -31,14 +57,14 @@ declare -a tests
 if [[ "$#" -gt 0 ]]; then
     for x in "${@}"; do
         if [[ -f "$x" ]]; then
-            to_load="$to_load -l $x"
+            to_load+=( "-l" "$x" )
         else
             matcher="$x"
         fi
     done
 fi
 
-if [[ -z "$to_load" ]]; then
+if [[ "${#to_load[@]}" == 0 ]]; then
     for x in "$emacs_tests_dir"/*.el; do
         tests+=( "$(basename "${x%%.el}")" )
         # tests="$tests -l $x"
@@ -104,7 +130,7 @@ if [[ -z "$matcher" ]]; then
 
     logs_dest="$TMPDIR/emacs-test-logs"
 
-    command=$(cat <<EOF
+    define command <<EOF
 combined='INPUT';
 mod_name="\${combined%,*}"
 m="\${combined#*,}"
@@ -117,7 +143,9 @@ fi
 "$emacs" \\
     -Q \\
     --batch \\
-    --eval '(setf jka-compr-verbose nil)' \\
+    $test_prelude_setup_flag \\
+    $test_prelude_setup_flag2 \\
+    --eval "$test_prelude_setup" \\
     -l "$init_file" \\
     -L "$emacs_tests_dir" \\
     -L "$emacs_tests_dir/../third-party/haskell-mode/tests" \\
@@ -127,12 +155,11 @@ fi
     -L "$emacs_tests_dir/../third-party/rainbow-delimiters" \\
     -L "$emacs_tests_dir/../third-party/poly-mode" \\
     -L "$emacs_tests_dir/../third-party/poly-mode/tests" \\
+    ${to_load[@]} \\
     --eval "$requires" \\
     --eval "(require '\${mod_name})" \\
     --eval "(ert-run-tests-batch-and-exit \${m})" 2>"$logs_dest/\${mod_name}\${suffix}.log"
 EOF
-)
-
 
     [[ -d "$logs_dest" ]] && rm -f "$logs_dest"/*.log
 
@@ -182,7 +209,9 @@ else
   "$emacs" \
       -Q \
       --batch \
-      --eval '(setf jka-compr-verbose nil)' \
+      $test_prelude_setup_flag \
+      $test_prelude_setup_flag2 \
+      --eval "$test_prelude_setup" \
       -l "$init_file" \
       -L "$emacs_tests_dir" \
       -L "$emacs_tests_dir/../third-party/haskell-mode/tests" \
@@ -192,7 +221,7 @@ else
       -L "$emacs_tests_dir/../third-party/rainbow-delimiters" \
       -L "$emacs_tests_dir/../third-party/poly-mode" \
       -L "$emacs_tests_dir/../third-party/poly-mode/tests" \
-      $to_load \
+      ${to_load[@]} \
       --eval "$requires" \
       --eval "(mapcar #'require '(${tests[*]}))" \
       --eval "(ert-run-tests-batch-and-exit $matcher)"
