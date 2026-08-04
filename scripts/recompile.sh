@@ -87,8 +87,18 @@ function generate-autoloads() {
   (loaddefs-generate (list ${dirs[*]}) "$name" nil "(defvar el-patch-features nil)"))
 EOF
     "$emacs" --batch --eval "$emacs_cmd" #>/dev/null 2>&1
-    gzip --best --stdout "$name" >"$name.gz"
-    rm "$name"
+
+    # Must not compress autoloads. Compressed autoloads break
+    # subsequent recompilation because loading them involves
+    # ‘jka-compr’ which binds ‘load-force-doc-strings’ to ‘t’ that
+    # makes emacs eagerly load docstrings which leads to segfault.
+    #
+    # Compressed autoloads are pernicious for this script. They may
+    # still work in general after compilation finished but that has
+    # not been tested.
+
+    # gzip --best --stdout "$name" >"$name.gz"
+    # rm "$name"
 }
 
 function gen-el-files() {
@@ -101,6 +111,7 @@ function gen-el-files() {
 inform "Removing generated autoload el files"
 rm -f \
    "$compilation_dest/local-autoloads.el" \
+   "$compilation_dest/local-autoloads.el.gz" \
    "src/local-autoloads.el" \
    "third-party/clojure-mode/clojure-mode-autoloads.el" \
    "third-party/smartparens/smartparens-autoloads.el"  \
@@ -155,48 +166,50 @@ done < <(gen-el-files "-print" | xargs dirname | sort -u | awk '!/(auctex\/style
 define eval_prelude <<EOF
 (progn
   (defconst +emacs-config-path+ "$emacs_dir")
+  (defconst +emacs-recompile-dest-path+ "$artifacts_dir")
 
   (setf treesit-extra-load-path '("$artifacts_dir/lib"))
 
   (setf cl--optimize-speed 3
         cl--optimize-safety 0
-        byte-compile-error-on-warn t
+        ;; byte-compile-error-on-warn t
         compilation-safety 0
         jka-compr-verbose nil)
 
-
   (setf native-comp-enable-subr-trampolines nil
         native-compile-target-directory (concat +emacs-config-path+ "/compiled/eln")
-        native-comp-speed 0
+        native-comp-speed 2
         native-comp-safety 0
         native-comp-debug 0
-        native-comp-compiler-options '("-O0")
+        native-comp-compiler-options '("-O2")
         ;; (native-comp-driver-options '("-march=native"))
         )
 
-  (setf with-editor-emacsclient-executable nil
-        byte-compile-dest-file-function #'recompile--dest-elc)
+  (setf with-editor-emacsclient-executable nil)
 
   (defun strip-ext (path ext)
     (if (string-suffix-p ext path)
         (substring path 0 (- (length ext)))
       path))
 
-  (defun recompile--dest-elc (path)
+  ;; (defun jka-compr-load--debug (_old-func &rest args)
+  ;;   (message "DEBUG: jka-compr-load--debug: started, args = %s" args)
+  ;;   (apply _old-func args))
+  ;; (advice-add 'loaddefs-generate--file-load-name :around #'loaddefs-generate--file-load-name--absolute-name)
+
+  (load "bytecomp" nil t))
+EOF
+
+define byte_compile_regular_dest <<'EOF'
+(progn
+  (defun recompile-bytecode--dest-elc (path)
     (let* ((filename (strip-ext (strip-ext (file-name-nondirectory path) ".gz") ".el"))
            (dir (if (member filename '("init" "early-init"))
                     ""
                   "compiled/elc/")))
-      (concat "${artifacts_dir}/" dir filename ".elc")))
+      (concat +emacs-recompile-dest-path+ "/" dir filename ".elc")))
 
-  (defun recompile--dest-eln (path)
-    (let* ((filename (strip-ext (strip-ext (file-name-nondirectory path) ".gz") ".el"))
-           (dir (if (member filename '("init" "early-init"))
-                    ""
-                  "compiled/eln/")))
-      (concat "${artifacts_dir}/" dir filename ".eln"))))
-
-  (load "bytecomp" nil t))
+  (setf byte-compile-dest-file-function #'recompile-bytecode--dest-elc))
 EOF
 
 define byte_compile_loop <<'EOF'
@@ -218,40 +231,43 @@ define byte_compile_loop <<'EOF'
     (error "Compilation errors in %s" file)))
 EOF
 
+define byte_compile_native_dest <<'EOF'
+(progn
+  (comp-ensure-native-compiler)
+  (require 'comp)
+
+  (defun recompile--strip-string-prefix (prefix str)
+    (if (string-prefix-p prefix str)
+        (substring str (length prefix))
+      str))
+
+  (defun recompile-native--dest-elc (path)
+    (concat
+     +emacs-recompile-dest-path+
+     "/"
+     (recompile--strip-string-prefix
+      +emacs-config-path+
+      (concat (strip-ext (strip-ext path ".gz") ".el") ".elc"))))
+
+  (setf byte-compile-dest-file-function #'recompile-native--dest-elc))
+EOF
+
 define native_compile_loop <<'EOF'
 (dolist (file command-line-args-left)
 
-  ;; todo:
-  ;; native-compile-target-directory
+  (setq byte-compile-warnings nil
+        bytecomp--inhibit-lexical-cookie-warning t)
 
-  (let ((should-report-warnings? nil))
-    (dolist (dir '("src/" "third-party/dante/" "third-party/misc-modes/revive-minimal.el"))
-      (setf should-report-warnings?
-            (or should-report-warnings?
-                (string-prefix-p (concat +emacs-config-path+ "/" dir) file))))
-    (if should-report-warnings?
-        (setq byte-compile-warnings '(not docstrings-wide docstrings lexical)
-              bytecomp--inhibit-lexical-cookie-warning nil)
-      (setq byte-compile-warnings nil
-            bytecomp--inhibit-lexical-cookie-warning t)))
-
-
-  ;; (condition-case err
-      (let ((no-native-compile nil)
-            (byte-native-compiling t)
-            (byte-native-qualities nil)
-            ;; Batch compilation has memory leak thanks to libgccjit.
-            (comp-running-batch-compilation nil)
-            (dest (recompile--dest-eln file))
-            ;; (dest (comp-el-to-eln-filename file))
-            )
-
-        (native-compile file dest)))
-    ;; (error (message "Failed to native-compile %s: %s" file (cdr err))))
-
-  (if (batch-byte-compile-file file)
-      t
-    (error "Compilation errors in %s" file)))
+  (let* ((byte-to-native-output-buffer-file nil)
+         (byte+native-compile t)
+         (comp-running-batch-compilation t)
+         ;; (byte-compile-verbose t)
+         (byte-compile-debug t)
+         ;; Batch compilation has memory leak thanks to libgccjit that
+         ;; shows up when we compile more than one file in a session.
+         (comp-running-batch-compilation t))
+    (when-let* ((eln (native-compile file)))
+      (comp--write-bytecode-file eln))))
 EOF
 
 # Either 't' or 'nil'
@@ -262,58 +278,48 @@ if [[ "$native_comp" = "t" ]]; then
     # get compiled into .eln. When multiple processes do this, race condition may
     # occur and all recompilation fails.
 
+    if [[ -d "$compilation_dest/elc" ]]; then
+        rmdir "$compilation_dest/elc"
+    fi
+
     if [[ ! -d "$compilation_dest/eln" ]]; then
         mkdir "$compilation_dest/eln"
     fi
 
-    # # # Generate config and native-compile trampolines
-    # # "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
-    # #
-    # # ( seq 0 "$((jobs - 1))" | xargs -I INPUT --max-args=1 -P "$jobs" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $jobs nil nil)" && \
-    # #       find . -type f -name '*.elc' -print | xargs -n 1 -P "$jobs" "$emacs" --batch -l "$cfg" -f batch-native-compile
-    # # ) && rm "$cfg" || rm "$cfg"
-    #
-    # # Preload to native-compile trampolines
-    # "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$compilation_dest/elc\" 0 1 nil t nil)"
-    #
-    # seq 0 "$((jobs - 1))" | xargs -I INPUT --max-args=1 -P "$jobs" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $jobs nil nil nil)" && \
-    # seq 0 "$((jobs - 1))" | xargs -I INPUT --max-args=1 -P "$jobs" --verbose "$emacs" -Q --batch --load "$emacs_dir/src/recompile.el" --eval "(recompile-main \"$emacs_dir\" \"$artifacts_dir\" INPUT $jobs t nil $zipped_el_dest)"
-
     gen-el-files "-print0" | \
-        # Marginally more checking but three times slower.
-        # xargs -0 -P "$jobs" -n 1 \
-        xargs -0 -P "$jobs" -n 5 \
+        xargs -0 -P "$jobs" -n 1 \
               "$emacs" -Q --batch \
               -L "$artifacts_dir/lib" \
               "${load_path[@]}" \
               --eval "$eval_prelude" \
-              -l "$compilation_dest/local-autoloads.el.gz" \
+              -l "$compilation_dest/local-autoloads.el" \
               --eval "$native_compile_loop"
+
     if [ $? -ne 0 ]; then
         echo "Native compilation failed" >&2
         exit 1
     fi
-
 else
     if [[ ! -d "$compilation_dest/elc" ]]; then
         mkdir "$compilation_dest/elc"
     fi
 
+    # Marginally more checking but three times slower.
+    # xargs -0 -P "$jobs" -n 1
     gen-el-files "-print0" | \
-        # Marginally more checking but three times slower.
-        # xargs -0 -P "$jobs" -n 1 \
         xargs -0 -P "$jobs" -n 5 \
               "$emacs" -Q --batch \
               -L "$artifacts_dir/lib" \
               "${load_path[@]}" \
               --eval "$eval_prelude" \
-              -l "$compilation_dest/local-autoloads.el.gz" \
+              -l "$compilation_dest/local-autoloads.el" \
+              --eval "$byte_compile_regular_dest" \
               --eval "$byte_compile_loop"
+
     if [ $? -ne 0 ]; then
         echo "Byte compilation failed" >&2
         exit 1
     fi
-    # todo: use zipped_el_dest
 fi
 
 exit 0
