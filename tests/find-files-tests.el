@@ -49,6 +49,7 @@
           (--map (test-utils--normalise-file-name (concat find-file-tests-tests/project-dir "/" it))
                  '("README.md"
                    "bar.c"
+                   "bar.c.gz"
                    "src/foo.c")))))
 
 (find-files-tests--define-tests
@@ -62,6 +63,7 @@
           (--map (test-utils--normalise-file-name it)
                  '("README.md"
                    "bar.c"
+                   "bar.c.gz"
                    "src/foo.c")))))
 
 (provide 'find-files-tests)
