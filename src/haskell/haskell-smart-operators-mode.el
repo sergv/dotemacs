@@ -400,21 +400,23 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-dot ()
   "Insert comma followed by space."
   (interactive "*")
-  (let (pos-before-spaces
-        preceded-by-operator?)
-    (save-excursion
-      (skip-syntax-backward " ")
-      (setf preceded-by-operator?
-            (gethash (preceding-char) haskell-smart-operators--operator-chars)
-            pos-before-spaces (point)))
-    (when preceded-by-operator?
-      (delete-region pos-before-spaces (point)))
-    (insert-char ?\.)
-    (when (and preceded-by-operator?
-               (let ((next-char (following-char)))
-                 (and (not (memq next-char '(?\s ?\) ?\] ?\})))
-                      (not (gethash next-char haskell-smart-operators--operator-chars)))))
-      (insert-char ?\s))))
+  (if (haskell-smart-operators--literal-insertion?)
+      (insert-char ?\.)
+    (let (pos-before-spaces
+          preceded-by-operator?)
+      (save-excursion
+        (skip-syntax-backward " ")
+        (setf preceded-by-operator?
+              (gethash (preceding-char) haskell-smart-operators--operator-chars)
+              pos-before-spaces (point)))
+      (when preceded-by-operator?
+        (delete-region pos-before-spaces (point)))
+      (insert-char ?\.)
+      (when (and preceded-by-operator?
+                 (let ((next-char (following-char)))
+                   (and (not (memq next-char '(?\s ?\) ?\] ?\})))
+                        (not (gethash next-char haskell-smart-operators--operator-chars)))))
+        (insert-char ?\s)))))
 
 ;;;###autoload
 (defun haskell-smart-operators-hash ()
