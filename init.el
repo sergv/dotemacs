@@ -155,7 +155,7 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
   ;; By default Emacs will use "~/.emacs.d/tree-sitter" here
   ;; which fails in flakes build where $HOME will point to non-existent
   ;; place during build. That leads to errors locating treesitter when dumping.
-  (setf treesit-extra-load-path (list (concat +emacs-config-path+ "/lib")))
+  (push (concat +emacs-config-path+ "/lib") treesit-extra-load-path)
 
   ;; (let ((compiled-dir (concat emacs-dir "/compiled")))
   ;;   (unless (equal (car native-comp-eln-load-path) compiled-dir)
@@ -167,6 +167,10 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
       (setf native-comp-eln-load-path (cdr native-comp-eln-load-path)))
     (push (directory-file-name (concat +emacs-config-path+ "/compiled/eln"))
           native-comp-eln-load-path)))
+
+;; Make it an error instead.
+(when (boundp 'native-comp-warning-on-missing-source)
+  (setf native-comp-warning-on-missing-source nil))
 
 ;; Must load this every time so that e.g. temporary directory
 ;; will get reinitialized anew. Or fresh ~/.bashrc will be picked up.
