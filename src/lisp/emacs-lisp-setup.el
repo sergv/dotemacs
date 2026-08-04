@@ -184,8 +184,11 @@ _e_val
   (let* ((filename (file-name-nondirectory path))
          (dir (if (member filename '("init.el" "early-init.el"))
                   ""
-                "compiled/elc/")))
-    (concat +emacs-writable-config-path+ "/" dir filename "c")))
+                "compiled/elc/"))
+         (dest (concat +emacs-writable-config-path+ "/" dir filename "c")))
+    (if (file-directory-p (file-name-directory dest))
+        dest
+      (concat path "c"))))
 
 (defun elisp-compile-and-move ()
   (interactive)
