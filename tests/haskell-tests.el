@@ -2561,6 +2561,22 @@ Entries should be a list of of elements of the form
  :fresh-buffer t
  :initialise-after-content t)
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--dot-4
+ :action
+ (haskell-smart-operators-dot)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = grep [\"*_|_el.gz\"]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = grep [\"*._|_el.gz\"]"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-1
     (progn
