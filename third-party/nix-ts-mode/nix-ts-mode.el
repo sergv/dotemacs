@@ -385,7 +385,7 @@ and for subsequent lines it's the previous line's indentation."
                                tmp (treesit-node-parent tmp)))))))))
       (when treesit--indent-verbose
         (message "Found nix indent anchor: %s" anchor))
-      (treesit-node-start anchor))))
+      anchor)))
 
 (defvar nix-ts-mode-indent-rules
   `((nix
@@ -465,7 +465,18 @@ and for subsequent lines it's the previous line's indentation."
              0
            nix-ts-mode-indent-offset)))
 
-     (catch-all nix-ts-mode--find-indent-anchor 0)))
+     ((n-p-gp "''" "indented_string_expression" nil)
+      nix-ts-mode--find-indent-anchor
+      0)
+
+     (catch-all
+      nix-ts-mode--find-indent-anchor
+      ,(lambda (_ _ _)
+         (lambda (matched-anchor)
+           (if (and (treesit-node-p matched-anchor)
+                    (string= "binding" (treesit-node-type matched-anchor)))
+               nix-ts-mode-indent-offset
+             0))))))
   "Tree-sitter indent rules for `nix-ts-mode'.")
 
 ;; Keymap
