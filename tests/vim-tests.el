@@ -156,7 +156,7 @@
     ,expected-value
     :fresh-buffer t))
 
-(cl-defmacro vim-tests--test-buffer-contents-init-standard-modes-only*
+(cl-defmacro vim-tests--default-test-buffer-contents-only-modes*
     (&key modes
           name
           action
@@ -181,6 +181,31 @@
 
 ;; best default
 ;; todo: migrate to this
+(cl-defmacro vim-tests--default-test-buffer-contents*
+    (&key modes
+          name
+          action
+          contents
+          expected-value
+          fresh-buffer)
+  (declare (indent 0))
+  (cl-assert (listp modes))
+  (cl-assert (cl-every #'symbolp modes))
+  `(vim-tests--test-fresh-buffer-contents-init-all
+    :name
+    ,name
+    :modes
+    ,(if modes
+         (--filter (memq it modes) (-map #'car vim-tests--all-known-modes-and-init))
+       (-map #'car vim-tests--all-known-modes-and-init))
+    :action
+    ,action
+    :contents
+    ,contents
+    :expected-value
+    ,expected-value
+    :fresh-buffer ,fresh-buffer))
+
 (cl-defmacro vim-tests--default-test-fresh-buffer-contents*
     (&key modes
           name
@@ -4011,7 +4036,7 @@ _|_bar")
   "builtins.trace (\"foo = \" + builtins.toString foo) _|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (nix-mode)
  :name
@@ -4029,7 +4054,7 @@ _|_bar")
   "builtins.trace (\"foo = \" + builtins.toString foo) _|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4047,7 +4072,7 @@ _|_bar")
   "import _|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4065,7 +4090,7 @@ _|_bar")
   "import _|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4083,7 +4108,7 @@ _|_bar")
   "foo i = i + _|_i"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4101,7 +4126,7 @@ _|_bar")
   "foo im = im + i_|_m"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4119,7 +4144,7 @@ _|_bar")
   "foo imp = bar imp _|_1"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4137,7 +4162,7 @@ _|_bar")
   "import qualified Foo as_|_ F"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4155,7 +4180,7 @@ _|_bar")
   "import qualified Foo as B_|_B"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4173,7 +4198,7 @@ _|_bar")
   " iq Fo_|_o"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4191,7 +4216,7 @@ _|_bar")
   "{-# UNPACK #-}_|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4213,7 +4238,7 @@ _|_bar")
   "foo x = x * x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4237,7 +4262,7 @@ _|_bar")
   "foo x = x * x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4277,7 +4302,7 @@ _|_bar")
   "foo x = x * x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4327,7 +4352,7 @@ _|_bar")
   "  -> IO [a]"
   "listContentsRecFold depthLimit foldDir filePred = undefined"))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4347,7 +4372,7 @@ _|_bar")
   "  bar ({-# SCC \"123\" #-_|_} x + 1) y \"foo\""
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4367,7 +4392,7 @@ _|_bar")
   "  bar (hPutStrLn_|_ x + 1) y \"foo\""
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4389,7 +4414,7 @@ _|_bar")
   "  hPutStrLn _|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4409,7 +4434,7 @@ _|_bar")
   "  bar (x + 1) y \"foo\""
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4432,7 +4457,7 @@ _|_bar")
   "  bar (x + 1) y \"foo\""
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4461,7 +4486,7 @@ _|_bar")
   "")
  :fresh-buffer t)
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4483,7 +4508,7 @@ _|_bar")
   "(+++) x y = x + y"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4517,7 +4542,7 @@ _|_bar")
   "  bar x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4554,7 +4579,7 @@ _|_bar")
   "  bar x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4595,7 +4620,7 @@ _|_bar")
   "  bar x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4632,7 +4657,7 @@ _|_bar")
   "  bar x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4662,7 +4687,7 @@ _|_bar")
   "  bar x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4692,7 +4717,7 @@ _|_bar")
   "  bar x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode)
  :name
@@ -4716,7 +4741,7 @@ _|_bar")
   "  bar x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4740,7 +4765,7 @@ _|_bar")
   "  bar x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4778,7 +4803,7 @@ _|_bar")
   "(>>=) x = x"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4796,7 +4821,7 @@ _|_bar")
   "foo pinfo = ba_|_r"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4814,7 +4839,7 @@ _|_bar")
   "foo myppinfo = ba_|_r"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4832,7 +4857,7 @@ _|_bar")
   "{-# SCC \"foobar\" #-}_|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4850,7 +4875,7 @@ _|_bar")
   "{-# UNPACK #-}_|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -4868,7 +4893,7 @@ _|_bar")
   "{-# INLINE foobar #-}_|_"
   ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -4886,7 +4911,7 @@ _|_bar")
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -4904,7 +4929,7 @@ _|_bar")
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -4920,7 +4945,7 @@ _|_bar")
    "{-# LANGUAGE OverloadedStrings #-}_|_"
    ""))
 
-(vim-tests--test-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents-only-modes*
   :modes
   (haskell-mode haskell-ts-mode haskell-hsc-mode)
   :name
@@ -10266,7 +10291,7 @@ _|_bar")
   "  hp2pretty = hlib.justStaticExecutables (hlib.dontCheck hpkgs914_|_.hp2pretty);"
   "}"))
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-1a
  :action
  (execute-kbd-macro (kbd ", t '"))
@@ -10275,7 +10300,7 @@ _|_bar")
  :expected-value
  "foo 'qu_|_' bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-1b
  :action
  (execute-kbd-macro (kbd ", t C-'"))
@@ -10284,7 +10309,7 @@ _|_bar")
  :expected-value
  "foo ‘qu_|_’ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-1c
  :action
  (execute-kbd-macro (kbd ", t C-'"))
@@ -10293,7 +10318,7 @@ _|_bar")
  :expected-value
  "x _|_‘quux’ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-1a
  :action
  (execute-kbd-macro (kbd ", T '"))
@@ -10302,7 +10327,7 @@ _|_bar")
  :expected-value
  "foo '_|_ux' bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-1b
  :action
  (execute-kbd-macro (kbd ", T C-'"))
@@ -10311,7 +10336,7 @@ _|_bar")
  :expected-value
  "foo ‘_|_ux’ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-1c
  :action
  (execute-kbd-macro (kbd ", T C-'"))
@@ -10320,7 +10345,7 @@ _|_bar")
  :expected-value
  "foo ‘quux’_|_ x")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-1d
  :action
  (execute-kbd-macro (kbd ", 2 T C-'"))
@@ -10329,7 +10354,7 @@ _|_bar")
  :expected-value
  "foo’s ‘_|_ x")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-2a
  :action
  (execute-kbd-macro (kbd ", t \""))
@@ -10338,7 +10363,7 @@ _|_bar")
  :expected-value
  "foo \"qu_|_\" bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-2b
  :action
  (execute-kbd-macro (kbd ", t C-\""))
@@ -10347,7 +10372,7 @@ _|_bar")
  :expected-value
  "foo “qu_|_” bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-2c
  :action
  (execute-kbd-macro (kbd ", t C-\""))
@@ -10356,7 +10381,7 @@ _|_bar")
  :expected-value
  "x _|_“quux” bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-2a
  :action
  (execute-kbd-macro (kbd ", T \""))
@@ -10365,7 +10390,7 @@ _|_bar")
  :expected-value
  "foo \"_|_ux\" bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-2b
  :action
  (execute-kbd-macro (kbd ", T C-\""))
@@ -10374,7 +10399,7 @@ _|_bar")
  :expected-value
  "foo “_|_ux” bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-2c
  :action
  (execute-kbd-macro (kbd ", T C-\""))
@@ -10383,7 +10408,7 @@ _|_bar")
  :expected-value
  "foo “quux”_|_ x")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-3a
  :action
  (execute-kbd-macro (kbd ", f '"))
@@ -10392,7 +10417,7 @@ _|_bar")
  :expected-value
  "foo 'qu_|_ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-3b
  :action
  (execute-kbd-macro (kbd ", f C-'"))
@@ -10401,7 +10426,7 @@ _|_bar")
  :expected-value
  "foo ‘qu_|_ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-3c
  :action
  (execute-kbd-macro (kbd ", f C-'"))
@@ -10410,7 +10435,7 @@ _|_bar")
  :expected-value
  "x _|_quux’ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-3a
  :action
  (execute-kbd-macro (kbd ", F '"))
@@ -10419,7 +10444,7 @@ _|_bar")
  :expected-value
  "foo _|_ux' bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-3b
  :action
  (execute-kbd-macro (kbd ", F C-'"))
@@ -10428,7 +10453,7 @@ _|_bar")
  :expected-value
  "foo _|_ux’ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-3c
  :action
  (execute-kbd-macro (kbd ", F C-'"))
@@ -10437,7 +10462,7 @@ _|_bar")
  :expected-value
  "foo ‘quux_|_ x")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-4a
  :action
  (execute-kbd-macro (kbd ", f \""))
@@ -10446,7 +10471,7 @@ _|_bar")
  :expected-value
  "foo \"qu_|_ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-4b
  :action
  (execute-kbd-macro (kbd ", f C-\""))
@@ -10455,7 +10480,7 @@ _|_bar")
  :expected-value
  "foo “qu_|_ bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-4c
  :action
  (execute-kbd-macro (kbd ", f C-\""))
@@ -10464,7 +10489,7 @@ _|_bar")
  :expected-value
  "x _|_quux” bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-4a
  :action
  (execute-kbd-macro (kbd ", F \""))
@@ -10473,7 +10498,7 @@ _|_bar")
  :expected-value
  "foo _|_ux\" bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-4b
  :action
  (execute-kbd-macro (kbd ", F C-\""))
@@ -10482,7 +10507,7 @@ _|_bar")
  :expected-value
  "foo _|_ux” bar")
 
-(vim-tests--folding-test-fresh-buffer-contents*
+(vim-tests--default-test-buffer-contents*
  :name vim-tests/motion-find-back-4c
  :action
  (execute-kbd-macro (kbd ", F C-\""))
