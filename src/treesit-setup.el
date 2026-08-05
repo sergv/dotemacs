@@ -253,6 +253,33 @@ to the offending pattern and highlight the pattern."
              (pop-to-buffer buf)
              (view-mode))))))))
 
+(el-patch-defun treesit-indent ()
+  "Indent according to the result of `treesit-indent-function'."
+  (treesit-update-ranges (line-beginning-position)
+                         (line-end-position))
+  ;; We don't return 'noindent even if no rules match, because
+  ;; `indent-for-tab-command' tries to indent itself when we return
+  ;; 'noindent, which leads to wrong indentation at times.
+  (pcase-let* (
+               (el-patch-swap
+                 (`(,anchor . ,offset) (treesit--indent-1))
+                 (`(,anchor-raw . ,offset-raw) (treesit--indent-1))))
+    (el-patch-wrap 3 0
+      (treesit-with-evaluated-anchor-and-offset
+          (anchor anchor-raw)
+          (offset offset-raw)
+        (when (and anchor offset)
+          (let ((col (+ (save-excursion
+                          (goto-char anchor)
+                          (current-column))
+                        offset))
+                (delta (- (point-max) (point))))
+            (indent-line-to col)
+            ;; Now point is at the end of indentation.  If we started
+            ;; from within the line, go back to where we started.
+            (when (> (- (point-max) delta) (point))
+              (goto-char (- (point-max) delta)))))))))
+
 (defun treesit--named-children (node)
   "Get all children of NODE along with their names, return list of (NAME . CHILD) pairs."
   (cl-loop

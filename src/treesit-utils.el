@@ -216,32 +216,36 @@
     (treesit-node-type node)))
 
 (cl-defmacro treesit-with-evaluated-anchor-and-offset
-    ((_evaluated-anchor-pos-var anchor)
-     (_evaluated-offset-num-var offset)
+    ((evaluated-anchor-pos-var anchor)
+     (evaluated-offset-num-var offset)
      &rest body)
   (declare (indent 2))
+  (cl-assert (symbolp evaluated-anchor-pos-var))
+  (cl-assert (symbolp evaluated-offset-num-var))
   (let ((anchor-var '#:anchor)
         (offset-var '#:offset))
     `(let ((,anchor-var ,anchor)
            (,offset-var ,offset))
-       (let ((anchor-pos (cond
-                           ((treesit-computed-indent-p ,anchor-var)
-                            (treesit-node-start (treesit-computed-indent-anchor-node ,anchor-var)))
-                           ((treesit-node-p ,anchor-var)
-                            (treesit-node-start ,anchor-var))
-                           ((number-or-marker-p ,anchor-var)
-                            ,anchor-var)
-                           ((null ,anchor-var)
-                            nil)
-                           (t
-                            (error "Unexpected anchor: ‘%s’" ,anchor-var))))
-             (offset-num (cond
-                           ((functionp ,offset-var)
-                            (funcall ,offset-var ,anchor-var))
-                           ((numberp ,offset-var)
-                            ,offset-var)
-                           (t
-                            (error "Unexpected offset: ‘%s’" ,offset-var)))))
+       (let ((,evaluated-anchor-pos-var
+              (cond
+                ((treesit-computed-indent-p ,anchor-var)
+                 (treesit-node-start (treesit-computed-indent-anchor-node ,anchor-var)))
+                ((treesit-node-p ,anchor-var)
+                 (treesit-node-start ,anchor-var))
+                ((number-or-marker-p ,anchor-var)
+                 ,anchor-var)
+                ((null ,anchor-var)
+                 nil)
+                (t
+                 (error "Unexpected anchor: ‘%s’" ,anchor-var))))
+             (,evaluated-offset-num-var
+              (cond
+                ((functionp ,offset-var)
+                 (funcall ,offset-var ,anchor-var))
+                ((numberp ,offset-var)
+                 ,offset-var)
+                (t
+                 (error "Unexpected offset: ‘%s’" ,offset-var)))))
          ,@body))))
 
 (defun treesit-utils-find-topmost-parent (node pred)
