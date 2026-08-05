@@ -280,29 +280,48 @@ e.g. shell prompt."
        (max (line-beginning-position)
             (1- (match-beginning 0)))))))
 
-(vim-defmotion vim:motion-go-to-first-non-blank-beg (exclusive count raw-result)
+(vim-defmotion vim:motion-go-to-first-non-blank-beg (exclusive count motion-result)
   "Moves the cursor to the first non-blank character of line count."
-  (vim-save-position)
-  (if (and current-prefix-arg
-           count)
-      (goto-line-dumb count)
-    (goto-char (point-min)))
-  (skip-to-indentation))
+  (let ((beg (point)))
+    (vim-save-position)
+    (if (and current-prefix-arg
+             count)
+        (goto-line-dumb count)
+      (goto-char (point-min)))
+    (let ((end (line-beginning-position)))
+      (skip-to-indentation)
+      (vim-make-motion :has-begin t
+                       :begin beg
+                       :end end
+                       :type 'exclusive))))
 
-(defun pseudovim-motion-go-to-first-non-blank-end (&optional count)
-  (interactive "p")
+(defun pseudovim-motion-go-to-first-non-blank-end--impl (&optional count)
   (vim-save-position)
   (if (and current-prefix-arg
            count)
       (goto-line-dumb count)
     (goto-char (max
                 (1- (point-max))
-                (point-min))))
+                (point-min)))))
+
+(defun pseudovim-motion-go-to-first-non-blank-end (&optional count)
+  (interactive "p")
+  (pseudovim-motion-go-to-first-non-blank-end--impl count)
   (skip-to-indentation))
 
-(vim-defmotion vim:motion-go-to-first-non-blank-end (linewise count raw-result)
+(vim-defmotion vim:motion-go-to-first-non-blank-end (exclusive count motion-result)
   "Moves the cursor to the first non-blank character of line count."
-  (pseudovim-motion-go-to-first-non-blank-end count))
+  (let ((beg (point)))
+    (pseudovim-motion-go-to-first-non-blank-end--impl count)
+    (let ((end
+           (if (< beg (point))
+               (line-end-position)
+             (line-beginning-position))))
+      (skip-to-indentation)
+      (vim-make-motion :has-begin t
+                       :begin beg
+                       :end end
+                       :type 'exclusive))))
 
 (defun vim-boundary--chars (direction chars)
   "A boundary selector for a sequence of `chars'."
