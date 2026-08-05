@@ -7,7 +7,6 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib)
   (require 'cl-lib))
 
 (require 'nix-ts-mode)
@@ -24,7 +23,7 @@
           expected-value  ;; Buffer text after indent.
           expected-result ;; Whether the test should fail or succeed.
           )
-  (cl-assert (symbolp name))
+  (cl-assert (symbolp name) nil "Invalid test name: ‘%s’" name)
   `(ert-deftest ,name ()
      :expected-result ,(or expected-result :passed) ;;:failed
      (tests-utils--test-buffer-contents
@@ -34,6 +33,30 @@
       :initialisation (nix-ts-mode)
       :buffer-id
       ,(string->symbol "nix-indentation-tests"))))
+
+(cl-defmacro nix-indentation-tests--test-treesitter-equivalent-inputs
+    (&key inputs
+          expected-value  ;; Buffer text after indent.
+          expected-result ;; Whether the test should fail or succeed.
+          )
+  `(progn
+     ,@(cl-loop
+        for entry in inputs
+        collect
+        (let ((name (plist-get entry :name))
+              (contents (plist-get entry :contents)))
+          (dolist (key '(:name :contents))
+            (unless (plist-member entry key)
+              (error "No %s in :inputs entry: %s" key entry)))
+          `(ert-deftest ,name ()
+             :expected-result ,(or expected-result :passed) ;;:failed
+             (tests-utils--test-buffer-contents
+              :action (treesit-indent)
+              :contents ,contents
+              :expected-value ,expected-value
+              :initialisation (nix-ts-mode)
+              :buffer-id
+              ,(string->symbol "nix-indentation-tests")))))))
 
 (nix-indentation-tests--test-treesitter
  :name nix-indentation-tests--let-comment-after-in-1
@@ -148,7 +171,7 @@
   "  compilerOptionsFlags = mk-elisp-flags"
   "    [ x"
   "    ] ++"
-  "  _|_1"
+  "    _|_1"
   "    ;"
   "in"
   "1")
@@ -781,6 +804,90 @@
   "  z = 2;"
   "}")
  )
+
+(nix-indentation-tests--test-treesitter-equivalent-inputs
+ :inputs
+ ((:name
+   nix-indentation-tests--record-binding-1a
+   :contents
+   (tests-utils--multiline
+    "{"
+    "  configureFlags = (args.configureFlags or []) ++"
+    "  _|_["
+    "    \"--ghc-option=-g\""
+    "    \"--disable-executable-stripping\""
+    "    \"--disable-library-stripping\""
+    "  ];"
+    "  dontStrip = true;"
+    "}"))
+  (:name
+   nix-indentation-tests--record-binding-1b
+   :contents
+   (tests-utils--multiline
+    "{"
+    "  configureFlags = (args.configureFlags or []) ++"
+    "                           _|_["
+    "    \"--ghc-option=-g\""
+    "    \"--disable-executable-stripping\""
+    "    \"--disable-library-stripping\""
+    "  ];"
+    "  dontStrip = true;"
+    "}")))
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  configureFlags = (args.configureFlags or []) ++"
+  "    _|_["
+  "    \"--ghc-option=-g\""
+  "    \"--disable-executable-stripping\""
+  "    \"--disable-library-stripping\""
+  "  ];"
+  "  dontStrip = true;"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--multiline-string-start-1
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  a ="
+  "            _|_''"
+  "    hi ["
+  "      test"
+  "    ]"
+  "              '';"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  a ="
+  "    _|_''"
+  "    hi ["
+  "      test"
+  "    ]"
+  "              '';"
+  "}"))
+
+(nix-indentation-tests--test-treesitter
+ :name nix-indentation-tests--multiline-string-end-1
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  a = ''"
+  "    hi ["
+  "      test"
+  "    ]"
+  "              _|_'';"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  a = ''"
+  "    hi ["
+  "      test"
+  "    ]"
+  "  _|_'';"
+  "}"))
 
 (provide 'nix-indentation-tests)
 
