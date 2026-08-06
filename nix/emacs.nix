@@ -26,8 +26,8 @@ let
 
   emacs-src = pkgs.fetchgit {
     url    = "https://github.com/sergv/emacs.git";
-    rev    = "381a5672b06f731db167111a8e1b8694306f448c";
-    sha256 = "sha256-9rrAE6fogey3Ys05o2hMyNXaFKNrimMBgQY00IVGlG4="; #pkgs.lib.fakeSha256;
+    rev    = "424126816a70e492b2472636f83d765b5f1ff506";
+    sha256 = "sha256-eAl55ul9tOFlYqOnQx+5c+rywvMtQqX/WoVDMhfUumM="; #pkgs.lib.fakeSha256;
   };
 
   mk-emacs-base =
