@@ -245,6 +245,8 @@ let
         LDFLAGS = mk-shell-flags ldflags;
       });
 
+  foo = (foo bar) "-O2 ${march} ${mtune} -fno-omit-frame-pointer -fno-plt -flto=auto";
+
   mk-wrapped-emacs-pkg =
     exe-name: pkg: debug-wrapper:
       {

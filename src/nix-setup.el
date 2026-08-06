@@ -103,6 +103,7 @@ sexps and indentation levels."
 (defun nix-up-sexp ()
   "Nix brother of ‘paredit-forward-up’ that considers only sexps for now."
   (interactive)
+  ;; (up-sexp)
   (if-let* ((parent
              (when (treesit-language-available-p 'nix)
                (let ((p (point)))
@@ -164,6 +165,8 @@ _a_lign"
 (defun nix-setup ()
   (init-common :use-whitespace t
                :use-yasnippet nil)
+
+  (treesit-sexp-mode +1)
 
   (setq-local vim-shift-width 2
               search-syntax-table nix-search-fixed-syntax-table)
