@@ -2,9 +2,9 @@
   arch
 }:
 let
-
-  mtune = if arch == null then "" else "-mtune=${arch}";
-  march = if arch == null then "" else "-march=${arch}";
+  march-mtrune-args =
+    (if arch == null then [] else ["-mtune=${arch}"]) ++
+    (if arch == null then [] else ["-march=${arch}"]);
 
   fetchgit-improved =
     pkgs.fetchgit // {
@@ -125,13 +125,29 @@ let
           (pkgs.lib.withFeature false "xdbe")
         ];
 
-        CFLAGS  = cflags;
-        LDFLAGS = ldflags;
+        CFLAGS  = mk-shell-flags cflags;
+        LDFLAGS = mk-shell-flags ldflags;
       });
 
   emacs-release-cfg = {
-    cflags              = "-O2 ${march} ${mtune} -fno-omit-frame-pointer -fno-plt -flto=auto";
-    ldflags             = "-Wl,-O2 -Wl,-z,now -Wl,-z,relro -Wl,--sort-common -Wl,--as-needed -Wl,-z,pack-relative-relocs -flto=auto";
+    cflags              =
+      [
+        "-O2"
+        "-fno-omit-frame-pointer"
+        "-fno-plt"
+        "-flto=auto"
+      ] ++
+      march-mtrune-args;
+    ldflags             =
+      [
+        "-Wl,-O2"
+        "-Wl,-z,now"
+        "-Wl,-z,relro"
+        "-Wl,--sort-common"
+        "-Wl,--as-needed"
+        "-Wl,-z,pack-relative-relocs"
+        "-flto=auto"
+      ];
     extraConfigureFlags = ["--enable-link-time-optimization"];
     elispCompilerFlags  =
       [
@@ -143,8 +159,7 @@ let
         "-fno-omit-frame-pointer"
         "-fno-finite-math-only"
       ] ++
-      (if builtins.stringLength mtune == 0 then [] else [mtune]) ++
-      (if builtins.stringLength march == 0 then [] else [march]);
+      march-mtrune-args;
     elispLinkFlags =
       [
         # -Wl,-z,pack-relative-relocs compresses
@@ -165,8 +180,13 @@ let
   };
 
   emacs-debug-cfg = {
-    cflags              = "-O0 -g3 -fno-omit-frame-pointer";
-    ldflags             = "";
+    cflags              =
+      [
+        "-O0"
+        "-g3"
+        "-fno-omit-frame-pointer"
+      ];
+    ldflags             = [];
     extraConfigureFlags = [];
     # Really slow checks for serious problems.
     # extraConfigureFlags = ["--enable-checking=yes" "--enable-check-lisp-object-type"];
@@ -186,6 +206,7 @@ let
   wrap-dquotes-concat-with-space =
     xs:
     pkgs.lib.concatStringsSep " " (builtins.map (x: ''"${x}"'') xs);
+  mk-shell-flags = xs: pkgs.lib.concatStringsSep " " xs;
   mk-elisp-flags = wrap-dquotes-concat-with-space;
 
   mk-emacs-native-pkg =
