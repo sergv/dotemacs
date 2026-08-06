@@ -39,9 +39,12 @@
 
           hlib = pkgs.haskell.lib.compose;
 
-          hutils = haskell-nixpkgs-improvements.lib.make-haskell-utils pkgs;
+          hutils = haskell-nixpkgs-improvements.lib.mk-haskell-utils pkgs;
 
-          haskell-tools = haskell-nixpkgs-improvements.lib.derive-haskell-tools system pkgs null;
+          haskell-tools = haskell-nixpkgs-improvements.lib.mk-haskell-tools {
+            inherit system;
+            vanilla-pkgs = pkgs;
+          };
 
           haskell-pkgs-for-tools = haskell-tools.haskell-package-sets.host.ghc914;
 
@@ -50,32 +53,29 @@
             then haskell-pkgs-for-tools
             else haskell-tools.haskell-package-sets.host.ghc914-pie;
 
-          haskell-pkgs-with-emacs-native = hutils.fixedExtend haskell-pkgs-base-for-emacs-native (
-            new:
-            old:
-            builtins.mapAttrs
-              (name: x:
-                hutils.onlyApplyToHaskellPackages
-                  (hlib.appendConfigureFlag "--ghc-option=-fPIC")
-                  name
-                  x)
-              (old // {
-                emacs-native =
-                  (x: hlib.enableCabalFlag "standalone-foreign-lib" x)
-                    (old.callCabal2nix "emacs-native" ./native/emacs-native {});
+          haskell-pkgs-with-emacs-native =
+            hutils.fixedExtend
+              (hutils.enable-hpkgs-PIC haskell-pkgs-base-for-emacs-native)
+              (
+                new:
+                old:
+                {
+                  emacs-native =
+                    (x: hlib.enableCabalFlag "standalone-foreign-lib" x)
+                      (old.callCabal2nix "emacs-native" ./native/emacs-native {});
 
-                rure-ffi = old.callCabal2nix "rure-ffi" ./native/rure-ffi {};
+                  rure-ffi = old.callCabal2nix "rure-ffi" ./native/rure-ffi {};
 
-                emacs-module =
-                  (old.callHackageDirect
-                    {
-                      pkg    = "emacs-module";
-                      ver    = "0.3";
-                      sha256 = "sha256-kBDM3guLbfllhUBo4v/vqaM8MYS8Z5e1pPbkdXoO8kU="; #pkgs.lib.fakeSha256;
-                    }
-                    {});
-              })
-          );
+                  emacs-module =
+                    (old.callHackageDirect
+                      {
+                        pkg    = "emacs-module";
+                        ver    = "0.3";
+                        sha256 = "sha256-kBDM3guLbfllhUBo4v/vqaM8MYS8Z5e1pPbkdXoO8kU="; #pkgs.lib.fakeSha256;
+                      }
+                      {});
+                }
+              );
 
           libemacs-native-so =
             haskell-pkgs-with-emacs-native.emacs-native + "/lib/ghc-${haskell-pkgs-with-emacs-native.ghc.version}/lib/libemacs-native${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}";
