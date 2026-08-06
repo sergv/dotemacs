@@ -293,7 +293,7 @@
                 EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" bash "$src/tests/run-tests.sh"
 
                 echo "[Test vanilla .el with asserts]"
-                EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$src" EMACS_SKIP_ELC=1 EMACS_FORCE_PRISTINE=1 EMACS_TEST_EXTRA_EL_DIR="$dest_abs/compiled" EMACS_TEST_EXTRA_SO_DIR="$dest_abs/lib" bash "$src/tests/run-tests.sh" '"t"'
+                EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_DEBUG=1 EMACS_TEST_ROOT="$src" EMACS_SKIP_ELC=1 EMACS_FORCE_PRISTINE=1 EMACS_TEST_EXTRA_EL_DIR="$dest_abs/compiled" EMACS_TEST_EXTRA_SO_DIR="$dest_abs/lib" bash "$src/tests/run-tests.sh" '"t"'
 
                 echo "[Misc sanity tests]"
 
