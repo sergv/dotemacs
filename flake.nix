@@ -31,7 +31,13 @@
       lib = nixpkgs.lib;
       forEachSystem = lib.genAttrs systems;
 
-      mkEmacsWithConfig = system: pkgs:
+      mk-emacs-with-config =
+        { system,
+          arch ? null,
+          pkgs,
+          debug,
+          native
+        }:
         let
           # cc = pkgs.clang;
           # cc = pkgs.gcc;
@@ -53,27 +59,34 @@
             then haskell-pkgs-for-tools
             else haskell-tools.haskell-package-sets.host.ghc914-pie;
 
+          haskell-pkgs-for-so =
+            if debug
+            then hutils.enable-hpkgs-debugging haskell-pkgs-base-for-emacs-native
+            else haskell-pkgs-base-for-emacs-native;
+
           haskell-pkgs-with-emacs-native =
             hutils.fixedExtend
-              (hutils.enable-hpkgs-PIC haskell-pkgs-base-for-emacs-native)
+              (hutils.enable-hpkgs-PIC haskell-pkgs-for-so)
               (
                 new:
                 old:
                 {
                   emacs-native =
                     (x: hlib.enableCabalFlag "standalone-foreign-lib" x)
-                      (old.callCabal2nix "emacs-native" ./native/emacs-native {});
+                      ((x: if debug then hlib.enableCabalFlag "runtime-checks" x else x)
+                        (old.callCabal2nix "emacs-native" ./native/emacs-native {}));
 
                   rure-ffi = old.callCabal2nix "rure-ffi" ./native/rure-ffi {};
 
                   emacs-module =
-                    (old.callHackageDirect
-                      {
-                        pkg    = "emacs-module";
-                        ver    = "0.3";
-                        sha256 = "sha256-kBDM3guLbfllhUBo4v/vqaM8MYS8Z5e1pPbkdXoO8kU="; #pkgs.lib.fakeSha256;
-                      }
-                      {});
+                    (x: if debug then hlib.enableCabalFlag "assertions" (hlib.enableCabalFlag "call-stacks" x) else x)
+                      (old.callHackageDirect
+                        {
+                          pkg    = "emacs-module";
+                          ver    = "0.3";
+                          sha256 = "sha256-kBDM3guLbfllhUBo4v/vqaM8MYS8Z5e1pPbkdXoO8kU="; #pkgs.lib.fakeSha256;
+                        }
+                        {});
                 }
               );
 
@@ -81,19 +94,11 @@
             haskell-pkgs-with-emacs-native.emacs-native + "/lib/ghc-${haskell-pkgs-with-emacs-native.ghc.version}/lib/libemacs-native${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}";
 
           emacs-pkg = import ./nix/emacs.nix {
-            inherit pkgs;
-            arch = null;
-            # arch = arch.gccArch;
+            inherit pkgs arch debug native;
           };
 
-          # emacs-raw = emacs-pkg.raw.emacs-native-debug;
-          # emacs = emacs-pkg.wrapped.emacs-native-debug;
-
-          emacs-raw = emacs-pkg.raw.emacs-native;
-          emacs = emacs-pkg.wrapped.emacs-native;
-
-          # emacs-raw = emacs-pkg.raw.emacs-bytecode;
-          # emacs = emacs-pkg.wrapped.emacs-bytecode;
+          emacs-raw = emacs-pkg.raw;
+          emacs = emacs-pkg.wrapped;
 
           buildTreesitterModule = { dir, subdir, name }:
             pkgs.stdenv.mkDerivation {
@@ -348,21 +353,45 @@
               '';
             };
 
-        in {
-          default = emacs-config;
+        in
 
-          # sample-treesitter = builtins.head treesitter-derivs;
-          # emacs-native-so   = haskell-pkgs-with-emacs-native.emacs-native;
-          # emacs-raw         = emacs-raw;
-        };
+        emacs-config;
+
+        # {
+        #   default = emacs-config;
+        #
+        #   # sample-treesitter = builtins.head treesitter-derivs;
+        #   # emacs-native-so   = haskell-pkgs-with-emacs-native.emacs-native;
+        #   # emacs-raw         = emacs-raw;
+        # };
     in {
+
+      lib = {
+        mk-emacs-config =
+          { system,
+            arch ? null,
+            pkgs
+          }@args:
+          let
+            bytecode = mk-emacs-with-config (args // { debug = false; native = false; });
+          in
+          {
+            default = bytecode;
+            inherit bytecode;
+            debug        = mk-emacs-with-config (args // { debug = true;  native = false; });
+            native       = mk-emacs-with-config (args // { debug = false; native = true; });
+            native-debug = mk-emacs-with-config (args // { debug = true;  native = true; });
+          };
+      };
 
       packages = forEachSystem (
         system:
         let
           pkgs = nixpkgs.legacyPackages."${system}";
         in
-        mkEmacsWithConfig system pkgs
+        self.lib.mk-emacs-config {
+          inherit system pkgs;
+        }
       );
     };
 }
