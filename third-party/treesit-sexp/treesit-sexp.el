@@ -128,7 +128,10 @@ Stops at `Wall' delimiters ( ) { } [ ] without signaling an error.
 When TreeSitter is not available, falls back to `forward-sexp'."
     (interactive "p")
     (if (not (treesit-sexp--treesit-available-p))
-            (forward-sexp arg interactive)
+            (let ((forward-sexp-function (if (eq forward-sexp-function #'treesit-sexp-forward)
+                                             nil
+                                           forward-sexp-function)))
+                (forward-sexp arg interactive))
         (let ((count (abs (or arg 1)))
               (direction (if (< (or arg 0) 0) 'backward 'forward))
               (punctuation ' ("," "." ";" "->"))
