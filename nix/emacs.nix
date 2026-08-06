@@ -1,8 +1,10 @@
 { pkgs,
-  arch
+  arch,
+  debug,
+  native
 }:
 let
-  march-mtrune-args =
+  march-mtune-args =
     (if arch == null then [] else ["-mtune=${arch}"]) ++
     (if arch == null then [] else ["-march=${arch}"]);
 
@@ -24,16 +26,96 @@ let
         });
     };
 
+  wrap-dquotes-concat-with-space =
+    xs:
+    pkgs.lib.concatStringsSep " " (builtins.map (x: ''"${x}"'') xs);
+  mk-shell-flags = xs: pkgs.lib.concatStringsSep " " xs;
+  mk-elisp-flags = wrap-dquotes-concat-with-space;
+
   emacs-src = pkgs.fetchgit {
     url    = "https://github.com/sergv/emacs.git";
     rev    = "424126816a70e492b2472636f83d765b5f1ff506";
     sha256 = "sha256-eAl55ul9tOFlYqOnQx+5c+rywvMtQqX/WoVDMhfUumM="; #pkgs.lib.fakeSha256;
   };
 
+  mk-emacs-release-cfg = debug-flag: {
+    cflags              =
+      [
+        "-O2"
+        debug-flag
+        "-fno-omit-frame-pointer"
+        "-fno-plt"
+        "-flto=auto"
+      ] ++
+      march-mtune-args;
+    ldflags             =
+      [
+        "-Wl,-O2"
+        "-Wl,-z,now"
+        "-Wl,-z,relro"
+        "-Wl,--sort-common"
+        "-Wl,--as-needed"
+        "-Wl,-z,pack-relative-relocs"
+        "-flto=auto"
+      ];
+    extraConfigureFlags = ["--enable-link-time-optimization"];
+    elispCompilerFlags  =
+      [
+        # The most meaningful optimizations:
+        "-O2"
+        # Reduce .eln size and compilation overhead.
+        debug-flag
+        # Good defensive choice for Emacs stability.
+        "-fno-omit-frame-pointer"
+        "-fno-finite-math-only"
+      ] ++
+      march-mtune-args;
+    elispLinkFlags =
+      [
+        # -Wl,-z,pack-relative-relocs compresses
+        # relocation tables to reduce file size and
+        # slightly improve load times.
+        "-Wl,-z,pack-relative-relocs"
+
+        # -Wl,-O2 applies standard linker-level
+        # optimizations (like string merging) to the
+        # generated shared object.
+        "-Wl,-O2"
+
+        # -Wl,--as-needed prevents the linker from
+        # recording dependencies on libraries that
+        # are not actually used by the code.
+        "-Wl,--as-needed"
+      ];
+  };
+
+  emacs-debug-cfg = {
+    cflags              =
+      [
+        "-O0"
+        "-g3"
+        "-fno-omit-frame-pointer"
+      ];
+    ldflags             = [];
+    extraConfigureFlags = [];
+    # Really slow checks for serious problems.
+    # extraConfigureFlags = ["--enable-checking=yes" "--enable-check-lisp-object-type"];
+    elispCompilerFlags  =
+      [
+        "-O0"
+        "-g3"
+        # Good defensive choice for Emacs stability.
+        "-fno-omit-frame-pointer"
+        "-fno-finite-math-only"
+      ];
+    elispLinkFlags = [];
+  };
+
+
   mk-emacs-base =
-    { cflags, ldflags, extraConfigureFlags, ... }:
+    { cflags, ldflags, extraConfigureFlags, elispCompilerFlags, elispLinkFlags }:
     (pkgs.emacs30.override (_: {
-      withNativeCompilation = false;
+      withNativeCompilation = native;
       noGui                 = false;
       srcRepo               = true;
       withTreeSitter        = true;
@@ -72,7 +154,45 @@ let
 
         # NixOS 25.05 patches do not apply to 30.2 any more. Remove throwing away of
         # nixpkgs patches here when moving to a later NixOS release.
-        patches = [ ];
+        # patches = (old.patches or []) ++ [
+        patches =
+          if native
+          then
+            [
+              (pkgs.replaceVars ./patches/native-comp-driver-options-30.patch {
+
+                compilerOptionsFlags = mk-elisp-flags elispCompilerFlags;
+
+                driverOptionsFlags = mk-elisp-flags elispLinkFlags;
+
+                backendPath =
+                  let
+                    libGccJitLibraryPaths = [
+                      "${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc"
+                      "${pkgs.lib.getLib pkgs.stdenv.cc.libc}/lib"
+                    ]
+                      ++ pkgs.lib.optionals (pkgs.stdenv.cc ? cc.lib.libgcc) [
+                      "${pkgs.lib.getLib pkgs.stdenv.cc.cc.lib.libgcc}/lib"
+                    ];
+                  in
+                  pkgs.lib.concatStringsSep " " (
+                    builtins.map (x: ''"-B${x}"'') (
+                      [
+                        # Paths necessary so the JIT compiler finds its libraries:
+                        "${pkgs.lib.getLib pkgs.libgccjit}/lib"
+                      ]
+                      ++ libGccJitLibraryPaths
+                      ++ [
+                        # Executable paths necessary for compilation (ld, as):
+                        "${pkgs.lib.getBin pkgs.stdenv.cc.cc}/bin"
+                        "${pkgs.lib.getBin pkgs.stdenv.cc.bintools}/bin"
+                        "${pkgs.lib.getBin pkgs.stdenv.cc.bintools.bintools}/bin"
+                      ]
+                    )
+                  );
+              })
+            ]
+          else [ ];
         # version        = "30.2";
 
         configureFlags = old.configureFlags ++ extraConfigureFlags ++ [
@@ -129,147 +249,7 @@ let
         LDFLAGS = mk-shell-flags ldflags;
       });
 
-  emacs-release-cfg = {
-    cflags              =
-      [
-        "-O2"
-        "-fno-omit-frame-pointer"
-        "-fno-plt"
-        "-flto=auto"
-      ] ++
-      march-mtrune-args;
-    ldflags             =
-      [
-        "-Wl,-O2"
-        "-Wl,-z,now"
-        "-Wl,-z,relro"
-        "-Wl,--sort-common"
-        "-Wl,--as-needed"
-        "-Wl,-z,pack-relative-relocs"
-        "-flto=auto"
-      ];
-    extraConfigureFlags = ["--enable-link-time-optimization"];
-    elispCompilerFlags  =
-      [
-        # The most meaningful optimizations:
-        "-O2"
-        # Reduce .eln size and compilation overhead.
-        "-g0"
-        # Good defensive choice for Emacs stability.
-        "-fno-omit-frame-pointer"
-        "-fno-finite-math-only"
-      ] ++
-      march-mtrune-args;
-    elispLinkFlags =
-      [
-        # -Wl,-z,pack-relative-relocs compresses
-        # relocation tables to reduce file size and
-        # slightly improve load times.
-        "-Wl,-z,pack-relative-relocs"
-
-        # -Wl,-O2 applies standard linker-level
-        # optimizations (like string merging) to the
-        # generated shared object.
-        "-Wl,-O2"
-
-        # -Wl,--as-needed prevents the linker from
-        # recording dependencies on libraries that
-        # are not actually used by the code.
-        "-Wl,--as-needed"
-      ];
-  };
-
-  emacs-debug-cfg = {
-    cflags              =
-      [
-        "-O0"
-        "-g3"
-        "-fno-omit-frame-pointer"
-      ];
-    ldflags             = [];
-    extraConfigureFlags = [];
-    # Really slow checks for serious problems.
-    # extraConfigureFlags = ["--enable-checking=yes" "--enable-check-lisp-object-type"];
-    elispCompilerFlags  =
-      [
-        # The most meaningful optimizations:
-        "-O0"
-        # Reduce .eln size and compilation overhead.
-        "-g3"
-        # Good defensive choice for Emacs stability.
-        "-fno-omit-frame-pointer"
-        "-fno-finite-math-only"
-      ];
-    elispLinkFlags = [];
-  };
-
-  wrap-dquotes-concat-with-space =
-    xs:
-    pkgs.lib.concatStringsSep " " (builtins.map (x: ''"${x}"'') xs);
-  mk-shell-flags = xs: pkgs.lib.concatStringsSep " " xs;
-  mk-elisp-flags = wrap-dquotes-concat-with-space;
-
-  mk-emacs-native-pkg =
-    emacs-cfg:
-    ((mk-emacs-base emacs-cfg).override (_: {
-      withNativeCompilation = true;
-    })).overrideAttrs
-      (old: {
-        withNativeCompilation = true;
-        # NixOS 25.05 patches do not apply to 30.2 any more. Remove throwing away of
-        # nixpkgs patches here when moving to a later NixOS release.
-        # patches = (old.patches or []) ++ [
-        patches = [
-          (pkgs.replaceVars ./patches/native-comp-driver-options-30.patch {
-
-            compilerOptionsFlags = mk-elisp-flags emacs-cfg.elispCompilerFlags;
-
-            driverOptionsFlags = mk-elisp-flags emacs-cfg.elispLinkFlags;
-
-            backendPath =
-              let
-                libGccJitLibraryPaths = [
-                  "${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc"
-                  "${pkgs.lib.getLib pkgs.stdenv.cc.libc}/lib"
-                ]
-                ++ pkgs.lib.optionals (pkgs.stdenv.cc ? cc.lib.libgcc) [
-                  "${pkgs.lib.getLib pkgs.stdenv.cc.cc.lib.libgcc}/lib"
-                ];
-              in
-              pkgs.lib.concatStringsSep " " (
-                builtins.map (x: ''"-B${x}"'') (
-                  [
-                    # Paths necessary so the JIT compiler finds its libraries:
-                    "${pkgs.lib.getLib pkgs.libgccjit}/lib"
-                  ]
-                  ++ libGccJitLibraryPaths
-                  ++ [
-                    # Executable paths necessary for compilation (ld, as):
-                    "${pkgs.lib.getBin pkgs.stdenv.cc.cc}/bin"
-                    "${pkgs.lib.getBin pkgs.stdenv.cc.bintools}/bin"
-                    "${pkgs.lib.getBin pkgs.stdenv.cc.bintools.bintools}/bin"
-                  ]
-                )
-              );
-          })
-        ];
-      });
-
-  emacs-native-pkg = mk-emacs-native-pkg emacs-release-cfg;
-
-  emacs-bytecode-pkg =
-    ((mk-emacs-base emacs-release-cfg).override (_: {
-      withNativeCompilation = false;
-    })).overrideAttrs
-      (_: {
-        withNativeCompilation = false;
-      });
-
-  emacs-native-debug-pkg = pkgs.enableDebugging (mk-emacs-native-pkg emacs-debug-cfg);
-
-  emacs-debug-pkg = pkgs.enableDebugging emacs-bytecode-pkg;
-
-  mk-emacs-pkg =
+  mk-wrapped-emacs-pkg =
     exe-name: pkg: debug-wrapper:
       {
         inherit exe-name;
@@ -314,34 +294,42 @@ let
           '';
       };
 
-  emacs-native-wrapped = mk-emacs-pkg "emacs-native" emacs-native-pkg [];
-
-  emacs-bytecode-wrapped = mk-emacs-pkg "emacs-bytecode" emacs-bytecode-pkg [];
-
-  # "--command=${emacs-src}/src/.gdbinit" "--directory=${emacs-src}/src/"
-
   debug_wrapper =
     [
       "gdb"
       "--quiet"
       "--init-eval-command=set auto-load safe-path /"
+      # "--command=${emacs-src}/src/.gdbinit" "--directory=${emacs-src}/src/"
       "--eval-command=set confirm on"
       "--eval-command=run"
       "--eval-command=quit"
       "--args"
     ];
 
-  emacs-native-debug-wrapped =
-    mk-emacs-pkg
-      "emacs-native-debug"
-      emacs-native-debug-pkg
-      debug_wrapper;
+  emacs-raw-pkg =
+    if debug
+    then
+      # pkgs.enableDebugging (mk-emacs-base emacs-debug-cfg)
+      pkgs.enableDebugging (mk-emacs-base (mk-emacs-release-cfg (if native then "-g3" else "-g0")))
+    else
+      mk-emacs-base (mk-emacs-release-cfg "-g0");
 
-  emacs-debug-wrapped =
-    mk-emacs-pkg
-      "emacs-debug"
-      emacs-debug-pkg
-      debug_wrapper;
+  emacs-wrapped =
+    let
+      pkg-name =
+        "emacs" +
+        (if native
+         then "-native"
+         else "-bytecode"
+        ) +
+        (if debug
+         then "-debug"
+         else "");
+    in
+    mk-wrapped-emacs-pkg
+      pkg-name
+      emacs-raw-pkg
+      (if debug then debug_wrapper else []);
 
   desktop-entry = {
     type        = "Application";
@@ -380,17 +368,6 @@ let
 in {
   inherit desktop-entry;
 
-  raw = {
-    emacs-bytecode     = emacs-bytecode-pkg;
-    emacs-debug        = emacs-debug-pkg;
-    emacs-native       = emacs-native-pkg;
-    emacs-native-debug = emacs-native-debug-pkg;
-  };
-
-  wrapped = {
-    emacs-bytecode     = emacs-bytecode-wrapped;
-    emacs-debug        = emacs-debug-wrapped;
-    emacs-native       = emacs-native-wrapped;
-    emacs-native-debug = emacs-native-debug-wrapped;
-  };
+  raw = emacs-raw-pkg;
+  wrapped = emacs-wrapped;
 }
