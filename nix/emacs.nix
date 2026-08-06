@@ -183,7 +183,10 @@ let
     elispLinkFlags = [];
   };
 
-  mk-elisp-flags = xs: pkgs.lib.concatStringsSep " " (builtins.map (x: ''"${x}"'') xs);
+  wrap-dquotes-concat-with-space =
+    xs:
+    pkgs.lib.concatStringsSep " " (builtins.map (x: ''"${x}"'') xs);
+  mk-elisp-flags = wrap-dquotes-concat-with-space;
 
   mk-emacs-native-pkg =
     emacs-cfg:
@@ -254,11 +257,11 @@ let
             #!${pkgs.bash}/bin/bash
 
             declare -a wrap_cmd
-            ${if builtins.stringLength debug-wrapper == 0
+            ${if builtins.length debug-wrapper == 0
               then ""
               else ''
                 if [[ "''${EMACS_DEBUG:-1}" == 1 ]]; then
-                  wrap_cmd+=(${debug-wrapper})
+                  wrap_cmd+=(${wrap-dquotes-concat-with-space debug-wrapper})
                 fi
               ''}
 
@@ -290,24 +293,34 @@ let
           '';
       };
 
-  emacs-native-wrapped = mk-emacs-pkg "emacs-native" emacs-native-pkg "";
+  emacs-native-wrapped = mk-emacs-pkg "emacs-native" emacs-native-pkg [];
 
-  emacs-bytecode-wrapped = mk-emacs-pkg "emacs-bytecode" emacs-bytecode-pkg "";
+  emacs-bytecode-wrapped = mk-emacs-pkg "emacs-bytecode" emacs-bytecode-pkg [];
 
   # "--command=${emacs-src}/src/.gdbinit" "--directory=${emacs-src}/src/"
+
+  debug_wrapper =
+    [
+      "gdb"
+      "--quiet"
+      "--init-eval-command=set auto-load safe-path /"
+      "--eval-command=set confirm on"
+      "--eval-command=run"
+      "--eval-command=quit"
+      "--args"
+    ];
 
   emacs-native-debug-wrapped =
     mk-emacs-pkg
       "emacs-native-debug"
       emacs-native-debug-pkg
-      ''"gdb" "--quiet" "--init-eval-command=set auto-load safe-path /"  "--eval-command=set confirm on" "--eval-command=run" "--eval-command=quit" "--args"'';
+      debug_wrapper;
 
   emacs-debug-wrapped =
     mk-emacs-pkg
       "emacs-debug"
       emacs-debug-pkg
-      ''"gdb" "--quiet" "--init-eval-command=set auto-load safe-path /" "--eval-command=set confirm on" "--eval-command=run" "--eval-command=quit" "--args"'';
-
+      debug_wrapper;
 
   desktop-entry = {
     type        = "Application";
