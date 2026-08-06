@@ -191,4 +191,9 @@ Returns the buffer string after running the command."
                    "(:key val (sym1) sym2 rest)")))
 
 (provide 'test-structural-editing)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; test-structural-editing.el ends here
