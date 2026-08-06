@@ -3420,6 +3420,48 @@ _|_bar")
    "(a (b_|_ c d))"
    ""))
 
+(vim-tests--default-test-buffer-contents*
+ :modes (nix-mode)
+ :name
+ vim-tests/forward-slurp-sexp-1
+ :action
+ (execute-kbd-macro (kbd "C-)"))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  cflags ="
+  "    (_|_) \"-O2 ${march} ${mtune} -fno-omit-frame-pointer -fno-plt -flto=auto\""
+  "    ;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  cflags ="
+  "    (_|_ \"-O2 ${march} ${mtune} -fno-omit-frame-pointer -fno-plt -flto=auto\")"
+  "    ;"
+  "}"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (nix-mode)
+ :name
+ vim-tests/forward-slurp-sexp-2
+ :action
+ (execute-kbd-macro (kbd "C-)"))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  cflags ="
+  "    (_|_) ''-O2 ${march} ${mtune} -fno-omit-frame-pointer -fno-plt -flto=auto''"
+  "    ;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  cflags ="
+  "    (_|_ ''-O2 ${march} ${mtune} -fno-omit-frame-pointer -fno-plt -flto=auto'')"
+  "    ;"
+  "}"))
+
 (ert-deftest vim-tests/vim:cmd-insert-line-below-repeat-complex-insert-command-1/emacs-lisp-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (emacs-lisp-mode)
