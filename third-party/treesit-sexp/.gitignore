@@ -1,0 +1,23 @@
+# Compiled
+*.elc
+
+# Packaging
+.cask/
+.eask/
+.eldev/
+.keg/
+
+# Built distribution
+dist/
+
+# Backup files
+*~
+
+# Undo-tree save-files
+*.~undo-tree
+
+# Debug files
+debug-*
+
+# Temporary directories
+.codenomad/
