@@ -18,7 +18,7 @@ if [[ -z "${2:-}" ]]; then
     snapshot_name="$(basename "$emacs").dmp"
 else
     emacs="${2}"
-    snapshot_name="emacs.dmp"
+    snapshot_name="${3}"
 fi
 
 emacs_dir=${1:-"${EMACS_ROOT:-.}"}
