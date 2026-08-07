@@ -281,7 +281,7 @@ let
                     dump_file="$root/compiled/${exe-name}.dmp"
                 fi
                 if [[ ! -v dump_file || ! -f "$dump_file" ]]; then
-                    dump_file="$default_root/compiled/emacs.dmp"
+                    dump_file="$default_root/compiled/${exe-name}.dmp"
 
                     if [[ ! -f "$dump_file" ]]; then
                         echo "Default dump file does not exist: $dump_file" >&2
