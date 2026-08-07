@@ -384,6 +384,19 @@
           };
       };
 
+      checks = forEachSystem (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages."${system}";
+        in
+        {
+          default = pkgs.symlinkJoin {
+            name  = "check-all";
+            paths = builtins.attrValues self.packages."${system}";
+          };
+        }
+      );
+
       packages = forEachSystem (
         system:
         let
