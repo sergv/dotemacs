@@ -35,6 +35,7 @@
         { system,
           arch ? null,
           pkgs,
+          haskell-tools,
           debug,
           native
         }:
@@ -46,11 +47,6 @@
           hlib = pkgs.haskell.lib.compose;
 
           hutils = haskell-nixpkgs-improvements.lib.mk-haskell-utils pkgs;
-
-          haskell-tools = haskell-nixpkgs-improvements.lib.mk-haskell-tools {
-            inherit system;
-            vanilla-pkgs = pkgs;
-          };
 
           haskell-pkgs-for-tools = haskell-tools.haskell-package-sets.host.ghc914;
 
@@ -356,21 +352,18 @@
         in {
           built-config = emacs-config;
           inherit (emacs-pkg) desktop-entry raw wrapped;
+          # sample-treesitter = builtins.head treesitter-derivs;
+          # emacs-native-so   = haskell-pkgs-with-emacs-native.emacs-native;
+          # emacs-raw         = emacs-raw;
         };
-        # {
-        #   default = emacs-config;
-        #
-        #   # sample-treesitter = builtins.head treesitter-derivs;
-        #   # emacs-native-so   = haskell-pkgs-with-emacs-native.emacs-native;
-        #   # emacs-raw         = emacs-raw;
-        # };
     in {
 
       lib = {
         mk-emacs-config =
           { system,
             arch ? null,
-            pkgs
+            pkgs,
+            haskell-tools
           }@args:
           let
             bytecode     = mk-emacs-with-config (args // { debug = false; native = false; });
@@ -401,11 +394,16 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages."${system}";
+          haskell-tools = haskell-nixpkgs-improvements.lib.mk-haskell-tools {
+            inherit system;
+            vanilla-pkgs = pkgs;
+          };
+
         in
         builtins.mapAttrs
           (_name: x: x.built-config)
           (self.lib.mk-emacs-config {
-            inherit system pkgs;
+            inherit system pkgs haskell-tools;
           })
       );
     };
