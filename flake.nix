@@ -250,7 +250,7 @@
                 #
                 # Run in destination directory so that references to current directory won’t
                 # capture source.
-                (cd "$dest_abs"; env -i PATH="${pkgs.lib.makeBinPath [pkgs.bash pkgs.gzip]}" bash "$src/scripts/dump.sh" "$dest_abs" "${emacs-raw}/bin/emacs")
+                (cd "$dest_abs"; env -i PATH="${pkgs.lib.makeBinPath [pkgs.bash pkgs.gzip]}" bash "$src/scripts/dump.sh" "$dest_abs" "${emacs-raw}/bin/emacs" "${emacs.exe-name}.dmp")
 
                 # Very important to make config folder read-only after we built everything.
                 # Loading of .eln files likes to rename .eln file with tmp suffix before
@@ -353,10 +353,10 @@
               '';
             };
 
-        in
-
-        emacs-config;
-
+        in {
+          built-config = emacs-config;
+          inherit (emacs-pkg) desktop-entry raw wrapped;
+        };
         # {
         #   default = emacs-config;
         #
@@ -373,14 +373,14 @@
             pkgs
           }@args:
           let
-            bytecode = mk-emacs-with-config (args // { debug = false; native = false; });
-          in
-          {
-            default = bytecode;
-            inherit bytecode;
+            bytecode     = mk-emacs-with-config (args // { debug = false; native = false; });
             debug        = mk-emacs-with-config (args // { debug = true;  native = false; });
             native       = mk-emacs-with-config (args // { debug = false; native = true; });
             native-debug = mk-emacs-with-config (args // { debug = true;  native = true; });
+          in
+          {
+            default = bytecode;
+            inherit bytecode debug native native-debug;
           };
       };
 
@@ -402,9 +402,11 @@
         let
           pkgs = nixpkgs.legacyPackages."${system}";
         in
-        self.lib.mk-emacs-config {
-          inherit system pkgs;
-        }
+        builtins.mapAttrs
+          (_name: x: x.built-config)
+          (self.lib.mk-emacs-config {
+            inherit system pkgs;
+          })
       );
     };
 }
