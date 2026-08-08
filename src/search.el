@@ -674,13 +674,6 @@ is assumed to be identifier at point.")
 (defsubst search-for-ghc-core-symbol-at-point-regex-end-func (pat)
   (search-for-haskell-symbol-at-point-regex-end-func pat))
 
-;; NB syntax table is provided via ‘search-syntax-table’ by mode-specific setup.
-(defsubst search-for-nix-symbol-at-point-regex-end-func (pat)
-  "End of symbol anchor for nix symbols."
-  (if (string-match-p "'+$" pat)
-      "\\>"
-    "\\_>"))
-
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward-new-color "search" nil t)
 (search--make-search-for-thing
@@ -741,8 +734,8 @@ is assumed to be identifier at point.")
   ;; constituent but it can be part of symbol and there are no text properties to
   ;; rectify it. We want to be able to search for ‘foo'’ so cannot use regular
   ;; symbol bounds here.
-  :regex-start "\\_<"
-  :regex-end #'search-for-nix-symbol-at-point-regex-end-func
+  :regex-start "\\<"
+  :regex-end "\\>"
   :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-nix-symbol-at-point-backward "search" nil t)
@@ -757,8 +750,8 @@ is assumed to be identifier at point.")
   ;; constituent but it can be part of symbol and there are no text properties to
   ;; rectify it. We want to be able to search for ‘foo'’ so cannot use regular
   ;; symbol bounds here.
-  :regex-start "\\_<"
-  :regex-end #'search-for-nix-symbol-at-point-regex-end-func
+  :regex-start "\\<"
+  :regex-end "\\>"
   :error-message "No symbol at point")
 
 ;; Lispocentric searches
