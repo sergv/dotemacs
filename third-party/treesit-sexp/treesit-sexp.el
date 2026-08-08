@@ -29,14 +29,15 @@
 ;;   `treesit-sexp-forward' - move forward by s-expressions
 ;;   `treesit-sexp-backward' - move backward by s-expressions
 
+(require 'treesit-utils)
+
 ;;; Code:
 
 (defun treesit-sexp--find-inner-node (node pos)
   "Find the innermost node that contains POS by walking up from NODE."
   (let ((n node))
     (while (and n
-                (not (and (< (treesit-node-start n) pos)
-                          (> (treesit-node-end n) pos))))
+                (not (treesit-utils-is-inside-node? pos n)))
       (setq n (treesit-node-parent n)))
     n))
 
@@ -55,52 +56,61 @@
         (treesit-node-end curr)
       (treesit-node-start curr))))
 
-(defun treesit-sexp--find-in-inner (inner direction pos punctuation forward-walls backward-walls)
-  "Handle sexp finding when in an inner node."
-  (message "inner = %s, direction = %s, pos = %s, punctuation = %s, forward-walls = %s, backward-walls = %s"
-           (pp-to-string inner)
+(defconst treesit-sexp--punctuation-node-type '("," "." ";" "->"))
+
+(defconst treesit-sexp--forward-wall-node-type '("}" ")" "]" ">"))
+(defconst treesit-sexp--backward-wall-node-type '("(" "{" "[" "<"))
+
+(defun treesit-sexp--forward-sexp-in-node (node direction pos)
+  "Handle sexp finding when there’s node around us."
+  (message "treesit-sexp--forward-sexp-in-node: node = %s, direction = %s, pos = %s"
+           (pp-to-string node)
            (pp-to-string direction)
-           (pp-to-string pos)
-           (pp-to-string punctuation)
-           (pp-to-string forward-walls)
-           (pp-to-string backward-walls))
+           (pp-to-string pos))
   (let ((target-sexp nil)
-        (i (if (eq direction 'forward) 0 (1- (treesit-node-child-count inner))))
+        (i (if (eq direction 'forward) 0 (1- (treesit-node-child-count node))))
         (step (if (eq direction 'forward) #'1+ #'1-))
         (compare-start (if (eq direction 'forward) #'>= #'<))
         (compare-pos (if (eq direction 'forward) #'>= #'<))
-        (wall-list (if (eq direction 'forward) forward-walls backward-walls)))
+        (wall-types (if (eq direction 'forward) treesit-sexp--forward-wall-node-type treesit-sexp--backward-wall-node-type)))
 
     (while (and (if (eq direction 'forward)
-                    (< i (treesit-node-child-count inner))
+                    (< i (treesit-node-child-count node))
                   (>= i 0))
                 (not target-sexp))
-      (let ((c (treesit-node-child inner i)))
+      (let ((c (treesit-node-child node i)))
         (message "looking at child %s: c = %s"
                  i
                  (pp-to-string c))
         (when (funcall compare-start (treesit-node-start c) pos)
           (let ((type (treesit-node-type c))
-                (named (treesit-node-check c 'named)))
+                (named? (treesit-node-check c 'named)))
             (cond
-              ((and (not named) (member type wall-list))
+              ((and (not named?) (member type wall-types))
                (throw 'hit-wall nil))
-              ((and (not named) (member type punctuation))
+              ((and (not named?) (member type treesit-sexp--punctuation-node-type))
                nil)
               (t (setq target-sexp c)))))
         (setq i (funcall step i))))
 
-    (if target-sexp
-        (treesit-sexp--walk-parents
-         target-sexp direction inner
-         (if (eq direction 'forward)
-             (treesit-node-start target-sexp)
-           (treesit-node-end target-sexp)))
-      (if (eq direction 'forward)
-          (treesit-node-end inner)
-        (treesit-node-start inner)))))
+    (message "target-sexp = %s"
+             (pp-to-string target-sexp))
 
-(defun treesit-sexp--find-fallback (node direction pos punctuation forward-walls backward-walls)
+    (cond
+      (target-sexp
+       (treesit-sexp--walk-parents
+        target-sexp
+        direction
+        node
+        (if (eq direction 'forward)
+            (treesit-node-start target-sexp)
+          (treesit-node-end target-sexp))))
+      ((eq direction 'forward)
+       (treesit-node-end node))
+      (t
+       (treesit-node-start node)))))
+
+(defun treesit-sexp--find-fallback (node direction pos)
   "Find sexp when not inside an inner node.
 Searches siblings and then parent tree for valid sexp at/after POS."
   (let ((compare-pos (if (eq direction 'forward) '>= '<))
@@ -113,7 +123,7 @@ Searches siblings and then parent tree for valid sexp at/after POS."
       (while (and n
                   (or (funcall compare-start (treesit-node-start n) pos)
                       (and (not (treesit-node-check n 'named))
-                           (member (treesit-node-type n) punctuation))))
+                           (member (treesit-node-type n) treesit-sexp--punctuation-node-type))))
         (setq n (or (funcall next-sibling-func n) (treesit-node-parent n))))
 
       (if (and n (funcall compare-pos (treesit-node-start n) pos))
@@ -143,19 +153,18 @@ When TreeSitter is not available, falls back to `forward-sexp'."
                                      forward-sexp-function)))
         (forward-sexp arg interactive))
     (let ((count (abs (or arg 1)))
-          (direction (if (< (or arg 0) 0) 'backward 'forward))
-          (punctuation '("," "." ";" "->"))
-          (forward-walls '("}" ")" "]" ">"))
-          (backward-walls '("(" "{" "[" "<")))
+          (direction (if (< (or arg 0) 0) 'backward 'forward)))
       (catch 'hit-wall
         (dotimes (_ count)
+          (message "DEBUG = %s"
+                   (pp-to-string (debug-current-line)))
           (let* ((pos (point))
                  (lookup-pos (if (eq direction 'backward) (1- pos) pos))
                  (node (treesit-node-at lookup-pos))
                  (inner (treesit-sexp--find-inner-node node pos))
                  (target (if inner
-                             (treesit-sexp--find-in-inner inner direction pos punctuation forward-walls backward-walls)
-                           (treesit-sexp--find-fallback node direction pos punctuation forward-walls backward-walls))))
+                             (treesit-sexp--forward-sexp-in-node inner direction pos)
+                           (treesit-sexp--find-fallback node direction pos))))
             (when target
               (if (eq direction 'forward)
                   (when (> target (point))
@@ -215,7 +224,9 @@ When TreeSitter is not available, falls back to `forward-list'."
     (or arg (setq arg 1))
     (let ((count (abs arg))
           (direction (if (< arg 0) 'backward 'forward))
-          (wall-list '("(" "{" "[" "<" ")" "}" "]" ">")))
+          (wall-types (eval-when-compile
+                        (append treesit-sexp--forward-wall-node-type
+                                treesit-sexp--forward-wall-node-type))))
       (dotimes (_ count)
         (let* ((pos (point))
                (node (treesit-node-at pos))
@@ -226,10 +237,12 @@ When TreeSitter is not available, falls back to `forward-list'."
                (found nil))
           (while (and next (not found))
             (let ((next-sibling (funcall sibling-func next)))
+              (message "next-sibling = %s"
+                       (pp-to-string next-sibling))
               (if next-sibling
                   (progn
                     (setq next next-sibling)
-                    (when (and (member (treesit-node-type next) wall-list)
+                    (when (and (member (treesit-node-type next) wall-types)
                                (if (eq direction 'forward)
                                    (> (treesit-node-start next) pos)
                                  (< (treesit-node-end next) pos)))
