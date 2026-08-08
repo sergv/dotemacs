@@ -142,44 +142,44 @@ Searches siblings and then parent tree for valid sexp at/after POS."
        (treesit-available-p)
        (treesit-parser-list)))
 
-(defun treesit-sexp-forward (&optional arg interactive)
-  "Move forward ARG s-expressions, skipping punctuation like , . : ;.
-Stops at `Wall' delimiters ( ) { } [ ] without signaling an error.
-When TreeSitter is not available, falls back to `forward-sexp'."
-  (interactive "p")
-  (if (not (treesit-sexp--treesit-available-p))
-      (let ((forward-sexp-function (if (eq forward-sexp-function #'treesit-sexp-forward)
-                                       nil
-                                     forward-sexp-function)))
-        (forward-sexp arg interactive))
-    (let ((count (abs (or arg 1)))
-          (direction (if (< (or arg 0) 0) 'backward 'forward)))
-      (catch 'hit-wall
-        (dotimes (_ count)
-          (message "DEBUG = %s"
-                   (pp-to-string (debug-current-line)))
-          (let* ((pos (point))
-                 (lookup-pos (if (eq direction 'backward) (1- pos) pos))
-                 (node (treesit-node-at lookup-pos))
-                 (inner (treesit-sexp--find-inner-node node pos))
-                 (target (if inner
-                             (treesit-sexp--forward-sexp-in-node inner direction pos)
-                           (treesit-sexp--find-fallback node direction pos))))
-            (when target
-              (if (eq direction 'forward)
-                  (when (> target (point))
-                    (goto-char (min target (point-max))))
-                (when (< target (point))
-                  (goto-char (max target (point-min))))))))))))
-
-(defun treesit-sexp-backward (&optional arg interactive)
-  "Move backward ARG s-expressions, skipping punctuation like , . : ;.
-Stops at `Wall' delimiters ( { [ < without signaling an error.
-When TreeSitter is not available, falls back to `backward-sexp'."
-  (interactive "p")
-  (if (not (treesit-sexp--treesit-available-p))
-      (backward-sexp arg interactive)
-    (treesit-sexp-forward (- (or arg 1)) interactive)))
+;; (defun treesit-sexp-forward (&optional arg interactive)
+;;   "Move forward ARG s-expressions, skipping punctuation like , . : ;.
+;; Stops at `Wall' delimiters ( ) { } [ ] without signaling an error.
+;; When TreeSitter is not available, falls back to `forward-sexp'."
+;;   (interactive "p")
+;;   (if (not (treesit-sexp--treesit-available-p))
+;;       (let ((forward-sexp-function (if (eq forward-sexp-function #'treesit-sexp-forward)
+;;                                        nil
+;;                                      forward-sexp-function)))
+;;         (forward-sexp arg interactive))
+;;     (let ((count (abs (or arg 1)))
+;;           (direction (if (< (or arg 0) 0) 'backward 'forward)))
+;;       (catch 'hit-wall
+;;         (dotimes (_ count)
+;;           (message "DEBUG = %s"
+;;                    (pp-to-string (debug-current-line)))
+;;           (let* ((pos (point))
+;;                  (lookup-pos (if (eq direction 'backward) (1- pos) pos))
+;;                  (node (treesit-node-at lookup-pos))
+;;                  (inner (treesit-sexp--find-inner-node node pos))
+;;                  (target (if inner
+;;                              (treesit-sexp--forward-sexp-in-node inner direction pos)
+;;                            (treesit-sexp--find-fallback node direction pos))))
+;;             (when target
+;;               (if (eq direction 'forward)
+;;                   (when (> target (point))
+;;                     (goto-char (min target (point-max))))
+;;                 (when (< target (point))
+;;                   (goto-char (max target (point-min))))))))))))
+;;
+;; (defun treesit-sexp-backward (&optional arg interactive)
+;;   "Move backward ARG s-expressions, skipping punctuation like , . : ;.
+;; Stops at `Wall' delimiters ( { [ < without signaling an error.
+;; When TreeSitter is not available, falls back to `backward-sexp'."
+;;   (interactive "p")
+;;   (if (not (treesit-sexp--treesit-available-p))
+;;       (backward-sexp arg interactive)
+;;     (treesit-sexp-forward (- (or arg 1)) interactive)))
 
 (defun treesit-sexp-up-list (&optional arg escape-strings no-syntax-crossing)
   "Move forward out of ARG levels of parentheses.
@@ -459,6 +459,88 @@ accuracy when tree-sitter parsers are available."
   treesit-sexp-global-mode-setup
   :require 'treesit-sexp
   :group 'treesit-sexp)
+
+
+;; forward-sexp
+;; (foo _|_bar baz) -> (foo bar_|_ baz)
+;; (foo _|_(bar quux) baz) -> (foo (bar quux)_|_ baz)
+;; (_|_foo (bar quux) baz) -> (foo_|_ (bar quux) baz)
+;;
+;; forward-list
+;; (foo _|_bar baz) -> ERROR
+;; (foo _|_(bar quux) baz) -> (foo (bar quux)_|_ baz)
+;; (_|_foo (bar quux) baz) -> (foo (bar quux)_|_ baz)
+
+(defun treesit-sexp--is-atom-node? (node)
+  (eq 0 (treesit-node-child-count node)))
+
+;; (local-set-key (key-parse "<f8>") #'treesit-sexp-forward-sexp)
+
+(defun treesit-sexp-forward-sexp (&optional count)
+  (interactive "p")
+  (dotimes (_ (or count 1))
+    (let ((start-node (treesit-node-at (point))))
+      (message "start-node = %s"
+               (pp-to-string start-node))
+      (let ((final-node (treesit-search-forward-goto2 start-node
+                                                      #'treesit-sexp--is-atom-node?
+                                                      nil
+                                                      nil
+                                                      t)))
+        (message "final-node = %s"
+                 (pp-to-string final-node))))))
+
+(defun treesit-search-forward-goto2
+    (node predicate &optional start backward all)
+  "Search forward for a node and move to its end position.
+
+Stop at the first node after NODE that matches PREDICATE.
+PREDICATE can be either a regexp that matches against each node's
+type case-insensitively, or a function that takes a node and
+returns nil/non-nil for match/no match.
+
+If a node matches, move to that node and return the node,
+otherwise return nil.  If START is non-nil, stop at the
+beginning rather than the end of a node.
+
+This function guarantees that the matched node it returns makes
+progress in terms of buffer position: the start/end position of
+the returned node is always STRICTLY greater/less than that of
+NODE.
+
+BACKWARD and ALL are the same as in `treesit-search-forward'."
+  (when-let* ((start-pos (if start
+                             (treesit-node-start node)
+                           (treesit-node-end node)))
+              (current-pos start-pos))
+    ;; When searching forward and stopping at beginnings, or search
+    ;; backward stopping at ends, it is possible to "roll back" in
+    ;; position.  Take three nodes N1, N2, N3 as an example, if we
+    ;; start at N3, search for forward for beginning, and N1 matches,
+    ;; we would stop at beg of N1, which is backwards!  So we skip N1
+    ;; and keep going.
+    ;;
+    ;;   |<--------N1------->|
+    ;;   |<--N2-->| |<--N3-->|
+    (while (and node (if backward
+                         (>= current-pos start-pos)
+                       (<= current-pos start-pos)))
+      (message "node = %s"
+               (pp-to-string node))
+      (setq node (treesit-search-forward
+                  node predicate backward all))
+      (setq current-pos (if start
+                            (treesit-node-start node)
+                          (treesit-node-end node))))
+    (when (and node
+               (if backward
+                   (< current-pos (point))
+                 (> current-pos (point))))
+      ;; When there is a match and match made progress, go to the
+      ;; result position.
+      (goto-char current-pos))
+    node))
+
 
 (provide 'treesit-sexp)
 ;;; treesit-sexp.el ends here
