@@ -38,7 +38,7 @@
        (text-after-pos-matches? (treesit-node-start node) "\"\"\"")
        (text-before-pos-matches? (treesit-node-end node) "\"\"\"")))
 
-(defun treesit-haskell--is-inside-node? (p node)
+(defun treesit-utils-is-inside-node? (p node)
   (declare (pure t) (side-effect-free t))
   (cl-assert (integerp p))
   (cl-assert (treesit-node-p node))
@@ -189,7 +189,7 @@
 (defun treesit-haskell--is-inside-pragma-node? (p node)
   (declare (pure t) (side-effect-free t))
   (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
-       (treesit-haskell--is-inside-node? p node)))
+       (treesit-utils-is-inside-node? p node)))
 
 ;;;###autoload
 (defun treesit-utils--string-at (node string-node-type-pred)
