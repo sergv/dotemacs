@@ -7,12 +7,13 @@
 ;;; Code:
 
 (require 'ert)
-(load-file "structural-editing.el")
+
+(require 'structural-editing)
 
 (defun test--extract-pos (content-with-pipe)
   "Extract cursor position and content from a string containing a pipe | character.
 Returns (CONTENT . POS) where POS is the position of the pipe, and CONTENT has the pipe removed."
-  (let ((pipe-pos (seq-position (string-to-list content-with-pipe) ?|)))
+  (let ((pipe-pos (seq-position content-with-pipe ?|)))
     (unless pipe-pos
       (error "No pipe character found in test content: %s" content-with-pipe))
     (cons (replace-regexp-in-string "|" "" content-with-pipe)
