@@ -335,8 +335,8 @@ Remove DEF from `counsel-M-x' list."
     (ivy-define-key map (kbd "C-M-m") #'ivy-call)
     (ivy-define-key map (kbd "C-j") #'ivy-alt-done)
     (ivy-define-key map (kbd "C-M-j") #'ivy-immediate-done)
-    (ivy-define-key map (kbd "TAB") #'ivy-partial-or-done)
-    (ivy-define-key map (kbd "<tab>") #'ivy-partial-or-done)
+    ;; (ivy-define-key map (kbd "TAB") #'ivy-partial-or-done)
+    ;; (ivy-define-key map (kbd "<tab>") #'ivy-partial-or-done)
     (ivy-define-key map `[remap ,#'next-line] #'ivy-next-line)
     (ivy-define-key map `[remap ,#'previous-line] #'ivy-previous-line)
     (ivy-define-key map (kbd "C-r") #'ivy-reverse-i-search)
@@ -1135,6 +1135,11 @@ When this directory doesn't exist, return nil."
   "When non-nil, `ivy-partial-or-done' should insert a space."
   :type 'boolean)
 
+(defun ivy-partial-no-cd ()
+  "Bring selected candidate into edit area so that it can be modified further."
+  (interactive)
+  (ivy-partial--impl nil))
+
 (defun ivy-partial-or-done ()
   "Complete the minibuffer text as much as possible.
 If the text hasn't changed as a result, forward to `ivy-alt-done'."
@@ -1172,9 +1177,8 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
            (file-directory-p (ivy-state-current ivy-last))))
     (ivy--directory-done)))
 
-(defun ivy-partial ()
+(defun ivy-partial--impl (chaangedir-for-single-dir?)
   "Complete the minibuffer text as much as possible."
-  (interactive)
   (if (ivy-state-dynamic-collection ivy-last)
       (let* ((bnd
               (ignore-errors
@@ -1212,8 +1216,14 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
            (mapconcat #'identity parts " ")
            (and ivy-tab-space (not (= (length ivy--old-cands) 1)) " ")))
          (insert ivy-text)
-         (ivy--partial-cd-for-single-directory)
+         (when chaangedir-for-single-dir?
+           (ivy--partial-cd-for-single-directory))
          t)))))
+
+(defun ivy-partial ()
+  "Complete the minibuffer text as much as possible."
+  (interactive)
+  (ivy-partial--impl t))
 
 (defvar ivy-completion-beg nil
   "Completion bounds start.")
