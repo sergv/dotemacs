@@ -481,6 +481,9 @@ e_x_ec"
 ;;;###autoload
 (defun git-rebase-mode-setup ()
   (hl-line-mode +1)
+
+  (backups-ignore-current-buffer!)
+
   (def-keys-for-map git-rebase-mode-map
     +vi-keys+
     +vim-search-keys+
