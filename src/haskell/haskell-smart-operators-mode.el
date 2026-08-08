@@ -523,14 +523,14 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                (nanothunk-force p-node)
                (lambda (x)
                  (and (string= (treesit-node-type x) "data_constructor")
-                      (treesit-haskell--is-inside-node? p x))))))
+                      (treesit-utils-is-inside-node? p x))))))
 
            (ts-enclosing-regular-datatype-pattern-node
             (when inside-regular-constructor?
               (treesit-utils-find-topmost-parent
                (nanothunk-force p-node)
                (lambda (x)
-                 (and (treesit-haskell--is-inside-node? p x)
+                 (and (treesit-utils-is-inside-node? p x)
                       (let ((parent-type (awhen (treesit-node-parent x)
                                            (treesit-node-type it))))
                         (or (and (string= parent-type "prefix")
@@ -549,7 +549,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                (nanothunk-force p-node)
                (lambda (x)
                  (and (string= (treesit-node-type x) "gadt_constructor")
-                      (treesit-haskell--is-inside-node? p x))))))
+                      (treesit-utils-is-inside-node? p x))))))
 
            (gadt-field
             (when inside-gadt-constructor?
@@ -559,14 +559,14 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                      (and (awhen (treesit-node-parent x)
                             (string= (treesit-node-type it) "function"))
                           (string= (treesit-node-field-name x) "parameter")
-                          (treesit-haskell--is-inside-node? p x))))
+                          (treesit-utils-is-inside-node? p x))))
                   (treesit-utils-find-topmost-parent
                    (nanothunk-force p-node)
                    (lambda (x)
                      (and (awhen (treesit-node-parent x)
                             (string= (treesit-node-type it) "function"))
                           (string= (treesit-node-field-name x) "result")
-                          (treesit-haskell--is-inside-node? p x)))))))
+                          (treesit-utils-is-inside-node? p x)))))))
 
            (ts-inside-pattern?
             (when (and (not (and (not preceded-by-double-colon?)
@@ -577,7 +577,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                 (treesit-utils-find-topmost-parent
                  (nanothunk-force p-node)
                  (lambda (x)
-                   (and (treesit-haskell--is-inside-node? p x)
+                   (and (treesit-utils-is-inside-node? p x)
                         (or (string= (treesit-node-type x) "patterns")
                             (when-let ((parent (treesit-node-parent x)))
                               (and (string= (treesit-node-type parent) "bind")
@@ -590,7 +590,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
               (let ((tmp (treesit-utils-find-closest-parent
                           (nanothunk-force p-node)
                           (lambda (x)
-                            (and (treesit-haskell--is-inside-node? p x)
+                            (and (treesit-utils-is-inside-node? p x)
                                  (or (member (treesit-node-field-name x) '("pattern" "name" "argument" "element"))
                                      (when-let ((parent (treesit-node-parent x)))
                                        (string= (treesit-node-type parent) "patterns"))))))))
@@ -695,7 +695,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
           (let ((p (point)))
             (when-let* ((node (treesit-node-at p)))
               (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
-                   (treesit-haskell--is-inside-node? p node)))))
+                   (treesit-utils-is-inside-node? p node)))))
      (insert-char ?\'))
     ((or
       ;; Only string
