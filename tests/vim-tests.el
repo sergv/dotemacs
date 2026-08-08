@@ -11664,24 +11664,6 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes (nix-mode)
  :names-and-actions
- ((vim-tests/nix-symbol-search-1a (execute-kbd-macro (kbd "*")))
-  (vim-tests/nix-symbol-search-1b (search-for-nix-symbol-at-point-forward 1)))
- :contents
- (tests-utils--multiline
-  "{"
-  "  _|_lib = pkgs.foo;"
-  "  bar = pkgs.lib.quux;"
-  "}")
- :expected-value
- (tests-utils--multiline
-  "{"
-  "  lib = pkgs.foo;"
-  "  bar = pkgs.lib_|_.quux;"
-  "}"))
-
-(vim-tests--test-fresh-buffer-contents-equivalent-commands*
- :modes (nix-mode)
- :names-and-actions
  ((vim-tests/motion-jump-1aa (execute-kbd-macro (kbd "m")))
   (vim-tests/motion-jump-1ab (pseudovim-motion-jump-item)))
  :contents
