@@ -53,7 +53,7 @@
           ;; If we’re not within current node then we’re in a space-filled
           ;; limbo. But that means we’re definitely not in a string or
           ;; comment so literal insertion context they entail does not apply.
-          (and (treesit-haskell--is-inside-node? p node)
+          (and (treesit-utils-is-inside-node? p node)
                (or (haskell-smart-operators--treesit--in-string?-sure p node)
                    (and (not disable-comment-check?)
                         (haskell-smart-operators--treesit--in-comment?-sure node))))))
