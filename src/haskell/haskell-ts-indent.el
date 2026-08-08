@@ -1078,7 +1078,7 @@
                       (if (memq 'indent-once (treesit-computed-indent-flags matched-anchor))
                           haskell-indent-offset
                         0))
-                     ((or (and (treesit-haskell--is-inside-node? bol-pos parent)
+                     ((or (and (treesit-utils-is-inside-node? bol-pos parent)
                                (not (string= (treesit-node-type parent) "declarations")))
                           (save-excursion
                             (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-from-any-column? nil t)
