@@ -26,12 +26,6 @@
     table)
   "Syntax table for Nix mode.")
 
-(defconst nix-search-fixed-syntax-table
-  (let ((tbl (copy-syntax-table nix-mode-syntax-table)))
-    (modify-syntax-entry ?\' "w" tbl)
-    tbl)
-  "Special syntax table for nix searches that will match \"\\_<foo'\\_>\" in \"foo\"")
-
 (provide 'nix-syntax-table)
 
 ;; Local Variables:
