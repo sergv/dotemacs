@@ -8991,95 +8991,163 @@ _|_bar")
      "}"
      "")))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (nix-mode)
-    vim-tests/haskell--search-for-nix-symbol-at-point-1
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "let b_|_ar = 1;"
-   "in bar"
-   "")
-  (tests-utils--multiline
-   ""
-   "let bar = 1;"
-   "in bar_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/search-for-nix-symbol-at-point-1
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "let b_|_ar = 1;"
+  "in bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "let bar = 1;"
+  "in bar_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (nix-mode)
-    vim-tests/haskell--search-for-nix-symbol-at-point-2a
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "let b_|_ar' = 1;"
-   "in bar + bar'"
-   "")
-  (tests-utils--multiline
-   ""
-   "let bar' = 1;"
-   "in bar + bar'_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/search-for-nix-symbol-at-point-2a
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "let b_|_ar' = 1;"
+  "in bar + bar'"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "let bar' = 1;"
+  "in bar + bar'_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (nix-mode)
-    vim-tests/haskell--search-for-nix-symbol-at-point-2b
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "let b_|_ar' = 1;"
-   "in bar'' + bar'"
-   "")
-  (tests-utils--multiline
-   ""
-   "let bar' = 1;"
-   "in bar'' + bar'_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/search-for-nix-symbol-at-point-2b
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "let b_|_ar' = 1;"
+  "in bar'' + bar'"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "let bar' = 1;"
+  "in bar'' + bar'_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (nix-mode)
-    vim-tests/haskell--search-for-nix-symbol-at-point-3
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "let f_|_oo = 1;"
-   "in foo-bar + foo + baz"
-   "")
-  (tests-utils--multiline
-   ""
-   "let foo = 1;"
-   "in foo-bar + foo_|_ + baz"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/search-for-nix-symbol-at-point-3
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "let f_|_oo = 1;"
+  "in foo-bar + foo + baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "let foo = 1;"
+  "in foo-bar + foo_|_ + baz"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (nix-mode)
-    vim-tests/haskell--search-for-nix-symbol-at-point-4
-    (execute-kbd-macro (kbd "* u"))
-  (tests-utils--multiline
-   ""
-   "let b_|_ar' = 1;"
-   "in bar'' + bar' + bar'' + bar'"
-   "")
-  (tests-utils--multiline
-   ""
-   "let bar' = 1;"
-   "in bar'' + bar' + bar'' + bar'_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/search-for-nix-symbol-at-point-4
+ :action
+ (execute-kbd-macro (kbd "* u"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "let b_|_ar' = 1;"
+  "in bar'' + bar' + bar'' + bar'"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "let bar' = 1;"
+  "in bar'' + bar' + bar'' + bar'_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (nix-mode)
-    vim-tests/haskell--search-for-nix-symbol-at-point-5
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "let b_|_ar = 1;"
-   "in bar' + foo-bar + bar + foo"
-   "")
-  (tests-utils--multiline
-   ""
-   "let bar = 1;"
-   "in bar' + foo-bar + bar_|_ + foo"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/search-for-nix-symbol-at-point-5
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "let b_|_ar = 1;"
+  "in bar' + foo-bar + bar + foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "let bar = 1;"
+  "in bar' + foo-bar + bar_|_ + foo"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/search-for-nix-symbol-at-point-6a (execute-kbd-macro (kbd "*")))
+  (vim-tests/search-for-nix-symbol-at-point-6b (search-for-nix-symbol-at-point-forward 1)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  _|_lib = pkgs.foo;"
+  "  bar = pkgs.lib.quux;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  lib = pkgs.foo;"
+  "  bar = pkgs.lib_|_.quux;"
+  "}"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (nix-mode)
+ :name
+ vim-tests/search-for-nix-symbol-at-point-7
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "let f_|_oo-bar = 1;"
+  "in foo + foo-bar + baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "let foo-bar = 1;"
+  "in foo + foo-bar_|_ + baz"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
     vim-tests/shell-command-on-region-1a
@@ -9849,24 +9917,6 @@ _|_bar")
   ""
   "    bar = 2;"
   "  };"
-  "}"))
-
-(vim-tests--test-fresh-buffer-contents-equivalent-commands*
- :modes (nix-mode)
- :names-and-actions
- ((vim-tests/nix-symbol-search-1a (execute-kbd-macro (kbd "*")))
-  (vim-tests/nix-symbol-search-1b (search-for-nix-symbol-at-point-forward 1)))
- :contents
- (tests-utils--multiline
-  "{"
-  "  _|_lib = pkgs.foo;"
-  "  bar = pkgs.lib.quux;"
-  "}")
- :expected-value
- (tests-utils--multiline
-  "{"
-  "  lib = pkgs.foo;"
-  "  bar = pkgs.lib_|_.quux;"
   "}"))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-commands*
