@@ -39,6 +39,11 @@
                             :contents ,contents
                             :modes ,modes))
 
+(ert-deftest nix-tests/nix-search-fixed-syntax-table ()
+  (with-syntax-table nix-ts-mode--syntax-table
+    (should (string-match-p "\\<lib\\." "pkgs.lib.foo"))
+    (should-not (string-match-p "\\_<lib\\." "pkgs.lib.foo"))))
+
 (nix-tests--test-result
  :name
  nix-tests/point-inside-string-1a
