@@ -248,7 +248,9 @@ Puts directories before files unless they're invisible."
   ("C-d"              kill-region)
 
   ("C-SPC"            delete-minibuffer-contents)
-  ("C-<return>"       ivy-immediate-done))
+  ("C-<return>"       ivy-immediate-done)
+
+  ("<tab>"            ivy-partial-no-cd))
 
 (provide 'completion-setup)
 
