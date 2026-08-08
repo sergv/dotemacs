@@ -521,17 +521,8 @@ This function is also responsible for setting the X-selection."
                            (`linewise 'linewise)
                            (`block    'block)
                            (_         'normal)))
-    (let* ((b (vim-motion-begin motion))
-           (e (vim-motion-end motion))
-           (beg (min b e))
-           (end (max b e)))
-      (if (>= (point) end)
-          (progn
-            (set-mark beg)
-            (goto-char end))
-        (progn
-          (set-mark end)
-          (goto-char beg))))))
+    (set-mark (vim-motion-begin motion))
+    (goto-char (vim-motion-end motion))))
 
 (vim-defcmd vim:visual-insert (motion)
   "Starts insertion at the left column of a visual region."
