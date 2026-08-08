@@ -10562,6 +10562,7 @@ _|_bar")
  "foo “quux_|_ x")
 
 (vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
  :name vim-tests/vim:motion-go-to-first-non-blank-beg-1a
  :action
  (execute-kbd-macro (kbd ", g g"))
@@ -10576,6 +10577,7 @@ _|_bar")
   "baz"))
 
 (vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
  :name vim-tests/vim:motion-go-to-first-non-blank-beg-1b
  :action
  (execute-kbd-macro (kbd ", g g"))
@@ -10590,6 +10592,67 @@ _|_bar")
   "baz"))
 
 (vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/vim:motion-go-to-first-non-blank-beg-2
+ :action
+ (execute-kbd-macro (kbd "v g g <escape>"))
+ :contents
+ (tests-utils--multiline
+  "line1"
+  "line2"
+  "line3"
+  "line4"
+  "li_|_ne5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line10")
+ :expected-value
+ (tests-utils--multiline
+  "_|_line1"
+  "line2"
+  "line3"
+  "line4"
+  "line5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line10"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/vim:motion-go-to-first-non-blank-beg-3
+ :action
+ (execute-kbd-macro (kbd "v 2 g g <escape>"))
+ :contents
+ (tests-utils--multiline
+  "line1"
+  "line2"
+  "line3"
+  "line4"
+  "li_|_ne5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line10")
+ :expected-value
+ (tests-utils--multiline
+  "line1"
+  "_|_line2"
+  "line3"
+  "line4"
+  "line5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line10"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
  :name vim-tests/vim:motion-go-to-first-non-blank-end-1
  :action
  (execute-kbd-macro (kbd ", G"))
@@ -10604,6 +10667,7 @@ _|_bar")
   "q_|_u"))
 
 (vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
  :name vim-tests/vim:motion-go-to-first-non-blank-end-2a
  :action
  (execute-kbd-macro (kbd ", 7 G"))
@@ -10631,6 +10695,7 @@ _|_bar")
   "line10"))
 
 (vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
  :name vim-tests/vim:motion-go-to-first-non-blank-end-2b
  :action
  (execute-kbd-macro (kbd ", 2 G"))
@@ -10653,6 +10718,96 @@ _|_bar")
   "line6"
   "line7"
   "line8"
+  "line9"
+  "line10"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/vim:motion-go-to-first-non-blank-end-3
+ :action
+ (execute-kbd-macro (kbd "v G <escape>"))
+ :contents
+ (tests-utils--multiline
+  "line1"
+  "line2"
+  "line3"
+  "line4"
+  "li_|_ne5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line10")
+ :expected-value
+ (tests-utils--multiline
+  "line1"
+  "line2"
+  "line3"
+  "line4"
+  "line5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line1_|_0"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/vim:motion-go-to-first-non-blank-end-4
+ :action
+ (execute-kbd-macro (kbd "v 2 G <escape>"))
+ :contents
+ (tests-utils--multiline
+  "line1"
+  "line2"
+  "line3"
+  "line4"
+  "li_|_ne5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line10")
+ :expected-value
+ (tests-utils--multiline
+  "line1"
+  "_|_line2"
+  "line3"
+  "line4"
+  "line5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line10"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/vim:motion-go-to-first-non-blank-end-5
+ :action
+ (execute-kbd-macro (kbd "v 8 G <escape>"))
+ :contents
+ (tests-utils--multiline
+  "line1"
+  "line2"
+  "line3"
+  "line4"
+  "li_|_ne5"
+  "line6"
+  "line7"
+  "line8"
+  "line9"
+  "line10")
+ :expected-value
+ (tests-utils--multiline
+  "line1"
+  "line2"
+  "line3"
+  "line4"
+  "line5"
+  "line6"
+  "line7"
+  "line_|_8"
   "line9"
   "line10"))
 
