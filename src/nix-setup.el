@@ -171,6 +171,16 @@ _a_lign"
   (setq-local vim-shift-width 2
               search-syntax-table nix-search-fixed-syntax-table)
 
+  ;; (setq-local treesit-sexp-type-regexp
+  ;;             (rx string-start
+  ;;                 (or "parenthesized_expression"
+  ;;                     "string_expression"
+  ;;                     "list_expression"
+  ;;                     "attrset_expression")
+  ;;                 string-end)
+  ;;             forward-sexp-function #'treesit-forward-sexp
+  ;;             paredit-forward-sexp-function #'treesit-forward-sexp)
+
   (when (eq major-mode 'nix-ts-mode)
     (setq-local treesit-font-lock-level 4)
     ;; parameter parameter-atpattern
