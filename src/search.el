@@ -583,8 +583,8 @@ called in buffer that initiated search."
                                             mk-action-after
                                             &key
                                             is-forward
-                                            regex-start-func
-                                            regex-end-func
+                                            regex-start
+                                            regex-end
                                             (error-message nil)
                                             (force-include-bounds-to 'not-provided))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
@@ -622,9 +622,13 @@ obvious"
                  (search--setup-search-for
                   (if ,include-bounds?-var
                       (let ((start-raw
-                             (funcall ,regex-start-func ,substr-var))
+                             ,(if (stringp regex-start)
+                                  regex-start
+                                `(funcall ,regex-start ,substr-var)))
                             (end-raw
-                             (funcall ,regex-end-func ,substr-var)))
+                             ,(if (stringp regex-end)
+                                  regex-end
+                                `(funcall ,regex-end ,substr-var))))
                         (concat (if (string= "" start-raw)
                                     start-raw
                                   (concat "\\(?:" start-raw "\\)"))
@@ -685,8 +689,8 @@ is assumed to be identifier at point.")
     (bounds-of-thing-at-point 'qualified-haskell-symbol)
     (lambda (x) `(search--next-impl ,x))
   :is-forward t
-  :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
-  :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
+  :regex-start #'search-for-haskell-symbol-at-point-regex-start-func
+  :regex-end #'search-for-haskell-symbol-at-point-regex-end-func
   :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward "search" nil t)
@@ -697,8 +701,8 @@ is assumed to be identifier at point.")
     (bounds-of-thing-at-point 'qualified-haskell-symbol)
     (lambda (x) `(search--prev-impl ,x))
   :is-forward nil
-  :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
-  :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
+  :regex-start #'search-for-haskell-symbol-at-point-regex-start-func
+  :regex-end #'search-for-haskell-symbol-at-point-regex-end-func
   :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-forward "search" nil t)
@@ -709,8 +713,8 @@ is assumed to be identifier at point.")
     (bounds-of-thing-at-point 'ghc-core-symbol)
     (lambda (x) `(search--next-impl ,x))
   :is-forward t
-  :regex-start-func #'search-for-ghc-core-symbol-at-point-regex-start-func
-  :regex-end-func #'search-for-ghc-core-symbol-at-point-regex-end-func
+  :regex-start #'search-for-ghc-core-symbol-at-point-regex-start-func
+  :regex-end #'search-for-ghc-core-symbol-at-point-regex-end-func
   :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-backward "search" nil t)
@@ -721,8 +725,8 @@ is assumed to be identifier at point.")
     (bounds-of-thing-at-point 'ghc-core-symbol)
     (lambda (x) `(search--prev-impl ,x))
   :is-forward nil
-  :regex-start-func #'search-for-ghc-core-symbol-at-point-regex-start-func
-  :regex-end-func #'search-for-ghc-core-symbol-at-point-regex-end-func
+  :regex-start #'search-for-ghc-core-symbol-at-point-regex-start-func
+  :regex-end #'search-for-ghc-core-symbol-at-point-regex-end-func
   :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-nix-symbol-at-point-forward "search" nil t)
@@ -737,8 +741,8 @@ is assumed to be identifier at point.")
   ;; constituent but it can be part of symbol and there are no text properties to
   ;; rectify it. We want to be able to search for ‘foo'’ so cannot use regular
   ;; symbol bounds here.
-  :regex-start-func (constantly "\\_<")
-  :regex-end-func #'search-for-nix-symbol-at-point-regex-end-func
+  :regex-start "\\_<"
+  :regex-end #'search-for-nix-symbol-at-point-regex-end-func
   :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-nix-symbol-at-point-backward "search" nil t)
@@ -753,8 +757,8 @@ is assumed to be identifier at point.")
   ;; constituent but it can be part of symbol and there are no text properties to
   ;; rectify it. We want to be able to search for ‘foo'’ so cannot use regular
   ;; symbol bounds here.
-  :regex-start-func (constantly "\\_<")
-  :regex-end-func #'search-for-nix-symbol-at-point-regex-end-func
+  :regex-start "\\_<"
+  :regex-end #'search-for-nix-symbol-at-point-regex-end-func
   :error-message "No symbol at point")
 
 ;; Lispocentric searches
@@ -766,8 +770,8 @@ is assumed to be identifier at point.")
     (bounds-of-thing-at-point 'symbol)
     (lambda (x) `(search--next-impl ,x))
   :is-forward t
-  :regex-start-func (constantly "\\_<")
-  :regex-end-func (constantly "\\_>")
+  :regex-start "\\_<"
+  :regex-end "\\_>"
   :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-symbol-at-point-backward "search" nil t)
@@ -778,8 +782,8 @@ is assumed to be identifier at point.")
     (bounds-of-thing-at-point 'symbol)
     (lambda (x) `(search--prev-impl ,x))
   :is-forward nil
-  :regex-start-func (constantly "\\_<")
-  :regex-end-func (constantly "\\_>")
+  :regex-start "\\_<"
+  :regex-end "\\_>"
   :error-message "No symbol at point")
 
 ;;;
@@ -799,8 +803,8 @@ is assumed to be identifier at point.")
      #'vim:motion-inner-word)
     (lambda (x) `(search--next-impl ,x))
   :is-forward t
-  :regex-start-func (constantly "\\<")
-  :regex-end-func (constantly "\\>")
+  :regex-start "\\<"
+  :regex-end "\\>"
   :error-message "No word at point")
 
 ;;;###autoload (autoload 'search-for-word-at-point-backward "search" nil t)
@@ -812,8 +816,8 @@ is assumed to be identifier at point.")
      #'vim:motion-inner-word)
     (lambda (x) `(search--prev-impl ,x))
   :is-forward nil
-  :regex-start-func (constantly "\\<")
-  :regex-end-func (constantly "\\>")
+  :regex-start "\\<"
+  :regex-end "\\>"
   :error-message "No word at point")
 
 (add-to-list 'debug-ignored-errors "\\`No \\(?:symbol\\|word\\) at point\\'")
