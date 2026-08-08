@@ -809,8 +809,8 @@ a single entity."
                               (treesit-node-child-by-field-name bind-node "match")))
                         (when (and match-child
                                    ;; Don’t want to indent anything if point is before =
-                                   (treesit-haskell--is-inside-node? (point)
-                                                                     match-child)
+                                   (treesit-utils-is-inside-node? (point)
+                                                                  match-child)
                                    ;; Don’t want special indentation if we’re at
                                    ;; the very end - then we’ll indent regularly
                                    ;; for new let entry.
