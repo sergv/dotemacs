@@ -14,6 +14,9 @@
 (declare-function treesit-font-lock-recompute-features "treesit")
 (declare-function treesit-node-at "treesit")
 
+(defvar nix-ts-mode--syntax-table)
+(defvar nix-mode-syntax-table)
+
 (require 'align-util)
 (require 'base-emacs-autoload)
 (require 'hydra-setup)
@@ -24,7 +27,10 @@
 
 (require 'nix-company)
 (require 'nix-shebang)
-(require 'nix-syntax-table)
+(when (and (fboundp 'treesit-available-p)
+           (treesit-available-p)
+           (treesit-language-available-p 'nix))
+  (require 'nix-ts-mode))
 
 (awhen (getenv "EMACS_NIX_STORE_DIR")
   (setf nix-store-dir it))
@@ -140,6 +146,18 @@ _a_lign"
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\<flake\\.lock\\'" . json-mode))
+
+(defconst nix-search-fixed-syntax-table
+  (let ((tbl (copy-syntax-table
+              (if (and (fboundp 'treesit-available-p)
+                       (treesit-available-p)
+                       (treesit-language-available-p 'nix))
+                  nix-ts-mode--syntax-table
+                nix-mode-syntax-table))))
+    (modify-syntax-entry ?. "_" tbl)
+    (modify-syntax-entry ?\' "w" tbl)
+    tbl)
+  "Special syntax table for nix searches that will match \"\\_<foo'\\_>\" in \"foo\".")
 
 ;;;###autoload
 (defun nix-setup ()
