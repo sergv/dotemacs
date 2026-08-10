@@ -15,6 +15,9 @@
 (defvar eshell-buffer-name)
 (defvar this-command)
 
+(defvar base-emacs-fixes--shell-exe)
+(defvar base-emacs-fixes--shell-args)
+
 (add-to-list 'ivy-sort-matches-functions-alist
              '(switch-to-buffer-with-completion . ivy--flx-sort))
 (add-to-list 'ivy-re-builders-alist
@@ -80,9 +83,31 @@
                                             (* any)))))
                            eol)
                        buffer-name)
+       (when (file-remote-p default-directory)
+         (error "Start remote shell buffers with ‘ssh’ prefix"))
        (let ((buf (get-buffer-create buffer-name)))
          (switch-to-buffer buf nil t)
          (shell buf)))
+      ((string-match-p (rx bol
+                           (? "*")
+                           "ssh"
+                           (or (seq "ell" (* any))
+                               (seq (? (seq (or "-"
+                                                (char (?0 . ?9)))
+                                            (* any)))))
+                           eol)
+                       buffer-name)
+       (let ((base-emacs-fixes--shell-exe "/usr/bin/env")
+             (base-emacs-fixes--shell-args '("bash" "--noediting" "-i")))
+         (if (file-remote-p default-directory)
+             (let ((buf (get-buffer-create buffer-name)))
+               (switch-to-buffer buf nil t)
+               (shell buf))
+           (let ((host (read-string "username@host: ")))
+             (let ((default-directory (format "/ssh:%s:" host)))
+               (let ((buf (get-buffer-create buffer-name)))
+                 (switch-to-buffer buf nil t)
+                 (shell buf)))))))
       ((string-match-p (rx bol
                            (? "*")
                            "esh"
