@@ -52,6 +52,10 @@
     (require 'set-up-paths)
     (require 'set-up-tmp-paths)
 
+    (require 'tramp)
+    (require 'tramp-sh)
+    (require 'shell)
+
     (require 'base-emacs-fixes)
     (require 'base-emacs-opt)
 
