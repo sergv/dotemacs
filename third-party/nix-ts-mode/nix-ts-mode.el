@@ -491,7 +491,7 @@ and for subsequent lines it's the previous line's indentation."
     (modify-syntax-entry ?. "_" table)
     (modify-syntax-entry ?# "< b" table)
     (modify-syntax-entry ?\n "> b" table)
-    (modify-syntax-entry ?/ ". 14" table)
+    (modify-syntax-entry ?/ "_ 14" table)
     (modify-syntax-entry ?* ". 23" table)
 
     (modify-syntax-entry ?_ "_" table)
