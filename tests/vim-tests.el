@@ -10323,6 +10323,22 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-equivalent-commands*
  :modes (nix-mode)
  :names-and-actions
+ ((vim-tests/raise-sexp-2a (execute-kbd-macro (kbd "M-<up>")))
+  (vim-tests/raise-sexp-2b (vim:raise-sexp:interactive)))
+ :contents
+ (tests-utils--multiline
+  "{"
+  "  foo = (func _|_./bar.txt);"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "{"
+  "  foo = _|_./bar.txt;"
+  "}"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
  ((vim-tests/motion-fwd-word-1a (execute-kbd-macro (kbd "w")))
   (vim-tests/motion-fwd-word-1b (vim:motion-fwd-word:interactive)))
  :contents
