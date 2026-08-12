@@ -18,6 +18,8 @@
 (require 'common)
 (require 'el-patch)
 (require 'set-up-paths)
+(require 'set-up-platform)
+(require 'set-up-volatile-paths)
 
 (require 'ivy)
 ;; (require 'ivy-posframe)

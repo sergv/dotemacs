@@ -13,6 +13,7 @@
 
 (require 'common)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 ;;; database stores all info in single file, but facilities
 ;;; for dealing with multiple files are provided
