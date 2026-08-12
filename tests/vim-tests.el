@@ -183,6 +183,32 @@
     ,expected-value
     :fresh-buffer ,fresh-buffer))
 
+(cl-defmacro vim-tests--default-test-buffer-contents-many-inputs*
+    (&key modes action entries expected-value modes fresh-buffer)
+  "Define a set of tests that share final buffer state but
+have different input states.
+
+Entries should be a list of of elements of the form
+(:name _ :contents _)"
+  (declare (indent nil))
+  `(progn
+     ,@(cl-loop
+        for entry in entries
+        collect
+        (let ((name (plist-get entry :name))
+              (contents (plist-get entry :contents)))
+          (unless name
+            (error "Entry missing :name entry: %s" entry))
+          (unless contents
+            (error "Entry missing :contents entry: %s" entry))
+          `(vim-tests--default-test-buffer-contents*
+            :name ,name
+            :action ,action
+            :contents ,contents
+            :expected-value ,expected-value
+            ,@(when modes `(:modes ,modes))
+            :fresh-buffer ,fresh-buffer)))))
+
 (cl-defmacro vim-tests--folding-test-fresh-buffer-contents*
     (&key modes
           name
@@ -8372,6 +8398,175 @@ _|_bar")
   ""
   "bar :: Int"
   "bar = 1000_|_"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--change-symbol-at-point-1
+ :action
+ (execute-kbd-macro (kbd "c s foo <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: XXX -> Int"
+  "foo x = x + _|_1000"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: XXX -> Int"
+  "foo x = x + fo_|_o"
+  ""))
+
+(vim-tests--default-test-buffer-contents-many-inputs*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (execute-kbd-macro (kbd "c s foo <escape>"))
+ :entries
+ ((:name
+   vim-tests/haskell--change-symbol-at-point-2a
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: XXX -> Int"
+    "foo x = sum [0.._|_xyz]"
+    ""))
+  (:name
+   vim-tests/haskell--change-symbol-at-point-2b
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: XXX -> Int"
+    "foo x = sum [0..xy_|_z]"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: XXX -> Int"
+  "foo x = sum [0..fo_|_o]"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--change-symbol-at-point-3
+ :action
+ (execute-kbd-macro (kbd "c s foo <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_forall a. a -> Int"
+  "foo x = x + 1000"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: fo_|_o a. a -> Int"
+  "foo x = x + 1000"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--change-symbol-at-point-4
+ :action
+ (execute-kbd-macro (kbd "c s foo <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: forall a. a _|_-> Int"
+  "foo x = x + 1000"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: forall a. a fo_|_o Int"
+  "foo x = x + 1000"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--change-symbol-at-point-5
+ :action
+ (execute-kbd-macro (kbd "c s foo <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _|_:: forall a. a -> Int"
+  "foo x = x + 1000"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo fo_|_o forall a. a -> Int"
+  "foo x = x + 1000"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--change-symbol-at-point-6
+ :action
+ (execute-kbd-macro (kbd "c s foo <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|_Bar -> Int"
+  "foo x = x + 1000"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: fo_|_o -> Int"
+  "foo x = x + 1000"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--change-symbol-at-point-7
+ :action
+ (execute-kbd-macro (kbd "c s foo <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Quux._|_Bar -> Int"
+  "foo x = x + 1000"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Quux.fo_|_o -> Int"
+  "foo x = x + 1000"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--change-symbol-at-point-8
+ :action
+ (execute-kbd-macro (kbd "c S foo <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Quux._|_Bar -> Int"
+  "foo x = x + 1000"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: fo_|_o -> Int"
+  "foo x = x + 1000"
   ""))
 
 (vim-tests--default-test-buffer-contents*
