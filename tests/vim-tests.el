@@ -5548,6 +5548,28 @@ _|_bar")
   "(>>=) x = x"
   ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-9
+ :action
+ (execute-kbd-macro (kbd "i SPC o p a q <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# OPAQUE foo #-}_|_"
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
+
 (vim-tests--default-test-buffer-contents*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
