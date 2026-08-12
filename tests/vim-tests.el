@@ -232,15 +232,6 @@
               (delete-region start end)
               (insert "<INVISIBLE>"))))))))
 
-(defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only (keep-modes name action contents expected-value)
-  (declare (indent 3))
-  `(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
-    :modes ,keep-modes
-    :name ,name
-    :action ,action
-    :contents ,contents
-    :expected-value ,expected-value))
-
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes (name action contents expected-value)
   (declare (indent 2))
   `(vim-tests--test-fresh-buffer-contents-init-all
@@ -512,41 +503,51 @@
    "   _|_quux  )"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/repeat-vim:splice-sexp-killing-backward-2
-    (execute-kbd-macro (kbd "j \( d"))
-  (tests-utils--multiline
-   ""
-   ""
-   "(foo"
-   "   (bar (baz "
-   "         _|_  quux  )))"
-   "")
-  (tests-utils--multiline
-   ""
-   ""
-   "(foo"
-   "   (bar _|_quux  ))"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/repeat-vim:splice-sexp-killing-backward-2
+ :action
+ (execute-kbd-macro (kbd "j \( d"))
+ :contents
+ (tests-utils--multiline
+  ""
+  ""
+  "(foo"
+  "   (bar (baz "
+  "         _|_  quux  )))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  ""
+  "(foo"
+  "   (bar _|_quux  ))"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/repeat-vim:splice-sexp-killing-backward-3
-    (execute-kbd-macro (kbd "j \( d ."))
-  (tests-utils--multiline
-   ""
-   ""
-   "(foo"
-   "   (bar (baz "
-   "         _|_  quux  )))"
-   "")
-  (tests-utils--multiline
-   ""
-   ""
-   "(foo"
-   "   _|_quux  )"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/repeat-vim:splice-sexp-killing-backward-3
+ :action
+ (execute-kbd-macro (kbd "j \( d ."))
+ :contents
+ (tests-utils--multiline
+  ""
+  ""
+  "(foo"
+  "   (bar (baz "
+  "         _|_  quux  )))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  ""
+  "(foo"
+  "   _|_quux  )"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/repeat-vim:splice-sexp-killing-backward-4
@@ -1181,24 +1182,29 @@
      " quux)"
      "")))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/comment-linewise-region-1-haskell
-    (execute-kbd-macro (kbd "V h j c c"))
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " b_|_ar"
-   " baz"
-   " quux)"
-   "")
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " -- bar"
-   " -- b_|_az"
-   " quux)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/comment-linewise-region-1-haskell
+ :action
+ (execute-kbd-macro (kbd "V h j c c"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " b_|_ar"
+  " baz"
+  " quux)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " -- bar"
+  " -- b_|_az"
+  " quux)"
+  ""))
 
 (ert-deftest vim-tests/comment-linewise-region-1/c-mode ()
   (vim-tests--test-fresh-buffer-contents-init
@@ -1959,29 +1965,34 @@
    " quux)"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/paste-cycle-after-2a
-    (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> p p p"))
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " _|_abc"
-   " def"
-   " ghi"
-   " jkl"
-   " quux)"
-   "")
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " abc"
-   " def"
-   " ghi"
-   " jkl"
-   " de_|_f"
-   " quux)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/paste-cycle-after-2a
+ :action
+ (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> p p p"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " _|_abc"
+  " def"
+  " ghi"
+  " jkl"
+  " quux)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " abc"
+  " def"
+  " ghi"
+  " jkl"
+  " de_|_f"
+  " quux)"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except*
  :skip-modes
@@ -2040,29 +2051,34 @@
    " quux)"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/paste-cycle-before-1a
-    (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> P P P"))
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " _|_abc"
-   " def"
-   " ghi"
-   " jkl"
-   " quux)"
-   "")
-  (tests-utils--multiline
-   ""
-   "(foo"
-   " abc"
-   " def"
-   " ghi"
-   " jkl"
-   "_|_def "
-   " quux)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/paste-cycle-before-1a
+ :action
+ (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> P P P"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " _|_abc"
+  " def"
+  " ghi"
+  " jkl"
+  " quux)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "(foo"
+  " abc"
+  " def"
+  " ghi"
+  " jkl"
+  "_|_def "
+  " quux)"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/block-select-delete-1
@@ -3493,174 +3509,239 @@ _|_bar")
      "   (,func))"
      "")))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-smart-operators-expand-pragma-pair-1
-    (execute-kbd-macro (kbd "i { - # S C <return> ok <tab> <escape>"))
-  (tests-utils--multiline
-   ""
-   "_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# SCC \"ok\" #-_|_}"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-smart-operators-expand-pragma-pair-1
+ :action
+ (execute-kbd-macro (kbd "i { - # S C <return> ok <tab> <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# SCC \"ok\" #-_|_}"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/paren-insert-1
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = (_|_)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/paren-insert-1
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = (_|_)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/bracket-insert-1
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = [_|_]"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/bracket-insert-1
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = [_|_]"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/dquote-insert-1
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = \"_|_\""
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/dquote-insert-1
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \"_|_\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/dquote-insert-2
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline
-   ""
-   "foo x = bar \"_|_\" baz"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = bar \"\"_|_ baz"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/dquote-insert-2
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = bar \"_|_\" baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = bar \"\"_|_ baz"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/dquote-insert-3
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline
-   ""
-   "foo x = bar \"xxx_|_\" baz"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = bar \"xxx\"_|_ baz"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/dquote-insert-3
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = bar \"xxx_|_\" baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = bar \"xxx\"_|_ baz"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/brace-insert-1-haskell
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = {_|_}"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/brace-insert-1-haskell
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = {_|_}"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-paren-1-haskell
-    (execute-kbd-macro (kbd "i \( C-\) C-\)"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_bar x"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = (_|_bar x)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-paren-1-haskell
+ :action
+ (execute-kbd-macro (kbd "i \( C-\) C-\)"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = (_|_bar x)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-paren-2-haskell
-    (execute-kbd-macro (kbd "v e e \("))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_bar x"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = \(_|_bar x\)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-paren-2-haskell
+ :action
+ (execute-kbd-macro (kbd "v e e \("))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \(_|_bar x\)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-bracket-1-haskell
-    (execute-kbd-macro (kbd "i \[ C-\) C-\)"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_bar x"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = \[_|_bar x\]"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-bracket-1-haskell
+ :action
+ (execute-kbd-macro (kbd "i \[ C-\) C-\)"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \[_|_bar x\]"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-bracket-2-haskell
-    (execute-kbd-macro (kbd "v e e \["))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_bar x"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = [_|_bar x]"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-bracket-2-haskell
+ :action
+ (execute-kbd-macro (kbd "v e e \["))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = [_|_bar x]"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-brace-1-haskell
-    (execute-kbd-macro (kbd "i \{ C-\) C-\)"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_bar x"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = \{_|_bar x\}"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-brace-1-haskell
+ :action
+ (execute-kbd-macro (kbd "i \{ C-\) C-\)"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \{_|_bar x\}"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-brace-2-haskell
-    (execute-kbd-macro (kbd "v e e \{"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_bar x"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = \{_|_bar x\}"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-brace-2-haskell
+ :action
+ (execute-kbd-macro (kbd "v e e \{"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \{_|_bar x\}"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
@@ -3680,268 +3761,338 @@ _|_bar")
   "foo x = y `bar`_|_z x"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-backtick-1-haskell
-    (execute-kbd-macro (kbd "i y SPC <escape> w v e `"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_bar x"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = y `_|_bar` x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-backtick-1-haskell
+ :action
+ (execute-kbd-macro (kbd "i y SPC <escape> w v e `"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = y `_|_bar` x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-dquotes-1-haskell
-    (execute-kbd-macro (kbd "i y SPC <escape> w v e \""))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_bar x"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = y \"_|_bar\" x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-dquotes-1-haskell
+ :action
+ (execute-kbd-macro (kbd "i y SPC <escape> w v e \""))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_bar x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = y \"_|_bar\" x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/wrap-dquotes-2-haskell
-    (execute-kbd-macro (kbd "v E E E \""))
-  (tests-utils--multiline
-   ""
-   "foo x = baz _|_\"bar x\" quux"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = baz \"_|_\\\"bar x\\\" quux\""
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/wrap-dquotes-2-haskell
+ :action
+ (execute-kbd-macro (kbd "v E E E \""))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = baz _|_\"bar x\" quux"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = baz \"_|_\\\"bar x\\\" quux\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-mode-backward-up-indentation-or-sexp-1
-    (execute-kbd-macro (kbd "'"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y _|_\"hello \\(Haskell world\\)\" y))"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-mode-backward-up-indentation-or-sexp-1
+ :action
+ (execute-kbd-macro (kbd "'"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y _|_\"hello \\(Haskell world\\)\" y))"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-mode-backward-up-indentation-or-sexp-2
-    (execute-kbd-macro (kbd "' '"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g _|_(h y \"hello \\(Haskell world\\)\" y))"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-mode-backward-up-indentation-or-sexp-2
+ :action
+ (execute-kbd-macro (kbd "' '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g _|_(h y \"hello \\(Haskell world\\)\" y))"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-mode-backward-up-indentation-or-sexp-3
-    (execute-kbd-macro (kbd "' ' '"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux _|_(g (h y \"hello \\(Haskell world\\)\" y))"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-mode-backward-up-indentation-or-sexp-3
+ :action
+ (execute-kbd-macro (kbd "' ' '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux _|_(g (h y \"hello \\(Haskell world\\)\" y))"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-mode-backward-up-indentation-or-sexp-4
-    (execute-kbd-macro (kbd "' ' ' '"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    _|_baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-mode-backward-up-indentation-or-sexp-4
+ :action
+ (execute-kbd-macro (kbd "' ' ' '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    _|_baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-mode-backward-up-indentation-or-sexp-5
-    (execute-kbd-macro (kbd "' ' ' ' '"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  _|_where"
-   "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-mode-backward-up-indentation-or-sexp-5
+ :action
+ (execute-kbd-macro (kbd "' ' ' ' '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  _|_where"
+  "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-mode-backward-up-indentation-or-sexp-6
-    (execute-kbd-macro (kbd "' ' ' ' ' '"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
-   "")
-  (tests-utils--multiline
-   ""
-   "_|_foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-mode-backward-up-indentation-or-sexp-6
+ :action
+ (execute-kbd-macro (kbd "' ' ' ' ' '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-mode-backward-up-indentation-or-sexp-7
-    (progn
-      (execute-kbd-macro (kbd "' ' ' ' ' '"))
-      (should-error (execute-kbd-macro (kbd "'"))))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
-   "")
-  (tests-utils--multiline
-   ""
-   "_|_foo x = do"
-   "  bar (x + 1) y"
-   "  baz (f y (x + 1))"
-   "  where"
-   "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-mode-backward-up-indentation-or-sexp-7
+ :action
+ (progn
+   (execute-kbd-macro (kbd "' ' ' ' ' '"))
+   (should-error (execute-kbd-macro (kbd "'"))))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_foo x = do"
+  "  bar (x + 1) y"
+  "  baz (f y (x + 1))"
+  "  where"
+  "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-newline-auto-comment-1
-    (execute-kbd-macro (kbd "i <return> o k <escape>"))
-  (tests-utils--multiline
-   ""
-   "-- foobar_|_"
-   "foo x = do"
-   "  bar ( x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "-- foobar"
-   "-- o_|_k"
-   "foo x = do"
-   "  bar ( x + 1) y \"foo\""
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-newline-auto-comment-1
+ :action
+ (execute-kbd-macro (kbd "i <return> o k <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- foobar_|_"
+  "foo x = do"
+  "  bar ( x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- foobar"
+  "-- o_|_k"
+  "foo x = do"
+  "  bar ( x + 1) y \"foo\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-newline-auto-comment-2
-    (execute-kbd-macro (kbd "i <return> o k <escape>"))
-  (tests-utils--multiline
-   ""
-   "-- foobar_|_"
-   "foo x = do"
-   "  bar ( x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "-- foobar"
-   "-- o_|_k"
-   "foo x = do"
-   "  bar ( x + 1) y \"foo\""
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-newline-auto-comment-2
+ :action
+ (execute-kbd-macro (kbd "i <return> o k <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- foobar_|_"
+  "foo x = do"
+  "  bar ( x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- foobar"
+  "-- o_|_k"
+  "foo x = do"
+  "  bar ( x + 1) y \"foo\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-delete-commented-part-1
-    (execute-kbd-macro (kbd "j c d"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  -- important"
-   "  -- comment"
-   "  -- fo_|_o"
-   "  -- bar"
-   "  bar (x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  _|_bar (x + 1) y \"foo\""
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-delete-commented-part-1
+ :action
+ (execute-kbd-macro (kbd "j c d"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  -- important"
+  "  -- comment"
+  "  -- fo_|_o"
+  "  -- bar"
+  "  bar (x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  _|_bar (x + 1) y \"foo\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-delete-commented-part-2
-    (execute-kbd-macro (kbd "j c d"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  baz x -- should’ve deleted but couldn’t!"
-   "        -- comment"
-   "        -- fo_|_o"
-   "        -- bar"
-   "  bar (x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  baz x -- should’ve deleted but couldn’t!"
-   "  _|_bar (x + 1) y \"foo\""
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-delete-commented-part-2
+ :action
+ (execute-kbd-macro (kbd "j c d"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  baz x -- should’ve deleted but couldn’t!"
+  "        -- comment"
+  "        -- fo_|_o"
+  "        -- bar"
+  "  bar (x + 1) y \"foo\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  baz x -- should’ve deleted but couldn’t!"
+  "  _|_bar (x + 1) y \"foo\""
+  ""))
 
 (ert-deftest vim-tests/emacs-lisp-abbrev-1 ()
   (vim-tests--test-fresh-buffer-contents-init
@@ -4944,292 +5095,357 @@ _|_bar")
   "foo x = x"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5a
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "  ##_|_"
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "  {-# INLINE foo #-}_|_"
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-5a
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "  ##_|_"
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "  {-# INLINE foo #-}_|_"
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5b
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "\t\t##_|_"
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "\t\t{-# INLINE foo #-}_|_"
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-5b
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "\t\t##_|_"
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "\t\t{-# INLINE foo #-}_|_"
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5c
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   "-- Comment"
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}_|_"
-   "-- Comment"
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-5c
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "-- Comment"
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}_|_"
+  "-- Comment"
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5d
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   "-- Comment 1"
-   "-- Comment 2"
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}_|_"
-   "-- Comment 1"
-   "-- Comment 2"
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-5d
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "-- Comment 1"
+  "-- Comment 2"
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}_|_"
+  "-- Comment 1"
+  "-- Comment 2"
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5e
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   "-- | Haddock docs 1"
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}_|_"
-   "-- | Haddock docs 1"
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-5e
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "-- | Haddock docs 1"
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}_|_"
+  "-- | Haddock docs 1"
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5f
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   "-- | Haddock docs 1"
-   "-- Haddock docs 2"
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}_|_"
-   "-- | Haddock docs 1"
-   "-- Haddock docs 2"
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-5f
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "-- | Haddock docs 1"
+  "-- Haddock docs 2"
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}_|_"
+  "-- | Haddock docs 1"
+  "-- Haddock docs 2"
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5g
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   "-- | Haddock docs 1"
-   "-- Haddock docs 2"
-   ""
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}_|_"
-   "-- | Haddock docs 1"
-   "-- Haddock docs 2"
-   ""
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-5g
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  "-- | Haddock docs 1"
+  "-- Haddock docs 2"
+  ""
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}_|_"
+  "-- | Haddock docs 1"
+  "-- Haddock docs 2"
+  ""
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-5h
-    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
-  (tests-utils--multiline
-   ""
-   "##_|_"
-   ""
-   "-- Comment 1"
-   ""
-   "-- Comment 2"
-   ""
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}_|_"
-   ""
-   "-- Comment 1"
-   ""
-   "-- Comment 2"
-   ""
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-5h
+ :action
+ (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "##_|_"
+  ""
+  "-- Comment 1"
+  ""
+  "-- Comment 2"
+  ""
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}_|_"
+  ""
+  "-- Comment 1"
+  ""
+  "-- Comment 2"
+  ""
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-6a
-    (execute-kbd-macro (kbd "i # # SPC <escape>"))
-  (tests-utils--multiline
-   ""
-   "-- Glushkov construction of glob patterns."
-   "data PatternF a"
-   "  = Star"
-   "  | Sym _|_!Char"
-   "  | Or a a"
-   "  | Seq a a"
-   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
-   "  deriving Pretty via PPGeneric (PatternF a)"
-   "")
-  (tests-utils--multiline
-   ""
-   "-- Glushkov construction of glob patterns."
-   "data PatternF a"
-   "  = Star"
-   "  | Sym {-# UNPACK #-_|_} !Char"
-   "  | Or a a"
-   "  | Seq a a"
-   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
-   "  deriving Pretty via PPGeneric (PatternF a)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-6a
+ :action
+ (execute-kbd-macro (kbd "i # # SPC <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- Glushkov construction of glob patterns."
+  "data PatternF a"
+  "  = Star"
+  "  | Sym _|_!Char"
+  "  | Or a a"
+  "  | Seq a a"
+  "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+  "  deriving Pretty via PPGeneric (PatternF a)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- Glushkov construction of glob patterns."
+  "data PatternF a"
+  "  = Star"
+  "  | Sym {-# UNPACK #-_|_} !Char"
+  "  | Or a a"
+  "  | Seq a a"
+  "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+  "  deriving Pretty via PPGeneric (PatternF a)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-6b
-    (execute-kbd-macro (kbd "i SPC <escape>"))
-  (tests-utils--multiline
-   ""
-   "-- Glushkov construction of glob patterns."
-   "data PatternF a"
-   "  = Star"
-   "  | Sym ##_|_ !Char"
-   "  | Or a a"
-   "  | Seq a a"
-   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
-   "  deriving Pretty via PPGeneric (PatternF a)"
-   "")
-  (tests-utils--multiline
-   ""
-   "-- Glushkov construction of glob patterns."
-   "data PatternF a"
-   "  = Star"
-   "  | Sym {-# UNPACK #-_|_} !Char"
-   "  | Or a a"
-   "  | Seq a a"
-   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
-   "  deriving Pretty via PPGeneric (PatternF a)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-6b
+ :action
+ (execute-kbd-macro (kbd "i SPC <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- Glushkov construction of glob patterns."
+  "data PatternF a"
+  "  = Star"
+  "  | Sym ##_|_ !Char"
+  "  | Or a a"
+  "  | Seq a a"
+  "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+  "  deriving Pretty via PPGeneric (PatternF a)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- Glushkov construction of glob patterns."
+  "data PatternF a"
+  "  = Star"
+  "  | Sym {-# UNPACK #-_|_} !Char"
+  "  | Or a a"
+  "  | Seq a a"
+  "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+  "  deriving Pretty via PPGeneric (PatternF a)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-6c
-    (execute-kbd-macro (kbd "i SPC <escape>"))
-  (tests-utils--multiline
-   ""
-   "-- Glushkov construction of glob patterns."
-   "data PatternF a"
-   "  = Star"
-   "  | Sym##_|_ !Char"
-   "  | Or a a"
-   "  | Seq a a"
-   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
-   "  deriving Pretty via PPGeneric (PatternF a)"
-   "")
-  (tests-utils--multiline
-   ""
-   "-- Glushkov construction of glob patterns."
-   "data PatternF a"
-   "  = Star"
-   "  | Sym##_|_  !Char"
-   "  | Or a a"
-   "  | Seq a a"
-   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
-   "  deriving Pretty via PPGeneric (PatternF a)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-6c
+ :action
+ (execute-kbd-macro (kbd "i SPC <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- Glushkov construction of glob patterns."
+  "data PatternF a"
+  "  = Star"
+  "  | Sym##_|_ !Char"
+  "  | Or a a"
+  "  | Seq a a"
+  "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+  "  deriving Pretty via PPGeneric (PatternF a)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- Glushkov construction of glob patterns."
+  "data PatternF a"
+  "  = Star"
+  "  | Sym##_|_  !Char"
+  "  | Or a a"
+  "  | Seq a a"
+  "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+  "  deriving Pretty via PPGeneric (PatternF a)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-7a
-    (execute-kbd-macro (kbd "i SPC <escape>"))
-  (tests-utils--multiline
-   ""
-   "data Foo = Foo"
-   "  { bar      :: Int"
-   "  , baz##_|_ :: Map String Double"
-   "  , decombobulate :: Colour"
-   "  }"
-   "")
-  (tests-utils--multiline
-   ""
-   "data Foo = Foo"
-   "  { bar      :: Int"
-   "  , baz##_|_  :: Map String Double"
-   "  , decombobulate :: Colour"
-   "  }"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-7a
+ :action
+ (execute-kbd-macro (kbd "i SPC <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "  { bar      :: Int"
+  "  , baz##_|_ :: Map String Double"
+  "  , decombobulate :: Colour"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "  { bar      :: Int"
+  "  , baz##_|_  :: Map String Double"
+  "  , decombobulate :: Colour"
+  "  }"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma-7b
-    (execute-kbd-macro (kbd "i # SPC <escape>"))
-  (tests-utils--multiline
-   ""
-   "data Foo = Foo"
-   "  { bar      :: Int"
-   "  , baz#_|_ :: Map String Double"
-   "  , decombobulate :: Colour"
-   "  }"
-   "")
-  (tests-utils--multiline
-   ""
-   "data Foo = Foo"
-   "  { bar      :: Int"
-   "  , baz# #_|_  :: Map String Double"
-   "  , decombobulate :: Colour"
-   "  }"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-7b
+ :action
+ (execute-kbd-macro (kbd "i # SPC <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "  { bar      :: Int"
+  "  , baz#_|_ :: Map String Double"
+  "  , decombobulate :: Colour"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo"
+  "  { bar      :: Int"
+  "  , baz# #_|_  :: Map String Double"
+  "  , decombobulate :: Colour"
+  "  }"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
@@ -5332,233 +5548,303 @@ _|_bar")
   "(>>=) x = x"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1
-    (execute-kbd-macro (kbd "i SPC <escape>"))
-  (tests-utils--multiline
-   ""
-   "-- ##_|_"
-   "foo :: a -> a"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "-- ##_|_ "
-   "foo :: a -> a"
-   "foo x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1
+ :action
+ (execute-kbd-macro (kbd "i SPC <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- ##_|_"
+  "foo :: a -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- ##_|_ "
+  "foo :: a -> a"
+  "foo x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1a
-    (execute-kbd-macro (kbd "i SPC <escape>"))
-  (tests-utils--multiline
-   ""
-   "x = y ##_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "x = y ##_|_ "
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1a
+ :action
+ (execute-kbd-macro (kbd "i SPC <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "x = y ##_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "x = y ##_|_ "
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1b
-    (execute-kbd-macro (kbd "i SPC"))
-  (tests-utils--multiline
-   ""
-   "test = decombobulate"
-   "   ##_|_ baz"
-   "")
-  (tests-utils--multiline
-   ""
-   "test = decombobulate"
-   "   ## _|_ baz"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1b
+ :action
+ (execute-kbd-macro (kbd "i SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test = decombobulate"
+  "   ##_|_ baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test = decombobulate"
+  "   ## _|_ baz"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-2
-    (execute-kbd-macro (kbd "i # # p r e t t y SPC f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo :: a -> a"
-   "foo x = x_|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: a -> a"
-   "foo x = x ## pretty fo_|_o"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-2
+ :action
+ (execute-kbd-macro (kbd "i # # p r e t t y SPC f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo x = x_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo x = x ## pretty fo_|_o"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--expands-in-instance-1
-    (execute-kbd-macro (kbd "i # # SPC o v e r l a p p i n g <return>"))
-  (tests-utils--multiline
-   ""
-   "instance _|_ Pretty a => PPGenericOverride a where"
-   "  ppGenericOverride = compositeMetaDoc . pretty"
-   "")
-  (tests-utils--multiline
-   ""
-   "instance {-# OVERLAPPING #-}_|_ Pretty a => PPGenericOverride a where"
-   "  ppGenericOverride = compositeMetaDoc . pretty"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--expands-in-instance-1
+ :action
+ (execute-kbd-macro (kbd "i # # SPC o v e r l a p p i n g <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance _|_ Pretty a => PPGenericOverride a where"
+  "  ppGenericOverride = compositeMetaDoc . pretty"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance {-# OVERLAPPING #-}_|_ Pretty a => PPGenericOverride a where"
+  "  ppGenericOverride = compositeMetaDoc . pretty"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--expands-in-data-1a
-    (execute-kbd-macro (kbd "i SPC"))
-  (tests-utils--multiline
-   ""
-   "data DirStream = DirStream"
-   "  { dsHandle   :: ##_|_ !Raw.DirStream"
-   "  , dsIsClosed :: !Counter"
-   "  , dsPath     :: OsPath"
-   "  }"
-   "")
-  (tests-utils--multiline
-   ""
-   "data DirStream = DirStream"
-   "  { dsHandle   :: {-# UNPACK #-}_|_ !Raw.DirStream"
-   "  , dsIsClosed :: !Counter"
-   "  , dsPath     :: OsPath"
-   "  }"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--expands-in-data-1a
+ :action
+ (execute-kbd-macro (kbd "i SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data DirStream = DirStream"
+  "  { dsHandle   :: ##_|_ !Raw.DirStream"
+  "  , dsIsClosed :: !Counter"
+  "  , dsPath     :: OsPath"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data DirStream = DirStream"
+  "  { dsHandle   :: {-# UNPACK #-}_|_ !Raw.DirStream"
+  "  , dsIsClosed :: !Counter"
+  "  , dsPath     :: OsPath"
+  "  }"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode)
-    vim-tests/haskell-abbrev-pragma--expands-in-data-1b
-    (execute-kbd-macro (kbd "i SPC u n p a c k <return>"))
-  (tests-utils--multiline
-   ""
-   "data DirStream = DirStream"
-   "  { dsHandle   ::"
-   "      ##_|_ !Raw.DirStream"
-   "  , dsIsClosed :: !Counter"
-   "  , dsPath     :: OsPath"
-   "  }"
-   "")
-  (tests-utils--multiline
-   ""
-   "data DirStream = DirStream"
-   "  { dsHandle   ::"
-   "      {-# UNPACK #-}_|_ !Raw.DirStream"
-   "  , dsIsClosed :: !Counter"
-   "  , dsPath     :: OsPath"
-   "  }"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--expands-in-data-1b
+ :action
+ (execute-kbd-macro (kbd "i SPC u n p a c k <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data DirStream = DirStream"
+  "  { dsHandle   ::"
+  "      ##_|_ !Raw.DirStream"
+  "  , dsIsClosed :: !Counter"
+  "  , dsPath     :: OsPath"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data DirStream = DirStream"
+  "  { dsHandle   ::"
+  "      {-# UNPACK #-}_|_ !Raw.DirStream"
+  "  , dsIsClosed :: !Counter"
+  "  , dsPath     :: OsPath"
+  "  }"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--expands-in-data-1b
-    (execute-kbd-macro (kbd "i SPC"))
-  (tests-utils--multiline
-   ""
-   "data DirStream = DirStream"
-   "  { dsHandle   ::"
-   "      ##_|_ !Raw.DirStream"
-   "  , dsIsClosed :: !Counter"
-   "  , dsPath     :: OsPath"
-   "  }"
-   "")
-  (tests-utils--multiline
-   ""
-   "data DirStream = DirStream"
-   "  { dsHandle   ::"
-   "      {-# UNPACK #-}_|_ !Raw.DirStream"
-   "  , dsIsClosed :: !Counter"
-   "  , dsPath     :: OsPath"
-   "  }"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--expands-in-data-1b
+ :action
+ (execute-kbd-macro (kbd "i SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data DirStream = DirStream"
+  "  { dsHandle   ::"
+  "      ##_|_ !Raw.DirStream"
+  "  , dsIsClosed :: !Counter"
+  "  , dsPath     :: OsPath"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data DirStream = DirStream"
+  "  { dsHandle   ::"
+  "      {-# UNPACK #-}_|_ !Raw.DirStream"
+  "  , dsIsClosed :: !Counter"
+  "  , dsPath     :: OsPath"
+  "  }"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--expands-in-import-1a
-    (execute-kbd-macro (kbd "i SPC"))
-  (tests-utils--multiline
-   ""
-   "import ##_|_ Foo"
-   "")
-  (tests-utils--multiline
-   ""
-   "import {-# SOURCE #-}_|_ Foo"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--expands-in-import-1a
+ :action
+ (execute-kbd-macro (kbd "i SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import ##_|_ Foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import {-# SOURCE #-}_|_ Foo"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--expands-in-import-1b
-    (execute-kbd-macro (kbd "i SPC"))
-  (tests-utils--multiline
-   ""
-   "import ## _|_Foo"
-   "")
-  (tests-utils--multiline
-   ""
-   "import {-# SOURCE #-}_|_ Foo"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--expands-in-import-1b
+ :action
+ (execute-kbd-macro (kbd "i SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import ## _|_Foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import {-# SOURCE #-}_|_ Foo"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-abbrev-pragma--expands-in-import-1c
-    (execute-kbd-macro (kbd "i SPC"))
-  (tests-utils--multiline
-   ""
-   "import ##_|_Foo"
-   "")
-  (tests-utils--multiline
-   ""
-   "import {-# SOURCE #-}_|_ Foo"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma--expands-in-import-1c
+ :action
+ (execute-kbd-macro (kbd "i SPC"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import ##_|_Foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import {-# SOURCE #-}_|_ Foo"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-insert-quote-1
-    (execute-kbd-macro (kbd "i '"))
-  (tests-utils--multiline
-   ""
-   "foo x_|_ = do"
-   "  bar (x + 1) y"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x'_|_ = do"
-   "  bar (x + 1) y"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-quote-1
+ :action
+ (execute-kbd-macro (kbd "i '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x_|_ = do"
+  "  bar (x + 1) y"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x'_|_ = do"
+  "  bar (x + 1) y"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-insert-quote-2
-    (execute-kbd-macro (kbd "i '"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y _|_"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y '_|_'"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-quote-2
+ :action
+ (execute-kbd-macro (kbd "i '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y '_|_'"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-insert-quote-3
-    (execute-kbd-macro (kbd "i '"))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y \"_|_\""
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (x + 1) y \"'_|_\""
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-quote-3
+ :action
+ (execute-kbd-macro (kbd "i '"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y \"_|_\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  bar (x + 1) y \"'_|_\""
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+(vim-tests--default-test-buffer-contents*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
@@ -5587,329 +5873,404 @@ _|_bar")
     "  bar (x + 1) y \"foo\""
     "")))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-insert-quote-5
-    (execute-kbd-macro (kbd "i ' f o o ' SPC b a r <escape>"))
-  (tests-utils--multiline
-   ""
-   "-- _|_"
-   "foo x = do"
-   "  bar (x + 1) y \"foo\""
-   "")
-  (if (platform-use? 'home)
-      (tests-utils--multiline
-       ""
-       "-- ‘foo’ ba_|_r"
-       "foo x = do"
-       "  bar (x + 1) y \"foo\""
-       "")
-    (tests-utils--multiline
-     ""
-     "-- 'foo' ba_|_r"
-     "foo x = do"
-     "  bar (x + 1) y \"foo\""
-     "")))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-quote-5
+ :action
+ (execute-kbd-macro (kbd "i ' f o o ' SPC b a r <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- _|_"
+  "foo x = do"
+  "  bar (x + 1) y \"foo\""
+  "")
+ :expected-value
+ (if (platform-use? 'home)
+     (tests-utils--multiline
+      ""
+      "-- ‘foo’ ba_|_r"
+      "foo x = do"
+      "  bar (x + 1) y \"foo\""
+      "")
+   (tests-utils--multiline
+    ""
+    "-- 'foo' ba_|_r"
+    "foo x = do"
+    "  bar (x + 1) y \"foo\""
+    "")))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-insert-paren-1
-    (execute-kbd-macro (kbd "i \( x , y \) - > z <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo | any (\\_|_) = _"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo | any (\\(x, y) -> _|_z) = _"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-paren-1
+ :action
+ (execute-kbd-macro (kbd "i \( x , y \) - > z <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo | any (\\_|_) = _"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo | any (\\(x, y) -> _|_z) = _"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-insert-paren-2
-    (execute-kbd-macro (kbd "i \( \\ \( x , y <escape>"))
-  (tests-utils--multiline
-   ""
-   "foo | any _|_ = _"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo | any (\\(x, _|_y)) = _"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-paren-2
+ :action
+ (execute-kbd-macro (kbd "i \( \\ \( x , y <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo | any _|_ = _"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo | any (\\(x, _|_y)) = _"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-end-1
-    (execute-kbd-macro (kbd "g h"))
-  (tests-utils--multiline
-   ""
-   "foo _|_x ="
-   "  bar + 1 +"
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x ="
-   "  bar + 1 +"
-   "    baz (quux x)_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-end-1
+ :action
+ (execute-kbd-macro (kbd "g h"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _|_x ="
+  "  bar + 1 +"
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  bar + 1 +"
+  "    baz (quux x)_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-end-2
-    (execute-kbd-macro (kbd "g h"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> _|_Int"
-   "foo x ="
-   "  bar + 1 +"
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   "foo x ="
-   "  bar + 1 +"
-   "    baz (quux x)_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-end-2
+ :action
+ (execute-kbd-macro (kbd "g h"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> _|_Int"
+  "foo x ="
+  "  bar + 1 +"
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x ="
+  "  bar + 1 +"
+  "    baz (quux x)_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-end-3
-    (execute-kbd-macro (kbd "g h"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> _|_Int"
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux x)_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-end-3
+ :action
+ (execute-kbd-macro (kbd "g h"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> _|_Int"
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux x)_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode)
-    vim-tests/haskell-move-to-topmost-end-3a
-    (execute-kbd-macro (kbd "g h"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> _|_Int"
-   ""
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int_|_"
-   ""
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux x)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-end-3a
+ :action
+ (execute-kbd-macro (kbd "g h"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> _|_Int"
+  ""
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int_|_"
+  ""
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux x)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-end-3b
-    (execute-kbd-macro (kbd "g h"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> _|_Int"
-   ""
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   ""
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux x)_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-end-3b
+ :action
+ (execute-kbd-macro (kbd "g h"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> _|_Int"
+  ""
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  ""
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux x)_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-end-4
-    (execute-kbd-macro (kbd "g h"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> _|_Int"
-   "foo x ="
-   "#if FOO"
-   "  bar + 1 +"
-   "#else"
-   "  bar + 2 +"
-   "#endif"
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   "foo x ="
-   "#if FOO"
-   "  bar + 1 +"
-   "#else"
-   "  bar + 2 +"
-   "#endif"
-   "    baz (quux x)_|_"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-end-4
+ :action
+ (execute-kbd-macro (kbd "g h"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> _|_Int"
+  "foo x ="
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +"
+  "#endif"
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x ="
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +"
+  "#endif"
+  "    baz (quux x)_|_"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode)
-    vim-tests/haskell-move-to-topmost-start-1a
-    (execute-kbd-macro (kbd "g t"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   "foo x ="
-   "#if FOO"
-   "  bar + 1 +"
-   "#else"
-   "  bar + 2 +_|_"
-   "#endif"
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   "_|_foo x ="
-   "#if FOO"
-   "  bar + 1 +"
-   "#else"
-   "  bar + 2 +"
-   "#endif"
-   "    baz (quux x)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-start-1a
+ :action
+ (execute-kbd-macro (kbd "g t"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x ="
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +_|_"
+  "#endif"
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "_|_foo x ="
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +"
+  "#endif"
+  "    baz (quux x)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-start-1b
-    (execute-kbd-macro (kbd "g t"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   "foo x ="
-   "#if FOO"
-   "  bar + 1 +"
-   "#else"
-   "  bar + 2 +_|_"
-   "#endif"
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "_|_foo :: Int -> Int"
-   "foo x ="
-   "#if FOO"
-   "  bar + 1 +"
-   "#else"
-   "  bar + 2 +"
-   "#endif"
-   "    baz (quux x)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-start-1b
+ :action
+ (execute-kbd-macro (kbd "g t"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x ="
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +_|_"
+  "#endif"
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_foo :: Int -> Int"
+  "foo x ="
+  "#if FOO"
+  "  bar + 1 +"
+  "#else"
+  "  bar + 2 +"
+  "#endif"
+  "    baz (quux x)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode)
-    vim-tests/haskell-move-to-topmost-start-2a
-    (execute-kbd-macro (kbd "g t"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   ""
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux _|_x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   ""
-   "_|_foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux x)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-start-2a
+ :action
+ (execute-kbd-macro (kbd "g t"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  ""
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux _|_x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  ""
+  "_|_foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux x)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-start-2b
-    (execute-kbd-macro (kbd "g t"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   ""
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux _|_x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "_|_foo :: Int -> Int"
-   ""
-   "foo x ="
-   ""
-   "  bar + 1 +"
-   ""
-   "    baz (quux x)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-start-2b
+ :action
+ (execute-kbd-macro (kbd "g t"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  ""
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux _|_x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_foo :: Int -> Int"
+  ""
+  "foo x ="
+  ""
+  "  bar + 1 +"
+  ""
+  "    baz (quux x)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-end-position-saving-1
-    (execute-kbd-macro (kbd "g h M"))
-  (tests-utils--multiline
-   ""
-   "foo _|_x ="
-   "  bar + 1 +"
-   "    baz (quux x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo _|_x ="
-   "  bar + 1 +"
-   "    baz (quux x)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-end-position-saving-1
+ :action
+ (execute-kbd-macro (kbd "g h M"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _|_x ="
+  "  bar + 1 +"
+  "    baz (quux x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo _|_x ="
+  "  bar + 1 +"
+  "    baz (quux x)"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-move-to-topmost-start-position-saving-1
-    (execute-kbd-macro (kbd "g t M"))
-  (tests-utils--multiline
-   ""
-   "foo x ="
-   "  bar + 1 +"
-   "    baz (quux _|_x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x ="
-   "  bar + 1 +"
-   "    baz (quux _|_x)"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-move-to-topmost-start-position-saving-1
+ :action
+ (execute-kbd-macro (kbd "g t M"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  bar + 1 +"
+  "    baz (quux _|_x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  bar + 1 +"
+  "    baz (quux _|_x)"
+  ""))
 
 (ert-deftest vim-tests/c-open-paren-1 ()
   (vim-tests--test-fresh-buffer-contents-init
@@ -5949,904 +6310,1425 @@ _|_bar")
      "}"
      "")))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-open-paren-in-export
-    (execute-kbd-macro (kbd "i ( <escape>"))
-  (tests-utils--multiline
-   ""
-   "module Foo"
-   "  ( Bar_|_"
-   "  , Baz"
-   "  ) where"
-   "")
-  (tests-utils--multiline
-   ""
-   "module Foo"
-   "  ( Bar_|_()"
-   "  , Baz"
-   "  ) where"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-open-paren-in-import
-    (execute-kbd-macro (kbd "i ( <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Foo (Bar_|_, Baz)"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Foo (Bar_|_(), Baz)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-below-1
-    (execute-kbd-macro (kbd "o f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "import Data._|_List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "import Data.List"
-   "fo_|_o"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-below-2
-    (execute-kbd-macro (kbd "o f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- import Data._|_List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- import Data.List"
-   "-- fo_|_o"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-below-3
-    (execute-kbd-macro (kbd "o f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "--_|_ import Data.List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- import Data.List"
-   "-- fo_|_o"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-below-4
-    (execute-kbd-macro (kbd "o f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-_|_- import Data.List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- import Data.List"
-   "-- fo_|_o"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-below-5
-    (execute-kbd-macro (kbd "o f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "_|_-- import Data.List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- import Data.List"
-   "-- fo_|_o"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-above-1
-    (execute-kbd-macro (kbd "O f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "import Data._|_List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "fo_|_o"
-   "import Data.List"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-above-2
-    (execute-kbd-macro (kbd "O f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- import Data._|_List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- fo_|_o"
-   "-- import Data.List"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-above-3
-    (execute-kbd-macro (kbd "O f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "--_|_ import Data.List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- fo_|_o"
-   "-- import Data.List"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-above-4
-    (execute-kbd-macro (kbd "O f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-_|_- import Data.List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- fo_|_o"
-   "-- import Data.List"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-cmd-insert-line-above-5
-    (execute-kbd-macro (kbd "O f o o <escape>"))
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "_|_-- import Data.List"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Control.Monad"
-   "-- fo_|_o"
-   "-- import Data.List"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-uncomment-region-1
-    (execute-kbd-macro (kbd "j c u"))
-  (tests-utils--multiline
-   ""
-   "-- abc"
-   ""
-   "-- def"
-   "--  xyz"
-   "-- fo_|_o"
-   "-- bar"
-   "")
-  (tests-utils--multiline
-   ""
-   "-- abc"
-   ""
-   "def"
-   " xyz"
-   "fo_|_o"
-   "bar"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-uncomment-region-2
-    (execute-kbd-macro (kbd "j c u"))
-  (tests-utils--multiline
-   ""
-   "  -- abc"
-   ""
-   "  -- def"
-   "  --  xyz"
-   "  -- fo_|_o"
-   "  -- bar"
-   "")
-  (tests-utils--multiline
-   ""
-   "  -- abc"
-   ""
-   "  def"
-   "   xyz"
-   "  fo_|_o"
-   "  bar"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-uncomment-selected-region-1
-    (execute-kbd-macro (kbd "h V h h j c u"))
-  (tests-utils--multiline
-   ""
-   "-- _|_abc"
-   "--  def"
-   "-- xyz"
-   "-- foo"
-   "-- bar"
-   "")
-  (tests-utils--multiline
-   ""
-   "-- abc"
-   " def"
-   "xyz"
-   "_|_foo"
-   "-- bar"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-uncomment-selected-region-2
-    (execute-kbd-macro (kbd "h V h h j c u"))
-  (tests-utils--multiline
-   ""
-   "  -- _|_abc"
-   "  --  def"
-   "  -- xyz"
-   "  -- foo"
-   "  -- bar"
-   "")
-  (tests-utils--multiline
-   ""
-   "  -- abc"
-   "   def"
-   "  xyz"
-   "  _|_foo"
-   "  -- bar"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-1
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo (_|_) bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-1a
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo (_|_) bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-1b
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo (_|_) bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-1c
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo (_|_) bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-2
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo [_|_] bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-2a
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo [_|_] bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-2b
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo [_|_] bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-2c
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo [_|_] bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-3
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo{_|_}bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-3a
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo {_|_}bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-3b
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo{_|_} bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-3c
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo {_|_} bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-3
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo {_|_} bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-3a
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo {_|_} bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-3b
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo {_|_} bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-3c
-    (execute-kbd-macro (kbd "i \{"))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo {_|_} bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-4
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo \"_|_\" bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-4a
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo \"_|_\" bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-4b
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo \"_|_\" bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
-    vim-tests/pseudoparedit-4c
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo \"_|_\" bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-5
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo (_|_) bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-5a
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo (_|_) bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-5b
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo (_|_) bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/pseudoparedit-5c
-    (execute-kbd-macro (kbd "i \("))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo (_|_) bar" ""))
-
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-6
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo[_|_]bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-6a
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo [_|_]bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-6b
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo[_|_] bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-6c
-    (execute-kbd-macro (kbd "i \["))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo [_|_] bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-8
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo\"_|_\"bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-8a
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo \"_|_\"bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-8b
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo\"_|_\" bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-8c
-    (execute-kbd-macro (kbd "i \""))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo \"_|_\" bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode c-mode rust-ts-mode)
-    vim-tests/pseudoparedit-8d
-    (execute-kbd-macro (kbd "i \" x \""))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo \"x\"_|_ bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/pseudoparedit-backspace-deletes-pairs-1
-    (pseudoparedit-backspace)
-  (tests-utils--multiline "" "foo (_|_) bar" "")
-  (tests-utils--multiline "" "foo _|_ bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/pseudoparedit-backspace-deletes-pairs-2
-    (pseudoparedit-backspace)
-  (tests-utils--multiline "" "foo (_|_ ) bar" "")
-  (tests-utils--multiline "" "foo _|_ bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/pseudoparedit-backspace-deletes-pairs-3
-    (pseudoparedit-backspace)
-  (tests-utils--multiline "" "foo [_|_] bar" "")
-  (tests-utils--multiline "" "foo _|_ bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/pseudoparedit-backspace-deletes-pairs-4
-    (pseudoparedit-backspace)
-  (tests-utils--multiline "" "foo {_|_} bar" "")
-  (tests-utils--multiline "" "foo _|_ bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/pseudoparedit-backspace-deletes-pairs-5
-    (pseudoparedit-backspace)
-  (tests-utils--multiline "" "foo \"_|_\" bar" "")
-  (tests-utils--multiline "" "foo _|_ bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-1
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = _|_0 + bar" "")
-  (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-2
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = _|_0 + bar" "")
-  (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-3
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = 0_|_0 + bar" "")
-  (tests-utils--multiline "" "foo = 01_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-4
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = 0_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 02_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-5
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = _|_11 + bar" "")
-  (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-6
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-7
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = 11_|_ + bar" "")
-  (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-8
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = -11_|_ + bar" "")
-  (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-9
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = -1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-10
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = -_|_11 + bar" "")
-  (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-11a
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = _|_-11 + bar" "")
-  (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-11b
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = _|_-011 + bar" "")
-  (tests-utils--multiline "" "foo = -010_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-12
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = +11_|_ + bar" "")
-  (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-13
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = +1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-14
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = +_|_11 + bar" "")
-  (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-15
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = _|_+11 + bar" "")
-  (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-16
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = _|_+11.2e-5 + bar" "")
-  (tests-utils--multiline "" "foo = +12_|_.2e-5 + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-17
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = +11_|_.2e-5 + bar" "")
-  (tests-utils--multiline "" "foo = +12_|_.2e-5 + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-18
-    (execute-kbd-macro (kbd "+"))
-  (tests-utils--multiline "" "foo = 2026-01-0_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 2026-01-02_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-is-repeatable-1
-    (execute-kbd-macro (kbd "+ ."))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 13_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-takes-numeric-arg-1
-    (execute-kbd-macro (kbd "5 +"))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 16_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-takes-numeric-arg-2
-    (execute-kbd-macro (kbd "5 + ."))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 21_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-at-point-takes-numeric-arg-3
-    (execute-kbd-macro (kbd "5 + 4 ."))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 36_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-region-1
-    (execute-kbd-macro (kbd "v +"))
-  (tests-utils--multiline "" "foo = 1_|_9 + bar" "")
-  (tests-utils--multiline "" "foo = 110_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/increment-region-2
-    (execute-kbd-macro (kbd "v n +"))
-  (tests-utils--multiline "" "foo = foo-_|_19 + bar" "")
-  (tests-utils--multiline "" "foo = foo-20_|_ + bar"  ""))
-
-
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-1
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = _|_0 + bar" "")
-  (tests-utils--multiline "" "foo = -1_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-2
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = _|_0 + bar" "")
-  (tests-utils--multiline "" "foo = -1_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-3
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = 0_|_0 + bar" "")
-  (tests-utils--multiline "" "foo = -1_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-4
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = 0_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 00_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-5
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = _|_11 + bar" "")
-  (tests-utils--multiline "" "foo = 10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-6
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-7
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = 11_|_ + bar" "")
-  (tests-utils--multiline "" "foo = 10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-8
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = -11_|_ + bar" "")
-  (tests-utils--multiline "" "foo = -12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-9
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = -1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = -12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-10
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = -_|_11 + bar" "")
-  (tests-utils--multiline "" "foo = -12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-11a
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = _|_-11 + bar" "")
-  (tests-utils--multiline "" "foo = -12_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-11b
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = _|_-011 + bar" "")
-  (tests-utils--multiline "" "foo = -012_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-12
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = +11_|_ + bar" "")
-  (tests-utils--multiline "" "foo = +10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-13
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = +1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = +10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-14
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = +_|_11 + bar" "")
-  (tests-utils--multiline "" "foo = +10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-15
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = _|_+11 + bar" "")
-  (tests-utils--multiline "" "foo = +10_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-16
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = _|_+11.2e-5 + bar" "")
-  (tests-utils--multiline "" "foo = +10_|_.2e-5 + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-17
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = +11_|_.2e-5 + bar" "")
-  (tests-utils--multiline "" "foo = +10_|_.2e-5 + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-18
-    (execute-kbd-macro (kbd "="))
-  (tests-utils--multiline "" "foo = 2026-01-0_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 2026-01-00_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-is-repeatable-1
-    (execute-kbd-macro (kbd "= ."))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 9_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-takes-numeric-arg-1
-    (execute-kbd-macro (kbd "5 ="))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 6_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-takes-numeric-arg-2
-    (execute-kbd-macro (kbd "5 = ."))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-at-point-takes-numeric-arg-3
-    (execute-kbd-macro (kbd "5 = 4 ."))
-  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
-  (tests-utils--multiline "" "foo = -14_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-region-1
-    (execute-kbd-macro (kbd "v ="))
-  (tests-utils--multiline "" "foo = 1_|_9 + bar" "")
-  (tests-utils--multiline "" "foo = 18_|_ + bar"  ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/decrement-region-2
-    (execute-kbd-macro (kbd "v n ="))
-  (tests-utils--multiline "" "foo = foo-_|_19 + bar" "")
-  (tests-utils--multiline "" "foo = foo-18_|_ + bar"  ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-open-paren-in-export
+ :action
+ (execute-kbd-macro (kbd "i ( <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( Bar_|_"
+  "  , Baz"
+  "  ) where"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( Bar_|_()"
+  "  , Baz"
+  "  ) where"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-open-paren-in-import
+ :action
+ (execute-kbd-macro (kbd "i ( <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Foo (Bar_|_, Baz)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Foo (Bar_|_(), Baz)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-below-1
+ :action
+ (execute-kbd-macro (kbd "o f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "import Data._|_List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "import Data.List"
+  "fo_|_o"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-below-2
+ :action
+ (execute-kbd-macro (kbd "o f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- import Data._|_List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- import Data.List"
+  "-- fo_|_o"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-below-3
+ :action
+ (execute-kbd-macro (kbd "o f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "--_|_ import Data.List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- import Data.List"
+  "-- fo_|_o"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-below-4
+ :action
+ (execute-kbd-macro (kbd "o f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-_|_- import Data.List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- import Data.List"
+  "-- fo_|_o"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-below-5
+ :action
+ (execute-kbd-macro (kbd "o f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "_|_-- import Data.List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- import Data.List"
+  "-- fo_|_o"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-above-1
+ :action
+ (execute-kbd-macro (kbd "O f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "import Data._|_List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "fo_|_o"
+  "import Data.List"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-above-2
+ :action
+ (execute-kbd-macro (kbd "O f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- import Data._|_List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- fo_|_o"
+  "-- import Data.List"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-above-3
+ :action
+ (execute-kbd-macro (kbd "O f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "--_|_ import Data.List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- fo_|_o"
+  "-- import Data.List"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-above-4
+ :action
+ (execute-kbd-macro (kbd "O f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-_|_- import Data.List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- fo_|_o"
+  "-- import Data.List"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-cmd-insert-line-above-5
+ :action
+ (execute-kbd-macro (kbd "O f o o <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "_|_-- import Data.List"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad"
+  "-- fo_|_o"
+  "-- import Data.List"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-uncomment-region-1
+ :action
+ (execute-kbd-macro (kbd "j c u"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- abc"
+  ""
+  "-- def"
+  "--  xyz"
+  "-- fo_|_o"
+  "-- bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- abc"
+  ""
+  "def"
+  " xyz"
+  "fo_|_o"
+  "bar"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-uncomment-region-2
+ :action
+ (execute-kbd-macro (kbd "j c u"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "  -- abc"
+  ""
+  "  -- def"
+  "  --  xyz"
+  "  -- fo_|_o"
+  "  -- bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "  -- abc"
+  ""
+  "  def"
+  "   xyz"
+  "  fo_|_o"
+  "  bar"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-uncomment-selected-region-1
+ :action
+ (execute-kbd-macro (kbd "h V h h j c u"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- _|_abc"
+  "--  def"
+  "-- xyz"
+  "-- foo"
+  "-- bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- abc"
+  " def"
+  "xyz"
+  "_|_foo"
+  "-- bar"
+  "")
+ :fresh-buffer t)
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-uncomment-selected-region-2
+ :action
+ (execute-kbd-macro (kbd "h V h h j c u"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "  -- _|_abc"
+  "  --  def"
+  "  -- xyz"
+  "  -- foo"
+  "  -- bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "  -- abc"
+  "   def"
+  "  xyz"
+  "  _|_foo"
+  "  -- bar"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-1
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline "" "foo_|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo (_|_) bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-1a
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline "" "foo _|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo (_|_) bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-1b
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline "" "foo_|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo (_|_) bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-1c
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo (_|_) bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-2
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline "" "foo_|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo [_|_] bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-2a
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline "" "foo _|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo [_|_] bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-2b
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline "" "foo_|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo [_|_] bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-2c
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo [_|_] bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-3
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline "" "foo_|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo{_|_}bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-3a
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline "" "foo _|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo {_|_}bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-3b
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline "" "foo_|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo{_|_} bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-3c
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-3
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline "" "foo_|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-3a
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline "" "foo _|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-3b
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline "" "foo_|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-3c
+ :action
+ (execute-kbd-macro (kbd "i \{"))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-4
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline "" "foo_|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo \"_|_\" bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-4a
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline "" "foo _|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo \"_|_\" bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-4b
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline "" "foo_|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo \"_|_\" bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode emacs-lisp-mode)
+ :name
+ vim-tests/pseudoparedit-4c
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo \"_|_\" bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-5
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline "" "foo_|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo (_|_) bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-5a
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline "" "foo _|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo (_|_) bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-5b
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline "" "foo_|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo (_|_) bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/pseudoparedit-5c
+ :action
+ (execute-kbd-macro (kbd "i \("))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo (_|_) bar" ""))
+
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-6
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline "" "foo_|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo[_|_]bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-6a
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline "" "foo _|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo [_|_]bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-6b
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline "" "foo_|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo[_|_] bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-6c
+ :action
+ (execute-kbd-macro (kbd "i \["))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo [_|_] bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-8
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline "" "foo_|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo\"_|_\"bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-8a
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline "" "foo _|_bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo \"_|_\"bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-8b
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline "" "foo_|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo\"_|_\" bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-8c
+ :action
+ (execute-kbd-macro (kbd "i \""))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo \"_|_\" bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode c-mode rust-ts-mode)
+ :name
+ vim-tests/pseudoparedit-8d
+ :action
+ (execute-kbd-macro (kbd "i \" x \""))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo \"x\"_|_ bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/pseudoparedit-backspace-deletes-pairs-1
+ :action
+ (pseudoparedit-backspace)
+ :contents
+ (tests-utils--multiline "" "foo (_|_) bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/pseudoparedit-backspace-deletes-pairs-2
+ :action
+ (pseudoparedit-backspace)
+ :contents
+ (tests-utils--multiline "" "foo (_|_ ) bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/pseudoparedit-backspace-deletes-pairs-3
+ :action
+ (pseudoparedit-backspace)
+ :contents
+ (tests-utils--multiline "" "foo [_|_] bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/pseudoparedit-backspace-deletes-pairs-4
+ :action
+ (pseudoparedit-backspace)
+ :contents
+ (tests-utils--multiline "" "foo {_|_} bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/pseudoparedit-backspace-deletes-pairs-5
+ :action
+ (pseudoparedit-backspace)
+ :contents
+ (tests-utils--multiline "" "foo \"_|_\" bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-1
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = _|_0 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-2
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = _|_0 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-3
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = 0_|_0 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 01_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-4
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = 0_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 02_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-5
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = _|_11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-6
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-7
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = 11_|_ + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-8
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = -11_|_ + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-9
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = -1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-10
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = -_|_11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-11a
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = _|_-11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-11b
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = _|_-011 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -010_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-12
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = +11_|_ + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-13
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = +1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-14
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = +_|_11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-15
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = _|_+11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-16
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = _|_+11.2e-5 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +12_|_.2e-5 + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-17
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = +11_|_.2e-5 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +12_|_.2e-5 + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-18
+ :action
+ (execute-kbd-macro (kbd "+"))
+ :contents
+ (tests-utils--multiline "" "foo = 2026-01-0_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 2026-01-02_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-is-repeatable-1
+ :action
+ (execute-kbd-macro (kbd "+ ."))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 13_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-takes-numeric-arg-1
+ :action
+ (execute-kbd-macro (kbd "5 +"))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 16_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-takes-numeric-arg-2
+ :action
+ (execute-kbd-macro (kbd "5 + ."))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 21_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-at-point-takes-numeric-arg-3
+ :action
+ (execute-kbd-macro (kbd "5 + 4 ."))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 36_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-region-1
+ :action
+ (execute-kbd-macro (kbd "v +"))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_9 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 110_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/increment-region-2
+ :action
+ (execute-kbd-macro (kbd "v n +"))
+ :contents
+ (tests-utils--multiline "" "foo = foo-_|_19 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = foo-20_|_ + bar"  ""))
+
+
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-1
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = _|_0 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -1_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-2
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = _|_0 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -1_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-3
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = 0_|_0 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -1_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-4
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = 0_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 00_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-5
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = _|_11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-6
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-7
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = 11_|_ + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-8
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = -11_|_ + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-9
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = -1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-10
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = -_|_11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-11a
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = _|_-11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -12_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-11b
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = _|_-011 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -012_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-12
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = +11_|_ + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-13
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = +1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-14
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = +_|_11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-15
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = _|_+11 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +10_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-16
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = _|_+11.2e-5 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +10_|_.2e-5 + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-17
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = +11_|_.2e-5 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = +10_|_.2e-5 + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-18
+ :action
+ (execute-kbd-macro (kbd "="))
+ :contents
+ (tests-utils--multiline "" "foo = 2026-01-0_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 2026-01-00_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-is-repeatable-1
+ :action
+ (execute-kbd-macro (kbd "= ."))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 9_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-takes-numeric-arg-1
+ :action
+ (execute-kbd-macro (kbd "5 ="))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 6_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-takes-numeric-arg-2
+ :action
+ (execute-kbd-macro (kbd "5 = ."))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-at-point-takes-numeric-arg-3
+ :action
+ (execute-kbd-macro (kbd "5 = 4 ."))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = -14_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-region-1
+ :action
+ (execute-kbd-macro (kbd "v ="))
+ :contents
+ (tests-utils--multiline "" "foo = 1_|_9 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = 18_|_ + bar"  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/decrement-region-2
+ :action
+ (execute-kbd-macro (kbd "v n ="))
+ :contents
+ (tests-utils--multiline "" "foo = foo-_|_19 + bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo = foo-18_|_ + bar"  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/ex-align-1
@@ -6896,1209 +7778,1540 @@ _|_bar")
    "_|_quux =  3=         30"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/cmd-shift-right-1
-    (execute-kbd-macro (kbd "> >"))
-  (tests-utils--multiline
-   ""
-   "foo"
-   " bar"
-   "_|_  baz"
-   " quux"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo"
-   " bar"
-   "_|_    baz"
-   " quux"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/cmd-shift-right-2
-    (execute-kbd-macro (kbd "h v h >"))
-  (tests-utils--multiline
-   ""
-   "_|_foo"
-   " bar"
-   "  baz"
-   " quux"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo"
-   "   bar"
-   "_|_    baz"
-   " quux"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/cmd-shift-right-3
-    (execute-kbd-macro (kbd "h v h > > >"))
-  (tests-utils--multiline
-   ""
-   "_|_foo"
-   " bar"
-   "  baz"
-   " quux"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo"
-   "       bar"
-   "_|_        baz"
-   " quux"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/cmd-shift-left-1
-    (execute-kbd-macro (kbd "< <"))
-  (tests-utils--multiline
-   ""
-   "foo"
-   "_|_       bar"
-   "        baz"
-   " quux"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo"
-   "_|_     bar"
-   "        baz"
-   " quux"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/cmd-shift-left-2
-    (execute-kbd-macro (kbd "V h <"))
-  (tests-utils--multiline
-   ""
-   "foo"
-   "_|_       bar"
-   "        baz"
-   " quux"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo"
-   "     bar"
-   "_|_      baz"
-   " quux"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/cmd-shift-left-3
-    (execute-kbd-macro (kbd "V h < <"))
-  (tests-utils--multiline
-   ""
-   "foo"
-   "_|_       bar"
-   "        baz"
-   " quux"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo"
-   "   bar"
-   "_|_    baz"
-   " quux"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (text-mode)
-    vim-tests/motion-down-1
-    (execute-kbd-macro (kbd "h"))
-  (tests-utils--multiline
-   ""
-   "\t\t_|_foo"
-   "\t\tbar"
-   "\t\tbaz"
-   "")
-  (tests-utils--multiline
-   ""
-   "\t\tfoo"
-   "\t\t_|_bar"
-   "\t\tbaz"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-hsc-mode)
-    vim-tests/haskell-hsc-pragma-insertion
-    (execute-kbd-macro (kbd "i # \{ c o n s t"))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo #{const_|_} bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
-    vim-tests/regular-haskell-pragma-insertion
-    (execute-kbd-macro (kbd "i # \{ c o n s t"))
-  (tests-utils--multiline "" "foo _|_ bar" "")
-  (tests-utils--multiline "" "foo # {const_|_} bar" ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-1
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo _|_bar = putStrLn $ bar ++ \"... OK\" "
-   "")
-  (tests-utils--multiline
-   ""
-   "foo bar = putStrLn $ bar_|_ ++ \"... OK\" "
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-2
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo _|_bar = putStrLn $ bar' ++ bar ++ \"... OK\" "
-   "  where"
-   "    bar' = \"decombobulate\""
-   "")
-  (tests-utils--multiline
-   ""
-   "foo bar = putStrLn $ bar' ++ bar_|_ ++ \"... OK\" "
-   "  where"
-   "    bar' = \"decombobulate\""
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-3
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo _|_x=x:Node(x-1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x=x_|_:Node(x-1)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-4
-    (execute-kbd-macro (kbd "* u"))
-  (tests-utils--multiline
-   ""
-   "foo _|_x=x:Node(x-1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x=x:Node(x_|_-1)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-5
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "data Node = N_|_ode Int"
-   ""
-   "foo x=x:Node(x-1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "data Node = Node Int"
-   ""
-   "foo x=x:Node_|_(x-1)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-6
-    (execute-kbd-macro (kbd "#"))
-  (tests-utils--multiline
-   ""
-   "data Node = Node Int"
-   ""
-   "foo x=x:No_|_de(x-1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "data Node = _|_Node Int"
-   ""
-   "foo x=x:Node(x-1)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-7
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo x=x_|_:Node(x:xs)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x=x:Node(x:_|_xs)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-8
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo x = Foo.Bar.de_|_combobulate x + decombobulate y"
-   "  where"
-   "    y = Foo.Bar.decombobulate (x + x)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = Foo.Bar.decombobulate x + decombobulate y"
-   "  where"
-   "    y = Foo.Bar.decombobulate_|_ (x + x)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-9
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "import Codec.CBOR.Read qualified as _|_CBOR"
-   ""
-   "foo :: CBOR.DeserialiseFailure -> IO a"
-   "foo = undefined"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Codec.CBOR.Read qualified as CBOR"
-   ""
-   "foo :: CBOR_|_.DeserialiseFailure -> IO a"
-   "foo = undefined"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-9a
-    (execute-kbd-macro (kbd "* u"))
-  (tests-utils--multiline
-   ""
-   "import Codec.CBOR.Read qualified as _|_CBOR"
-   ""
-   "foo :: CBOR.DeserialiseFailure -> IO a"
-   "foo = undefined"
-   "")
-  (tests-utils--multiline
-   ""
-   "import Codec.CBOR_|_.Read qualified as CBOR"
-   ""
-   "foo :: CBOR.DeserialiseFailure -> IO a"
-   "foo = undefined"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-10
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo :: Id 'Fo_|_o -> Int"
-   "foo = undefined"
-   ""
-   "bar :: Id 'Foo -> Int"
-   "bar = undefined"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Id 'Foo -> Int"
-   "foo = undefined"
-   ""
-   "bar :: Id 'Foo_|_ -> Int"
-   "bar = undefined"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-10a
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo :: Id Fo_|_o' -> Int"
-   "foo = undefined"
-   ""
-   "baz :: Foo -> Int"
-   "baz = undefined"
-   ""
-   "bar :: Id Foo' -> Int"
-   "bar = undefined"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Id Foo' -> Int"
-   "foo = undefined"
-   ""
-   "baz :: Foo -> Int"
-   "baz = undefined"
-   ""
-   "bar :: Id Foo'_|_ -> Int"
-   "bar = undefined"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-10b
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo :: Id 'Fo_|_o -> Int"
-   "foo = undefined"
-   ""
-   "bar :: Foo -> Int"
-   "bar = undefined"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Id 'Foo -> Int"
-   "foo = undefined"
-   ""
-   "bar :: Foo_|_ -> Int"
-   "bar = undefined"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-10c
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo :: Id 'Fo_|_o -> Int"
-   "foo = undefined"
-   ""
-   "baz :: Foo' -> Int"
-   "baz = undefined"
-   ""
-   "bar :: Foo -> Int"
-   "bar = undefined"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Id 'Foo -> Int"
-   "foo = undefined"
-   ""
-   "baz :: Foo' -> Int"
-   "baz = undefined"
-   ""
-   "bar :: Foo_|_ -> Int"
-   "bar = undefined"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-10d
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo :: Id ''Fo_|_o -> Int"
-   "foo = undefined"
-   ""
-   "bar :: Id ''Foo -> Int"
-   "bar = undefined"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Id ''Foo -> Int"
-   "foo = undefined"
-   ""
-   "bar :: Id ''Foo_|_ -> Int"
-   "bar = undefined"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-10e
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo :: Id ''Fo_|_o -> Int"
-   "foo = undefined"
-   ""
-   "bar :: Id 'Foo -> Int"
-   "bar = undefined"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: Id ''Foo -> Int"
-   "foo = undefined"
-   ""
-   "bar :: Id 'Foo_|_ -> Int"
-   "bar = undefined"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--search-for-haskell-symbol-at-point-11
-    (execute-kbd-macro (kbd "*"))
-  (tests-utils--multiline
-   ""
-   "foo :: XXX -> Int"
-   "foo x = x + _|_1000"
-   ""
-   "bar :: Int"
-   "bar = 1000"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo :: XXX -> Int"
-   "foo x = x + 1000"
-   ""
-   "bar :: Int"
-   "bar = 1000_|_"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-pragma-1
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "_|_{-# INLINE foo #-}"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-_|_}"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-pragma-2
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "data AlexInput = AlexInput"
-   "  { aiInput    :: !Text"
-   "  , aiPrevChar :: _|_{-# UNPACK #-} !Char"
-   "  , aiBytes    :: [Word8]"
-   "  , aiLine     :: {-# UNPACK #-} !Line"
-   "  , aiColumn   :: {-# UNPACK #-} !Column"
-   "  } deriving (Show, Eq, Ord)"
-   "")
-  (tests-utils--multiline
-   ""
-   "data AlexInput = AlexInput"
-   "  { aiInput    :: !Text"
-   "  , aiPrevChar :: {-# UNPACK #-_|_} !Char"
-   "  , aiBytes    :: [Word8]"
-   "  , aiLine     :: {-# UNPACK #-} !Line"
-   "  , aiColumn   :: {-# UNPACK #-} !Column"
-   "  } deriving (Show, Eq, Ord)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-char-1
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_(bar ')' + 1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = (bar ')' + 1_|_)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-string-1
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_(bar \")\" + 1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = (bar \")\" + 1_|_)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-multiline-string-1
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "foo = _|_(bar 41 \" )bb\\"
-   "              \\ aa\" + 1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo = (bar 41 \" )bb\\"
-   "              \\ aa\" + 1_|_)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-multiline-string-2
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "foo = _|_(bar 41 \" bb\\"
-   "              \\ )aa\" + 1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo = (bar 41 \" bb\\"
-   "              \\ )aa\" + 1_|_)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-comment-1
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_(bar 41 {- ) -} + 1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = (bar 41 {- ) -} + 1_|_)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-comment-2
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_(bar 41 -- )"
-   "              + 1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = (bar 41 -- )"
-   "              + 1_|_)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-comment-3
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "-- _|_(foo bar)"
-   "")
-  (tests-utils--multiline
-   ""
-   "-- (foo bar_|_)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-comment-4
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "-- (foo bar_|_)"
-   "")
-  (tests-utils--multiline
-   ""
-   "-- _|_(foo bar)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-comment-5
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "test3 x = () (bar 41 -- )"
-   "               + 1)"
-   ""
-   "  {-# INLINE foo #-_|_}"
-   "")
-  (tests-utils--multiline
-   ""
-   "test3 x = () (bar 41 -- )"
-   "               + 1)"
-   ""
-   "  _|_{-# INLINE foo #-}"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-quasiquote-1
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_(bar [megachar| ) |] + 1)"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = (bar [megachar| ) |] + 1_|_)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell--motion-jump-item-quoting-quasiquote-2
-    (execute-kbd-macro (kbd "m"))
-  (tests-utils--multiline
-   ""
-   "foo x = _|_[f| 1 + x|] + 1"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = [f| 1 + x|_|_] + 1"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-1
-    (execute-kbd-macro (kbd "C-r y z <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test _|_x = do"
-   "  y <- frobnicator"
-   "  pure $ x + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test xyz_|_ = do"
-   "  y <- frobnicator"
-   "  pure $ xyz + y + xyz"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-1a
-    (execute-kbd-macro (kbd "C-r y z <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test = \\_|_x -> do"
-   "  y <- frobnicator"
-   "  pure $ x + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test = \\xyz_|_ -> do"
-   "  y <- frobnicator"
-   "  pure $ xyz + y + xyz"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-2
-    (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test _|_x = do"
-   "  y <- frobnicator"
-   "  pure $ x + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test abc_|_ = do"
-   "  y <- frobnicator"
-   "  pure $ abc + y + abc"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-2a
-    (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test = \\_|_x -> do"
-   "  y <- frobnicator"
-   "  pure $ x + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test = \\abc_|_ -> do"
-   "  y <- frobnicator"
-   "  pure $ abc + y + abc"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-3
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test x = do"
-   "  y <- frobnicator"
-   "  pure $ (x :: _|_a) + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall abc. [abc] -> [(abc, abc)]"
-   "test x = do"
-   "  y <- frobnicator"
-   "  pure $ (x :: abc_|_) + y + x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-3a
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: _|_a) + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall abc. [abc] -> [(abc, abc)]"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: abc_|_) + y + x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-4
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "-- inconvenient comment"
-   "test x = do"
-   "  y <- frobnicator"
-   "  pure $ (x :: _|_a) + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall abc. [abc] -> [(abc, abc)]"
-   "-- inconvenient comment"
-   "test x = do"
-   "  y <- frobnicator"
-   "  pure $ (x :: abc_|_) + y + x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-4a
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [a] -> [(a, a)]"
-   "-- inconvenient comment"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: _|_a) + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall abc. [abc] -> [(abc, abc)]"
-   "-- inconvenient comment"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: abc_|_) + y + x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-5
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [_|_a] -> [(a, a)]"
-   "-- inconvenient comment"
-   "test x = do"
-   "  y <- frobnicator"
-   "  pure $ (x :: a) + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall abc. [abc_|_] -> [(abc, abc)]"
-   "-- inconvenient comment"
-   "test x = do"
-   "  y <- frobnicator"
-   "  pure $ (x :: abc) + y + x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-5a
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [_|_a] -> [(a, a)]"
-   "-- inconvenient comment"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: a) + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall abc. [abc_|_] -> [(abc, abc)]"
-   "-- inconvenient comment"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: abc) + y + x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-5b
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [_|_a] -> [(a, a)]"
-   "-- inconvenient comment 1"
-   "-- inconvenient comment 2"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: a) + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall abc. [abc_|_] -> [(abc, abc)]"
-   "-- inconvenient comment 1"
-   "-- inconvenient comment 2"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: abc) + y + x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-5c
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "test :: forall a. [_|_a] -> [(a, a)]"
-   "-- inconvenient comment 1"
-   "#ifdef FOO"
-   "-- nothing yet"
-   "#endif"
-   "-- inconvenient comment 2"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: a) + y + x"
-   "")
-  (tests-utils--multiline
-   ""
-   "test :: forall abc. [abc_|_] -> [(abc, abc)]"
-   "-- inconvenient comment 1"
-   "#ifdef FOO"
-   "-- nothing yet"
-   "#endif"
-   "-- inconvenient comment 2"
-   "test = \\x -> do"
-   "  y <- frobnicator"
-   "  pure $ (x :: abc) + y + x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-6
-    (execute-kbd-macro (kbd "C-r b c <return>"))
-  (tests-utils--multiline
-   ""
-   "data Foo a = Foo"
-   "  { foo :: (Bar Int)"
-   "  , bar :: (_|_a, Double)"
-   "  , baz :: {-# UNPACK #-} !Double"
-   "  }"
-   "")
-  (tests-utils--multiline
-   ""
-    "data Foo abc = Foo"
-    "  { foo :: (Bar Int)"
-    "  , bar :: (abc_|_, Double)"
-    "  , baz :: {-# UNPACK #-} !Double"
-    "  }"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-7
-    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "class Eq x => Foo a x where"
-   "  foo :: x -> _|_a -> b -> (a, b)"
-   "  bar :: x -> b -> a -> (b, a)"
-   "  bar x b a = case foo x a b of"
-   "    (a', b') -> (b', a')"
-   "")
-  (tests-utils--multiline
-   ""
-   "class Eq x => Foo xxx x where"
-   "  foo :: x -> xxx_|_ -> b -> (xxx, b)"
-   "  bar :: x -> b -> xxx -> (b, xxx)"
-   "  bar x b xxx = case foo x xxx b of"
-   "    (a', b') -> (b', a')"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-7a
-    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "class Eq x => Foo a x where"
-   "  foo :: x -> a -> _|_b -> (a, b)"
-   "  bar :: x -> b -> a -> (b, a)"
-   "  bar x b a = case foo x a b of"
-   "    (a', b') -> (b', a')"
-   "")
-  (tests-utils--multiline
-   ""
-   "class Eq x => Foo a x where"
-   "  foo :: x -> a -> xxx_|_ -> (a, xxx)"
-   "  bar :: x -> xxx -> a -> (xxx, a)"
-   "  bar x xxx a = case foo x a xxx of"
-   "    (a', b') -> (b', a')"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-7b
-    (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "class Eq x => Foo a x where"
-   "  _|_foo :: x -> a -> b -> (a, b)"
-   "  bar :: x -> b -> a -> (b, a)"
-   "  bar x b a = case foo x a b of"
-   "    (a', b') -> (b', a')"
-   "")
-  (tests-utils--multiline
-   ""
-   "class Eq x => Foo a x where"
-   "  xxx_|_ :: x -> a -> b -> (a, b)"
-   "  bar :: x -> b -> a -> (b, a)"
-   "  bar x b a = case xxx x a b of"
-   "    (a', b') -> (b', a')"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-8
-    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "class Eq x => a `Foo` x where"
-   "  foo :: x -> _|_a -> b -> (a, b)"
-   "  bar :: x -> b -> a -> (b, a)"
-   "  bar x b a = case foo x a b of"
-   "    (a', b') -> (b', a')"
-   "")
-  (tests-utils--multiline
-   ""
-   "class Eq x => xxx `Foo` x where"
-   "  foo :: x -> xxx_|_ -> b -> (xxx, b)"
-   "  bar :: x -> b -> xxx -> (b, xxx)"
-   "  bar x b xxx = case foo x xxx b of"
-   "    (a', b') -> (b', a')"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-8a
-    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "class Eq x => a `Foo` x where"
-   "  foo :: x -> a -> _|_b -> (a, b)"
-   "  bar :: x -> b -> a -> (b, a)"
-   "  bar x b a = case foo x a b of"
-   "    (a', b') -> (b', a')"
-   "")
-  (tests-utils--multiline
-   ""
-   "class Eq x => a `Foo` x where"
-   "  foo :: x -> a -> xxx_|_ -> (a, xxx)"
-   "  bar :: x -> xxx -> a -> (xxx, a)"
-   "  bar x xxx a = case foo x a xxx of"
-   "    (a', b') -> (b', a')"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-8b
-    (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "class Eq x => a `Foo` x where"
-   "  _|_foo :: x -> a -> b -> (a, b)"
-   "  bar :: x -> b -> a -> (b, a)"
-   "  bar x b a = case foo x a b of"
-   "    (a', b') -> (b', a')"
-   "")
-  (tests-utils--multiline
-   ""
-   "class Eq x => a `Foo` x where"
-   "  xxx_|_ :: x -> a -> b -> (a, b)"
-   "  bar :: x -> b -> a -> (b, a)"
-   "  bar x b a = case xxx x a b of"
-   "    (a', b') -> (b', a')"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-9
-    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "instance Eq x => Foo Int x_|_ where"
-   "  foo :: x -> Int -> b -> (Int, b)"
-   "  foo _ a b = (a, b)"
-   "  bar :: x -> b -> Int -> (b, Int)"
-   "  bar _ b a = (b, a)"
-   "")
-  (tests-utils--multiline
-   ""
-   "instance Eq xxx => Foo Int xxx_|_ where"
-   "  foo :: xxx -> Int -> b -> (Int, b)"
-   "  foo _ a b = (a, b)"
-   "  bar :: xxx -> b -> Int -> (b, Int)"
-   "  bar _ b a = (b, a)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-9a
-    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "instance Eq x => Foo Int x where"
-   "  foo :: x -> Int -> b -> (Int, _|_b)"
-   "  foo _ a b = (a, b)"
-   "  bar :: x -> b -> Int -> (b, Int)"
-   "  bar _ b a = (b, a)"
-   "")
-  (tests-utils--multiline
-   ""
-   "instance Eq x => Foo Int x where"
-   "  foo :: x -> Int -> xxx -> (Int, xxx_|_)"
-   "  foo _ a xxx = (a, xxx)"
-   "  bar :: x -> xxx -> Int -> (xxx, Int)"
-   "  bar _ xxx a = (xxx, a)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-9b
-    (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
-  (tests-utils--multiline
-   ""
-   "instance Eq x => Foo Int x where"
-   "  _|_foo :: x -> Int -> b -> (Int, b)"
-   "  foo _ a b = (a, b)"
-   "  bar x b a = case foo x a b of"
-   "    (a', b') -> (b', a')"
-   "")
-  (tests-utils--multiline
-   ""
-   "instance Eq x => Foo Int x where"
-   "  xxx_|_ :: x -> Int -> b -> (Int, b)"
-   "  xxx _ a b = (a, b)"
-   "  bar x b a = case xxx x a b of"
-   "    (a', b') -> (b', a')"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-10
-    (execute-kbd-macro (kbd "C-r C-w F o o <return>"))
-  (tests-utils--multiline
-   ""
-   "type family _|_RemoveFrom (xs :: [k]) (ys :: [k]) :: [k] where"
-   "  RemoveFrom '[]       ys = ys"
-   "  RemoveFrom (x ': xs) ys = RemoveFrom xs (Remove x ys)"
-   "")
-  (tests-utils--multiline
-   ""
-   "type family Foo_|_ (xs :: [k]) (ys :: [k]) :: [k] where"
-   "  Foo '[]       ys = ys"
-   "  Foo (x ': xs) ys = Foo xs (Remove x ys)"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-11aa
-    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}"
-   "foo :: Int -> Int"
-   "_|_foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE bar #-}"
-   "bar :: Int -> Int"
-   "bar_|_ x = x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-11ab
-    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
-  (tests-utils--multiline
-   ""
-   "baz x = x"
-   ""
-   "{-# INLINE foo #-}"
-   "foo :: Int -> Int"
-   "_|_foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "baz x = x"
-   ""
-   "{-# INLINE bar #-}"
-   "bar :: Int -> Int"
-   "bar_|_ x = x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-11ba
-    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
-  (tests-utils--multiline
-   ""
-   "{-# INLINE _|_foo #-}"
-   "foo :: Int -> Int"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE bar_|_ #-}"
-   "bar :: Int -> Int"
-   "bar x = x"
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-11bb
-    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
-  (tests-utils--multiline
-   ""
-   "{-# _|_INLINE foo #-}"
-   "foo :: Int -> Int"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE bar_|_ #-}"
-   "bar :: Int -> Int"
-   "bar x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/cmd-shift-right-1
+ :action
+ (execute-kbd-macro (kbd "> >"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  " bar"
+  "_|_  baz"
+  " quux"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  " bar"
+  "_|_    baz"
+  " quux"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/cmd-shift-right-2
+ :action
+ (execute-kbd-macro (kbd "h v h >"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_foo"
+  " bar"
+  "  baz"
+  " quux"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "   bar"
+  "_|_    baz"
+  " quux"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/cmd-shift-right-3
+ :action
+ (execute-kbd-macro (kbd "h v h > > >"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_foo"
+  " bar"
+  "  baz"
+  " quux"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "       bar"
+  "_|_        baz"
+  " quux"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/cmd-shift-left-1
+ :action
+ (execute-kbd-macro (kbd "< <"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "_|_       bar"
+  "        baz"
+  " quux"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "_|_     bar"
+  "        baz"
+  " quux"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/cmd-shift-left-2
+ :action
+ (execute-kbd-macro (kbd "V h <"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "_|_       bar"
+  "        baz"
+  " quux"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "     bar"
+  "_|_      baz"
+  " quux"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/cmd-shift-left-3
+ :action
+ (execute-kbd-macro (kbd "V h < <"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "_|_       bar"
+  "        baz"
+  " quux"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "   bar"
+  "_|_    baz"
+  " quux"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (text-mode)
+ :name
+ vim-tests/motion-down-1
+ :action
+ (execute-kbd-macro (kbd "h"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "\t\t_|_foo"
+  "\t\tbar"
+  "\t\tbaz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "\t\tfoo"
+  "\t\t_|_bar"
+  "\t\tbaz"
+  "")
+ :fresh-buffer t)
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-hsc-mode)
+ :name
+ vim-tests/haskell-hsc-pragma-insertion
+ :action
+ (execute-kbd-macro (kbd "i # \{ c o n s t"))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo #{const_|_} bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode)
+ :name
+ vim-tests/regular-haskell-pragma-insertion
+ :action
+ (execute-kbd-macro (kbd "i # \{ c o n s t"))
+ :contents
+ (tests-utils--multiline "" "foo _|_ bar" "")
+ :expected-value
+ (tests-utils--multiline "" "foo # {const_|_} bar" ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-1
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _|_bar = putStrLn $ bar ++ \"... OK\" "
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar = putStrLn $ bar_|_ ++ \"... OK\" "
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-2
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _|_bar = putStrLn $ bar' ++ bar ++ \"... OK\" "
+  "  where"
+  "    bar' = \"decombobulate\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar = putStrLn $ bar' ++ bar_|_ ++ \"... OK\" "
+  "  where"
+  "    bar' = \"decombobulate\""
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-3
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _|_x=x:Node(x-1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x=x_|_:Node(x-1)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-4
+ :action
+ (execute-kbd-macro (kbd "* u"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _|_x=x:Node(x-1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x=x:Node(x_|_-1)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-5
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Node = N_|_ode Int"
+  ""
+  "foo x=x:Node(x-1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Node = Node Int"
+  ""
+  "foo x=x:Node_|_(x-1)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-6
+ :action
+ (execute-kbd-macro (kbd "#"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Node = Node Int"
+  ""
+  "foo x=x:No_|_de(x-1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Node = _|_Node Int"
+  ""
+  "foo x=x:Node(x-1)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-7
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x=x_|_:Node(x:xs)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x=x:Node(x:_|_xs)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-8
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = Foo.Bar.de_|_combobulate x + decombobulate y"
+  "  where"
+  "    y = Foo.Bar.decombobulate (x + x)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = Foo.Bar.decombobulate x + decombobulate y"
+  "  where"
+  "    y = Foo.Bar.decombobulate_|_ (x + x)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-9
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Codec.CBOR.Read qualified as _|_CBOR"
+  ""
+  "foo :: CBOR.DeserialiseFailure -> IO a"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Codec.CBOR.Read qualified as CBOR"
+  ""
+  "foo :: CBOR_|_.DeserialiseFailure -> IO a"
+  "foo = undefined"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-9a
+ :action
+ (execute-kbd-macro (kbd "* u"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Codec.CBOR.Read qualified as _|_CBOR"
+  ""
+  "foo :: CBOR.DeserialiseFailure -> IO a"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Codec.CBOR_|_.Read qualified as CBOR"
+  ""
+  "foo :: CBOR.DeserialiseFailure -> IO a"
+  "foo = undefined"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-10
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Id 'Fo_|_o -> Int"
+  "foo = undefined"
+  ""
+  "bar :: Id 'Foo -> Int"
+  "bar = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Id 'Foo -> Int"
+  "foo = undefined"
+  ""
+  "bar :: Id 'Foo_|_ -> Int"
+  "bar = undefined"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-10a
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Id Fo_|_o' -> Int"
+  "foo = undefined"
+  ""
+  "baz :: Foo -> Int"
+  "baz = undefined"
+  ""
+  "bar :: Id Foo' -> Int"
+  "bar = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Id Foo' -> Int"
+  "foo = undefined"
+  ""
+  "baz :: Foo -> Int"
+  "baz = undefined"
+  ""
+  "bar :: Id Foo'_|_ -> Int"
+  "bar = undefined"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-10b
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Id 'Fo_|_o -> Int"
+  "foo = undefined"
+  ""
+  "bar :: Foo -> Int"
+  "bar = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Id 'Foo -> Int"
+  "foo = undefined"
+  ""
+  "bar :: Foo_|_ -> Int"
+  "bar = undefined"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-10c
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Id 'Fo_|_o -> Int"
+  "foo = undefined"
+  ""
+  "baz :: Foo' -> Int"
+  "baz = undefined"
+  ""
+  "bar :: Foo -> Int"
+  "bar = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Id 'Foo -> Int"
+  "foo = undefined"
+  ""
+  "baz :: Foo' -> Int"
+  "baz = undefined"
+  ""
+  "bar :: Foo_|_ -> Int"
+  "bar = undefined"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-10d
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Id ''Fo_|_o -> Int"
+  "foo = undefined"
+  ""
+  "bar :: Id ''Foo -> Int"
+  "bar = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Id ''Foo -> Int"
+  "foo = undefined"
+  ""
+  "bar :: Id ''Foo_|_ -> Int"
+  "bar = undefined"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-10e
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Id ''Fo_|_o -> Int"
+  "foo = undefined"
+  ""
+  "bar :: Id 'Foo -> Int"
+  "bar = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Id ''Foo -> Int"
+  "foo = undefined"
+  ""
+  "bar :: Id 'Foo_|_ -> Int"
+  "bar = undefined"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-11
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: XXX -> Int"
+  "foo x = x + _|_1000"
+  ""
+  "bar :: Int"
+  "bar = 1000"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: XXX -> Int"
+  "foo x = x + 1000"
+  ""
+  "bar :: Int"
+  "bar = 1000_|_"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-pragma-1
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_{-# INLINE foo #-}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-_|_}"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-pragma-2
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data AlexInput = AlexInput"
+  "  { aiInput    :: !Text"
+  "  , aiPrevChar :: _|_{-# UNPACK #-} !Char"
+  "  , aiBytes    :: [Word8]"
+  "  , aiLine     :: {-# UNPACK #-} !Line"
+  "  , aiColumn   :: {-# UNPACK #-} !Column"
+  "  } deriving (Show, Eq, Ord)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data AlexInput = AlexInput"
+  "  { aiInput    :: !Text"
+  "  , aiPrevChar :: {-# UNPACK #-_|_} !Char"
+  "  , aiBytes    :: [Word8]"
+  "  , aiLine     :: {-# UNPACK #-} !Line"
+  "  , aiColumn   :: {-# UNPACK #-} !Column"
+  "  } deriving (Show, Eq, Ord)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-char-1
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_(bar ')' + 1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = (bar ')' + 1_|_)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-string-1
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_(bar \")\" + 1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = (bar \")\" + 1_|_)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-multiline-string-1
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = _|_(bar 41 \" )bb\\"
+  "              \\ aa\" + 1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = (bar 41 \" )bb\\"
+  "              \\ aa\" + 1_|_)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-multiline-string-2
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = _|_(bar 41 \" bb\\"
+  "              \\ )aa\" + 1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = (bar 41 \" bb\\"
+  "              \\ )aa\" + 1_|_)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-comment-1
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_(bar 41 {- ) -} + 1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = (bar 41 {- ) -} + 1_|_)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-comment-2
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_(bar 41 -- )"
+  "              + 1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = (bar 41 -- )"
+  "              + 1_|_)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-comment-3
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- _|_(foo bar)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- (foo bar_|_)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-comment-4
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- (foo bar_|_)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "-- _|_(foo bar)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-comment-5
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test3 x = () (bar 41 -- )"
+  "               + 1)"
+  ""
+  "  {-# INLINE foo #-_|_}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test3 x = () (bar 41 -- )"
+  "               + 1)"
+  ""
+  "  _|_{-# INLINE foo #-}"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-quasiquote-1
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_(bar [megachar| ) |] + 1)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = (bar [megachar| ) |] + 1_|_)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell--motion-jump-item-quoting-quasiquote-2
+ :action
+ (execute-kbd-macro (kbd "m"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = _|_[f| 1 + x|] + 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = [f| 1 + x|_|_] + 1"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-1
+ :action
+ (execute-kbd-macro (kbd "C-r y z <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test _|_x = do"
+  "  y <- frobnicator"
+  "  pure $ x + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test xyz_|_ = do"
+  "  y <- frobnicator"
+  "  pure $ xyz + y + xyz"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-1a
+ :action
+ (execute-kbd-macro (kbd "C-r y z <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test = \\_|_x -> do"
+  "  y <- frobnicator"
+  "  pure $ x + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test = \\xyz_|_ -> do"
+  "  y <- frobnicator"
+  "  pure $ xyz + y + xyz"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-2
+ :action
+ (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test _|_x = do"
+  "  y <- frobnicator"
+  "  pure $ x + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test abc_|_ = do"
+  "  y <- frobnicator"
+  "  pure $ abc + y + abc"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-2a
+ :action
+ (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test = \\_|_x -> do"
+  "  y <- frobnicator"
+  "  pure $ x + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test = \\abc_|_ -> do"
+  "  y <- frobnicator"
+  "  pure $ abc + y + abc"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-3
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test x = do"
+  "  y <- frobnicator"
+  "  pure $ (x :: _|_a) + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall abc. [abc] -> [(abc, abc)]"
+  "test x = do"
+  "  y <- frobnicator"
+  "  pure $ (x :: abc_|_) + y + x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-3a
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: _|_a) + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall abc. [abc] -> [(abc, abc)]"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: abc_|_) + y + x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-4
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "-- inconvenient comment"
+  "test x = do"
+  "  y <- frobnicator"
+  "  pure $ (x :: _|_a) + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall abc. [abc] -> [(abc, abc)]"
+  "-- inconvenient comment"
+  "test x = do"
+  "  y <- frobnicator"
+  "  pure $ (x :: abc_|_) + y + x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-4a
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [a] -> [(a, a)]"
+  "-- inconvenient comment"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: _|_a) + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall abc. [abc] -> [(abc, abc)]"
+  "-- inconvenient comment"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: abc_|_) + y + x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-5
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [_|_a] -> [(a, a)]"
+  "-- inconvenient comment"
+  "test x = do"
+  "  y <- frobnicator"
+  "  pure $ (x :: a) + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall abc. [abc_|_] -> [(abc, abc)]"
+  "-- inconvenient comment"
+  "test x = do"
+  "  y <- frobnicator"
+  "  pure $ (x :: abc) + y + x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-5a
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [_|_a] -> [(a, a)]"
+  "-- inconvenient comment"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: a) + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall abc. [abc_|_] -> [(abc, abc)]"
+  "-- inconvenient comment"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: abc) + y + x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-5b
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [_|_a] -> [(a, a)]"
+  "-- inconvenient comment 1"
+  "-- inconvenient comment 2"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: a) + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall abc. [abc_|_] -> [(abc, abc)]"
+  "-- inconvenient comment 1"
+  "-- inconvenient comment 2"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: abc) + y + x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-5c
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: forall a. [_|_a] -> [(a, a)]"
+  "-- inconvenient comment 1"
+  "#ifdef FOO"
+  "-- nothing yet"
+  "#endif"
+  "-- inconvenient comment 2"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: a) + y + x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "test :: forall abc. [abc_|_] -> [(abc, abc)]"
+  "-- inconvenient comment 1"
+  "#ifdef FOO"
+  "-- nothing yet"
+  "#endif"
+  "-- inconvenient comment 2"
+  "test = \\x -> do"
+  "  y <- frobnicator"
+  "  pure $ (x :: abc) + y + x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-6
+ :action
+ (execute-kbd-macro (kbd "C-r b c <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo a = Foo"
+  "  { foo :: (Bar Int)"
+  "  , bar :: (_|_a, Double)"
+  "  , baz :: {-# UNPACK #-} !Double"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo abc = Foo"
+  "  { foo :: (Bar Int)"
+  "  , bar :: (abc_|_, Double)"
+  "  , baz :: {-# UNPACK #-} !Double"
+  "  }"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-7
+ :action
+ (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Eq x => Foo a x where"
+  "  foo :: x -> _|_a -> b -> (a, b)"
+  "  bar :: x -> b -> a -> (b, a)"
+  "  bar x b a = case foo x a b of"
+  "    (a', b') -> (b', a')"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Eq x => Foo xxx x where"
+  "  foo :: x -> xxx_|_ -> b -> (xxx, b)"
+  "  bar :: x -> b -> xxx -> (b, xxx)"
+  "  bar x b xxx = case foo x xxx b of"
+  "    (a', b') -> (b', a')"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-7a
+ :action
+ (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Eq x => Foo a x where"
+  "  foo :: x -> a -> _|_b -> (a, b)"
+  "  bar :: x -> b -> a -> (b, a)"
+  "  bar x b a = case foo x a b of"
+  "    (a', b') -> (b', a')"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Eq x => Foo a x where"
+  "  foo :: x -> a -> xxx_|_ -> (a, xxx)"
+  "  bar :: x -> xxx -> a -> (xxx, a)"
+  "  bar x xxx a = case foo x a xxx of"
+  "    (a', b') -> (b', a')"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-7b
+ :action
+ (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Eq x => Foo a x where"
+  "  _|_foo :: x -> a -> b -> (a, b)"
+  "  bar :: x -> b -> a -> (b, a)"
+  "  bar x b a = case foo x a b of"
+  "    (a', b') -> (b', a')"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Eq x => Foo a x where"
+  "  xxx_|_ :: x -> a -> b -> (a, b)"
+  "  bar :: x -> b -> a -> (b, a)"
+  "  bar x b a = case xxx x a b of"
+  "    (a', b') -> (b', a')"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-8
+ :action
+ (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Eq x => a `Foo` x where"
+  "  foo :: x -> _|_a -> b -> (a, b)"
+  "  bar :: x -> b -> a -> (b, a)"
+  "  bar x b a = case foo x a b of"
+  "    (a', b') -> (b', a')"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Eq x => xxx `Foo` x where"
+  "  foo :: x -> xxx_|_ -> b -> (xxx, b)"
+  "  bar :: x -> b -> xxx -> (b, xxx)"
+  "  bar x b xxx = case foo x xxx b of"
+  "    (a', b') -> (b', a')"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-8a
+ :action
+ (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Eq x => a `Foo` x where"
+  "  foo :: x -> a -> _|_b -> (a, b)"
+  "  bar :: x -> b -> a -> (b, a)"
+  "  bar x b a = case foo x a b of"
+  "    (a', b') -> (b', a')"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Eq x => a `Foo` x where"
+  "  foo :: x -> a -> xxx_|_ -> (a, xxx)"
+  "  bar :: x -> xxx -> a -> (xxx, a)"
+  "  bar x xxx a = case foo x a xxx of"
+  "    (a', b') -> (b', a')"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-8b
+ :action
+ (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Eq x => a `Foo` x where"
+  "  _|_foo :: x -> a -> b -> (a, b)"
+  "  bar :: x -> b -> a -> (b, a)"
+  "  bar x b a = case foo x a b of"
+  "    (a', b') -> (b', a')"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Eq x => a `Foo` x where"
+  "  xxx_|_ :: x -> a -> b -> (a, b)"
+  "  bar :: x -> b -> a -> (b, a)"
+  "  bar x b a = case xxx x a b of"
+  "    (a', b') -> (b', a')"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-9
+ :action
+ (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance Eq x => Foo Int x_|_ where"
+  "  foo :: x -> Int -> b -> (Int, b)"
+  "  foo _ a b = (a, b)"
+  "  bar :: x -> b -> Int -> (b, Int)"
+  "  bar _ b a = (b, a)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance Eq xxx => Foo Int xxx_|_ where"
+  "  foo :: xxx -> Int -> b -> (Int, b)"
+  "  foo _ a b = (a, b)"
+  "  bar :: xxx -> b -> Int -> (b, Int)"
+  "  bar _ b a = (b, a)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-9a
+ :action
+ (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance Eq x => Foo Int x where"
+  "  foo :: x -> Int -> b -> (Int, _|_b)"
+  "  foo _ a b = (a, b)"
+  "  bar :: x -> b -> Int -> (b, Int)"
+  "  bar _ b a = (b, a)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance Eq x => Foo Int x where"
+  "  foo :: x -> Int -> xxx -> (Int, xxx_|_)"
+  "  foo _ a xxx = (a, xxx)"
+  "  bar :: x -> xxx -> Int -> (xxx, Int)"
+  "  bar _ xxx a = (xxx, a)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-9b
+ :action
+ (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance Eq x => Foo Int x where"
+  "  _|_foo :: x -> Int -> b -> (Int, b)"
+  "  foo _ a b = (a, b)"
+  "  bar x b a = case foo x a b of"
+  "    (a', b') -> (b', a')"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance Eq x => Foo Int x where"
+  "  xxx_|_ :: x -> Int -> b -> (Int, b)"
+  "  xxx _ a b = (a, b)"
+  "  bar x b a = case xxx x a b of"
+  "    (a', b') -> (b', a')"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-10
+ :action
+ (execute-kbd-macro (kbd "C-r C-w F o o <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "type family _|_RemoveFrom (xs :: [k]) (ys :: [k]) :: [k] where"
+  "  RemoveFrom '[]       ys = ys"
+  "  RemoveFrom (x ': xs) ys = RemoveFrom xs (Remove x ys)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "type family Foo_|_ (xs :: [k]) (ys :: [k]) :: [k] where"
+  "  Foo '[]       ys = ys"
+  "  Foo (x ': xs) ys = Foo xs (Remove x ys)"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11aa
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}"
+  "foo :: Int -> Int"
+  "_|_foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE bar #-}"
+  "bar :: Int -> Int"
+  "bar_|_ x = x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11ab
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "baz x = x"
+  ""
+  "{-# INLINE foo #-}"
+  "foo :: Int -> Int"
+  "_|_foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "baz x = x"
+  ""
+  "{-# INLINE bar #-}"
+  "bar :: Int -> Int"
+  "bar_|_ x = x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11ba
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE _|_foo #-}"
+  "foo :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE bar_|_ #-}"
+  "bar :: Int -> Int"
+  "bar x = x"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11bb
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# _|_INLINE foo #-}"
+  "foo :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE bar_|_ #-}"
+  "bar :: Int -> Int"
+  "bar x = x"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
@@ -8156,79 +9369,99 @@ _|_bar")
   "bar x = x"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-11c
-    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}"
-   "_|_foo :: Int -> Int"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE bar #-}"
-   "bar_|_ :: Int -> Int"
-   "bar x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11c
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}"
+  "_|_foo :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE bar #-}"
+  "bar_|_ :: Int -> Int"
+  "bar x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-11d
-    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
-  (tests-utils--multiline
-   ""
-   "{-# INLINE foo #-}"
-   "foo :: Int -> Int"
-   "_|_foo 1 = 2"
-   "foo x = x"
-   "")
-  (tests-utils--multiline
-   ""
-   "{-# INLINE bar #-}"
-   "bar :: Int -> Int"
-   "bar_|_ 1 = 2"
-   "bar x = x"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11d
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}"
+  "foo :: Int -> Int"
+  "_|_foo 1 = 2"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE bar #-}"
+  "bar :: Int -> Int"
+  "bar_|_ 1 = 2"
+  "bar x = x"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-11e
-    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
-  (tests-utils--multiline
-   ""
-   "foo :: Int -> Int"
-   "_|_foo 1 = 2"
-   "foo x = x"
-   "{-# INLINE foo #-}"
-   "")
-  (tests-utils--multiline
-   ""
-   "bar :: Int -> Int"
-   "bar_|_ 1 = 2"
-   "bar x = x"
-   "{-# INLINE bar #-}"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11e
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "_|_foo 1 = 2"
+  "foo x = x"
+  "{-# INLINE foo #-}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "bar_|_ 1 = 2"
+  "bar x = x"
+  "{-# INLINE bar #-}"
+  ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode haskell-hsc-mode)
-    vim-tests/haskell-ts-rename-at-point-11f
-    (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
-  (tests-utils--multiline
-   ""
-   "_|_foo :: Int -> Int"
-   "foo 1 = 2"
-   "foo x = x"
-   "{-# INLINE foo #-}"
-   "")
-  (tests-utils--multiline
-   ""
-   "bar_|_ :: Int -> Int"
-   "bar 1 = 2"
-   "bar x = x"
-   "{-# INLINE bar #-}"
-   ""))
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-11f
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_foo :: Int -> Int"
+  "foo 1 = 2"
+  "foo x = x"
+  "{-# INLINE foo #-}"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "bar_|_ :: Int -> Int"
+  "bar 1 = 2"
+  "bar x = x"
+  "{-# INLINE bar #-}"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
