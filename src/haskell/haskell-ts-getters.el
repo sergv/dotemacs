@@ -396,6 +396,25 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-getters--extract-from-parens-prefix-id (node)
+  (cl-assert (string= (treesit-node-type node) "prefix_id"))
+  (let ((first
+         (treesit-node-child node 0 nil))
+        (second
+         (treesit-node-child node 1 nil))
+        (third
+         (treesit-node-child node 2 nil)))
+    (when (null first)
+      (error "No first child in prefix_id node: %s" node))
+    (unless (string= (treesit-node-type first) "(")
+      (error "First child of prefix_id node is not opening paren: %s, %s" node first))
+    (when (not (null third))
+      (when (not (string= (treesit-node-type third) ")"))
+        (error "First child of prefix_id node is not closing paren: %s, %s" node third))
+      (when (not (eq 3 (treesit-node-child-count node)))
+        (error "Unexpected prefix_id node with other than 3 children: %s" node)))
+    second))
+
 (provide 'haskell-ts-getters)
 
 ;; Local Variables:
