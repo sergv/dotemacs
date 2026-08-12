@@ -141,7 +141,6 @@
 (require 'flymake-proc)
 (require 'outline)
 (require 'cl-lib)
-(require 'haskell-complete-module)
 (require 'haskell-align-imports)
 (require 'haskell-lexeme)
 (require 'haskell-sort-imports)
