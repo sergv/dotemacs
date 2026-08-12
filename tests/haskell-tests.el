@@ -1107,10 +1107,10 @@ Entries should be a list of of elements of the form
    (thing-at-point 'haskell-symbol))
   :expected-value
   (list
-   (cons 2 9)
+   (cons 7 14)
    "fooobar")
   :contents
-  " fooo_|_bar ")
+  "foo = fooo_|_bar")
 
 (haskell-tests--test-result
     haskell-tests/forward-haskell-symbol-2
@@ -1120,10 +1120,10 @@ Entries should be a list of of elements of the form
    (thing-at-point 'haskell-symbol))
   :expected-value
   (list
-   (cons 2 9)
+   (cons 8 15)
    "Fooobar")
   :contents
-  " Fooo_|_bar ")
+  "foo :: Fooo_|_bar")
 
 (haskell-tests--test-result
     haskell-tests/forward-haskell-symbol-3
@@ -1133,10 +1133,10 @@ Entries should be a list of of elements of the form
    (thing-at-point 'haskell-symbol))
   :expected-value
   (list
-   (cons 3 10)
+   (cons 9 16)
    "Fooobar")
   :contents
-  " 'Fooo_|_bar ")
+  "foo :: 'Fooo_|_bar")
 
 (haskell-tests--test-result
     haskell-tests/forward-haskell-symbol-4
@@ -1146,10 +1146,10 @@ Entries should be a list of of elements of the form
    (thing-at-point 'haskell-symbol))
   :expected-value
   (list
-   (cons 4 11)
+   (cons 7 14)
    "Fooobar")
   :contents
-  " ''Fooo_|_bar ")
+  "foo ''Fooo_|_bar")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-1
@@ -1158,7 +1158,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Fooobar"
   :contents
-  " ''Fooo_|_bar ")
+  "foo ''Fooo_|_bar ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2
@@ -1167,7 +1167,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Fooobar"
   :contents
-  " ''Quux.Fooo_|_bar ")
+  "foo ''Quux.Fooo_|_bar ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2-qualified
@@ -1176,7 +1176,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Quux.Fooobar"
   :contents
-  " ''Quux.Fooo_|_bar ")
+  "foo ''Quux.Fooo_|_bar ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2a-qualified
@@ -1185,25 +1185,25 @@ Entries should be a list of of elements of the form
   :expected-value
   "Żółć.Quux.Fooobar"
   :contents
-  " ''Żółć.Quux.Fooo_|_bar ")
+  "foo ''Żółć.Quux.Fooo_|_bar ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2b
   :action
   (thing-at-point 'haskell-symbol)
   :expected-value
-  "fooobar"
+  "Fooobar"
   :contents
-  " ''Quux.Żółć.fooo_|_bar ")
+  "foo ''Quux.Żółć.Fooo_|_bar ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2b-qualified
   :action
   (thing-at-point 'qualified-haskell-symbol)
   :expected-value
-  "Quux.Żółć.fooobar"
+  "Quux.Żółć.Fooobar"
   :contents
-  " ''Quux.Żółć.fooo_|_bar ")
+  "foo ''Quux.Żółć.Fooo_|_bar ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2c
@@ -1212,7 +1212,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "++"
   :contents
-  " Quux.Żółć.+_|_+ ")
+  "foo = x Quux.Żółć.+_|_+ y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2c-qualified
@@ -1221,7 +1221,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Quux.Żółć.++"
   :contents
-  " Quux.Żółć.+_|_+ ")
+  "foo = x Quux.Żółć.+_|_+ y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-3
@@ -1230,7 +1230,7 @@ Entries should be a list of of elements of the form
   :expected-value
   ".=?"
   :contents
-  " .=_|_? ")
+  "foo = x .=_|_? y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-3a
@@ -1239,7 +1239,7 @@ Entries should be a list of of elements of the form
   :expected-value
   ".=?"
   :contents
-  " (.=_|_?) ")
+  "foo = (.=_|_?) ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-4
@@ -1248,7 +1248,7 @@ Entries should be a list of of elements of the form
   :expected-value
   ".=?"
   :contents
-  " Quux..=_|_? ")
+  "foo = x Quux..=_|_? y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-4-qualified
@@ -1257,25 +1257,25 @@ Entries should be a list of of elements of the form
   :expected-value
   "Quux..=?"
   :contents
-  " Quux..=_|_? ")
+  "foo = x Quux..=_|_? y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-5
   :action
   (substring-no-properties (thing-at-point 'haskell-symbol))
   :expected-value
-  ".=?"
+  ":.=?"
   :contents
-  " ''Quux..=_|_? ")
+  "foo ''(Quux.:.=_|_?) ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-5-qualified
   :action
   (thing-at-point 'qualified-haskell-symbol)
   :expected-value
-  "Quux..=?"
+  "Quux.:.=?"
   :contents
-  " ''Quux..=_|_? ")
+  "foo ''(Quux.:.=_|_?)")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-6
@@ -1284,7 +1284,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Fooobar"
   :contents
-  " `Fooo_|_bar` ")
+  "foo = x `Fooo_|_bar` y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-6a
@@ -1293,7 +1293,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Fooobar"
   :contents
-  " `Quux.Baz.Fooo_|_bar` ")
+  "foo = x `Quux.Baz.Fooo_|_bar` y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-6a-qualified
@@ -1302,7 +1302,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Quux.Baz.Fooobar"
   :contents
-  " `Quux.Baz.Fooo_|_bar` ")
+  "foo = x `Quux.Baz.Fooo_|_bar` y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-7
@@ -1311,7 +1311,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "myosstr"
   :contents
-  " [_|_myosstr|test|] ")
+  "foo = [_|_myosstr|test|] ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-7a
@@ -1320,7 +1320,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "myosstr"
   :contents
-  " [myos_|_str|test|] ")
+  "foo = [myos_|_str|test|] ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-7b
@@ -1329,7 +1329,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "myosstr"
   :contents
-  " [myosst_|_r|test|] ")
+  "foo = [myosst_|_r|test|] ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-7c
@@ -1338,7 +1338,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "myosstr"
   :contents
-  " [Żółć.Foo.Bar.myos_|_str|test|] ")
+  "foo = [Żółć.Foo.Bar.myos_|_str|test|] ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-7c-qualified
@@ -1347,7 +1347,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Żółć.Foo.Bar.myosstr"
   :contents
-  " [Żółć.Foo.Bar.myos_|_str|test|] ")
+  "foo = [Żółć.Foo.Bar.myos_|_str|test|] ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-8
@@ -1356,7 +1356,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "test"
   :contents
-  " _|_test++ ")
+  "foo = _|_test++ ys")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-8a
@@ -1365,7 +1365,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "test"
   :contents
-  " ++_|_test ")
+  "foo = xs ++_|_test ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-8b
@@ -1374,7 +1374,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "test"
   :contents
-  " ++tes_|_t ")
+  "foo = xs ++tes_|_t ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-8c
@@ -1383,7 +1383,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "test_prim#"
   :contents
-  " ++Żółć.Foo.Bar.tes_|_t_prim# ")
+  "foo = xs ++Żółć.Foo.Bar.tes_|_t_prim# ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-8c-qualified
@@ -1392,7 +1392,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Żółć.Foo.Bar.test_prim#"
   :contents
-  " ++Żółć.Foo.Bar.tes_|_t_prim# ")
+  "foo = xs ++Żółć.Foo.Bar.tes_|_t_prim# ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-9
@@ -1401,7 +1401,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "."
   :contents
-  " f ((Foo.Bar._|_.) g) ")
+  "foo = f ((Foo.Bar._|_.) g) ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-10-qualified
@@ -1410,7 +1410,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "Foo.Bar.."
   :contents
-  " f ((Foo._|_Bar..) g) ")
+  "foo = f ((Foo._|_Bar..) g) ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-11
@@ -1419,7 +1419,7 @@ Entries should be a list of of elements of the form
   :expected-value
   "|++|"
   :contents
-  " f |+_|_+| ")
+  "foo = f |+_|_+| y")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-12
@@ -1428,7 +1428,7 @@ Entries should be a list of of elements of the form
   :expected-value
   ":"
   :contents
-  " x _|_: xs")
+  "foo = x _|_: xs")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-12a
@@ -1437,7 +1437,7 @@ Entries should be a list of of elements of the form
   :expected-value
   ":"
   :contents
-  " x _|_:xs")
+  "foo = x _|_:xs")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-12b
@@ -1446,7 +1446,7 @@ Entries should be a list of of elements of the form
   :expected-value
   ":"
   :contents
-  " x_|_: xs")
+  "foo = x_|_: xs")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-12c
@@ -1455,7 +1455,7 @@ Entries should be a list of of elements of the form
   :expected-value
   ":"
   :contents
-  " x_|_:xs")
+  "foo = x_|_:xs")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-13
@@ -1464,7 +1464,17 @@ Entries should be a list of of elements of the form
   :expected-value
   "100"
   :contents
-  " _|_100 ")
+  "foo = _|_100 ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-14
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "f'7"
+  :contents
+  "foo = _|_' f'7"
+  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-ghc-core-symbol-1
