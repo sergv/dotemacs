@@ -18,6 +18,7 @@
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 (require 'common-font)
 

@@ -32,6 +32,7 @@
 (require 'general-lisp-setup)
 (require 'hydra-setup)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 ;;; elisp fontification and indentation
 
