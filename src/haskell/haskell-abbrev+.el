@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'haskell-regexen)
   (require 'macro-util))
 
 (declare-function treesit-node-at "treesit")
