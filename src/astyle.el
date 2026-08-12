@@ -11,6 +11,7 @@
 
 (require 'common)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 ;; Indentation of c-style languages via AStyle command-line utility.
 

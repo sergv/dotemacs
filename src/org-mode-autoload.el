@@ -10,6 +10,7 @@
   (require 'cl-lib))
 
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 (require 'org-loaddefs)
 
 (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
