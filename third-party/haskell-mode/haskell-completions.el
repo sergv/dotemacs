@@ -49,6 +49,7 @@
         "MINIMAL"
         "NOINLINE"
         "NOUNPACK"
+        "OPAQUE"
         "OPTIONS"
         "OPTIONS_GHC"
         "OVERLAPPABLE"
