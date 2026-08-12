@@ -183,26 +183,6 @@
     ,expected-value
     :fresh-buffer ,fresh-buffer))
 
-(cl-defmacro vim-tests--default-test-fresh-buffer-contents*
-    (&key modes
-          name
-          action
-          contents
-          expected-value)
-  (declare (indent nil))
-  (cl-assert (listp modes))
-  (cl-assert (cl-every #'symbolp modes))
-  `(vim-tests--test-fresh-buffer-contents-init-all
-    :name ,name
-    :action ,action
-    :contents ,contents
-    :expected-value ,expected-value
-    :modes
-    ,(if modes
-         (--filter (memq it modes) (-map #'car vim-tests--all-known-modes-and-init))
-       (-map #'car vim-tests--all-known-modes-and-init))
-    :fresh-buffer t))
-
 (cl-defmacro vim-tests--folding-test-fresh-buffer-contents*
     (&key modes
           name
@@ -212,11 +192,12 @@
   (declare (indent 0))
   (cl-assert (listp modes))
   (cl-assert (cl-every #'symbolp modes))
-  `(vim-tests--default-test-fresh-buffer-contents*
+  `(vim-tests--default-test-buffer-contents*
     :name ,name
     :modes ,modes
     :contents ,contents
     :expected-value ,expected-value
+    :fresh-buffer t
     :action
     (progn
       ,action
