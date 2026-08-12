@@ -19,6 +19,7 @@
 (require 'common)
 (require 'el-patch)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 (require 'vim-setup)
 
 (require 'dired-aux)

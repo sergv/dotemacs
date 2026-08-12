@@ -15,6 +15,7 @@
 (require 'solarized)
 (require 'set-up-paths)
 (require 'set-up-tmp-paths)
+(require 'set-up-volatile-paths)
 
 (defvar *formula-images-cache* (make-hash-table :test 'equal))
 (defvar *formula-index* 0)
