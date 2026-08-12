@@ -275,17 +275,26 @@ otherwise results will be incorrect.")
   (seq
    (? (char ?n ?N)
       (char ?o ?O))
-   (char ?i ?I)
-   (char ?n ?N)
-   (char ?l ?L)
-   (char ?i ?I)
-   (char ?n ?N)
    (or
-    (char ?e ?E)
-    (seq (char ?a ?A)
-         (char ?b ?B)
-         (char ?l ?L)
-         (char ?e ?E)))))
+    (seq
+     (char ?o ?O)
+     (char ?p ?P)
+     (char ?a ?A)
+     (char ?q ?Q)
+     (char ?u ?U)
+     (char ?e ?E))
+    (seq
+     (char ?i ?I)
+     (char ?n ?N)
+     (char ?l ?L)
+     (char ?i ?I)
+     (char ?n ?N)
+     (or
+      (char ?e ?E)
+      (seq (char ?a ?A)
+           (char ?b ?B)
+           (char ?l ?L)
+           (char ?e ?E)))))))
 
 (defconst haskell-regexen/language-pragma-name
   (rx bos
