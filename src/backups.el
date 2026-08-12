@@ -20,6 +20,7 @@
 
 (require 'common)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 (defconst b/backup-directory (path-concat +prog-data-path+ "backup"))
 

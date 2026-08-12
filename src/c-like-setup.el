@@ -15,6 +15,7 @@
 (defvar c-style-alist)
 
 (require 'custom-predicates)
+(require 'set-up-platform)
 
 (with-eval-after-load 'cc-styles
   (unless (assoc "my-c-style" c-style-alist)

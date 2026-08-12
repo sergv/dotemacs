@@ -22,6 +22,7 @@
 (require 'hydra-setup)
 (require 'macro-util)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 (require 'python)
 (require 'python-abbrev+)

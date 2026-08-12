@@ -6,6 +6,8 @@
 ;; Created: Wednesday, 19 August 2015
 ;; Description:
 
+(require 'set-up-platform)
+
 (defvar ediff-patch-options)
 
 (autoload 'ediff-quit "ediff-util" "" t)

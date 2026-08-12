@@ -30,6 +30,7 @@
 (require 'current-column-fixed)
 (require 'persistent-sessions-global-vars)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 (require 'tabbar-setup)
 

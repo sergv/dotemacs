@@ -10,7 +10,7 @@
   (require 'cl-lib))
 
 (require 'dash)
-
+(require 'set-up-platform)
 (require 'vim)
 (require 'vim-search)
 

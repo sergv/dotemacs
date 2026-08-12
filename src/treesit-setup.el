@@ -12,6 +12,7 @@
 
 (require 'el-patch)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 (require 'treesit-utils)
 
 (defvar treesit--indent-region-batch-size)
