@@ -41,6 +41,7 @@
 (require 'lsp-setup)
 (require 'lsp-haskell-setup)
 (require 's-extras)
+(require 'set-up-platform)
 (require 'shell-setup)
 
 (vimmize-motion haskell-backward-up-indentation-or-sexp
