@@ -50,6 +50,7 @@
     (when-windows
      (require 'windows-setup))
     (require 'set-up-paths)
+    (require 'set-up-volatile-paths)
     (require 'set-up-tmp-paths)
 
     (require 'tramp)

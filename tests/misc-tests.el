@@ -9,6 +9,8 @@
 (require 'ert)
 
 (require 'company-mode-setup)
+(require 'set-up-paths)
+(require 'set-up-volatile-paths)
 (require 'shell-setup)
 (require 'tests-utils)
 (require 'transient-fixes)
@@ -226,6 +228,9 @@
     " CAF                     Talk                     87           0    0.0    0.0   100.0  100.0"
     "  showsPrec              Talk                    296           0    0.0    0.0     0.0    0.0"
     "  mul                    Talk                    291           1    0.0    0.0     0.0    0.0"))))
+
+(ert-deftest misc-tests/tmp-global-path-exists ()
+  (should (file-directory-p +tmp-global-path+)))
 
 (provide 'misc-tests)
 
