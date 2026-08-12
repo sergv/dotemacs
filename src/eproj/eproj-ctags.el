@@ -20,6 +20,7 @@
 (require 'eproj-customization)
 (require 'eproj-tag-index)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 (eval-when-compile (require 'subr-x))
 

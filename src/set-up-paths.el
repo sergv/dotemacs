@@ -5,44 +5,18 @@
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: Tuesday,  6 November 2012
 ;; Description:
+;; Set up paths that should be the same between different Emacs processes.
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'set-up-platform))
 
-(require 'set-up-platform)
-
-;;;; Paths
-
-(defconst +emacs-writable-config-path+
-  (let ((writable-root (getenv "EMACS_WRITABLE_ROOT")))
-    (if writable-root
-        (progn
-          (when (not (file-directory-p writable-root))
-            (error "Path pointed to by EMACS_WRITABLE_ROOT does not exsit: ‘%s’"
-                   writable-root))
-          writable-root)
-      +emacs-config-path+))
-  "Path to root for my emacs configuration for writing things.
-
-Usually ~/.emacs.d
-
-By default points to the same destination as ‘+emacs-config-path+’.")
-
-(defconst +resources-path+
-  (concat +emacs-config-path+ "/resources")
-  "Path to directory with resource files like snippets or templates.")
-
-(defconst +prog-data-path+
-  (concat +emacs-writable-config-path+ "/prog-data")
-  "Path to directory for storing persintest data like backups.")
-
-(defconst +execs-path+ (concat +emacs-config-path+ "/execs")
-  "Path to directory with programs executables files.")
-
-(defconst +tmp-global-path+ (fold-platform-os-type (if (getenv "IN_NIX_SHELL")
-                                                       "/tmp"
-                                                     temporary-file-directory)
-                                                   temporary-file-directory)
+(defconst +tmp-global-path+
+  (fold-platform-os-type
+   (if (getenv "IN_NIX_SHELL")
+       "/tmp"
+     temporary-file-directory)
+   temporary-file-directory)
   "Path to temporary files that are visible across different emacs instances.")
 
 (provide 'set-up-paths)

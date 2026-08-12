@@ -8,6 +8,7 @@
 
 (require 'common-constants)
 (require 'set-up-paths)
+(require 'set-up-volatile-paths)
 
 (defvar eshell-buffer-name)
 (defvar eshell-directory-name)

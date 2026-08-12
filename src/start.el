@@ -16,7 +16,8 @@
 (when-windows
  (require 'windows-setup))
 (load-library "set-up-environment-variables")
-(load-library "set-up-paths")
+(require 'set-up-paths)
+(load-library "set-up-volatile-paths")
 (load-library "set-up-tmp-paths")
 (unless noninteractive
   (require 'set-up-font))
