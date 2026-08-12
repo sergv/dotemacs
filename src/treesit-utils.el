@@ -267,7 +267,7 @@ All parents of the returned node don’t satisfy PRED (if they exist)."
   (let ((result nil)
         (p node))
     (while (and p
-                (> limit 0))
+                (< 0 limit))
       (when (funcall pred p)
         (setf result p))
       (setf p (treesit-node-parent p)
@@ -395,6 +395,9 @@ references to parsed treesitter modes shall remain."
       (cl-assert (or (eq (current-buffer) (treesit-node-buffer node))
                      (eq (buffer-base-buffer (current-buffer)) (treesit-node-buffer node))))
       (buffer-substring-no-properties (treesit-node-start node) (treesit-node-end node)))))
+
+(defsubst treesit-utils--is-leaf-node? (node)
+  (zerop (treesit-node-child-count node)))
 
 ;; (defun treesit-utils-node-texts-in-current-buffer= (x y)
 ;;   (cl-assert (treesit-node-p y))
