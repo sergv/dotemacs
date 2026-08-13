@@ -1269,13 +1269,24 @@ Entries should be a list of of elements of the form
   "foo ''(Quux.:.=_|_?) ")
 
 (haskell-tests--test-result
-    haskell-tests/bounds-of-haskell-symbol-5-qualified
+    haskell-tests/bounds-of-haskell-symbol-5a-qualified
+  :action
+  (thing-at-point 'qualified-haskell-symbol)
+  :expected-value
+  "(Quux.:.=?)"
+  :contents
+  "foo ''(Quux.:.=_|_?)"
+  :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-5b-qualified
   :action
   (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "Quux.:.=?"
   :contents
-  "foo ''(Quux.:.=_|_?)")
+  "foo ''(Quux.:.=_|_?)"
+  :modes (haskell-mode))
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-6
