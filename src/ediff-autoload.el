@@ -30,10 +30,8 @@
       ediff-diff-options "--ignore-tab-expansion --ignore-blank-lines"
       ediff-patch-options "")
 
-(eval-after-load
-    "ediff"
-  '(progn
-     (add-hook 'ediff-keymap-setup-hook #'ediff-keymap-setup)))
+(with-eval-after-load "ediff"
+  (add-hook 'ediff-keymap-setup-hook #'ediff-keymap-setup))
 
 (provide 'ediff-autoload)
 
