@@ -12,6 +12,8 @@
 
 (autoload 'ediff-quit "ediff-util" "" t)
 
+(defalias 'ediff #'ediff-buffers)
+
 ;; Don’t spawn separate ediff frame.
 (setf ediff-window-setup-function #'ediff-setup-windows-plain)
 
@@ -31,7 +33,8 @@
       ediff-patch-options "")
 
 (with-eval-after-load "ediff"
-  (add-hook 'ediff-keymap-setup-hook #'ediff-keymap-setup))
+  (add-hook 'ediff-keymap-setup-hook #'ediff-keymap-setup)
+  (defalias 'ediff #'ediff-buffers))
 
 (provide 'ediff-autoload)
 
