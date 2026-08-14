@@ -350,15 +350,13 @@ and for subsequent lines it's the previous line's indentation."
           bol)))))
 
 (defun nix-ts-mode--prev-sibling-not-comment (node _parent _bol &rest _)
-  (let ((tmp (treesit-node-prev-sibling node))
+  (let ((tmp (treesit-node-prev-sibling node nil))
         (prev nil))
     (while (and tmp
                 (string= "comment" (treesit-node-type tmp)))
       (setf prev tmp
-            tmp (treesit-node-prev-sibling tmp t)))
-    (treesit-node-start (if tmp
-                            tmp
-                          prev))))
+            tmp (treesit-node-prev-sibling tmp nil)))
+    (if tmp tmp prev)))
 
 (defun nix-ts-mode--find-indent-anchor (node parent _bol &rest _)
   (let ((prev node)
@@ -447,11 +445,16 @@ and for subsequent lines it's the previous line's indentation."
      ((n-p-gp "^comment$" "^let_expression$" nil)
       nix-ts-mode--prev-sibling-not-comment
       ,(lambda (node parent _bol)
-         (let ((sibling (treesit-node-prev-sibling node t)))
-           (if (and (< (treesit-node-start node) (treesit-node-start (nix-ts-getters--let-expression-in parent)))
-                    (not sibling))
+         (lambda (matched-anchor)
+           (if (and matched-anchor
+                    (treesit-node-p matched-anchor)
+                    (string= "let" (treesit-node-type matched-anchor)))
                nix-ts-mode-indent-offset
-             0))))
+             (let ((sibling (treesit-node-prev-sibling node t)))
+               (if (and (< (treesit-node-start node) (treesit-node-start (nix-ts-getters--let-expression-in parent)))
+                        (not sibling))
+                   nix-ts-mode-indent-offset
+                 0))))))
      ((parent-is "^let_expression$") nix-ts-mode--prev-sibling-not-comment 0)
 
      ((and no-node prev-sibling) prev-sibling 0)
