@@ -430,6 +430,37 @@
   "  bar = 1;"
   "}"))
 
+(nix-indentation-tests--test-treesitter-equivalent-inputs
+ :inputs
+ ((:name
+   nix-indentation-tests--let-in-comment-2a
+   :contents
+   (tests-utils--multiline
+    "let"
+    "  foo = 1;"
+    "in"
+    "# foo"
+    "# _|_bar"
+    "foo"))
+  (:name
+   nix-indentation-tests--let-in-comment-2b
+   :contents
+   (tests-utils--multiline
+    "let"
+    "  foo = 1;"
+    "in"
+    "# foo"
+    "                # _|_bar"
+    "foo")))
+ :expected-value
+ (tests-utils--multiline
+  "let"
+  "  foo = 1;"
+  "in"
+  "# foo"
+  "# _|_bar"
+  "foo"))
+
 (nix-indentation-tests--test-treesitter
  :name nix-indentation-tests--lambda-body-1
  :contents
