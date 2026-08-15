@@ -17,11 +17,14 @@
 (autoload 'tramp-message "tramp-message")
 (autoload 'tramp-send-string "tramp")
 (autoload 'tramp-set-connection-property "tramp-cache")
+(autoload 'tramp-setup-debug-buffer "tramp-message")
 (autoload 'tramp-wait-for-output "tramp-sh")
 
 (defvar magit-tramp-pipe-stty-settings)
+(defvar tramp-compat-temporary-file-directory)
 (defvar tramp-connection-timeout)
 (defvar tramp-copy-size-limit)
+(defvar tramp-debug-font-lock-keywords)
 (defvar tramp-echo-mark)
 (defvar tramp-histfile-override)
 (defvar tramp-remote-path)
@@ -169,37 +172,38 @@
 ;;   ;; (tramp-shell "ssh" host nil directory)
 ;;   )
 
-(el-patch-defun tramp-send-command (vec command &optional neveropen nooutput)
-  "Send the COMMAND to connection VEC.
+(with-eval-after-load "tramp-sh"
+  (el-patch-defun tramp-send-command (vec command &optional neveropen nooutput)
+    "Send the COMMAND to connection VEC.
 Erases temporary buffer before sending the command.  If optional
 arg NEVEROPEN is non-nil, never try to open the connection.  This
 is meant to be used from `tramp-maybe-open-connection' only.  The
 function waits for output unless NOOUTPUT is set."
-  (unless neveropen (tramp-maybe-open-connection vec))
-  (let ((p (tramp-get-connection-process vec)))
-    (when (tramp-get-connection-property p "remote-echo")
-      ;; We mark the command string that it can be erased in the output buffer.
-      (tramp-set-connection-property p "check-remote-echo" t)
-      ;; If we put `tramp-echo-mark' after a trailing newline (which
-      ;; is assumed to be unquoted) `tramp-send-string' doesn't see
-      ;; that newline and adds `tramp-rsh-end-of-line' right after
-      ;; `tramp-echo-mark', so the remote shell sees two consecutive
-      ;; trailing line endings and sends two prompts after executing
-      ;; the command, which confuses `tramp-wait-for-output'.
-      (when (and (not (string-empty-p command))
-		 (string-equal (substring command -1) "\n"))
-	(setq command (substring command 0 -1)))
-      ;; No need to restore a trailing newline here since `tramp-send-string'
-      ;; makes sure that the string ends in `tramp-rsh-end-of-line', anyway.
-      (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
-    (el-patch-add
-      (when (string= "ssh" (tramp-file-name-method vec))
-        ;; Suppress ssh history.
-        (setf command (concat " " command))))
-    ;; Send the command.
-    (tramp-message vec 6 "%s" command)
-    (tramp-send-string vec command)
-    (unless nooutput (tramp-wait-for-output p))))
+    (unless neveropen (tramp-maybe-open-connection vec))
+    (let ((p (tramp-get-connection-process vec)))
+      (when (tramp-get-connection-property p "remote-echo")
+        ;; We mark the command string that it can be erased in the output buffer.
+        (tramp-set-connection-property p "check-remote-echo" t)
+        ;; If we put `tramp-echo-mark' after a trailing newline (which
+        ;; is assumed to be unquoted) `tramp-send-string' doesn't see
+        ;; that newline and adds `tramp-rsh-end-of-line' right after
+        ;; `tramp-echo-mark', so the remote shell sees two consecutive
+        ;; trailing line endings and sends two prompts after executing
+        ;; the command, which confuses `tramp-wait-for-output'.
+        (when (and (not (string-empty-p command))
+		   (string-equal (substring command -1) "\n"))
+	  (setq command (substring command 0 -1)))
+        ;; No need to restore a trailing newline here since `tramp-send-string'
+        ;; makes sure that the string ends in `tramp-rsh-end-of-line', anyway.
+        (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
+      (el-patch-add
+        (when (string= "ssh" (tramp-file-name-method vec))
+          ;; Suppress ssh history.
+          (setf command (concat " " command))))
+      ;; Send the command.
+      (tramp-message vec 6 "%s" command)
+      (tramp-send-string vec command)
+      (unless nooutput (tramp-wait-for-output p)))))
 
 (with-eval-after-load "tramp-message"
   (el-patch-defun tramp-setup-debug-buffer ()
