@@ -208,7 +208,7 @@ function waits for output unless NOOUTPUT is set."
 (with-eval-after-load "tramp-message"
   (el-patch-defun tramp-setup-debug-buffer ()
     "Function to setup debug buffers."
-    (declare (tramp-suppress-trace t))
+    (el-patch-remove (declare (tramp-suppress-trace t)))
     ;; (declare (completion tramp-debug-buffer-command-completion-p)
     ;; 	   (tramp-suppress-trace t))
     (interactive)
