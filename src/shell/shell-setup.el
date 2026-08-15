@@ -27,6 +27,8 @@
 (require 'shell-script-abbrev+)
 (require 'xterm-color)
 
+(require 'shell-baseline-emacs-fixes)
+
 ;;;###autoload
 (unless (getenv "SHELL")
   (setenv "SHELL" shell-file-name))
