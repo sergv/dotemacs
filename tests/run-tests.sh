@@ -158,7 +158,7 @@ fi
     ${to_load[@]} \\
     --eval "$requires" \\
     --eval "(require '\${mod_name})" \\
-    --eval "(ert-run-tests-batch-and-exit \${m})" 2>"$logs_dest/\${mod_name}\${suffix}.log"
+    --eval "(ert-run-tests-batch-and-exit \${m})" 2>"$logs_dest/\${mod_name}\${suffix}.log" >&2
 EOF
 
     [[ -d "$logs_dest" ]] && rm -f "$logs_dest"/*.log
