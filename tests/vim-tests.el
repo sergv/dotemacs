@@ -9,6 +9,9 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(defvar vim--last-column)
+(defvar vim--this-column)
+
 (require 'dash)
 (require 'set-up-platform)
 (require 'vim)
@@ -91,7 +94,10 @@
   `(tests-utils--test-buffer-contents-for-inits
     :name ,name
     :inits ,(--filter (memq (car it) modes) vim-tests--all-known-modes-and-init)
-    :action ,action
+    :action (progn
+              (setq vim--this-column nil
+                    vim--last-column nil)
+              ,action)
     :contents ,contents
     :expected-value ,expected-value
     ;; Don’t reuse buffer to start out in fresh environment each time and don’t
@@ -184,7 +190,7 @@
     :fresh-buffer ,fresh-buffer))
 
 (cl-defmacro vim-tests--default-test-buffer-contents-many-inputs*
-    (&key modes action entries expected-value modes fresh-buffer)
+    (&key modes action inputs expected-value modes fresh-buffer)
   "Define a set of tests that share final buffer state but
 have different input states.
 
@@ -193,7 +199,7 @@ Entries should be a list of of elements of the form
   (declare (indent nil))
   `(progn
      ,@(cl-loop
-        for entry in entries
+        for entry in inputs
         collect
         (let ((name (plist-get entry :name))
               (contents (plist-get entry :contents)))
@@ -201,6 +207,35 @@ Entries should be a list of of elements of the form
             (error "Entry missing :name entry: %s" entry))
           (unless contents
             (error "Entry missing :contents entry: %s" entry))
+          `(vim-tests--default-test-buffer-contents*
+            :name ,name
+            :action ,action
+            :contents ,contents
+            :expected-value ,expected-value
+            ,@(when modes `(:modes ,modes))
+            :fresh-buffer ,fresh-buffer)))))
+
+(cl-defmacro vim-tests--default-test-buffer-contents-many-inputs-and-actions*
+    (&key modes inputs expected-value modes fresh-buffer)
+  "Define a set of tests that share final buffer state but
+have different input states.
+
+Entries should be a list of of elements of the form
+(:name _ :contents _)"
+  (declare (indent nil))
+  `(progn
+     ,@(cl-loop
+        for entry in inputs
+        collect
+        (let ((name (plist-get entry :name))
+              (contents (plist-get entry :contents))
+              (action (plist-get entry :action)))
+          (unless name
+            (error "Entry missing :name entry: %s" entry))
+          (unless contents
+            (error "Entry missing :contents entry: %s" entry))
+          (unless contents
+            (error "Entry missing :action entry: %s" entry))
           `(vim-tests--default-test-buffer-contents*
             :name ,name
             :action ,action
@@ -3228,6 +3263,55 @@ Entries should be a list of of elements of the form
    "foo3"
    "bar3"
    ""))
+
+(vim-tests--default-test-buffer-contents*
+ :name
+ vim-tests/delete-1
+ :action
+ (execute-kbd-macro (kbd ", ,"))
+ :contents
+ (tests-utils--multiline
+  "foo1"
+  "_|_foo2"
+  "foo3"
+  "foo4"
+  "foo5")
+ :expected-value
+ (tests-utils--multiline
+  "foo1"
+  "_|_foo3"
+  "foo4"
+  "foo5"))
+
+(vim-tests--default-test-buffer-contents-many-inputs-and-actions*
+ :inputs
+ ((:name
+   vim-tests/delete-2a
+   :action
+   (execute-kbd-macro (kbd "2 , ,"))
+   :contents
+   (tests-utils--multiline
+    "foo1"
+    "_|_foo2"
+    "foo3"
+    "foo4"
+    "foo5"))
+  (:name
+   vim-tests/delete-2b
+   :action
+   (execute-kbd-macro (kbd ", 2 ,"))
+   :contents
+   (tests-utils--multiline
+    "foo1"
+    "_|_foo2"
+    "foo3"
+    "foo4"
+    "foo5")))
+ :expected-value
+ (tests-utils--multiline
+  "foo1"
+  "_|_foo4"
+  "foo5"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (rust-ts-mode)
@@ -8425,7 +8509,7 @@ _|_bar")
  (haskell-ts-mode haskell-hsc-mode)
  :action
  (execute-kbd-macro (kbd "c s foo <escape>"))
- :entries
+ :inputs
  ((:name
    vim-tests/haskell--change-symbol-at-point-2a
    :contents
