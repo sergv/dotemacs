@@ -201,6 +201,41 @@ function waits for output unless NOOUTPUT is set."
     (tramp-send-string vec command)
     (unless nooutput (tramp-wait-for-output p))))
 
+(with-eval-after-load "tramp-message"
+  (el-patch-defun tramp-setup-debug-buffer ()
+    "Function to setup debug buffers."
+    (declare (tramp-suppress-trace t))
+    ;; (declare (completion tramp-debug-buffer-command-completion-p)
+    ;; 	   (tramp-suppress-trace t))
+    (interactive)
+    (set-buffer-file-coding-system 'utf-8)
+    (setq buffer-undo-list t)
+    ;; Activate `outline-mode'.  This runs `text-mode-hook' and
+    ;; `outline-mode-hook'.  We must prevent that local processes die.
+    ;; Yes: I've seen `flyspell-mode', which starts "ispell".
+    ;; `(custom-declare-variable outline-minor-mode-prefix ...)'  raises
+    ;; on error in `(outline-mode)', we don't want to see it in the
+    ;; traces.
+    (let ((default-directory tramp-compat-temporary-file-directory))
+      (el-patch-swap
+        (outline-mode)
+        (text-mode)))
+    (setq-local outline-level 'tramp-debug-outline-level)
+    (setq-local font-lock-keywords
+                ;; FIXME: This `(t FOO . BAR)' representation in
+                ;; `font-lock-keywords' is supposed to be an internal
+                ;; implementation "detail".  Don't abuse it here!
+                `(t (eval ,tramp-debug-font-lock-keywords t)
+                    ,(eval tramp-debug-font-lock-keywords t)))
+    ;; I am deciding what buffers we can edit here.
+    (el-patch-remove
+      ;; Do not edit the debug buffer.
+      (use-local-map special-mode-map))
+    (set-buffer-modified-p nil)
+    ;; For debugging purposes.
+    (local-set-key "\M-n" 'clone-buffer)
+    (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local)))
+
 (provide 'tramp-setup)
 
 ;; Local Variables:
