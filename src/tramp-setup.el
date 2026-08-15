@@ -27,6 +27,7 @@
 (defvar tramp-debug-font-lock-keywords)
 (defvar tramp-echo-mark)
 (defvar tramp-histfile-override)
+(defvar tramp-methods)
 (defvar tramp-remote-path)
 (defvar tramp-remote-process-environment)
 (defvar tramp-use-scp-direct-remote-copying)
@@ -100,6 +101,20 @@
 
   (add-to-list 'tramp-remote-process-environment
                "HISTCONTROL=ignorespace:ignoredups:erasedups")
+
+  ;; Don’t pass -l, it’s either redundant on Linux (we’ll ultimately
+  ;; read ~/.bashrc which is typically the source of truth we care
+  ;; about) or is actively harmful on MacOS (-l will make us read
+  ;; /etc/profile which will leave us with a messed up PATH thanks to
+  ;; using `/usr/libexec/path_helper`).
+  (setf (cdr (assq 'tramp-remote-shell-login (cdr (assoc "ssh" tramp-methods)))) nil)
+
+  ;; Alternative way of resetting tramp-remote-shell-login.
+  ;; (add-to-list 'tramp-connection-properties
+  ;;              (list "/ssh:.*"
+  ;;                    ;; (regexp-quote "/sshx:user@host:")
+  ;;                    "tramp-remote-shell-login"
+  ;;                    nil))
 
   ;; (setf (cdr (assoc "ssh" tramp-methods))
   ;;       `((tramp-login-program        "ssh")
