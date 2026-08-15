@@ -30,6 +30,13 @@
 ;;;###autoload
 (add-hook 'change-log-mode-hook #'change-log-mode-setup)
 
+;;;###autoload
+(defun outline-mode-setup ()
+  (text-mode-setup))
+
+;;;###autoload
+(add-hook 'outline-mode-hook #'outline-mode-setup)
+
 (provide 'text-mode-setup)
 
 ;; Local Variables:
