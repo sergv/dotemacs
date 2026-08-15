@@ -108,7 +108,7 @@
                    (base-emacs-fixes--shell-args '("--noediting" "-i")))
                (shell buf)))
          (let ((host (read-string "username@host: ")))
-           (let ((default-directory (format "/ssh:%s:" host)))
+           (let ((default-directory (format "/ssh:%s:~" host)))
              (let ((buf (get-buffer-create buffer-name)))
                (switch-to-buffer buf nil t)
                (let ((base-emacs-fixes--shell-exe (trim-whitespace-right (shell-command-to-string "echo $SHELL")))
