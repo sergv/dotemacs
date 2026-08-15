@@ -175,14 +175,23 @@ and switches to insert-mode."
                                (forward-line)
                                (line-beginning-position))))
       ;; Delete preceding newline unless there’s comint prompt.
-      (delete-region (if (derived-mode-p 'comint-mode)
-                         (comint-line-beginning-position)
-                       (progn
-                         (setf newline-deleted? t)
-                         (save-excursion
-                           (goto-char beg)
-                           (forward-line -1)
-                           (line-end-position))))
+      (delete-region (save-excursion
+                       (goto-char beg)
+                       (if (derived-mode-p 'comint-mode)
+                           (let ((comint-start (comint-line-beginning-position))
+                                 (raw-start (let ((inhibit-field-text-motion t))
+                                              (line-beginning-position))))
+                             (if (eq comint-start raw-start)
+                                 ;; No prompt on the start line, delete newline
+                                 (progn
+                                   (setf newline-deleted? t)
+                                   (line-end-position 0))
+                               ;; Have prompt, stop at the prompt.
+                               comint-start))
+                         (progn
+                           (setf newline-deleted? t)
+                           ;; Get end of previous line.
+                           (line-end-position 0))))
                      end))
     (goto-char beg)
     (vim:motion-first-non-blank:wrapper)
