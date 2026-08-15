@@ -202,23 +202,21 @@
     ;; of buffer while ‘forward-line’ doesn’t.
     (forward-line (or count 1))))
 
-(vim-defmotion vim:motion-lines (linewise count raw-result)
+(vim-defmotion vim:motion-lines (linewise count motion-result)
   "Moves count - 1 lines down."
   (vim--use-last-column!)
-  (let (line-move-visual
-        (c (1- (or count 1))))
-    (if (zerop c)
-        (vim-make-motion :has-begin t
-                         :begin (line-beginning-position)
-                         :end (line-end-position)
-                         :type 'linewise)
-      (forward-line c))))
+  (let ((line-move-visual nil)
+        (c (or count 1)))
+    (vim-make-motion :has-begin t
+                     :begin (line-beginning-position)
+                     :end (line-end-position c)
+                     :type 'linewise)))
 
-(vim-defmotion vim:motion-current-line (linewise count raw-result)
+(vim-defmotion vim:motion-current-line (linewise count motion-result)
   "Moves count - 1 lines down, properly considering the case when point is at
 e.g. shell prompt."
   (vim--use-last-column!)
-  (let (line-move-visual)
+  (let ((line-move-visual nil))
     (vim-make-motion :has-begin t
                      :begin (line-beginning-position)
                      :end (line-end-position (or count 1))
