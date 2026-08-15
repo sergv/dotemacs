@@ -31,6 +31,8 @@
 
 (require 'el-patch)
 
+(require 'shell-baseline-emacs-fixes)
+
 ;;;###autoload
 (add-to-list 'el-patch-features 'tramp-sh)
 
