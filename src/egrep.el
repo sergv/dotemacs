@@ -134,11 +134,14 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
         "!error: no lines in the block!"))))
 
 (defun egrep--find-matches (regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs)
-  (pcase egrep-backend
-    (`native
+  (cond
+    ((or (eq egrep-backend 'elisp)
+         (file-remote-p root))
+     (egrep--find-matches--elisp regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs))
+    ((eq egrep-backend 'native)
      (egrep--find-matches--native regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs))
-    (`elisp
-     (egrep--find-matches--elisp regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs))))
+    (t
+     (error "Invalid egrep backend: %s" egrep-backend))))
 
 (defun egrep--find-matches--native (regexp globs-to-find ignored-files-globs root ignore-case ignored-abs-dirs)
   (save-some-buffers)
