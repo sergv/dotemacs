@@ -97,39 +97,46 @@
           emacs = emacs-pkg.wrapped;
 
           buildTreesitterModule = { dir, subdir, name }:
-            pkgs.stdenv.mkDerivation {
-              pname   = "tree-sitter-grammar-" + name;
-              version = "0.1";
-              src     = dir;
-              # buildInputs = [ ];
-              nativeBuildInputs = [
-                # stdenv already contains these
-                # cc
-                # pkgs.xz.bin
+            let
+              output-so = "libtree-sitter-${name}${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}";
+            in
+            {
+              inherit output-so;
+              deriv =
+                pkgs.stdenv.mkDerivation {
+                  pname   = "tree-sitter-grammar-" + name;
+                  version = "0.1";
+                  src     = dir;
+                  # buildInputs = [ ];
+                  nativeBuildInputs = [
+                    # stdenv already contains these
+                    # cc
+                    # pkgs.xz.bin
 
-                # When we’ll want to regenerate treesitter.
-                # # nodejs needed to run tree-sitter exe to regenerate grammars
-                # pkgs.nodejs
-                # pkgs.tree-sitter
-              ];
-              buildCommand = ''
-                mkdir -p "$out/lib"
+                    # When we’ll want to regenerate treesitter.
+                    # # nodejs needed to run tree-sitter exe to regenerate grammars
+                    # pkgs.nodejs
+                    # pkgs.tree-sitter
+                  ];
+                  buildCommand = ''
+                    mkdir -p "$out/lib"
 
-                parser="parser.c"
-                declare -a scanner
+                    parser="parser.c"
+                    declare -a scanner
 
-                if [[ -f "$src/${subdir}/parser.c.xz" ]]; then
-                    xz --decompress --stdout "$src/${subdir}/parser.c.xz" >"$parser"
-                else
-                    echo "Invalid treesitter library, compressed parser file does not exist: ‘$src/${subdir}/parser.c.xz’" >&2
-                    exit 1
-                fi
+                    if [[ -f "$src/${subdir}/parser.c.xz" ]]; then
+                        xz --decompress --stdout "$src/${subdir}/parser.c.xz" >"$parser"
+                    else
+                        echo "Invalid treesitter library, compressed parser file does not exist: ‘$src/${subdir}/parser.c.xz’" >&2
+                        exit 1
+                    fi
 
-                if [[ -f "$src/${subdir}/scanner.c" ]]; then
-                    scanner+=("$src/${subdir}/scanner.c")
-                fi
-                "''${CC:-cc}" -O2 -fPIC "-I$src/${subdir}" "$parser" "''${scanner[@]}" -shared -o "$out/lib/libtree-sitter-${name}${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}"
-              '';
+                    if [[ -f "$src/${subdir}/scanner.c" ]]; then
+                        scanner+=("$src/${subdir}/scanner.c")
+                    fi
+                    "''${CC:-cc}" -O2 -fPIC "-I$src/${subdir}" "$parser" "''${scanner[@]}" -shared -o "$out/lib/${output-so}"
+                  '';
+                };
             };
 
           treesitter-dirs = root:
@@ -182,18 +189,19 @@
                 haskell-pkgs-with-emacs-native.emacs-native
                 # faster-richer-tags
               ] ++
-              treesitter-derivs;
-              nativeBuildInputs = [
-                #emacs-raw
-                emacs.deriv
-                pkgs.gdb
+              (builtins.map (x: x.deriv) treesitter-derivs);
+              nativeBuildInputs =
+                [
+                  #emacs-raw
+                  emacs.deriv
+                  pkgs.gdb
 
-                # pkgs.ghc
-                pkgs.bash
-                pkgs.gzip
-                pkgs.xz
-              ] ++
-              treesitter-derivs;
+                  # pkgs.ghc
+                  pkgs.bash
+                  pkgs.gzip
+                  pkgs.xz
+                ] ++
+                (builtins.map (x: x.deriv) treesitter-derivs);
               buildPhase = ''
                 runHook preBuild
 
@@ -211,7 +219,7 @@
 
                 ln -s "${libemacs-native-so}" "$dest/lib/"
                 ${builtins.concatStringsSep "\n"
-                  (builtins.map (x: ''ln -s "${x}/lib"/*.so "$dest/lib/"'') treesitter-derivs)}
+                  (builtins.map (x: ''ln -s "${x.deriv}/lib/${x.output-so}" "$dest/lib/"'') treesitter-derivs)}
 
                 ln -s "${get-cabal-configuration}" "$dest/compiled/get-cabal-configuration"
 
