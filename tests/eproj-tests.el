@@ -48,8 +48,8 @@ under ROOT directory."
   (sort (cl-copy-list items) #'string<))
 
 (defun eproj-tests/paths=? (path-a path-b)
-  (string= (expand-file-name (strip-trailing-slash path-a))
-            (expand-file-name (strip-trailing-slash path-b))))
+  (string= (file-truename (expand-file-name (strip-trailing-slash path-a)))
+           (file-truename (expand-file-name (strip-trailing-slash path-b)))))
 
 (defmacro eproj-tests--define-tests (test-name &rest body)
   (declare (indent 1))
