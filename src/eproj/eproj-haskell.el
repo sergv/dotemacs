@@ -77,6 +77,7 @@ runtime but rather will be silently relied on)."
       (save-match-data
         (goto-char (point-min))
         (let ((tags-index (empty-eproj-tag-index))
+              (true-root (file-truename proj-root))
               (data (condition-case err
                         (read (current-buffer))
                       (error
@@ -88,7 +89,8 @@ runtime but rather will be silently relied on)."
           (dolist (entry data)
             (let* ((filename-raw (car entry))
                    (filename (if (file-name-absolute-p filename-raw)
-                                 (if (string-prefix-p proj-root filename-raw)
+                                 (if (or (string-prefix-p proj-root filename-raw)
+                                         (string-prefix-p true-root filename-raw))
                                      (strip-directory-and-separator-prefix proj-root filename-raw)
                                    (error "Unexpected tag filename not coming from project %s: %s"
                                           proj-root
