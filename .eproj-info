@@ -1,0 +1,13 @@
+((languages emacs-lisp-mode)
+ (ignored-dirs
+  "prog-data/backup"
+  "result")
+ (ignored-files
+  "native/emacs_module_rs/target/*"
+  "prog-data/backup/*"
+  "prog-data/tmp/*"
+  "prog-data/python-tmp*")
+ (aux-files
+  (tree "third-party" "*.hs")
+  (tree "resources/auto-insert" "*")
+  (tree "resources/snippets" "*.snip")))
