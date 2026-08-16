@@ -131,15 +131,16 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (cl-assert (listp ignored-directory-prefixes))
   (cl-assert (listp globs-to-find))
   (cl-assert (-every? #'stringp globs-to-find))
-  (funcall (pcase find-rec-backend
-             (`native
-              #'find-rec--haskell-native-impl)
-             (`executable
-              #'find-rec--find-executable-impl)
-             (`elisp
+  (funcall (cond
+             ((or (file-remote-p root)
+                  (eq find-rec-backend 'elisp))
               #'find-rec--elisp-impl)
-             (invalid
-              (error "Invalid find-rec-type: %s" invalid)))
+             ((eq find-rec-backend 'executable)
+              #'find-rec--find-executable-impl)
+             ((eq find-rec-backend 'native)
+              #'find-rec--haskell-native-impl)
+             (t
+              (error "Invalid find-rec-backend: %s" find-rec-backend)))
            root
            globs-to-find
            ignored-extensions-globs
