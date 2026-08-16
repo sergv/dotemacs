@@ -16,6 +16,8 @@
          (read sys-type-env))
         ((eq system-type 'windows-nt)
          '(windows work))
+        ((memq system-type '(darwin))
+         '(macos home))
         ((memq system-type '(gnu gnu/linux gnu/kfreebsd darwin))
          '(linux home))
         (t
@@ -28,6 +30,12 @@
   (error "+platform+'s os %s should be one of 'linux or 'windows"
          (car +platform+)))
 
+(defmacro when-macos (&rest body)
+  (let ((os-type (car +platform+)))
+    (when (eq os-type 'macos)
+      `(progn
+         ,@body))))
+
 (defmacro when-windows (&rest body)
   (let ((os-type (car +platform+)))
     (when (eq os-type 'windows)
@@ -37,8 +45,20 @@
 (defmacro fold-platform-os-type (on-linux on-windows)
   (let ((os-type (car +platform+)))
     (cond
+      ((memq os-type '(linux macos))
+       on-linux)
+      ((eq os-type 'windows)
+       on-windows)
+      (t
+       (error "Invalid platform os type: %s" os-type)))))
+
+(defmacro fold-platform-os-type* (on-linux on-macos on-windows)
+  (let ((os-type (car +platform+)))
+    (cond
       ((eq os-type 'linux)
        on-linux)
+      ((eq os-type 'macos)
+       on-macos)
       ((eq os-type 'windows)
        on-windows)
       (t
