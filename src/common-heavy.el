@@ -317,50 +317,62 @@ number of spaces equal to `tab-width'."
 
 (defvar custom--known-executables
   (let ((tbl (make-hash-table :test #'equal)))
-    (fold-platform-os-type
+    (fold-platform-os-type*
      (progn
        (puthash "dolphin"
                 (make-exec-spec
                  :path "dolphin"
-                 :args '("--new-window"))
+                 :args (lambda (dir) (list "--new-window" dir)))
                 tbl)
        (puthash "thunar"
                 (make-exec-spec
                  :path "thunar"
-                 :args nil)
+                 :args #'list)
                 tbl)
        (puthash "nautilus"
                 (make-exec-spec
                  :path "nautilus"
-                 :args nil)
+                 :args #'list)
                 tbl)
        (puthash "exo-open"
                 (make-exec-spec
                  :path "exo-open"
-                 :args '("--launch"
-                         "TerminalEmulator"
-                         "--working-directory"))
+                 :args (lambda (dir)
+                         (list "--launch" "TerminalEmulator" "--working-directory" dir)))
                 tbl)
        (puthash "konsole"
                 (make-exec-spec
                  :path "konsole"
-                 :args '("--workdir"))
+                 :args (lambda (dir) (list "--workdir" dir)))
                 tbl)
        (puthash "xfce4-terminal"
                 (make-exec-spec
                  :path "xfce4-terminal"
-                 :args '("--default-working-directory"))
+                 :args (lambda (dir) (list "--default-working-directory" dir)))
                 tbl)
        (puthash "mate-terminal"
                 (make-exec-spec
                  :path "mate-terminal"
-                 :args '())
+                 :args #'list)
+                tbl))
+     (progn
+       (puthash "open"
+                (make-exec-spec
+                 :path "/usr/bin/open"
+                 :args (lambda (dir) (list "-R" dir)))
+                tbl)
+       (puthash "macos-terminal"
+                (make-exec-spec
+                 :path "/usr/bin/osascript"
+                 :args (lambda (dir)
+                         (list "-e"
+                               (concat "tell application \"Terminal\" to do script \"cd '" (shell-quote-argument dir) "'; /usr/bin/clear\" end tell))"))))
                 tbl))
      (progn
        (puthash "explorer"
                 (make-exec-spec
                  :path "C:\\Windows\\explorer.exe"
-                 :args nil)
+                 :args #'list)
                 tbl)))
     tbl)
   "Definitions of various executables that can be started in particular folder.")
@@ -376,16 +388,18 @@ number of spaces equal to `tab-width'."
         (let ((exec-spec (gethash exec custom--known-executables)))
           (if exec-spec
               (let ((path (exec-spec--path exec-spec))
-                    (args (exec-spec--args exec-spec)))
+                    (mk-args (exec-spec--args exec-spec)))
                 (cl-assert (stringp path) nil "Invalid executabel path: %s" path)
-                (cl-assert (-every-p #'stringp args) nil "Invalid executable args: %s" args)
+                (cl-assert (functionp mk-args) nil "Invalid executable args: %s" args)
                 (when (or (cached-executable-find exec)
-                          (and (file-name-absolute-p (exec-spec--path exec-spec))
-                               (file-exists-p (exec-spec--path exec-spec))))
-                  (async-shell-command (concat (join-lines (cons path args) " ")
-                                               " "
-                                               (shell-quote-argument dir)))
-                  (cl-return-from 'found)))
+                          (and (file-name-absolute-p path)
+                               (file-exists-p path)))
+                  (let ((args (funcall mk-args dir)))
+                    (cl-assert (-every-p #'stringp args) nil "Invalid executable args: %s" args)
+                    (async-shell-command (mapconcat #'shell-quote-argument
+                                                    (cons path (append args (list dir)))
+                                                    " "))
+                    (cl-return-from 'found))))
             (error "No specification found for exec-spec %s" exec))
           (when (cached-executable-find exec)
             (cl-return-from found
@@ -399,9 +413,10 @@ number of spaces equal to `tab-width'."
   (interactive)
   (save-window-excursion
     (custom--run-first-matching-exec
-     (fold-platform-os-type
+     (fold-platform-os-type*
       (eval-when-compile
         (-filter #'executable-find '("thunar" "dolphin" "nautilus")))
+      '("open")
       '("explorer")))))
 
 ;;;###autoload
@@ -411,7 +426,7 @@ number of spaces equal to `tab-width'."
   (save-window-excursion
     (custom--run-first-matching-exec
      (eval-when-compile
-       (-filter #'executable-find '("konsole" "mate-terminal" "xfce4-terminal" "exo-open"
+       (-filter #'executable-find '("konsole" "mate-terminal" "xfce4-terminal" "exo-open" "macos-terminal"
                                     ;; "gnome-terminal"
                                     ))))))
 
