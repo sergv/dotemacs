@@ -8,6 +8,12 @@ let
     (if arch == null then [] else ["-mtune=${arch}"]) ++
     (if arch == null then [] else ["-march=${arch}"]);
 
+  isMacos = pkgs.stdenv.hostPlatform.isDarwin;
+
+  base-emacs-pkg = pkgs.emacs30;
+  # base-emacs-pkg = if isMacos then pkgs.emacs30-macport else pkgs.emacs30;
+  # base-emacs-pkg = if isMacos then pkgs.emacs30-gtk3 else pkgs.emacs30;
+
   fetchgit-improved =
     pkgs.fetchgit // {
       __functor = self : args :
@@ -49,15 +55,18 @@ let
       ] ++
       march-mtune-args;
     ldflags             =
-      [
-        "-Wl,-O2"
-        "-Wl,-z,now"
-        "-Wl,-z,relro"
-        "-Wl,--sort-common"
-        "-Wl,--as-needed"
-        "-Wl,-z,pack-relative-relocs"
-        "-flto=auto"
-      ];
+      if isMacos
+      then []
+      else
+        [
+          "-Wl,-O2"
+          "-Wl,-z,now"
+          "-Wl,-z,relro"
+          "-Wl,--sort-common"
+          "-Wl,--as-needed"
+          "-Wl,-z,pack-relative-relocs"
+          "-flto=auto"
+        ];
     extraConfigureFlags = ["--enable-link-time-optimization"];
     elispCompilerFlags  =
       [
@@ -114,7 +123,7 @@ let
 
   mk-emacs-base =
     { cflags, ldflags, extraConfigureFlags, elispCompilerFlags, elispLinkFlags }:
-    (pkgs.emacs30.override (_: {
+    (base-emacs-pkg.override (_: {
       withNativeCompilation = native;
       noGui                 = false;
       srcRepo               = true;
@@ -123,9 +132,12 @@ let
       withPgtk              = false;
       withJansson           = false; # Use native JSON in Emacs instead, aviailable since version 30.
 
-      withX                 = true;
-      withGTK3              = true;
-      withToolkitScrollBars = false;
+      # Take from base package.
+      # withX                 = !isMacos;
+      # withNS                = isMacos;
+      # withGTK3              = false;
+      toolkit               = "lucid";
+      withToolkitScrollBars = isMacos;
       withCairo             = true;
       withXinput2           = true;
 
@@ -208,7 +220,9 @@ let
           (pkgs.lib.withFeature true "libgmp")
           (pkgs.lib.withFeature true "xml2")
           (pkgs.lib.withFeature true "zlib")
-          (pkgs.lib.withFeatureAs true "file-notification" "inotify")
+          (if isMacos
+           then pkgs.lib.withFeatureAs true "file-notification" "yes"
+           else pkgs.lib.withFeatureAs true "file-notification" "inotify")
 
           (pkgs.lib.withFeature true "wide-int")
 
