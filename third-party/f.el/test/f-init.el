@@ -28,7 +28,7 @@
 (require 'set-up-tmp-paths)
 
 (defvar f-test/test-path
-  +tmp-path+
+  (file-truename +tmp-path+)
   "Path to tests directory.")
 
 (defvar f-test/root-path
