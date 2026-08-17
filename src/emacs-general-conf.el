@@ -388,6 +388,13 @@
                 dired-find-alternate-file))
   (put func 'disabled nil))
 
+;;;; MacOS
+
+(when-macos
+ (setq mac-allow-anti-aliasing t
+       mac-command-modifier 'control
+       mac-auto-hide-menu-bar t))
+
 ;;;; Epilogue
 
 (provide 'emacs-general-conf)
