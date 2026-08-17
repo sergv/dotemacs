@@ -7,7 +7,8 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'el-patch))
+  (require 'el-patch)
+  (require 'tramp))
 
 (autoload 'tramp-compile-disable-ssh-controlmaster-options "tramp-integration")
 (autoload 'tramp-file-name-method "tramp")
@@ -254,6 +255,17 @@ function waits for output unless NOOUTPUT is set."
     ;; For debugging purposes.
     (local-set-key "\M-n" 'clone-buffer)
     (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local)))
+
+(defun tramp-utils--is-tramp-remote-file? (filename)
+  (and (file-remote-p filename)
+       (eq 'tramp-file-name-handler
+           (find-file-name-handler filename #'file-directory-p))))
+
+(defun tramp-utils--is-tramp-connection-alive? (filename)
+  (with-parsed-tramp-file-name
+      filename
+      vec
+    (tramp-get-connection-process vec)))
 
 (provide 'tramp-setup)
 
