@@ -100,6 +100,7 @@
 (require 'haskell-autoload)
 (require 'haskell-regexen)
 (require 'rust-autoloads)
+(require 'tramp-setup)
 
 ;;; eproj languages
 
@@ -1097,10 +1098,23 @@ symbol 'unresolved.")
 ;;;###autoload
 (defun eproj-get-project-for-buf-lax (buf)
   "Get project for BUFFER. Return nil if there's no project for it."
-  (eproj-get-project-for-path-lax
-   (eproj--get-buffer-directory buf)
-   (when (eproj-haskell-is-self-contained-buffer? buf)
-     (buffer-local-value 'major-mode buf))))
+  (let ((path (eproj--get-buffer-directory buf)))
+    (let ((have-full-filesystem?
+           (if (tramp-utils--is-tramp-remote-file? path)
+               ;; Only proceed if tramp connection is alive
+               (if (tramp-utils--is-tramp-connection-alive? path)
+                   t
+                 ;; No tramp connection
+                 nil)
+             t)))
+      (if have-full-filesystem?
+          (eproj-get-project-for-path-lax
+           path
+           (when (eproj-haskell-is-self-contained-buffer? buf)
+             (buffer-local-value 'major-mode buf)))
+        ;; No remote connection so only check cached project value,
+        ;; don’t try to create new project.
+        (gethash path *eproj-projects* nil)))))
 
 ;;;###autoload
 (defun eproj-get-project-for-path-exact-lax (path)
