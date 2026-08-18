@@ -209,6 +209,10 @@ can allows value to be decoded back fully.)"
      val)))
 
 (defun sessions/store-string (str &optional do-not-store-properties ignored-text-properties)
+  "Encode string so that it can 100% be read back from session file.
+
+DO-NOT-STORE-PROPERTIES - drop all text properties when saving
+ignored-text-properties - don’t store these text properties but store others"
   (list 'string
         (if (string= str "")
             (list str)
