@@ -106,13 +106,7 @@ name, for temporary buffers - just the buffer name."
   (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry)))))))))
 
 (defun session-entry/buffer-name (entry)
-  (or (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry)))))))))
-      ;; On version 3 the buffer name for temporary buffers was stored
-      ;; in the first field where the buffer file name is stored now.
-      ;;
-      ;; Safe to remove this alternative after a while when old
-      ;; session files lose their relevance.
-      (car-safe entry)))
+  (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry))))))))))
 
 (defconst +sessions-buffer-variables+
   (list
