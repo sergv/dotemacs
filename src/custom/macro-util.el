@@ -74,18 +74,34 @@
       `(setcdr (comp-hint-cons ,x) ,y)
     `(setcdr ,x ,y)))
 
-(defmacro with-partition (matched-var non-matched-var xs form &rest body)
+(defmacro with-partition! (matched-var non-matched-var xs form &rest body)
   "partition p xs == (filter p xs, filter (not . p) xs))"
   (declare (indent 4))
   (cl-assert (symbolp matched-var))
   (cl-assert (symbolp non-matched-var))
-  `(let ((,matched-var nil)
-         (,non-matched-var nil))
-     (dolist (it ,xs)
-       (if ,form
-           (push it ,matched-var)
-         (push it ,non-matched-var)))
-     ,@body))
+  (let ((matching '#:matching)
+        (non-matching '#:non-matching)
+        (matching-res '#:matching-res)
+        (non-matching-res '#:non-matching-res)
+        (tmp '#:tmp)
+        (next '#:next))
+    `(let* ((,matching-res (cons nil nil))
+            (,non-matching-res (cons nil nil))
+            (,matching ,matching-res)
+            (,non-matching ,non-matching-res)
+            (,tmp ,xs))
+       (while ,tmp
+         (cl-assert (consp ,tmp))
+         (let ((it (car ,tmp))
+               (,next (cdr ,tmp)))
+           (setcdr-sure (if ,form
+                            (setf ,matching (setcdr-sure ,matching ,tmp))
+                          (setf ,non-matching (setcdr-sure ,non-matching ,tmp)))
+                        nil)
+           (setq ,tmp ,next)))
+       (let ((,matched-var (cdr ,matching-res))
+             (,non-matched-var (cdr ,non-matching-res)))
+         ,@body))))
 
 (defmacro util/eval-if-symbol (x)
   "Evaluate x if it's symbos. Intended to be used inside defmacro."
