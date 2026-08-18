@@ -724,16 +724,36 @@
     (should (equal ys ys-copy))))
 
 (ert-deftest common-tests/filter-1 ()
-  (should (equal (filter! #'identity '(a b c d e))
+  (should (equal (filter! #'identity (copy-sequence '(a b c d e)))
                  '(a b c d e))))
 
 (ert-deftest common-tests/filter-2 ()
-  (should (equal (filter! #'identity '(a b c nil d e))
+  (should (equal (filter! #'identity (copy-sequence '(a b c nil d e)))
                  '(a b c d e))))
 
 (ert-deftest common-tests/filter-3 ()
-  (should (equal (filter! #'identity '(nil a nil nil b nil c nil d nil e nil nil nil))
+  (should (equal (filter! #'identity (copy-sequence '(nil a nil nil b nil c nil d nil e nil nil nil)))
                  '(a b c d e))))
+
+(ert-deftest common-tests/with-partition-1 ()
+  (with-partition! matched non-matched (copy-sequence '(nil a nil nil b nil c nil d nil e nil nil nil)) (not (null it))
+    (should (equal matched '(a b c d e)))
+    (should (equal non-matched '(nil nil nil nil nil nil nil nil nil)))))
+
+(ert-deftest common-tests/with-partition-2 ()
+  (with-partition! matched non-matched (copy-sequence '(a nil nil b nil c nil d nil e nil nil nil)) (not (null it))
+    (should (equal matched '(a b c d e)))
+    (should (equal non-matched '(nil nil nil nil nil nil nil nil)))))
+
+(ert-deftest common-tests/with-partition-3 ()
+  (with-partition! matched non-matched (copy-sequence '(a b c d e)) (not (null it))
+    (should (equal matched '(a b c d e)))
+    (should (equal non-matched nil))))
+
+(ert-deftest common-tests/with-partition-4 ()
+  (with-partition! matched non-matched (copy-sequence '(a b c d e)) (null it)
+    (should (equal matched nil))
+    (should (equal non-matched '(a b c d e)))))
 
 ;; (progn
 ;;   (ert "common-tests/.*")
