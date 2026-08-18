@@ -483,10 +483,7 @@ within LIST to `it-index' before evaluating FORM.
 This is the anaphoric counterpart to `-filter'.
 For the opposite operation, see also `--remove'."
   (declare (debug (form form)))
-  (let ((r (make-symbol "result")))
-    `(let (,r)
-       (--each ,list (when ,form (push it ,r)))
-       (nreverse ,r))))
+  `(filter! (lambda (it) ,form) (copy-sequence ,list)))
 
 (defmacro --filter-nondet (form list)
   "Like ‘--filter’ but order of resulting elements is not deterministic"
@@ -499,6 +496,7 @@ For the opposite operation, see also `--remove'."
          (let ((it (car ,xs)))
            (when ,form
              (push it ,res)))
+         (cl-assert (consp ,xs))
          (setf ,xs (cdr ,xs)))
        ,res)))
 

@@ -1622,6 +1622,7 @@ persistent store may restore the narrowing state when session is loaded."
   "Filter mutate list XS by keeping only items for which function PREDICATE
 returned non-nil."
   (declare (pure nil) (side-effect-free nil))
+  (cl-assert (listp xs) nil "Not a list: %s" xs)
   (let* ((result (cons nil xs))
          (prev result)
          (tmp (cdr prev)))
@@ -1629,7 +1630,9 @@ returned non-nil."
       (if (funcall predicate (car tmp))
           (setf prev tmp
                 tmp (cdr tmp))
-        (setf tmp (setcdr prev (cdr tmp)))))
+        (progn
+          (cl-assert (consp prev) nil "Unexpected prev: ‘%s’" prev)
+          (setf tmp (setcdr-sure prev (cdr tmp))))))
     (cdr result)))
 
 (defun nconc-after-uniq! (skip-pred xs ys)
@@ -1649,7 +1652,7 @@ returned non-nil."
            (filter! (lambda (y) (not (gethash y prefix))) ys)))
       (if prev
           (progn
-            (setcdr prev (nconc ys-uniq tmp))
+            (setcdr-sure prev (nconc ys-uniq tmp))
             result)
         (nconc ys-uniq tmp)))))
 
