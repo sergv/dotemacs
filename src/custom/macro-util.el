@@ -87,29 +87,6 @@
          (push it ,non-matched-var)))
      ,@body))
 
-;; TODO: test and use, add -nfilter
-(defmacro --nfilter (form list)
-  (let ((res '#:res)
-        (tmp '#:tmp)
-        (lst '#:lst))
-    `(let (,res
-           ,tmp
-           (,lst ,list))
-       ;; Find first cell for res
-       (while (and ,lst
-                   (not ,res))
-         (let ((it (car ,lst)))
-           (when ,form
-             (setf ,tmp (setf ,res ,lst))))
-         (setf ,lst (cdr lst)))
-       ;; Continue filtering, now we have a cons cell to modify
-       (while ,lst
-         (let ((it (car ,lst)))
-           (when ,form
-             (setf tmp (setcdr-sure tmp lst))))
-         (setf ,lst (cdr lst)))
-       ,res)))
-
 (defmacro util/eval-if-symbol (x)
   "Evaluate x if it's symbos. Intended to be used inside defmacro."
   `(if (symbolp ,x)
