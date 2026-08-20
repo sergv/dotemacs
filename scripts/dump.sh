@@ -11,11 +11,22 @@ set -u
 set -o pipefail
 set -e
 
+function is_bin_in_path() {
+    builtin type -P "$1" &> /dev/null
+}
+
 if [[ -z "${2:-}" ]]; then
     export EMACS_FORCE_PRISTINE=1
     export EMACS_DEBUG=0
     emacs="${EMACS:-emacs}"
-    snapshot_name="$(basename "$emacs").dmp"
+
+    if is_bin_in_path "$emacs"; then
+        emacs_path="$(realpath "$(which "$emacs")")"
+    else
+        emacs_path="$emacs"
+    fi
+
+    snapshot_name="$(basename "$emacs_path").dmp"
 else
     emacs="${2}"
     snapshot_name="${3}"
