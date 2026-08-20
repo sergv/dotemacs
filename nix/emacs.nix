@@ -1,5 +1,6 @@
 { pkgs,
   arch,
+  emacs-src,
   debug,
   native
 }:
@@ -14,35 +15,11 @@ let
   # base-emacs-pkg = if isMacos then pkgs.emacs30-macport else pkgs.emacs30;
   # base-emacs-pkg = if isMacos then pkgs.emacs30-gtk3 else pkgs.emacs30;
 
-  fetchgit-improved =
-    pkgs.fetchgit // {
-      __functor = self : args :
-        (pkgs.fetchgit.__functor self args).overrideAttrs (old: {
-          # GIT_SSL_NO_VERIFY         = true;
-          # GIT_HTTP_PROXY_AUTHMETHOD = "basic";
-          # Somehow only file is picked up. Individual environment variables aren’t!
-          gitConfigFile =
-            pkgs.writeText
-              "git-proxy-config"
-              ''
-                [http]
-                proxyAuthMethod = "basic"
-                sslverify = false
-              '';
-        });
-    };
-
   wrap-dquotes-concat-with-space =
     xs:
     pkgs.lib.concatStringsSep " " (builtins.map (x: ''"${x}"'') xs);
   mk-shell-flags = xs: pkgs.lib.concatStringsSep " " xs;
   mk-elisp-flags = wrap-dquotes-concat-with-space;
-
-  emacs-src = pkgs.fetchgit {
-    url    = "https://github.com/sergv/emacs.git";
-    rev    = "424126816a70e492b2472636f83d765b5f1ff506";
-    sha256 = "sha256-eAl55ul9tOFlYqOnQx+5c+rywvMtQqX/WoVDMhfUumM="; #pkgs.lib.fakeSha256;
-  };
 
   mk-emacs-release-cfg = debug-flag: {
     cflags              =
