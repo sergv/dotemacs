@@ -17,10 +17,15 @@
       flake = true;
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    emacs-src = {
+      url = "github:sergv/emacs?ref=dev-30";
+      flake = false;
+    };
   };
 
   outputs =
-    { self, nixpkgs, haskell-nixpkgs-improvements, trix }:
+    inputs@{ self, nixpkgs, haskell-nixpkgs-improvements, trix, emacs-src }:
     let
       systems = [
         "x86_64-linux"
@@ -34,6 +39,7 @@
       mk-emacs-with-config =
         { system,
           arch ? null,
+          emacs-src ? null,
           pkgs,
           haskell-tools,
           debug,
@@ -91,6 +97,7 @@
 
           emacs-pkg = import ./nix/emacs.nix {
             inherit pkgs arch debug native;
+            emacs-src = if emacs-src == null then inputs.emacs-src else emacs-src;
           };
 
           emacs-raw = emacs-pkg.raw;
@@ -370,6 +377,7 @@
         mk-emacs-config =
           { system,
             arch ? null,
+            emacs-src ? null,
             pkgs,
             haskell-tools
           }@args:
