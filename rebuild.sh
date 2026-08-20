@@ -16,6 +16,11 @@ set -e
 #     exec nix develop --no-warn-dirty --command "$0"
 # fi
 
+if [[ ! -v EMACS_ROOT ]]; then
+    echo "EMACS_ROOT is not set" >&2
+    exit 1
+fi
+
 if [[ -z "${TMPDIR:-}" ]]; then
     export TMPDIR="/tmp"
 fi
