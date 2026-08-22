@@ -136,7 +136,10 @@ then insert absolute filepath, otherwise insert one relative to the current
                           ;; If match is longer than either "/" or "C:/"
                           (< (fold-platform-os-type 1 3) len)))
                    (file-relative-name abs-path def-dir)
-                 abs-path))
+                 (if (and (tramp-utils--is-tramp-remote-file? default-directory)
+                          (tramp-utils--is-tramp-remote-file? abs-path))
+                     (tramp-file-name-localname (tramp-dissect-file-name abs-path))
+                   abs-path)))
          (output (if (and (eq major-mode 'org-mode)
                           (y-or-n-p "Insert link? "))
                      (concat "[[file:"
