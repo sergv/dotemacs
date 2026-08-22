@@ -257,7 +257,7 @@ let
                 fi
               ''}
 
-            default_root="$(realpath "$(dirname "$(dirname "$(realpath --no-symlinks "''${BASH_SOURCE[0]}")")")")"
+            default_root="$(realpath "$(dirname "$(readlink -f "$(dirname "''${BASH_SOURCE[0]}")")")")"
 
             if [[ -v EMACS_ROOT && -d "$EMACS_ROOT" ]]; then
                 root="$EMACS_ROOT"
