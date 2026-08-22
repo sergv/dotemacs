@@ -262,10 +262,7 @@ function waits for output unless NOOUTPUT is set."
            (find-file-name-handler filename #'file-directory-p))))
 
 (defun tramp-utils--is-tramp-connection-alive? (filename)
-  (with-parsed-tramp-file-name
-      filename
-      vec
-    (tramp-get-connection-process vec)))
+  (tramp-get-connection-process (tramp-dissect-file-name filename)))
 
 (provide 'tramp-setup)
 
