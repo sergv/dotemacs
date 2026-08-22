@@ -220,6 +220,8 @@ _a_lign"
              :bind-return t
              :create-keymaps t)
 
+  (hl-line-mode 1)
+
   (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))
 
