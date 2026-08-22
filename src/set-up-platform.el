@@ -26,8 +26,8 @@
 
 (unless (and (listp +platform+)
              (memq (car +platform+)
-                   '(linux windows)))
-  (error "+platform+'s os %s should be one of 'linux or 'windows"
+                   '(linux macos windows)))
+  (error "+platform+'s os %s must be one of 'linux or 'windows"
          (car +platform+)))
 
 (defmacro when-macos (&rest body)

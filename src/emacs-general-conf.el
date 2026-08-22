@@ -392,6 +392,7 @@
 
 (when-macos
  (setq mac-allow-anti-aliasing t
+       ns-use-thin-smoothing t
        mac-command-modifier 'control))
 
 ;;;; Epilogue
