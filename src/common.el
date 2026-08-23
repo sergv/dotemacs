@@ -933,8 +933,11 @@ Save buffer if it has assigned file and this file exists on disk."
                               nil
                             buffer-file-name)))
     (when-buffer-has-file
-      (when (file-exists? buffer-file-name)
-        (indirect-aware-save-buffer)))
+      (when (if (tramp-utils--is-tramp-remote-file? buffer-file-name)
+                (tramp-utils--is-tramp-connection-alive? buffer-file-name)
+              t)
+        (when (file-exists? buffer-file-name)
+          (indirect-aware-save-buffer))))
     (kill-buffer buffer-or-name)))
 
 (defun remove-buffer-and-window ()
