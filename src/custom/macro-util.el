@@ -514,10 +514,11 @@ another KEY-COMMAND-LIST spliced in place of a variable;
             (if (listp mode-map)
                 (if (funcall quoted? mode-map)
                     `(let ((,map-var ,(cadr mode-map)))
-                       (cl-assert (not (null ,map-var))
-                                  nil
-                                  "warning: map %s is nil"
-                                  ',map-var)
+                       ,@(unless (eq (cadr mode-map) 'global-map)
+                           (list `(cl-assert (not (null ,map-var))
+                                             nil
+                                             "warning: map %s is nil"
+                                             ',(cadr mode-map))))
                        ,@(funcall process-key-command-list map-var key-command-list))
                   `(dolist (,map-var (list ,@mode-map))
                      (cl-assert (not (null ,map-var))
@@ -526,10 +527,11 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                                 ',map-var)
                      ,@(funcall process-key-command-list map-var key-command-list)))
               `(let ((,map-var ,mode-map))
-                 (cl-assert (not (null ,map-var))
-                            nil
-                            "warning: map %s is nil"
-                            ',map-var)
+                 ,@(unless (eq mode-map 'global-map)
+                     (list `(cl-assert (not (null ,map-var))
+                                       nil
+                                       "warning: map %s is nil"
+                                       ',mode-map)))
                  ,@(funcall process-key-command-list map-var key-command-list)))))
       (unless bindings
         (error "No keys bound for %S using following key-command-list %S"
