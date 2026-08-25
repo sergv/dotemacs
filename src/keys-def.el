@@ -59,14 +59,7 @@
     ("E" pseudovim-motion-fwd-WORD-end)))
 
 (defconst +vim-interbuffer-navigation-keys+
-  '(("<home>"     next-tab-or-frame)
-    ("<end>"      prev-tab-or-frame)
-
-    ("C-<home>"   next-f)
-    ("C-<end>"    prev-f)
-    ("C-S-<home>" swap-buffers-forward-through-frames)
-    ("C-S-<end>"  swap-buffers-backward-through-frames)
-    ("<left>"     prev-w)
+  '(("<left>"     prev-w)
     ("<right>"    next-w)
     ("S-<left>"   swap-buffers-backward)
     ("S-<right>"  swap-buffers-forward)))
