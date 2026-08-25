@@ -90,9 +90,6 @@
 
   ("<mouse-3>" mouse-open-file-at-point-other-window)
 
-  ("C-<home>" :remove)
-  ("C-<end>"  :remove)
-
   (("DEL" "<backspace>") pseudoparedit-backspace)
   ("\""                  pseudoparedit-insert-double-quote)
   ("\("                  pseudoparedit-insert-paren)
@@ -108,6 +105,22 @@
 
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("ESC ESC ESC" :remove))
+
+(if-macos
+    (def-keys-for-map global-map
+      ;; aka globe+<left>
+      ("<home>" prev-tab-or-frame)
+      ;; aka globe+<right>
+      ("<end>"  next-tab-or-frame))
+  (def-keys-for-map global-map
+    ("<home>" next-tab-or-frame)
+    ("<end>"  prev-tab-or-frame)))
+
+(def-keys-for-map global-map
+  ("C-<home>"   next-f)
+  ("C-<end>"    prev-f)
+  ("C-S-<home>" swap-buffers-forward-through-frames)
+  ("C-S-<end>"  swap-buffers-backward-through-frames))
 
 (def-keys-for-map universal-argument-map
   ("<f2>" universal-argument-more))
