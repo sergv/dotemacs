@@ -36,6 +36,13 @@
       `(progn
          ,@body))))
 
+(defmacro if-macos (on-true on-false)
+  (declare (indent 1))
+  (let ((os-type (car +platform+)))
+    (if (eq os-type 'macos)
+        on-true
+      on-false)))
+
 (defmacro when-windows (&rest body)
   (let ((os-type (car +platform+)))
     (when (eq os-type 'windows)
