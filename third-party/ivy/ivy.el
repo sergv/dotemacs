@@ -1203,6 +1203,16 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
                                         ivy--old-cands))))
       (cond
         ((eq new t) nil)
+        ((and (stringp new)
+              (string= new "")
+              (string= ivy-text ""))
+         (let ((selected (ivy-state-current ivy-last)))
+           (delete-region (minibuffer-prompt-end) (point-max))
+           (ivy-set-text selected)
+           (insert selected)
+           (when changedir-for-single-dir?
+             (ivy--partial-cd-for-single-directory))
+           t))
         ((string= new ivy-text) nil)
         ((string= (car tail) (car (ivy--split-spaces new))) nil)
         (new
