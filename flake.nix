@@ -59,7 +59,10 @@
           haskell-pkgs-base-for-emacs-native =
             if pkgs.stdenv.isDarwin
             then haskell-pkgs-for-tools
-            else haskell-tools.haskell-package-sets.host.ghc914-pie;
+            else
+              (if debug
+               then haskell-tools.haskell-package-sets.host.ghc914-pie-debug
+               else haskell-tools.haskell-package-sets.host.ghc914-pie);
 
           haskell-pkgs-for-so =
             if debug
