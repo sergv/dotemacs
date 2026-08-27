@@ -423,6 +423,7 @@ _<right>_: move tab to the right"
 ;;; insert mode keybindings
 
 (def-keys-for-map vim-insert-mode-keymap
+  +minibuffer-common-editing-keys+
   ("S-<backspace>" delete-whitespace-backward)
   ("S-<delete>"    delete-whitespace-forward)
   ("C-w"           backward-delete-word)

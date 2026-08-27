@@ -26,6 +26,7 @@
 
   (defvar vim--current-universal-argument-provided?))
 
+(require 'keys-def)
 (require 'persistent-sessions-global-vars)
 (require 'solarized)
 
@@ -184,6 +185,7 @@ into account.")
 (defvar *search-minibuffer-keymap*
   (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
+      +minibuffer-common-editing-keys+
       (("<enter>" "<return>" "RET") search-done)
 
       ("<escape>"  search-abort)
