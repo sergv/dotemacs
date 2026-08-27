@@ -34,6 +34,20 @@
       (tab-previous arg)
     (prev-f arg)))
 
+(defun next-w (n)
+  "Go to next Nth window"
+  (interactive "p")
+  (if (eq 1 (count-windows))
+      (next-tab-or-frame n)
+    (other-window n)))
+
+(defun prev-w (n)
+  "Go to previous Nth window"
+  (interactive "p")
+  (if (eq 1 (count-windows))
+      (prev-tab-or-frame n)
+    (other-window (- n))))
+
 ;; tab-bar-mode--tab-key-bind
 
 ;;;###autoload
