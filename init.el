@@ -176,6 +176,10 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
 ;; will get reinitialized anew. Or fresh ~/.bashrc will be picked up.
 (load-library "start")
 
+(when (and (eval-when-compile (eq system-type 'darwin))
+           (not noninteractive))
+  (select-frame-set-input-focus (selected-frame)))
+
 ;; Local Variables:
 ;; End:
 
