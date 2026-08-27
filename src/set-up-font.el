@@ -72,6 +72,8 @@
       ((and (= 1024 width)
             (= 600 height))
        90)
+      ((eval-when-compile (eq system-type 'darwin))
+       160)
       (t
        120))))
 
