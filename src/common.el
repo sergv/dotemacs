@@ -745,16 +745,6 @@ return pair (x (F x))."
 
 ;;; buffer, window and frame utils
 
-(defsubst next-w (n)
-  "Go to next Nth window"
-  (interactive "p")
-  (other-window n))
-
-(defsubst prev-w (n)
-  "Go to previous Nth window"
-  (interactive "p")
-  (other-window (- n)))
-
 (defun swap-buffers-in-windows (win-a win-b)
   "Swap buffers in windows WIN-A and WIN-B."
   (let* ((buf-a (window-buffer win-a))
