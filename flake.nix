@@ -54,15 +54,15 @@
 
           hutils = haskell-nixpkgs-improvements.lib.mk-haskell-utils pkgs;
 
-          haskell-pkgs-for-tools = haskell-tools.haskell-package-sets.host.ghc914;
+          haskell-pkgs-for-tools = haskell-tools.haskell-package-sets.host.default;
 
           haskell-pkgs-base-for-emacs-native =
             if pkgs.stdenv.isDarwin
             then haskell-pkgs-for-tools
             else
               (if debug
-               then haskell-tools.haskell-package-sets.host.ghc914-pie-debug
-               else haskell-tools.haskell-package-sets.host.ghc914-pie);
+               then haskell-tools.haskell-package-sets.host.default-pie-debug
+               else haskell-tools.haskell-package-sets.host.default-pie);
 
           haskell-pkgs-for-so =
             if debug
