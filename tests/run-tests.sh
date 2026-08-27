@@ -122,7 +122,7 @@ else
     exit 1
 fi
 
-if [[ -z "$matcher" ]]; then
+if [[ -z "$matcher" && "$OSTYPE" != "darwin"* ]]; then
 
     if [[ -z "${TMPDIR:-}" ]]; then
         export TMPDIR="/tmp"
