@@ -166,11 +166,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787790833,
-        "narHash": "sha256-16zQ+VSGhq+s3qYYPQ0UpNM0ryMpxpTIijpAswKOV/Y=",
+        "lastModified": 1787791419,
+        "narHash": "sha256-3wxfTZHX766oXRmBAvqamJnUzMKQd1fvtgrfjSegvrM=",
         "owner": "sergv",
         "repo": "haskell-nixpkgs-improvements",
-        "rev": "3df28451caa0a5a5658bb972abe07b2a395d66af",
+        "rev": "e92c69db46213e5372a5a0538cca2c26da7b0ab7",
         "type": "github"
       },
       "original": {
