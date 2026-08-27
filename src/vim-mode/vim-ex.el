@@ -11,9 +11,11 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'subr-x)
+  (require 'keys-def)
   (require 'macro-util)
   (require 'vim-motions))
 
+(require 'keys-def)
 (require 'persistent-sessions-global-vars)
 
 (require 'vim-macs)
@@ -57,6 +59,7 @@
 (defvar vim-ex-keymap
   (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
+      +minibuffer-common-editing-keys+
       ("<escape>"               abort-recursive-edit)
       ("C-w"                    backward-delete-word)
       ("C-S-w"                  backward-delete-word*)
@@ -70,8 +73,6 @@
       ("C-d"                    kill-region)
       ("C-f"                    read-and-insert-filename)
       ("<delete>"               delete-char)
-      ("<home>"                 beginning-of-line)
-      ("<end>"                  end-of-line)
       ("SPC"                    self-insert-command)
       ("S-<delete>"             delete-whitespace-forward)
       ("S-<backspace>"          delete-whitespace-backward)
