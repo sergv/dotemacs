@@ -10,12 +10,15 @@
   (require 'keys-def)
   (require 'macro-util))
 
+(require 'keys-def)
+
 (def-keys-for-map (minibuffer-local-completion-map
                    minibuffer-local-must-match-map
                    minibuffer-local-filename-completion-map
                    minibuffer-local-map
                    minibuffer-local-isearch-map
                    minibuffer-inactive-mode-map)
+  +minibuffer-common-editing-keys+
   ("<escape>"          abort-recursive-edit)
 
   ("C-w"               backward-delete-word)
@@ -30,8 +33,6 @@
   ("C-f"               read-and-insert-filename)
 
   ("<delete>"          delete-char)
-  ("<home>"            beginning-of-line)
-  ("<end>"             end-of-line)
 
   ("C-SPC"             delete-minibuffer-contents)
   ;; ("SPC"               self-insert-command)
