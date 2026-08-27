@@ -108,7 +108,8 @@
   ;; about) or is actively harmful on MacOS (-l will make us read
   ;; /etc/profile which will leave us with a messed up PATH thanks to
   ;; using `/usr/libexec/path_helper`).
-  (setf (cdr (assq 'tramp-remote-shell-login (cdr (assoc "ssh" tramp-methods)))) nil)
+  (setf (cdr (assq 'tramp-remote-shell-login (cdr (assoc "ssh" tramp-methods))))
+        (remq nil (mapcar (lambda (xs) (remove "-l" xs)) (cdr (assq 'tramp-remote-shell-login (cdr (assoc "ssh" tramp-methods)))))))
 
   ;; Alternative way of resetting tramp-remote-shell-login.
   ;; (add-to-list 'tramp-connection-properties
