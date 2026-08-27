@@ -16,6 +16,11 @@
   (require 'set-up-platform)
   (require 'subr-x))
 
+(declare-function tramp-utils--is-tramp-connection-alive? "tramp-setup")
+(declare-function tramp-utils--is-tramp-remote-file? "tramp-setup")
+(declare-function tramp-file-name-localname "tramp")
+(declare-function tramp-dissect-file-name "tramp")
+
 (defvar grep-find-ignored-files)
 
 (require 'common-small)
