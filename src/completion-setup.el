@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'el-patch)
+  (require 'keys-def)
   (require 'macro-util)
   (require 'pcomplete)
   (require 'set-up-platform))
@@ -17,6 +18,7 @@
 (require 'common-constants)
 (require 'common)
 (require 'el-patch)
+(require 'keys-def)
 (require 'set-up-paths)
 (require 'set-up-platform)
 (require 'set-up-volatile-paths)
@@ -238,6 +240,7 @@ Puts directories before files unless they're invisible."
         (string< x y)))))
 
 (def-keys-for-map ivy-minibuffer-map
+  +minibuffer-common-editing-keys+
   (("C-h" "C-<up>")   ivy-next-history-element)
   (("C-t" "C-<down>") ivy-previous-history-element)
   ("C-p"              yank)
