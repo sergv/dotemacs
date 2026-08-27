@@ -113,6 +113,10 @@ _z_: scroll to center
     ;; ("y"   copy-region-as-kill)
     ))
 
+(defconst +minibuffer-common-editing-keys+
+  '(("<home>" beginning-of-line)
+    ("<end>"  end-of-line)))
+
 (provide 'keys-def)
 
 ;; Local Variables:
