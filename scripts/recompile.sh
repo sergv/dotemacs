@@ -161,7 +161,7 @@ declare -a load_path
 while IFS= read -d $'\0' -r dir ; do
     load_path+=("-L" "$dir")
     # emacs  -Q --batch -L. -Lsrc -Lsrc/haskell -Lsrc/lisp
-done < <(gen-el-files "-print" | xargs dirname | sort -u | awk '!/(auctex\/style|targets|template|tests?)([/]?|$)/' | sed -re 's,^\./,,' | tr '\n' '\0')
+done < <(gen-el-files "-print" | xargs dirname | sort -u | awk '!/(auctex\/style|targets|template|tests?)([\/]?|$)/' | sed -re 's,^\./,,' | tr '\n' '\0')
 
 define eval_prelude <<EOF
 (progn
