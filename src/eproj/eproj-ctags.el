@@ -26,8 +26,7 @@
 
 (defun-once eproj-ctags--get-ctags-exec
   (or (executable-find "universal-ctags")
-      (executable-find "ctags-universal")
-      (executable-find "ctags")))
+      (executable-find "ctags-universal")))
 
 (defvar *ctags-language-flags*
   '((c-mode
