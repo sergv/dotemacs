@@ -13626,9 +13626,9 @@ _|_")
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
 ;;   (ert
-;;    ;; (join-lines (-map (comp #'regexp-quote #'symbol->string)
-;;    ;;                   haskell-tests/tests)
-;;    ;;             "\\|")
+;;    ;; (string-join (-map (comp #'regexp-quote #'symbol->string)
+;;    ;;                    haskell-tests/tests)
+;;    ;;              "\\|")
 ;;    "haskell-tests/.*")
 ;;   nil)
 

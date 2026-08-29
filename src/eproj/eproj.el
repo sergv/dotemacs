@@ -947,7 +947,7 @@ for project at ROOT directory."
                   (number->string tag-count))
                 "\n"))
       (insert "\nnavigation globs: "
-              (mapconcat #'identity (eproj--navigation-globs proj) " "))
+              (string-join (eproj--navigation-globs proj) " "))
       (insert "\n")
 
       (insert "\nnavigation files:\n")
