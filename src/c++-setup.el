@@ -57,7 +57,7 @@
                (alt-names-in-same-dir
                 (--map (concat file-dir "/" it)
                        alternative-names)))
-          (letrec ((path-join (lambda (path) (join-lines path "/")))
+          (letrec ((path-join (lambda (path) (string-join path "/")))
                    (find-subroot
                     (lambda (path needle)
                       (let ((dir (funcall path-join

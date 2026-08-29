@@ -272,8 +272,7 @@ performed for some field."
                          "bB  - write to backup file"
                          "?hH - show this message"
                          ""
-                         "Press any key to continue")
-                       "\n"))
+                         "Press any key to continue")))
                      (sit-for 0.1))))))))))))
 
 (defsubst persistent-store-database-size ()
