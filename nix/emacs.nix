@@ -9,11 +9,11 @@ let
     (if arch == null then [] else ["-mtune=${arch}"]) ++
     (if arch == null then [] else ["-march=${arch}"]);
 
-  isMacos = pkgs.stdenv.hostPlatform.isDarwin;
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 
   base-emacs-pkg = pkgs.emacs30;
-  # base-emacs-pkg = if isMacos then pkgs.emacs30-macport else pkgs.emacs30;
-  # base-emacs-pkg = if isMacos then pkgs.emacs30-gtk3 else pkgs.emacs30;
+  # base-emacs-pkg = if isDarwin then pkgs.emacs30-macport else pkgs.emacs30;
+  # base-emacs-pkg = if isDarwin then pkgs.emacs30-gtk3 else pkgs.emacs30;
 
   wrap-dquotes-concat-with-space =
     xs:
@@ -27,12 +27,14 @@ let
         "-O2"
         debug-flag
         "-fno-omit-frame-pointer"
-        "-fno-plt"
         "-flto=auto"
       ] ++
-      march-mtune-args;
+      march-mtune-args ++
+      (if isDarwin
+       then []
+       else ["-fno-plt"]);
     ldflags             =
-      if isMacos
+      if isDarwin
       then []
       else
         [
@@ -110,11 +112,11 @@ let
       withJansson           = false; # Use native JSON in Emacs instead, aviailable since version 30.
 
       # Take from base package.
-      # withX                 = !isMacos;
-      # withNS                = isMacos;
+      # withX                 = !isDarwin;
+      # withNS                = isDarwin;
       # withGTK3              = false;
       toolkit               = "lucid";
-      withToolkitScrollBars = isMacos;
+      withToolkitScrollBars = isDarwin;
       withCairo             = true;
       withXinput2           = true;
 
@@ -197,7 +199,7 @@ let
           (pkgs.lib.withFeature true "libgmp")
           (pkgs.lib.withFeature true "xml2")
           (pkgs.lib.withFeature true "zlib")
-          (if isMacos
+          (if isDarwin
            then pkgs.lib.withFeatureAs true "file-notification" "yes"
            else pkgs.lib.withFeatureAs true "file-notification" "inotify")
 
