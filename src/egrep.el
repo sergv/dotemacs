@@ -326,7 +326,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
 
       (select-mode-exit))))
 
-(defun egrep-search (regexp exts-globs ignored-files-globs dir ignore-case ignored-abs-dirs)
+(defun egrep-search (regexp exts-globs ignored-files-globs dir ignore-case ignored-abs-dirs ignored-dirs-descr)
   "Search for REGEXP in files under directory DIR that match
 FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
   (let* ((get-matches
@@ -398,10 +398,13 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
      (propertize
       "\n"
       'display
-      (format "Browse matches for ‘%s’ in files matching %s starting at directory %s\n\n"
+      (format "Browse matches for ‘%s’ in files matching %s starting at directory %s.%s\n\n"
               regexp
               (mapconcat #'identity exts-globs " ")
-              dir)
+              dir
+              (if ignored-dirs-descr
+                  (concat "\nIgnored directories: " ignored-dirs-descr)
+                ""))
       'read-only t)
      :working-directory dir
      :read-only nil)))
@@ -444,13 +447,18 @@ string patterns."
            (<= 4 (cl-first current-prefix-arg))))))
   (cl-assert (listp exts-globs))
 
-  (egrep-search (expand-escape-sequences regexp)
-                exts-globs
-                grep-find-ignored-files
-                dir
-                ignore-case
-                (awhen (eproj-get-project-for-buf-lax (current-buffer))
-                  (eproj-get-absolute-ignored-dirs it))))
+  (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
+         (eproj-abs-ignored-dirs
+          (when proj
+            (eproj-get-absolute-ignored-dirs proj))))
+    (egrep-search (expand-escape-sequences regexp)
+                  exts-globs
+                  grep-find-ignored-files
+                  dir
+                  ignore-case
+                  eproj-abs-ignored-dirs
+                  (when eproj-abs-ignored-dirs
+                    (string-join (--map (concat "${EPROJ-ROOT}/" it) (eproj-get-relative-ignored-dirs proj)) ", ")))))
 
 ;;;###autoload
 (defun egrep-region (str exts-globs dir &optional ignore-case)
