@@ -2537,6 +2537,255 @@ Entries should be a list of of elements of the form
    ""))
 
 (vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value-in-line-comment
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "-- foo _|_bar baz"
+       "foo x = 1"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "-- foo ba_|_r baz"
+       "foo x = 1"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "-- foo bar_|_ baz"
+       "foo x = 1"
+       "")))
+  (tests-utils--multiline
+   ""
+   "-- foo _|_ baz"
+   "foo x = 1"
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-symbol-value-in-line-comment
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((as (execute-kbd-macro (kbd ", a s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "-- foo _|_bar baz"
+       "foo x = 1"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "-- foo ba_|_r baz"
+       "foo x = 1"
+       ""))
+   ;; Doesn’t work, not clear whether it should.
+   ;; (3 (tests-utils--multiline
+   ;;     ""
+   ;;     "-- foo bar_|_ baz"
+   ;;     "foo x = 1"
+   ;;     ""))
+   )
+  (tests-utils--multiline
+   ""
+   "-- foo _|_baz"
+   "foo x = 1"
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value-in-haddock-line-comment
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "-- | foo _|_bar baz"
+       "foo x = 1"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "-- | foo ba_|_r baz"
+       "foo x = 1"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "-- | foo bar_|_ baz"
+       "foo x = 1"
+       "")))
+  (tests-utils--multiline
+   ""
+   "-- | foo _|_ baz"
+   "foo x = 1"
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-symbol-value-in-haddock-line-comment
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((as (execute-kbd-macro (kbd ", a s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "-- | foo _|_bar baz"
+       "foo x = 1"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "-- | foo ba_|_r baz"
+       "foo x = 1"
+       ""))
+   ;; Doesn’t work, not clear whether it should.
+   ;; (3 (tests-utils--multiline
+   ;;     ""
+   ;;     "-- | foo bar_|_ baz"
+   ;;     "foo x = 1"
+   ;;     ""))
+   )
+  (tests-utils--multiline
+   ""
+   "-- | foo _|_baz"
+   "foo x = 1"
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value-in-block-comment
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "{- foo _|_bar baz -}"
+       "foo x = 1"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "{- foo ba_|_r baz -}"
+       "foo x = 1"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "{- foo bar_|_ baz -}"
+       "foo x = 1"
+       "")))
+  (tests-utils--multiline
+   ""
+   "{- foo _|_ baz -}"
+   "foo x = 1"
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-symbol-value-in-block-comment
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((as (execute-kbd-macro (kbd ", a s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "{- foo _|_bar baz -}"
+       "foo x = 1"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "{- foo ba_|_r baz -}"
+       "foo x = 1"
+       ""))
+   ;; Doesn’t work, not clear whether it should.
+   ;; (3 (tests-utils--multiline
+   ;;     ""
+   ;;     "{- foo bar_|_ baz -}"
+   ;;     "foo x = 1"
+   ;;     ""))
+   )
+  (tests-utils--multiline
+   ""
+   "{- foo _|_baz -}"
+   "foo x = 1"
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value-in-string
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo = \"foo _|_bar baz\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo = \"foo ba_|_r baz\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo = \"foo bar_|_ baz\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo = \"foo _|_ baz\""
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-symbol-value-in-string
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((as (execute-kbd-macro (kbd ", a s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo = \"foo _|_bar baz\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo = \"foo ba_|_r baz\""
+       ""))
+   ;; Doesn’t work, not clear whether it should.
+   ;; (3 (tests-utils--multiline
+   ;;     ""
+   ;;     "foo = \"foo bar_|_ baz\""
+   ;;     ""))
+   )
+  (tests-utils--multiline
+   ""
+   "foo = \"foo _|_baz\""
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value-in-quasiquoter
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo = [qq|foo _|_bar baz|]"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo = [qq|foo ba_|_r baz|]"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo = [qq|foo bar_|_ baz|]"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo = [qq|foo _|_ baz|]"
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-symbol-value-in-quasiquoter
+    (haskell-mode haskell-ts-mode haskell-hsc-mode)
+  ((as (execute-kbd-macro (kbd ", a s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo = [qq|foo _|_bar baz|]"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo = [qq|foo ba_|_r baz|]"
+       ""))
+   ;; Doesn’t work, not clear whether it should.
+   ;; (3 (tests-utils--multiline
+   ;;     ""
+   ;;     "foo = [qq|foo bar_|_ baz|]"
+   ;;     ""))
+   )
+  (tests-utils--multiline
+   ""
+   "foo = [qq|foo _|_baz|]"
+   ""))
+
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-type
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))

@@ -476,80 +476,89 @@ extensions as a list of strings. Leaves point at the end of pragma"
 
 (defun haskell-misc--bounds-of-symbol-impl (qualified? offset core-mode? include-quotes?)
   "Qualified symbol may return prefix of ' before the symbol."
-  (if (and (not core-mode?)
-           (derived-mode-p 'haskell-ts-base-mode))
-      ;; New shiny treesitter-based implementation, preferred default going forward.
-      (if-let* ((curr-node (treesit-node-at (point)))
-                (symbol-node
-                 (or (treesit-utils-find-topmost-parent-limited
-                      curr-node
-                      (lambda (node)
-                        (let ((typ (treesit-node-type node)))
-                          (or (and include-quotes?
-                                   (string= typ "promoted"))
-                              (member typ
-                                      '("literal" "variable" "name" "constructor" "qualified" "th_quoted_name")))))
-                      5)
-                     (and (treesit-utils--is-leaf-node? curr-node)
-                          curr-node))))
-          (progn
-            (when (and (not include-quotes?)
-                       (string= (treesit-node-type symbol-node) "th_quoted_name"))
-              (setf symbol-node (or (treesit-node-child-by-field-name symbol-node "name")
-                                    (treesit-node-child-by-field-name symbol-node "type")
-                                    (error "Unexpected children of th_quoted_name: %s" symbol-node))))
-            (when (not qualified?)
-              (let ((symbol-node-typ (treesit-node-type symbol-node)))
-                (if-let* (((string= symbol-node-typ "prefix_id"))
-                          (internals (haskell-ts-getters--extract-from-parens-prefix-id symbol-node))
-                          ((string= (treesit-node-type internals) "qualified")))
-                    (setf symbol-node (haskell-ts-getters--qualified-id internals))
-                  (when (string= symbol-node-typ "qualified")
-                    (setf symbol-node (haskell-ts-getters--qualified-id symbol-node))))))
-            (cons (treesit-node-start symbol-node) (treesit-node-end symbol-node)))
-        (error "Failed to find symbol node at point"))
-    ;; Old “legacy” implementation. Keep it mostly for core that
-    ;; doesn’t have treesitter alternative. Ideally want it to go away.
-    ;;
-    ;; Cannot deal with all edge cases, e.g. [0.._|_foo] will not recognize ‘foo’ symbol here
-    ;; because of the dots.
-    (save-excursion
-      (save-match-data
-        (with-syntax-table
-            (if core-mode?
-                ghc-core-symbol--identifier-syntax-table
-              haskell-search-fixed-syntax-table)
-          (let ((word-chars
-                 (if core-mode?
-                     (eval-when-compile (concat haskell-misc--bounds-of-symbol--word-chars "$"))
-                   haskell-misc--bounds-of-symbol--word-chars)))
-            (when offset
-              (forward-char offset))
-            (if (looking-at-p
-                 (if core-mode?
-                     (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "$]"))
-                   (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "]"))))
-                ;; In the middle of a word - next character is a word one
-                ;; so go back while we’re part of the word.
-                (skip-chars-backward word-chars)
-              ;; Not followed by a word so if also not preceded by a word then try
-              ;; to detect operator.
-              (when (or (string-contains? (following-char)
-                                          haskell-smart-operators--operator-chars-str)
-                        (zerop (skip-chars-backward word-chars)))
-                (skip-chars-backward haskell-smart-operators--operator-chars-str)
-                ;; To get qualified part
-                (when (eq (following-char) ?.)
-                  (skip-chars-backward word-chars))))
-            (unless include-quotes?
-              (skip-chars-forward "'"))
-            (when (posix-looking-at
+  (let ((curr-node nil))
+    (if (and (not core-mode?)
+             (derived-mode-p 'haskell-ts-base-mode)
+             (progn
+               (setf curr-node (treesit-node-at (point)))
+               (if curr-node
+                   (let ((typ (treesit-node-type curr-node)))
+                     (not (or (treesit-haskell--is-comment-node-type? typ)
+                              (treesit-haskell--is-string-node-type? typ))))
+                 ;; Continue with treesitter implementation.
+                 t)))
+        ;; New shiny treesitter-based implementation, preferred default going forward.
+        ;; NB it doesn’t work within commets so the old way is here to stay.
+        (if-let* ((symbol-node
+                   (or (treesit-utils-find-topmost-parent-limited
+                        curr-node
+                        (lambda (node)
+                          (let ((typ (treesit-node-type node)))
+                            (or (and include-quotes?
+                                     (string= typ "promoted"))
+                                (member typ
+                                        '("literal" "variable" "name" "constructor" "qualified" "th_quoted_name")))))
+                        5)
+                       (and (treesit-utils--is-leaf-node? curr-node)
+                            curr-node))))
+            (progn
+              (when (and (not include-quotes?)
+                         (string= (treesit-node-type symbol-node) "th_quoted_name"))
+                (setf symbol-node (or (treesit-node-child-by-field-name symbol-node "name")
+                                      (treesit-node-child-by-field-name symbol-node "type")
+                                      (error "Unexpected children of th_quoted_name: %s" symbol-node))))
+              (when (not qualified?)
+                (let ((symbol-node-typ (treesit-node-type symbol-node)))
+                  (if-let* (((string= symbol-node-typ "prefix_id"))
+                            (internals (haskell-ts-getters--extract-from-parens-prefix-id symbol-node))
+                            ((string= (treesit-node-type internals) "qualified")))
+                      (setf symbol-node (haskell-ts-getters--qualified-id internals))
+                    (when (string= symbol-node-typ "qualified")
+                      (setf symbol-node (haskell-ts-getters--qualified-id symbol-node))))))
+              (cons (treesit-node-start symbol-node) (treesit-node-end symbol-node)))
+          (error "Failed to find symbol node at point"))
+      ;; Old “legacy” implementation. Keep it mostly for core that
+      ;; doesn’t have treesitter alternative. Ideally want it to go away.
+      ;;
+      ;; Cannot deal with all edge cases, e.g. [0.._|_foo] will not recognize ‘foo’ symbol here
+      ;; because of the dots.
+      (save-excursion
+        (save-match-data
+          (with-syntax-table
+              (if core-mode?
+                  ghc-core-symbol--identifier-syntax-table
+                haskell-search-fixed-syntax-table)
+            (let ((word-chars
                    (if core-mode?
-                       haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number/posix-only
-                     haskell-regexen/opt-q/varid-or-conid-or-operator-or-number))
-              (if qualified?
-                  (cons (match-beginning 0) (match-end 0))
-                (cons (match-beginning 1) (match-end 1))))))))))
+                       (eval-when-compile (concat haskell-misc--bounds-of-symbol--word-chars "$"))
+                     haskell-misc--bounds-of-symbol--word-chars)))
+              (when offset
+                (forward-char offset))
+              (if (looking-at-p
+                   (if core-mode?
+                       (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "$]"))
+                     (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "]"))))
+                  ;; In the middle of a word - next character is a word one
+                  ;; so go back while we’re part of the word.
+                  (skip-chars-backward word-chars)
+                ;; Not followed by a word so if also not preceded by a word then try
+                ;; to detect operator.
+                (when (or (string-contains? (following-char)
+                                            haskell-smart-operators--operator-chars-str)
+                          (zerop (skip-chars-backward word-chars)))
+                  (skip-chars-backward haskell-smart-operators--operator-chars-str)
+                  ;; To get qualified part
+                  (when (eq (following-char) ?.)
+                    (skip-chars-backward word-chars))))
+              (unless include-quotes?
+                (skip-chars-forward "'"))
+              (when (posix-looking-at
+                     (if core-mode?
+                         haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number/posix-only
+                       haskell-regexen/opt-q/varid-or-conid-or-operator-or-number))
+                (if qualified?
+                    (cons (match-beginning 0) (match-end 0))
+                  (cons (match-beginning 1) (match-end 1)))))))))))
 
 ;;;###autoload
 (defun bounds-of-haskell-symbol ()
