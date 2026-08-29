@@ -210,9 +210,11 @@ function waits for output unless NOOUTPUT is set."
         ;; `tramp-echo-mark', so the remote shell sees two consecutive
         ;; trailing line endings and sends two prompts after executing
         ;; the command, which confuses `tramp-wait-for-output'.
-        (when (and (not (string-empty-p command))
-		   (string-equal (substring command -1) "\n"))
-	  (setq command (substring command 0 -1)))
+        (when (el-patch-swap
+                (and (not (string-empty-p command))
+                     (string-equal (substring command -1) "\n"))
+                (string-suffix-p "\n" command))
+          (setq command (substring command 0 -1)))
         ;; No need to restore a trailing newline here since `tramp-send-string'
         ;; makes sure that the string ends in `tramp-rsh-end-of-line', anyway.
         (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
