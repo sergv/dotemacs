@@ -25,7 +25,8 @@
 (defun attrap-tests-make-ephemeral-haskell-eproj-project (tags)
   (let ((proj (eproj-make-project default-directory
                                   '((languages haskell-mode)
-                                    (no-default-proj haskell-mode))))
+                                    (no-default-proj haskell-mode))
+                                  nil))
         (tags-index (empty-eproj-tag-index)))
     (cl-assert (listp tags))
     (dolist (x tags)

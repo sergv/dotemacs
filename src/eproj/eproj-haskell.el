@@ -283,6 +283,7 @@ spaces if they’re quoted with double quotes, e.g. \"foobar\"."
 
 ;;;###autoload
 (defun eproj--infer-haskell-project (root is-self-contained-file?)
+  (cl-assert (symbolp is-self-contained-file?))
   (let ((cabal-proj-file (concat root "/cabal.project"))
         (cabal-proj-local-file (concat root "/cabal.project.local")))
     (cond

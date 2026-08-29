@@ -157,7 +157,7 @@ under ROOT directory."
 
     (let ((run-check
            (lambda ()
-             (let ((proj (eproj-get-project-for-path path)))
+             (let ((proj (eproj-get-project-for-path path nil)))
 
                (should (eproj-tests/paths=? path (eproj-project/root proj)))
                (should (not (null (eproj-project/related-projects proj))))
@@ -180,7 +180,7 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/aux-files"
   (let* ((path eproj-tests/project-with-aux-files)
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
     (should (not (null proj)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
     (should (not (null (eproj--aux-files proj))))
@@ -218,7 +218,7 @@ under ROOT directory."
       (ert-skip "ctags not available"))
 
     (let* ((path eproj-tests/project-with-c-files)
-           (proj (eproj-get-project-for-path path))
+           (proj (eproj-get-project-for-path path nil))
            (tags-index-thunk (cdr (assq 'c-mode (eproj-project/tags proj))))
            (project-names
             '("bigint"
@@ -265,7 +265,7 @@ under ROOT directory."
     (eproj-reset-projects)
     (should (not (null (eproj-get-initial-project-root (concat path "/Foo/Bar") nil))))
     (eproj-reset-projects)
-    (let ((proj (eproj-get-project-for-path path)))
+    (let ((proj (eproj-get-project-for-path path nil)))
       (should (not (null proj)))
       (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
@@ -322,7 +322,7 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/project-with-file-list"
   (let* ((path eproj-tests/project-with-file-list)
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
     (should (not (null proj)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
@@ -335,7 +335,7 @@ under ROOT directory."
  (unless eproj-tests/faster-richer-tags-exe
    (ert-skip "faster-richer-tags not available"))
  (let* ((path eproj-tests/project-with-ignored-files)
-        (proj (eproj-get-project-for-path path)))
+        (proj (eproj-get-project-for-path path nil)))
    (should (not (null proj)))
    (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
@@ -394,7 +394,7 @@ under ROOT directory."
         (eproj/default-projects (alist->hash-table
                                  (list (cons 'haskell-mode
                                              (list (concat path "/default")))))))
-   (let ((proj (eproj-get-project-for-path (concat path "/main"))))
+   (let ((proj (eproj-get-project-for-path (concat path "/main") nil)))
      (should (not (null proj)))
 
      (should (memq 'haskell-mode (eproj-project/no-default-project-for proj)))
@@ -403,7 +403,7 @@ under ROOT directory."
      (should (eproj-get-matching-tags proj 'haskell-mode "bar" nil t))
      (should-not (eproj-get-matching-tags proj 'haskell-mode "baz" nil t))
 
-     (let ((related-proj (eproj-get-project-for-path (concat path "/related"))))
+     (let ((related-proj (eproj-get-project-for-path (concat path "/related") nil)))
        (should (not (null related-proj)))
        (should (null (eproj-project/no-default-project-for related-proj)))
 
@@ -415,7 +415,7 @@ under ROOT directory."
     "eproj-tests/eproj-related-project-files-are-not-included-into-main-project"
   (let* ((path (concat eproj-tests/project-with-related-projects-as-subdirs
                        "/main-project"))
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
     (should (not (null (eproj-project/related-projects proj))))
 
@@ -435,7 +435,7 @@ under ROOT directory."
 
       (should (equal '("subproj1/Bar1.hs" "subproj2/src/Quux.hs")
                      (eproj-tests/normalize-file-list
-                      (--mapcat (let ((p (eproj-get-project-for-path it)))
+                      (--mapcat (let ((p (eproj-get-project-for-path it nil)))
                                   (--map (concat (file-name-nondirectory (eproj-project/root p)) "/" it)
                                          (eproj--get-project-files p)))
                                 (eproj-project/related-projects proj)))))
@@ -461,7 +461,7 @@ under ROOT directory."
 
       (let ((run-check
              (lambda ()
-               (let ((proj (eproj-get-project-for-path path)))
+               (let ((proj (eproj-get-project-for-path path nil)))
 
                  (should (not (null proj)))
                  (should (eproj-tests/paths=? path (eproj-project/root proj)))
@@ -499,7 +499,7 @@ under ROOT directory."
 
       (let ((run-check
              (lambda ()
-               (let ((proj (eproj-get-project-for-path path)))
+               (let ((proj (eproj-get-project-for-path path nil)))
 
                  (should (not (null proj)))
                  (should (eproj-tests/paths=? path (eproj-project/root proj)))
@@ -537,7 +537,7 @@ under ROOT directory."
 
       (let ((run-check
              (lambda ()
-               (let ((proj (eproj-get-project-for-path path)))
+               (let ((proj (eproj-get-project-for-path path nil)))
 
                  (should (not (null proj)))
                  (should (eproj-tests/paths=? path (eproj-project/root proj)))
@@ -563,7 +563,7 @@ under ROOT directory."
   (unless eproj-tests/faster-richer-tags-exe
     (ert-skip "faster-richer-tags not available"))
   (let* ((path eproj-tests/haskell-project-with-aux-files)
-         (proj (eproj-get-project-for-path path))
+         (proj (eproj-get-project-for-path path nil))
          (expected-navigation-files
           '("foo.cabal"
             "src/Foo.hs"
@@ -596,8 +596,8 @@ under ROOT directory."
   (unless eproj-tests/faster-richer-tags-exe
     (ert-skip "faster-richer-tags not available"))
   (let* ((path eproj-tests/haskell-project-authoritative)
-         (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
-         (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative"))))
+         (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative") nil))
+         (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative") nil)))
 
     (dolist (entry '(("foo" . 11)
                      ("bar" . 14)
@@ -625,7 +625,7 @@ under ROOT directory."
   (unless (cached-executable-find "universal-ctags")
     (ert-skip "universal-ctags not available"))
   (let* ((path eproj-tests/java-kotlin-combined)
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
     (should (not (null proj)))
     (dolist (mode '(java-mode kotlin-mode))
       (let ((lang (aif (gethash mode eproj/languages-table)
@@ -660,7 +660,7 @@ under ROOT directory."
   (unless (cached-executable-find "universal-ctags")
     (ert-skip "universal-ctags not available"))
   (let* ((path eproj-tests/scala-simple)
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
     (should (not (null proj)))
 
     (should (equal (--map (list (eproj-matching-tag/name it)
@@ -678,7 +678,7 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/project-with-ignored-dirs"
   (let* ((path eproj-tests/project-with-ignored-dirs)
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
     (should (not (null proj)))
     (let ((actual-navigation-files nil)
           (expected-navigation-files
@@ -698,7 +698,7 @@ under ROOT directory."
     "eproj-tests/project-with-navigation-file-construction--mainproject"
   (let* ((root eproj-tests/project-with-navigation-file-construction)
          (path (concat root "/mainproject"))
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
     (should (not (null proj)))
     (let ((actual-navigation-files nil)
           (expected-navigation-files
@@ -750,7 +750,7 @@ under ROOT directory."
     "eproj-tests/project-with-navigation-file-construction--subproject"
   (let* ((root eproj-tests/project-with-navigation-file-construction)
          (path (concat root "/mainproject/subproject"))
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
     (should (not (null proj)))
     (let ((actual-navigation-files nil)
           (expected-navigation-files
@@ -804,7 +804,7 @@ under ROOT directory."
     (ert-skip "faster-richer-tags not available"))
   (let* ((path eproj-tests/haskell-project-with-type-that-overrides-constructor)
          (eproj/default-projects (make-hash-table :test #'eq))
-         (proj (eproj-get-project-for-path path)))
+         (proj (eproj-get-project-for-path path nil)))
 
     (should (equal
              (list (list "Foo"
@@ -941,6 +941,60 @@ foo3	%s	102	;\"	z
        (should (string= test-filename (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
        (should (equal ?z (eproj-tag/type tag3)))))))
+
+(ert-deftest eproj-tests/haskell-self-contained-cabal-script ()
+  (unless eproj-tests/faster-richer-tags-exe
+   (ert-skip "faster-richer-tags not available"))
+  (unless (treesit-language-available-p 'haskell)
+    (ert-skip "haskell-ts-mode not available"))
+  (let ((eproj/default-projects (make-hash-table :test #'eq))
+        ;; don't want verbose messages in the output
+        (eproj-verbose-tag-loading nil)
+        (find-rec-backend 'elisp))
+    (eproj-reset-projects)
+    (test-utils--with-temp-file
+        tmp-file
+        "Main"
+        ".hs"
+        "\
+#!/usr/bin/env cabal
+{- cabal:
+build-depends: base
+default-language: Haskell2010
+-}
+
+foo :: Int
+foo = 1
+
+bar :: Int
+bar = foo
+"
+      (haskell-ts-mode)
+
+      (let ((proj (eproj-get-project-for-buf (current-buffer))))
+        (should (eproj-project/is-self-contained? proj))
+
+        (should (member (file-name-nondirectory tmp-file)
+                        (eproj--get-all-files proj)))
+        (should (member tmp-file
+                        (--map (concat (eproj-project/root proj) "/" it)
+                               (eproj--get-all-files proj))))
+
+        (should (equal
+                 (list (list "foo"
+                             (make-eproj-tag (file-relative-name tmp-file (eproj-project/root proj))
+                                             7
+                                             ?f
+                                             t
+                                             nil)))
+                 (-map (lambda (x)
+                         (list (eproj-matching-tag/name x)
+                               (eproj-matching-tag/tag x)))
+                       (eproj-get-matching-tags proj
+                                                'haskell-mode
+                                                "foo"
+                                                nil
+                                                t))))))))
 
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)

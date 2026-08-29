@@ -195,7 +195,8 @@ as accepted by `bounds-of-thing-at-point'.")
       ;; Force loading now.
       (nanothunk-force (cdr tags-entry))
     (progn
-      (eproj--make-project-and-register! (eproj-project/root proj))
+      (eproj--make-project-and-register! (eproj-project/root proj)
+                                         (eproj-project/is-self-contained? proj))
       (unless (eproj-project/tags proj)
         (error "Project %s loaded no names - no modes registered\nProject: %s"
                (eproj-project/root proj)

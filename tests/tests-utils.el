@@ -303,6 +303,15 @@ Ensures a final newline is inserted."
                  ,@body)
              (delete-directory ,created-tmp-dir-var t)))))))
 
+(defmacro test-utils--with-temp-file (created-tmp-file-var prefix suffix contents &rest body)
+  (declare (indent 4))
+  (cl-assert (symbolp created-tmp-file-var))
+  `(let ((,created-tmp-file-var (make-temp-file ,prefix nil ,suffix ,contents)))
+     (unwind-protect
+         (with-buffer (find-file-noselect ,created-tmp-file-var)
+           ,@body)
+       (delete-file ,created-tmp-file-var))))
+
 (provide 'tests-utils)
 
 ;; Local Variables:
