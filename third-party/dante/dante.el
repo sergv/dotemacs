@@ -1515,7 +1515,7 @@ This is a standard process sentinel function."
              sep
              (buffer-local-value 'default-directory (process-buffer process))
              sep
-             (join-lines (process-command process) " ")
+             (string-join (process-command process) " ")
              (if init-msg
                  (concat sep (trim-whitespace-right init-msg))
                "")))

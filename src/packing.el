@@ -138,7 +138,7 @@
 
 (defun packing--join-path (components)
   (declare (pure t) (side-effect-free t))
-  (mapconcat #'identity components "/"))
+  (string-join components "/"))
 
 (defun packing-pack-vec (xs)
   (declare (pure t) (side-effect-free t))

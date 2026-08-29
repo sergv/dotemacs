@@ -56,12 +56,11 @@
         (while inferior-octave-receive-in-progress
           (accept-process-output proc))
         (insert-before-markers
-         (mapconcat 'identity
-                    (append
-                     (if octave-send-echo-input (list line) (list ""))
-                     inferior-octave-output-list
-                     (list inferior-octave-output-string))
-                    "\n")))
+         (join-lines
+          (append
+           (if octave-send-echo-input (list line) (list ""))
+           inferior-octave-output-list
+           (list inferior-octave-output-string)))))
       (el-patch-add (run-hooks 'inferior-octave-on-output-hook))))
   (if octave-send-show-buffer
       (display-buffer inferior-octave-buffer)))
