@@ -404,10 +404,12 @@ main table and value in aux table."
 
 ;;;
 
-(cl-defun strip-string-prefix (prefix str &key (starting-at 0))
-  "Remove (+ (length PREFIX) STARTING-AT) characters from start of STR."
+(defun strip-string-prefix (prefix str)
+  "Remove (length PREFIX) characters from start of STR if they’re equal to PREFIX."
   (declare (pure t) (side-effect-free t))
-  (substring str (+ starting-at (length prefix))))
+  (if (string-prefix-p prefix str)
+      (substring str (length prefix))
+    str))
 
 (defun strip-directory-and-separator-prefix (prefix str)
   (cl-assert (not (eq ?/ (aref prefix (1- (length prefix)))))
