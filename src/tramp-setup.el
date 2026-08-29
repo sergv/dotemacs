@@ -37,6 +37,7 @@
 (defvar tramp-use-scp-direct-remote-copying)
 (defvar tramp-verbose)
 
+(require 'common)
 (require 'el-patch)
 
 (require 'shell-baseline-emacs-fixes)
@@ -113,6 +114,9 @@
   ;; using `/usr/libexec/path_helper`).
   (setf (cdr (assq 'tramp-remote-shell-login (cdr (assoc "ssh" tramp-methods))))
         (remq nil (mapcar (lambda (xs) (remove "-l" xs)) (cdr (assq 'tramp-remote-shell-login (cdr (assoc "ssh" tramp-methods)))))))
+
+  (when (member-recursive "-l" (assq 'tramp-remote-shell-login (cdr (assoc "ssh" tramp-methods))))
+    (error "Tramp ssh method is not initialized correctly"))
 
   ;; Alternative way of resetting tramp-remote-shell-login.
   ;; (add-to-list 'tramp-connection-properties
