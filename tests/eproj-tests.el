@@ -998,9 +998,9 @@ bar = foo
 
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
-;;   (ert (join-lines (-map (lambda (x) (concat "^" (symbol->string x) "$"))
-;;                         eproj-tests/tests)
-;;                    "\\|")
+;;   (ert (string-join (-map (lambda (x) (concat "^" (symbol->string x) "$"))
+;;                           eproj-tests/tests)
+;;                     "\\|")
 ;;        ;; "eproj-tests/.*"
 ;;        )
 ;;   nil)

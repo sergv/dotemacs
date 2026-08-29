@@ -163,7 +163,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                   (= (length matches) 0))
           (error "No matches for regexp \"%s\" across files %s"
                  regexp
-                 (mapconcat #'identity globs-to-find ", ")))
+                 (string-join globs-to-find ", ")))
         matches))))
 
 (defun egrep--find-matches--elisp (regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs)
@@ -231,7 +231,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
           (when (null matches)
             (error "No matches for regexp \"%s\" across files %s"
                    regexp
-                   (mapconcat #'identity exts-globs ", ")))
+                   (string-join exts-globs ", ")))
           (when should-report-progress?
             (message "Finished looking in files")
             (redisplay t))
@@ -400,7 +400,7 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
       'display
       (format "Browse matches for ‘%s’ in files matching %s starting at directory %s.%s\n\n"
               regexp
-              (mapconcat #'identity exts-globs " ")
+              (string-join exts-globs " ")
               dir
               (if ignored-dirs-descr
                   (concat "\nIgnored directories: " ignored-dirs-descr)

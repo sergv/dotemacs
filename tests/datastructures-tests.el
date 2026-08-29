@@ -806,7 +806,7 @@
 
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
-;;   (ert (join-lines (map #'symbol->string datastructures-tests/tests) "\\|")
+;;   (ert (string-join (map #'symbol->string datastructures-tests/tests) "\\|")
 ;;        ;; "haskell-tests/.*"
 ;;        )
 ;;   nil)
