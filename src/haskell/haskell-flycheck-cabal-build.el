@@ -104,7 +104,7 @@
                        sep
                        (buffer-local-value 'default-directory (process-buffer proc))
                        sep
-                       (join-lines (process-command proc) " ")
+                       (string-join (process-command proc) " ")
                        sep
                        (with-current-buffer buf
                          (buffer-substring-no-properties (point-min) (point-max)))))))
