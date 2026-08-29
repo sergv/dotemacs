@@ -35,8 +35,8 @@
     ;; share things like last cmd events, etc.
     :buffer-id nil))
 
-(defmacro vim-tests--test-fresh-buffer-contents-init-reuse (init action contents expected-value)
-  (declare (indent 2))
+(defmacro vim-tests--default-test-buffer-contents-init (buffer-id init action contents expected-value)
+  (declare (indent 3))
   `(tests-utils--test-buffer-contents
     :action ,action
     :contents ,contents
@@ -44,18 +44,18 @@
     :initialisation ,init
     ;; Don’t reuse buffer to start out in fresh environment each time and don’t
     ;; share things like last cmd events, etc.
-    :buffer-id nil))
+    :buffer-id ,buffer-id))
 
 (defmacro vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits (name-prefix actions contentss expected-value)
   (declare (indent 1))
-  `(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+  `(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
        ,name-prefix
        ,(-map #'car vim-tests--all-known-modes-and-init)
      ,actions
      ,contentss
      ,expected-value))
 
-(defmacro vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(defmacro vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     (name-prefix modes actions contentss expected-value)
   (declare (indent 2))
   (cl-assert (symbolp name-prefix))
@@ -81,7 +81,8 @@
                                                  (car action)
                                                  (car contents)))
                ()
-             (vim-tests--test-fresh-buffer-contents-init
+             (vim-tests--default-test-buffer-contents-init
+                 ,(string->symbol (format "vim-tests-%s" mode))
                  (progn ,@(cdr (assq mode vim-tests--all-known-modes-and-init)))
                  (progn ,@(cdr action))
                ,(cadr contents)
@@ -2399,7 +2400,7 @@ Entries should be a list of of elements of the form
   "-- foo _|_baz"
   ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2425,7 +2426,7 @@ Entries should be a list of of elements of the form
    "  _|_ (x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-number
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2447,7 +2448,7 @@ Entries should be a list of of elements of the form
    "foo x = x +_|_ "
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-after-operator
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2478,7 +2479,7 @@ Entries should be a list of of elements of the form
    "  ++_|_ (x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-before-operator
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2509,7 +2510,7 @@ Entries should be a list of of elements of the form
    "  _|_++ (x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-qualified-names
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2535,7 +2536,7 @@ Entries should be a list of of elements of the form
    "  Frobnicator._|_ (x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-type
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2556,7 +2557,7 @@ Entries should be a list of of elements of the form
    "foo x = undefined"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-symbol-value
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((as (execute-kbd-macro (kbd ", a s"))))
@@ -2586,7 +2587,7 @@ Entries should be a list of of elements of the form
    "  _|_(x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-symbol-value-qualified
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((as (execute-kbd-macro (kbd ", a s"))))
@@ -2616,7 +2617,7 @@ Entries should be a list of of elements of the form
    "  Frobnicator._|_(x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
@@ -2642,7 +2643,7 @@ Entries should be a list of of elements of the form
    "  _|_ (x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
@@ -2673,7 +2674,7 @@ Entries should be a list of of elements of the form
    "  _|_ (x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-after-operator
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
@@ -2709,7 +2710,7 @@ Entries should be a list of of elements of the form
    "  ++_|_ (x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-before-operator
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
@@ -2745,7 +2746,7 @@ Entries should be a list of of elements of the form
    "  _|_++ (x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-qualified-symbol-type
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
@@ -2771,7 +2772,7 @@ Entries should be a list of of elements of the form
    "foo x = undefined"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-qualified-symbol-value
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((aS (execute-kbd-macro (kbd ", a S"))))
@@ -2801,7 +2802,7 @@ Entries should be a list of of elements of the form
    "  _|_(x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-outer-qualified-symbol-value-qualified
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((aS (execute-kbd-macro (kbd ", a S"))))
@@ -2836,7 +2837,7 @@ Entries should be a list of of elements of the form
    "  _|_(x + 1) y \"foo\""
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-quasiquoter
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2866,7 +2867,7 @@ Entries should be a list of of elements of the form
    "  putStrLn [_|_|test|]"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-qualified-quasiquoter
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2893,7 +2894,7 @@ Entries should be a list of of elements of the form
    "  putStrLn [Żółć._|_|test|]"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-value-in-qualified-quasiquoter-qualified
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
@@ -2925,7 +2926,7 @@ Entries should be a list of of elements of the form
    "  putStrLn [_|_|test|]"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-operator
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((is (execute-kbd-macro (kbd ", i s")))
@@ -2941,7 +2942,7 @@ Entries should be a list of of elements of the form
    "  foo _|_ bar"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+(vim-tests--default-test-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-symbol-operator-qualified
     (haskell-mode haskell-ts-mode haskell-hsc-mode)
   ((iS (execute-kbd-macro (kbd ", i S")))
