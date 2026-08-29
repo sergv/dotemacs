@@ -55,9 +55,9 @@
 ;;       '(git-tests/patch-whitespace-only-change?))
 
 ;; (let ((ert-debug-on-error nil))
-;;   (ert (join-lines (map (comp #'regexp-quote #'symbol->string)
-;;                         git-tests/tests)
-;;                    "\\|")
+;;   (ert (string-join (map (comp #'regexp-quote #'symbol->string)
+;;                          git-tests/tests)
+;;                     "\\|")
 ;;        ;; "haskell-tests/.*"
 ;;        )
 ;;   nil)

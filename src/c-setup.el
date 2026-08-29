@@ -42,15 +42,16 @@
                 (let* ((fname  (file-name-nondirectory buffer-file-name))
                        (target (file-name-sans-extension fname)))
                   (setq compile-command
-                        (join-lines (list "gcc"
-                                          "-W"
-                                          "-Wall"
-                                          "-O2"
-                                          "-I."
-                                          "-o"
-                                          target
-                                          fname)
-                                    " ")))))
+                        (string-join
+                         (list "gcc"
+                               "-W"
+                               "-Wall"
+                               "-O2"
+                               "-I."
+                               "-o"
+                               target
+                               fname)
+                         " ")))))
 
   (def-keys-for-map vim-visual-mode-local-keymap
     ("- m" c-macro-expand))

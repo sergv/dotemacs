@@ -161,7 +161,7 @@ in the current *Python* session."
 
 
 (setenv "PYTHONPATH"
-        (join-lines
+        (string-join
          (list "/home/sergey/projects/python/modules/")
          ":"))
 (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
