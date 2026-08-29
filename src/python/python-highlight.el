@@ -446,25 +446,25 @@ pretty symbol. Intended for use in `font-lock-keywords' and
                 (match-4 (re-group-matched? 4))
                 (match-5 (re-group-matched? 5)))
             (if match-1
-              (if match-2
-                ;; 1 and 2
-                (compose-region (match-beginning 0)
-                                (match-end 0)
-                                ?≢)
-                ;; 1 and ~2
-                (compose-region (match-beginning 1)
-                                (match-end 1)
-                                ?≡))
+                (if match-2
+                    ;; 1 and 2
+                    (compose-region (match-beginning 0)
+                                    (match-end 0)
+                                    ?≢)
+                  ;; 1 and ~2
+                  (compose-region (match-beginning 1)
+                                  (match-end 1)
+                                  ?≡))
               (if match-3
-                (if match-4
-                  ;; 3 and 4
-                  (compose-region (match-beginning 0)
-                                  (match-end 0)
-                                  ?∉)
-                  ;; 3 and ~4
-                  (compose-region (match-beginning 0)
-                                  (match-end 0)
-                                  ?¬))
+                  (if match-4
+                      ;; 3 and 4
+                      (compose-region (match-beginning 0)
+                                      (match-end 0)
+                                      ?∉)
+                    ;; 3 and ~4
+                    (compose-region (match-beginning 0)
+                                    (match-end 0)
+                                    ?¬))
                 ;; 5
                 (compose-region (match-beginning 0)
                                 (match-end 0)
@@ -496,19 +496,20 @@ pretty symbol. Intended for use in `font-lock-keywords' and
 
     ;; ensure that pretty symbols go away as soon as we type something after any of them
     (,(concat "\\(?:\\_<\\("
-              (join-lines '("lambda"
-                            "for"
-                            ;; hack
-                            "int"
-                            "float"
-                            "complex"
-                            "and"
-                            "or"
-                            "not"
-                            "[ \t]*\\*\\*[ \t]*2"
-                            "is"
-                            "sum")
-                          "\\|")
+              (string-join
+               '("lambda"
+                 "for"
+                 ;; hack
+                 "int"
+                 "float"
+                 "complex"
+                 "and"
+                 "or"
+                 "not"
+                 "[ \t]*\\*\\*[ \t]*2"
+                 "is"
+                 "sum")
+               "\\|")
               "\\)[a-zA-Z_0-9]\\)"
               "\\|"
               "\\(?:in[^t \t\n\r]\\)")

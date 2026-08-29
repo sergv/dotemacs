@@ -276,7 +276,7 @@ Returns the compilation buffer created."
                                         ((stringp command)
                                          command)
                                         ((cc-command-p command)
-                                         (mapconcat #'identity (cc-command/cmd command) " ")))))))))
+                                         (string-join (cc-command/cmd command) " ")))))))))
                        (el-patch-let ((orig (start-file-process-shell-command
                                              (compilation--downcase-mode-name mode-name)
 		                             outbuf command)))

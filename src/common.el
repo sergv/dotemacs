@@ -479,10 +479,10 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 
 ;;;
 
-(defun join-lines (lines &optional str)
+(defun join-lines (lines)
   "Join list of strings with given STR that defaults to newline."
   (declare (pure t) (side-effect-free t))
-  (mapconcat #'identity lines (or str "\n")))
+  (string-join lines "\n"))
 
 (defun split-into-lines (str &optional keep-nulls)
   "Split string into list of lines."

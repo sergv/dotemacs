@@ -123,12 +123,13 @@
       (write-region (point-min) (point-max) file)
       (erase-buffer)
       (shell-command
-       (join-lines (append (list (or (platform-dependent-executable
-                                      (concat +execs-path+ "/astyle.custom"))
-                                     "astyle"))
-                           indent-options
-                           (list (format "<%s" file)))
-                   " ")
+       (string-join
+        (append (list (or (platform-dependent-executable
+                           (concat +execs-path+ "/astyle.custom"))
+                          "astyle"))
+                indent-options
+                (list (format "<%s" file)))
+        " ")
        (current-buffer))
       (goto-char p))))
 
