@@ -177,7 +177,7 @@ regexps to not be confused by the instance location."
          (buf (current-buffer))
          (dante-cfg (dante-get-config buf))
          (proj (aif (dante-config/eproj-root dante-cfg)
-                   (eproj-get-project-for-path it)
+                   (eproj-get-project-for-path it nil)
                  (eproj-get-project-for-buf buf)))
          (eproj-root (eproj-project/root proj))
          (ghci-root

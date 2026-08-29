@@ -439,6 +439,7 @@ get proper flycheck checker."
 
 ;;;###autoload (autoload 'eproj-project/root "eproj")
 ;;;###autoload (autoload 'eproj-project/tags "eproj")
+;;;###autoload (autoload 'eproj-project/is-self-contained? "eproj")
 (cl-defstruct (eproj-project
                (:conc-name eproj-project/))
   ;; Normalized directory name, without trailing slash.
@@ -498,7 +499,10 @@ get proper flycheck checker."
   (cached-ignored-files-re nil :read-only t)
 
   ;; List of symbols - mode names.
-  (authoritative-tag-source-for nil :read-only t))
+  (authoritative-tag-source-for nil :read-only t)
+
+  ;; Boolean, whether project comes from file without accompanying .eproj-info.
+  (is-self-contained? nil :read-only t))
 
 (defmacro eproj-project/query-aux-info-entry (aux-info &rest keys)
   "Retrieve aux-data assoc entry associated with a KEY in the aux info AUX-INFO."
@@ -542,16 +546,21 @@ get proper flycheck checker."
 (defun eproj-update-projects ()
   "Update projects in database `*eproj-projects*'."
   (interactive)
-  (let ((roots (hash-table-keys *eproj-projects*)))
+  (let ((roots-and-info (--map (cons (eproj-project/root it)
+                                     (eproj-project/is-self-contained? it))
+                               (hash-table-values *eproj-projects*))))
     (clrhash *eproj-projects*)
-    (dolist (root roots)
-      (eproj--make-project-and-register! root))))
+    (dolist (entry roots-and-info)
+      (let ((root (car entry))
+            (is-self-contained? (cdr entry)))
+        (eproj--make-project-and-register! root is-self-contained?)))))
 
 (defun eproj-update-buffer-project ()
   "Re-create project for current buffer."
   (interactive)
-  (eproj--make-project-and-register!
-   (eproj-project/root (eproj-get-project-for-buf (current-buffer))))
+  (let ((proj (eproj-get-project-for-buf (current-buffer))))
+    (eproj--make-project-and-register! (eproj-project/root proj)
+                                       (eproj-project/is-self-contained? proj)))
   (notify "done"))
 
 ;;;###autoload
@@ -787,15 +796,17 @@ current project."
 ;;;; project creation
 
 ;;;###autoload
-(defun eproj--make-project-and-register! (root)
+(defun eproj--make-project-and-register! (root is-self-contained-file?)
   "Create fresh project for ROOT directory and register it within
 `*eproj-projects*'."
   (cl-assert (file-directory-p root))
   (puthash root
-           (eproj-make-project root (eproj--get-info-from-root root t nil))
+           (eproj-make-project root
+                               (eproj--get-info-from-root root t is-self-contained-file?)
+                               is-self-contained-file?)
            *eproj-projects*))
 
-(defun eproj-make-project (root aux-info)
+(defun eproj-make-project (root aux-info is-self-contained-project?)
   "Parse associative list AUX-INFO and construct `eproj-project' structure
 for project at ROOT directory."
   (cl-assert (stringp root)
@@ -859,7 +870,8 @@ for project at ROOT directory."
             :cached-files-for-navigation nil
             :transient-files-for-navigation nil
             :cached-ignored-files-re cached-ignored-files-re
-            :authoritative-tag-source-for authoritative-tag-source-for)))
+            :authoritative-tag-source-for authoritative-tag-source-for
+            :is-self-contained? is-self-contained-project?)))
       (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
       proj)))
 
@@ -1066,6 +1078,7 @@ variable or symbol 'unresolved.")
 
 (defun eproj--get-info-from-root (root strict is-self-contained-file?)
   "Either read existing .eproj-info file ot try to make up its contents if we can."
+  (cl-assert (symbolp is-self-contained-file?))
   (if-let (eproj-info-file (eproj--get-eproj-info-from-dir root))
       (eproj-read-eproj-info-file root eproj-info-file)
     (let ((fs eproj--inferrable-project-infos)
@@ -1088,7 +1101,10 @@ symbol 'unresolved.")
 ;;;###autoload
 (defun eproj-get-project-for-buf (buf)
   "Get project for BUFFER. Throw error if there's no project for it."
-  (eproj-get-project-for-path (eproj--get-buffer-directory buf)))
+  (eproj-get-project-for-path
+   (eproj--get-buffer-directory buf)
+   (when (eproj-haskell-is-self-contained-buffer? buf)
+     (buffer-local-value 'major-mode buf))))
 
 ;;;###autoload
 (defun eproj-sha1-of-project-root-for-buf (buf)
@@ -1133,7 +1149,7 @@ project for PATH."
           (if-let (proj (gethash proj-root *eproj-projects* nil))
               proj
             (if-let ((info (eproj--get-info-from-root proj-root nil is-self-contained-file?)))
-                (let ((proj (eproj-make-project proj-root info)))
+                (let ((proj (eproj-make-project proj-root info is-self-contained-file?)))
                   (puthash (eproj-project/root proj)
                            proj
                            *eproj-projects*)
@@ -1142,7 +1158,7 @@ project for PATH."
         nil))))
 
 ;;;###autoload
-(defun eproj-get-project-for-path (path)
+(defun eproj-get-project-for-path (path is-self-contained-file?)
   "Retrieve project that contains PATH as its part."
   (cl-assert (or (file-exists-p path)
                  (file-directory-p path))
@@ -1154,10 +1170,10 @@ project for PATH."
   ;; those.
   (if-let (proj (gethash path *eproj-projects* nil))
       proj
-    (if-let (proj-root (eproj-get-initial-project-root path nil))
+    (if-let (proj-root (eproj-get-initial-project-root path is-self-contained-file?))
         (if-let (proj (gethash proj-root *eproj-projects* nil))
             proj
-          (eproj--make-project-and-register! proj-root))
+          (eproj--make-project-and-register! proj-root is-self-contained-file?))
       (error "Could not infer eproj project when looking from %s directory (no .eproj-info file, cabal.project file or .git directory found)"
              path))))
 
@@ -1445,7 +1461,7 @@ project.")
   "Return transitive closure all projects related to PROJ."
   (let ((all-related-default-projects
          (mapcan (lambda (mode)
-                   (-map #'eproj-get-project-for-path
+                   (-map (lambda (path) (eproj-get-project-for-path path nil))
                          (eproj--get-default-projects proj mode)))
                  (eproj-project/languages proj))))
     (eproj--transitive-closure-of-related-projects
@@ -1463,7 +1479,7 @@ projects into the mix."
              "Not a eproj-project structure: %s" proj)
   (eproj--transitive-closure-of-related-projects
    (cons proj
-         (-map #'eproj-get-project-for-path
+         (-map (lambda (path) (eproj-get-project-for-path path nil))
                (eproj--get-default-projects proj mode)))))
 
 (defun eproj--transitive-closure-of-related-projects (projs-to-close-over)
@@ -1475,7 +1491,7 @@ projects into the mix."
              (root (eproj-project/root p)))
         (unless (gethash root visited nil)
           (setf (gethash root visited) p)
-          (setf projs (nconc (-map #'eproj-get-project-for-path
+          (setf projs (nconc (-map (lambda (path) (eproj-get-project-for-path path nil))
                                    (eproj-project/related-projects p))
                              projs)))))
     (hash-table-values visited)))
