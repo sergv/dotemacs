@@ -755,6 +755,29 @@
     (should (equal matched nil))
     (should (equal non-matched '(a b c d e)))))
 
+(ert-deftest common-tests/member-recursive-1 ()
+  (should-not (member-recursive 'foo nil))
+  (should-not (member-recursive 'foo (list 'bar)))
+  (should (member-recursive 'foo (list 'foo)))
+  (should (member-recursive 'foo (list 'bar 'foo)))
+  (should (member-recursive 'foo (list (list 'bar 'foo))))
+  (should (member-recursive 'foo (list 'bar (list 'foo))))
+  (should (member-recursive 'foo (list 'bar (list (list 'foo)))))
+  (should (member-recursive 'bar (list 'bar (list (list 'foo)))))
+  (should-not (member-recursive t (list 'bar (list (list 'foo)))))
+  (should (member-recursive t (list 'bar (list t (list 'foo))))))
+
+(ert-deftest common-tests/member-recursive-2 ()
+  (should
+   (member-recursive
+    "-l"
+    '("ssh" (tramp-login-program "ssh")
+      (tramp-login-args
+       (("-l" "%u") ("-p" "%p") ("%c") ("-e" "none") ("%h")))
+      (tramp-async-args (("-q"))) (tramp-direct-async ("-t" "-t"))
+      (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l"))
+      (tramp-remote-shell-args ("-c"))))))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
