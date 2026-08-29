@@ -34,7 +34,7 @@ interactively prompting for variables/messages."
             (when (< 0 (length var-list))
               (insert
                ".format("
-               (join-lines var-list ", ")
+               (string-join var-list ", ")
                ")"))
             (insert ")")))
          (format

@@ -596,12 +596,12 @@ then Bar would be the result."
          (dump-core-snippet
           (concat
            "{-# OPTIONS_GHC "
-           (mapconcat #'identity
-                      '("-O2" "-ddump-simpl" "-dsuppress-uniques"
-                        "-dsuppress-idinfo" "-dsuppress-module-prefixes"
-                        "-dsuppress-type-applications" "-dsuppress-coercions"
-                        "-dppr-cols200")
-                      " ")
+           (string-join
+            '("-O2" "-ddump-simpl" "-dsuppress-uniques"
+              "-dsuppress-idinfo" "-dsuppress-module-prefixes"
+              "-dsuppress-type-applications" "-dsuppress-coercions"
+              "-dppr-cols200")
+            " ")
            " ${1:-dsuppress-type-signatures }${2:-ddump-to-file }#-}")))
     (cl-assert (-all? #'stringp haskell-completions--pragma-names))
     (let ((non-repl-abbrevs
