@@ -16,6 +16,11 @@
 (require 'ert)
 (require 'tests-utils)
 
+(defun dante-tests--truename-on-macos (x)
+  (if (eq system-type 'darwin)
+      (file-truename x)
+    x))
+
 (defconst dante-test-data/resources-root
   (concat +test-utils--test-root+ "/test-data"))
 
@@ -348,8 +353,8 @@
         (should (looking-at-p (rx symbol-start "bar" symbol-end)))
 
         (dante-tests/haskell-symbnav-go-to-symbol-home-and-assert-when-done
-         (should (string= (concat proj-dir "/main/src/Baz/Quux.hs")
-                          (buffer-file-name)))
+         (should (string= (dante-tests--truename-on-macos (concat proj-dir "/main/src/Baz/Quux.hs"))
+                          (dante-tests--truename-on-macos (buffer-file-name))))
          (should (string= (buffer-substring-no-properties (line-beginning-position) (line-end-position))
                           "bar x = x"))))
 
@@ -369,14 +374,14 @@
                                  (string-search "GHC-25277" (flycheck-error-message it)))
                             flycheck-current-errors)))
            (should (not (null err)))
-           (should (string= (flycheck-error-filename err)
-                            (concat proj-dir "/main/src/Baz/Quux.hs")))))
+           (should (string= (dante-tests--truename-on-macos (flycheck-error-filename err))
+                            (dante-tests--truename-on-macos (concat proj-dir "/main/src/Baz/Quux.hs"))))))
 
         (progn
           (flycheck-enhancements-next-error-with-wraparound)
 
-          (should (string= (concat proj-dir "/main/src/Baz/Quux.hs")
-                           (buffer-file-name))))))))
+          (should (string= (dante-tests--truename-on-macos (concat proj-dir "/main/src/Baz/Quux.hs"))
+                           (dante-tests--truename-on-macos (buffer-file-name)))))))))
 
 (ert-deftest z-dante-tests/simple-check-project-4-error-with-relative-path-from-subproject ()
   (unless (executable-find dante-cabal-executable)
