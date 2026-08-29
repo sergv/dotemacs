@@ -8,7 +8,8 @@
 
 (eval-when-compile
   (require 'el-patch)
-  (require 'tramp))
+  (require 'tramp)
+  (require 'tramp-cache))
 
 (autoload 'tramp-compile-disable-ssh-controlmaster-options "tramp-integration")
 (autoload 'tramp-file-name-method "tramp")
@@ -20,6 +21,8 @@
 (autoload 'tramp-set-connection-property "tramp-cache")
 (autoload 'tramp-setup-debug-buffer "tramp-message")
 (autoload 'tramp-wait-for-output "tramp-sh")
+
+(autoload 'tramp-connection-property-p "tramp-cache")
 
 (defvar magit-tramp-pipe-stty-settings)
 (defvar tramp-compat-temporary-file-directory)
@@ -264,6 +267,26 @@ function waits for output unless NOOUTPUT is set."
 
 (defun tramp-utils--is-tramp-connection-alive? (filename)
   (tramp-get-connection-process (tramp-dissect-file-name filename)))
+
+(el-patch-defun tramp-get-method-parameter (vec param &optional default)
+  "Return the method parameter PARAM.
+If VEC is a vector, check first in connection properties.
+Afterwards, check in `tramp-methods'.  If the `tramp-methods'
+entry does not exist, return DEFAULT."
+  (let ((hash-entry
+         (el-patch-swap
+	   (replace-regexp-in-string (rx bos "tramp-") "" (symbol-name param))
+           (strip-string-prefix "tramp-" (symbol-name param)))))
+    (if (tramp-connection-property-p vec hash-entry)
+	;; We use the cached property.
+	(tramp-get-connection-property vec hash-entry)
+      ;; Use the static value from `tramp-methods'.
+      (if-let* ((methods-entry
+		 (assoc
+		  param (assoc (tramp-file-name-method vec) tramp-methods))))
+	  (cadr methods-entry)
+	;; Return the default value.
+	default))))
 
 (provide 'tramp-setup)
 
