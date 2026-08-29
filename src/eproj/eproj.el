@@ -793,6 +793,12 @@ current project."
           (--map (eproj--resolve-to-abs-path-lax-cached it root)
                  (eproj-project/ignored-dirs proj)))))
 
+;;;###autoload
+(defun eproj-get-relative-ignored-dirs (proj)
+  "Like ‘eproj-get-absolute-ignored-dirs’ but returns directories relative to project root."
+  (let ((root (eproj-project/root proj)))
+    (--map (file-relative-name it root) (eproj-get-absolute-ignored-dirs proj))))
+
 ;;;; project creation
 
 ;;;###autoload
