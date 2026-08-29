@@ -1664,6 +1664,24 @@ returned non-nil."
 (defun remove-key! (key keymap)
   (define-key keymap key nil t))
 
+;;;;
+
+(defun member-recursive (item xs)
+  "Check whether ITEM occurs anywhere in nested proper list structure of XS (i.e. conses not supported)."
+  (or (member item xs)
+      (let ((res nil)
+            (continue? t)
+            (tmp xs))
+        (while (and tmp
+                    continue?)
+          (let ((x (car tmp)))
+            (when (and (consp x)
+                       (member-recursive item x))
+              (setf res t
+                    continue? nil)))
+          (setf tmp (cdr tmp)))
+        res)))
+
 (provide 'common)
 
 ;; Local Variables:
