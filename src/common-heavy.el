@@ -73,7 +73,7 @@ if CASE-SENSETIVE is t."
                            (fold-platform-os-type
                             "/"
                             nil)
-                           (join-lines path "/")))))
+                           (string-join path "/")))))
       (while (and (not found?)
                   (not (null path)))
         (let ((subdir (funcall path-join (reverse path))))
@@ -283,12 +283,10 @@ number of spaces equal to `tab-width'."
                                   (remove-whitespace (substring line 1)))))
            (old (join-lines (-map cleanup-diff-line
                                   (-filter (funcall make-filter ?-)
-                                           lines))
-                            "\n"))
+                                           lines))))
            (new (join-lines (-map cleanup-diff-line
                                   (-filter (funcall make-filter ?+)
-                                           lines))
-                            "\n")))
+                                           lines)))))
       (string=? old new))))
 
 ;;;###autoload

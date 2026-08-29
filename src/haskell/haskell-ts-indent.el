@@ -1398,14 +1398,14 @@
                      (treesit-node-parent node)
                    (treesit-node-on bol bol))))
       (when treesit--indent-verbose
-        (message (mapconcat #'identity
-                            '("indent-1:"
-                              "node         = %s"
-                              "parent       = %s"
-                              "grand-parent = %s"
-                              "bol          = %s"
-                              "field-name   = %s")
-                            "\n")
+        (message (string-join
+                  '("indent-1:"
+                    "node         = %s"
+                    "parent       = %s"
+                    "grand-parent = %s"
+                    "bol          = %s"
+                    "field-name   = %s")
+                  "\n")
                  node
                  parent
                  (treesit-node-parent parent)
