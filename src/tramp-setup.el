@@ -230,7 +230,7 @@ function waits for output unless NOOUTPUT is set."
     "Function to setup debug buffers."
     (el-patch-remove (declare (tramp-suppress-trace t)))
     ;; (declare (completion tramp-debug-buffer-command-completion-p)
-    ;; 	   (tramp-suppress-trace t))
+    ;;          (tramp-suppress-trace t))
     (interactive)
     (set-buffer-file-coding-system 'utf-8)
     (setq buffer-undo-list t)
@@ -275,18 +275,18 @@ Afterwards, check in `tramp-methods'.  If the `tramp-methods'
 entry does not exist, return DEFAULT."
   (let ((hash-entry
          (el-patch-swap
-	   (replace-regexp-in-string (rx bos "tramp-") "" (symbol-name param))
+           (replace-regexp-in-string (rx bos "tramp-") "" (symbol-name param))
            (strip-string-prefix "tramp-" (symbol-name param)))))
     (if (tramp-connection-property-p vec hash-entry)
-	;; We use the cached property.
-	(tramp-get-connection-property vec hash-entry)
+        ;; We use the cached property.
+        (tramp-get-connection-property vec hash-entry)
       ;; Use the static value from `tramp-methods'.
       (if-let* ((methods-entry
-		 (assoc
-		  param (assoc (tramp-file-name-method vec) tramp-methods))))
-	  (cadr methods-entry)
-	;; Return the default value.
-	default))))
+                 (assoc
+                  param (assoc (tramp-file-name-method vec) tramp-methods))))
+          (cadr methods-entry)
+        ;; Return the default value.
+        default))))
 
 (provide 'tramp-setup)
 
