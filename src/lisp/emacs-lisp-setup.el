@@ -198,6 +198,7 @@ _e_val
     (save-buffer-if-modified))
   (when (and (eq major-mode 'emacs-lisp-mode)
              (not no-byte-compile)
+             (not (file-remote-p buffer-file-name))
              (not (string= ".eproj-info"
                            (file-name-nondirectory buffer-file-name))))
     (let ((dest (elisp-compile-get-elc-destination buffer-file-name)))
