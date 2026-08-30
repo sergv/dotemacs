@@ -259,7 +259,15 @@ let
                 fi
               ''}
 
-            default_root="$(realpath "$(dirname "$(readlink -f "$(dirname "''${BASH_SOURCE[0]}")")")")"
+            full_target="$(readlink -f "''${BASH_SOURCE[0]}")"
+            tmp="''${BASH_SOURCE[0]}"
+            prev="$tmp"
+            while [[ "$tmp" != "$full_target" ]]; do
+                prev="$tmp"
+                tmp="$(readlink "$tmp")"
+            done
+
+            default_root="$(realpath "$(dirname "$(dirname "$prev")")")"
 
             if [[ -v EMACS_ROOT && -d "$EMACS_ROOT" ]]; then
                 root="$EMACS_ROOT"
