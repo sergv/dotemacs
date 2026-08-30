@@ -9,14 +9,23 @@
 (eval-when-compile
   (require 'el-patch)
   (require 'tramp)
-  (require 'tramp-cache))
+  (require 'tramp-cache)
+  (require 'tramp-sh))
 
+(autoload 'tramp-barf-if-no-shell-prompt "tramp-sh")
+(autoload 'tramp-barf-unless-okay "tramp-sh")
+(autoload 'tramp-check-for-regexp "tramp")
 (autoload 'tramp-compile-disable-ssh-controlmaster-options "tramp-integration")
 (autoload 'tramp-file-name-method "tramp")
 (autoload 'tramp-get-connection-process "tramp")
+(autoload 'tramp-get-sh-extra-args "tramp-sh")
+(autoload 'tramp-inside-emacs "trampver")
 (autoload 'tramp-maybe-open-connection "tramp-sh")
+(autoload 'tramp-progress-reporter-update "tramp")
+(autoload 'tramp-send-command "tramp-sh")
 (autoload 'tramp-send-string "tramp")
 (autoload 'tramp-setup-debug-buffer "tramp-message")
+(autoload 'tramp-shell-quote-argument "tramp")
 (autoload 'tramp-wait-for-output "tramp-sh")
 
 (require 'tramp-loaddefs)
@@ -226,7 +235,87 @@ function waits for output unless NOOUTPUT is set."
       ;; Send the command.
       (tramp-message vec 6 "%s" command)
       (tramp-send-string vec command)
-      (unless nooutput (tramp-wait-for-output p)))))
+      (unless nooutput (tramp-wait-for-output p))))
+
+  (el-patch-defun tramp-open-shell (vec shell)
+    "Open shell SHELL."
+    ;; Find arguments for this shell.
+    (with-tramp-progress-reporter
+        vec 5 (format-message "Opening remote shell `%s'" shell)
+      ;; It is useful to set the prompt in the following command because
+      ;; some people have a setting for $PS1 which /bin/sh doesn't know
+      ;; about and thus /bin/sh will display a strange prompt.  For
+      ;; example, if $PS1 has "${CWD}" in the value, then ksh will
+      ;; display the current working directory but /bin/sh will display
+      ;; a dollar sign.  The following command line sets $PS1 to a sane
+      ;; value, and works under Bourne-ish shells as well as csh-like
+      ;; shells.  We also unset the variable $ENV because that is read
+      ;; by some sh implementations (eg, bash when called as sh) on
+      ;; startup; this way, we avoid the startup file clobbering $PS1.
+      ;; $PROMPT_COMMAND is another way to set the prompt in /bin/bash,
+      ;; it must be discarded as well.  Some ssh daemons (for example,
+      ;; on Android devices) do not acknowledge the $PS1 setting in
+      ;; that call, so we make a further sanity check.  (Bug#57044)
+      ;; $HISTFILE is set according to `tramp-histfile-override'.  $TERM
+      ;; and $INSIDE_EMACS set here to ensure they have the correct
+      ;; values when the shell starts, not just processes run within the
+      ;; shell.  (Which processes include our initial probes to ensure
+      ;; the remote shell is usable.)  For the time being, we assume
+      ;; that all shells interpret -i as interactive shell.  Must be the
+      ;; last argument, because (for example) bash expects long options
+      ;; first.
+      (tramp-send-command
+       vec (format
+	    (concat
+	     "exec env TERM='%s' INSIDE_EMACS='%s' "
+	     "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
+            tramp-terminal-type (tramp-inside-emacs)
+            (or (getenv-internal "ENV" tramp-remote-process-environment) "")
+	    (if (stringp tramp-histfile-override)
+	        (format "HISTFILE=%s"
+		        (tramp-shell-quote-argument tramp-histfile-override))
+	      (if tramp-histfile-override
+		  "HISTFILE='' HISTFILESIZE=0 HISTSIZE=0"
+	        (el-patch-swap ""
+                               "HISTCONTROL=ignorespace:ignoredups:erasedups")))
+	    (tramp-shell-quote-argument tramp-end-of-output)
+	    shell (or (tramp-get-sh-extra-args shell) ""))
+       t t)
+
+      ;; Sanity check.
+      (tramp-barf-if-no-shell-prompt
+       (tramp-get-connection-process vec) 60
+       "Couldn't find remote shell prompt for %s" shell)
+      (unless
+	  (tramp-check-for-regexp
+	   (tramp-get-connection-process vec) (rx (literal tramp-end-of-output)))
+        (tramp-wait-for-output (tramp-get-connection-process vec))
+        (tramp-message vec 5 "Setting shell prompt")
+        (tramp-send-command
+         vec (format "PS1=%s PS2='' PS3='' PROMPT_COMMAND=''"
+		     (tramp-shell-quote-argument tramp-end-of-output))
+         t t)
+        (tramp-barf-if-no-shell-prompt
+         (tramp-get-connection-process vec) 60
+         "Couldn't find remote shell prompt for %s" shell))
+      (tramp-wait-for-output (tramp-get-connection-process vec))
+
+      ;; Check proper HISTFILE setting.  We give up when not working.
+      (when (and (stringp tramp-histfile-override)
+	         (file-name-directory tramp-histfile-override))
+        (tramp-barf-unless-okay
+         vec
+         (format
+	  "(cd %s)"
+	  (tramp-shell-quote-argument
+	   (file-name-directory tramp-histfile-override)))
+         "`tramp-histfile-override' uses invalid file `%s'"
+         tramp-histfile-override))
+
+      (tramp-flush-connection-property
+       (tramp-get-connection-process vec) "scripts")
+      (tramp-set-connection-property
+       (tramp-get-connection-process vec) "remote-shell" shell))))
 
 (with-eval-after-load "tramp-message"
   (el-patch-defun tramp-setup-debug-buffer ()
