@@ -14,15 +14,12 @@
 (autoload 'tramp-compile-disable-ssh-controlmaster-options "tramp-integration")
 (autoload 'tramp-file-name-method "tramp")
 (autoload 'tramp-get-connection-process "tramp")
-(autoload 'tramp-get-connection-property "tramp-cache")
 (autoload 'tramp-maybe-open-connection "tramp-sh")
-(autoload 'tramp-message "tramp-message")
 (autoload 'tramp-send-string "tramp")
-(autoload 'tramp-set-connection-property "tramp-cache")
 (autoload 'tramp-setup-debug-buffer "tramp-message")
 (autoload 'tramp-wait-for-output "tramp-sh")
 
-(autoload 'tramp-connection-property-p "tramp-cache")
+(require 'tramp-loaddefs)
 
 (defvar magit-tramp-pipe-stty-settings)
 (defvar tramp-compat-temporary-file-directory)
