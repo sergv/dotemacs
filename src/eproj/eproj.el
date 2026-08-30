@@ -64,6 +64,12 @@
 ;; If the same (up to a reasonable heuristic) tag is found in current
 ;; project and in some of the related ones, including the default
 ;; ones, then show the tag only from current project.
+;;
+;; TODO: have tags know which package they’re coming from so that
+;; authoritativeness can override only based on that. E.g.
+;; ‘getCurrentDirectory’ in cabal project shadow ‘System.Directory.getCurrentDirectory’
+;; which is wrong.
+;;
 ;; [(authoritative-tag-source-for haskell-mode c-mode...)]
 ;;
 ;; [...] - optional directive
