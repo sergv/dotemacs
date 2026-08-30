@@ -19,7 +19,10 @@
 (require 'tests-utils)
 
 (defconst eproj-tests/faster-richer-tags-exe
-  (cached-executable-find "faster-richer-tags"))
+  (or (executable-find "faster-richer-tags")
+      "/tmp/dist/build/x86_64-linux/ghc-9.14.1/faster-richer-tags-0.1/x/faster-richer-tags/build/faster-richer-tags/faster-richer-tags")
+  ;; (cached-executable-find "faster-richer-tags")
+  )
 
 (defun eproj-tests/non-special-files (path)
   "Construct list of non-special files (i.e. that typically would be under version control)
