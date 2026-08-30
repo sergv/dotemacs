@@ -14,21 +14,35 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'js)
 (require 'nix)
 
 ;;;###autoload
 (define-derived-mode nix-drv-mode js-mode "Nix-Derivation"
   "Pretty print Nix’s .drv files."
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (call-process nix-executable nil (current-buffer) nil
-                  "derivation"
-                  "show"
-                  "--pretty"
-                  (buffer-file-name))
-    (set-buffer-modified-p nil)
-    (read-only-mode 1))
+  (with-inhibited-read-only
+   (erase-buffer)
+   (let ((path (buffer-file-name)))
+     (if (tramp-utils--is-tramp-remote-file? path)
+         (let ((dissected (tramp-dissect-file-name path)))
+           (process-file nix-executable
+                         nil
+                         (current-buffer)
+                         nil
+                         "derivation"
+                         "show"
+                         "--pretty"
+                         (tramp-file-name-localname dissected)))
+       (call-process nix-executable nil (current-buffer) nil
+                     "derivation"
+                     "show"
+                     "--pretty"
+                     path)))
+   (set-buffer-modified-p nil)
+   (read-only-mode 1))
 
   (add-hook 'change-major-mode-hook #'nix-drv-mode-dejsonify-buffer nil t))
 
