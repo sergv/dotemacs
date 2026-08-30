@@ -78,13 +78,13 @@
        120))))
 
 (defun set-up-font--init-font-and-scaling ()
-(let ((scaling (or current-font-scaling
-               (get-default-font-scaling)))
-  (frames (frame-list)))
-(setf current-font-scaling scaling)
-(set-frame-font current-font nil frames)
-(dolist (frame frames)
-(set-face-attribute 'default frame :height scaling))))
+  (let ((scaling (or current-font-scaling
+                     (get-default-font-scaling)))
+        (frames (frame-list)))
+    (setf current-font-scaling scaling)
+    (set-frame-font current-font nil frames)
+    (dolist (frame frames)
+      (set-face-attribute 'default frame :height scaling))))
 
 (defun set-up-font--set-current-font-for-frame (&optional frame)
 (set-frame-font current-font nil (if frame (list frame) nil)))
