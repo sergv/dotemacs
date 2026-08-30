@@ -1096,10 +1096,11 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
     ))
 
 (defun dante--is-file-newer-than? (file-to-test file-to-test-against)
-  (let ((to-test-modtime (nth 5 (file-attributes file-to-test)))
-        (to-test-against-modtime (nth 5 (file-attributes file-to-test-against))))
-    (and (not (equal to-test-against-modtime to-test-modtime))
-         (time-less-p to-test-against-modtime to-test-modtime))))
+  (or (file-newer-than-file-p file-to-test file-to-test-against)
+      (let ((to-test-modtime (file-attribute-modification-time (file-attributes file-to-test)))
+            (to-test-against-modtime (file-attribute-modification-time (file-attributes file-to-test-against))))
+        (and (not (equal to-test-against-modtime to-test-modtime))
+             (time-less-p to-test-against-modtime to-test-modtime)))))
 
 (require 'tramp)
 (defun dante-tramp-make-tramp-temp-file (buf)
