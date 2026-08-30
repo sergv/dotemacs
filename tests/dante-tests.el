@@ -579,9 +579,9 @@
         ;; Check that changes outside Emacs trigger preprocessing.
         (unless (zerop
                  (call-process "sed" nil nil nil
+                               "-i.bak"
                                "-re"
                                "s/baz :: Double -> a/baz :: Double -> CDoubleTyp/"
-                               "-i"
                                (concat proj-dir "/src/Bar/Baz.hsc")))
           (error "Call to sed failed"))
         (dante-tests/check-buffer-and-assert-when-done
@@ -592,9 +592,9 @@
         ;; And back again
         (unless (zerop
                  (call-process "sed" nil nil nil
+                               "-i.bak"
                                "-re"
                                "s/baz :: Double -> CDoubleTyp/baz :: Double -> a/"
-                               "-i"
                                (concat proj-dir "/src/Bar/Baz.hsc")))
           (error "Call to sed failed"))
 
