@@ -61,7 +61,7 @@ Semantically YS should be considered consumed here and best not used afterwards.
   (cl-assert (append-list-p xs) "Invalid append list: %s" xs)
   (cl-assert (append-list-p ys) "Invalid append list: %s" ys)
   ;; Don’t do anything if second list is empty
-  (when-let (ys-contents (cdar-sure ys))
+  (when-let* ((ys-contents (cdar-sure ys)))
     (setcdr-sure (cdr-sure xs) ys-contents)
     (setcdr-sure xs (cdr-sure ys))))
 

@@ -861,7 +861,7 @@ Each predicate should examine only text before/after the point if ENDP is
          (or (eq c ?w)
              (eq c ?_)
              (eq c ?\")
-             (when-let (matching (matching-paren delimiter))
+             (when-let* ((matching (matching-paren delimiter)))
                (eq c (char-syntax matching)))
              (when (and (not endp)
                         (eq ?\" (char-syntax delimiter)))
@@ -876,7 +876,7 @@ Each predicate should examine only text before/after the point if ENDP is
          continue)))
 
 (defun paredit-move-past-close-and-reindent (close)
-  (when-let (open (paredit-missing-close))
+  (when-let* ((open (paredit-missing-close)))
     (if (eq close (matching-paren open))
         (save-excursion
           (message "Missing closing delimiter: %c" close)
@@ -1871,7 +1871,7 @@ Also see `paredit-skip-forward-for-kill'."
 (defun paredit-kill-word-state (parse-state adjacent-char-fn)
   (cond ((paredit-in-comment-p parse-state) 'comment)
         ((paredit-in-string-p  parse-state) 'string)
-        ((when-let (c (funcall adjacent-char-fn))
+        ((when-let* ((c (funcall adjacent-char-fn)))
            (memq (char-syntax c)
                  '(?\( ?\))))
          'delimiter)

@@ -80,7 +80,7 @@
 
 (defun poly-alex-happy-find-tail (_direction)
   (skip-chars-backward " \t\r\n%")
-  (when-let ((prev (preceding-char)))
+  (when-let* ((prev (preceding-char)))
     (when (and (eq prev ?\{)
                (not (eq (following-char) ?-)))
       (forward-char -1)
