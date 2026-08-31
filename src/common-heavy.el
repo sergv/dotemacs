@@ -732,9 +732,9 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
 (defun copy-buffer-file-name-to-clipboard ()
   "Copy the current buffer file name to the clipboard."
   (interactive)
-  (if-let ((filename (if (equal major-mode 'dired-mode)
-                         default-directory
-                       (buffer-file-name))))
+  (if-let* ((filename (if (equal major-mode 'dired-mode)
+                          default-directory
+                        (buffer-file-name))))
       (progn
         (kill-new filename)
         (message "Copied buffer filename '%s' to the clipboard." filename))

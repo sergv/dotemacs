@@ -24,10 +24,10 @@
 
 (defconst current-font
   (let ((name "Iosevka Slab Lig"))
-    (if-let ((iosevka-slab-lig-reg (find-font (font-spec :name name :weight 'regular :slant 'normal)))
-             (iosevka-slab-lig-bold (find-font (font-spec :name name :weight 'bold :slant 'normal)))
-             (iosevka-slab-lig-reg-it  (find-font (font-spec :name name :weight 'regular :slant 'italic)))
-             (iosevka-slab-lig-bold-it (find-font (font-spec :name name :weight 'bold :slant 'italic))))
+    (if-let* ((iosevka-slab-lig-reg (find-font (font-spec :name name :weight 'regular :slant 'normal)))
+              (iosevka-slab-lig-bold (find-font (font-spec :name name :weight 'bold :slant 'normal)))
+              (iosevka-slab-lig-reg-it  (find-font (font-spec :name name :weight 'regular :slant 'italic)))
+              (iosevka-slab-lig-bold-it (find-font (font-spec :name name :weight 'bold :slant 'italic))))
         iosevka-slab-lig-reg
       (car
        (seq-filter

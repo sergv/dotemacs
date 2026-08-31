@@ -24,7 +24,7 @@
 (defun nix-maybe-call-via-flakes-exe-args (exe args &optional proj-dir)
   "If current project has flake.nix then return wrap call to EXE with ARGS into
 ‘nix develop’ or equivalent. Returns value of ‘cmdline’ structure."
-  (if-let ((root (or proj-dir (configurable-compilation-proj-dir))))
+  (if-let* ((root (or proj-dir (configurable-compilation-proj-dir))))
       (let ((flake (concat root "/flake.nix")))
         (if (file-exists-p flake)
             (nix-call-via-flakes exe args root)

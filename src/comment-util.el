@@ -353,7 +353,7 @@ Contains single-line and region comments.")
 ;;     (error "No one-line commenst defined for current mode")))
 
 ;; (defun comment-util-current-format-line-regexp ()
-;;   (if-let ((fmt (comment-util-current-format)))
+;;   (if-let* ((fmt (comment-util-current-format)))
 ;;       (aif (comment-format-one-line fmt)
 ;;           it
 ;;         (error "No one-line commenst defined for current mode"))

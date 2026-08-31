@@ -169,7 +169,7 @@ with the position of the selected error."
     (with-selected-window win
       (with-current-buffer comp-buf
         (prog1
-            (if-let ((selected-err (compilation--error-at-point)))
+            (if-let* ((selected-err (compilation--error-at-point)))
                 (if (and
                      (eq (compilation/find-buffer
                           (compilation-error/filename selected-err)
@@ -198,10 +198,10 @@ with the position of the selected error."
                                     )))
         (if (and win
                  (window-live-p win))
-            (if-let (err (compilation-navigation--use-selected-error-or-jump-to-next
-                          win
-                          comp-buf
-                          jump-to-next-err-func))
+            (if-let* ((err (compilation-navigation--use-selected-error-or-jump-to-next
+                             win
+                             comp-buf
+                             jump-to-next-err-func)))
                 (compilation/jump-to-error err nil)
               (funcall fallback))
           (funcall fallback)))
@@ -232,8 +232,8 @@ via ‘configurable-compilation-buffer-name’ and
 current window."
   (let* ((proj-dir (configurable-compilation-proj-dir))
          (bufname (configurable-compilation-buffer-name proj-dir)))
-    (if-let ((buf (get-buffer bufname)))
-        (if-let ((win (get-buffer-window buf t)))
+    (if-let* ((buf (get-buffer bufname)))
+        (if-let* ((win (get-buffer-window buf t)))
             (let ((err (with-selected-window win
                          (with-current-buffer buf
                            (if is-next?
