@@ -390,9 +390,11 @@ in both tables with COMB-FUNC, which should take 3 arguments: key, value in
 main table and value in aux table."
   (declare (pure nil) (side-effect-free nil))
   (maphash (lambda (k v)
-             (if-let (v-main (gethash k table-main))
-                 (puthash k (funcall comb-func k v-main v) table-main)
-               (puthash k v table-main)))
+             (puthash k
+                      (if-let* ((v-main (gethash k table-main)))
+                          (funcall comb-func k v-main v)
+                        v)
+                      table-main))
            table-aux))
 
 (defsubst hash-table-member-p (key table)

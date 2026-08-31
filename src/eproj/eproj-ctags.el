@@ -153,7 +153,7 @@
                 (error "ctags reports on stderr:\n%s" stderr-contents))))))))))
 
 (defsubst eproj-ctags--share (x cache)
-  (if-let (cached-x (gethash x cache))
+  (if-let* ((cached-x (gethash x cache)))
       cached-x
     (puthash x x cache)))
 

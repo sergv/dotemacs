@@ -486,7 +486,7 @@ Consider setting this variable as a directory variable."
                 (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
                        (proj-root (awhen proj
                                     (f-full (eproj-project/root it)))))
-                  (when-let* ((proj-root (if-let ((find-root-pred (dante-method/find-root-pred method)))
+                  (when-let* ((proj-root (if-let* ((find-root-pred (dante-method/find-root-pred method)))
                                              (locate-dominating-file default-directory
                                                                      (lambda (dir)
                                                                        (and (if proj-root
@@ -627,7 +627,7 @@ Consider setting this variable as a directory variable."
                   (if (s-equals? loaded-file fname) "loaded" (format "loaded(%s)" (file-name-base loaded-file)))))
                ;; (`(,hd . ,_tl) (format "%s" hd))
                (other (format "%s" other)))
-             (if-let ((queue (dante-check-ghci-state/queue ghci-state)))
+             (if-let* ((queue (dante-check-ghci-state/queue ghci-state)))
                  (format "+%s" (length queue))
                "")))))
     (error (format "error %s" err))))
@@ -712,7 +712,7 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
      (dante--insert-or-show-fontified ty insert))))
 
 (defun dante-type-at--with-type-at-point (consume)
-  (let ((tap (if-let ((thing (dante-thing-at-point t)))
+  (let ((tap (if-let* ((thing (dante-thing-at-point t)))
                  (dante--ghc-subexp thing)
                (error "No thing at point"))))
     (lcr-spawn
@@ -983,7 +983,7 @@ May return a qualified name."
 (defun dante-buffer-file-name-for-error-message (&optional buf)
   "Call function `buffer-file-name' for BUFFER and clean its result.
 The path returned is canonicalized and stripped of any text properties."
-  (if-let (name (buffer-file-name buf))
+  (if-let* ((name (buffer-file-name buf)))
       (let ((path (dante-canonicalize-path (substring-no-properties name))))
         (cons path path))
     (cons (buffer-name buf) nil)))
@@ -1105,7 +1105,7 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
 (require 'tramp)
 (defun dante-tramp-make-tramp-temp-file (buf)
   "Create a temporary file for BUFFER, perhaps on a remote host."
-  (if-let (fname (buffer-file-name buf))
+  (if-let* ((fname (buffer-file-name buf)))
       (let ((suffix (file-name-extension fname t)))
         (if (file-remote-p fname)
             (with-parsed-tramp-file-name (buffer-file-name buf) vec
@@ -1586,7 +1586,7 @@ Search upwards in the directory structure, starting from FILE (or
 (defun dante--xref-backend () "Dante xref backend." (when dante-mode 'dante))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql dante)))
-  (if-let ((thing (dante-thing-at-point)))
+  (if-let* ((thing (dante-thing-at-point)))
       (dante--ghc-subexp thing)
     (error "No thing at point")))
 

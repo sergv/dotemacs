@@ -212,7 +212,7 @@ on values of said variables.")
   (dolist (entry values)
     (pcase entry
       (`(,var-name ,value)
-       (if-let (set-value (caddr (assq var-name *sessions-special-variables*)))
+       (if-let* ((set-value (caddr (assq var-name *sessions-special-variables*))))
            (if (functionp set-value)
                (funcall set-value buffer value)
              (error "Error: found non-function set-value entry in *sessions-special-variables* for key %s"
@@ -359,7 +359,7 @@ entries."
                              (message "eshell-restore: no 'contents")))
                          (sessions/report-and-ignore-asserts
                              (format "while restoring current-directory of an eshell buffer '%s'" buffer-name)
-                           (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                           (if-let* ((current-dir (cadr-safe (assq 'current-dir saved-data))))
                                (with-current-buffer buf
                                  (goto-char (point-max))
                                  (insert "cd \""
@@ -397,7 +397,7 @@ entries."
                                             )
                      (sessions/report-and-ignore-asserts
                          (format "while restoring current-directory of shell buffer '%s'" buffer-name)
-                       (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                       (if-let* ((current-dir (cadr-safe (assq 'current-dir saved-data))))
                            (with-current-buffer buf
                              (goto-char (point-max))
                              (insert "cd \""
@@ -436,7 +436,7 @@ entries."
                      (let ((current-dir
                             (sessions/report-and-ignore-asserts
                                 (format "while restoring current-directory of dante-repl buffer '%s'" buffer-name)
-                              (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                              (if-let* ((current-dir (cadr-safe (assq 'current-dir saved-data))))
                                   (sessions/versioned/restore-string version current-dir)
                                 (progn
                                   (message "dante-repl-restore: no 'current-dir")

@@ -12,7 +12,7 @@
 
 ;;;###autoload (autoload 'get-haskell-language-extensions "haskell-ghc-extension-list" nil t)
 (defun-once get-haskell-language-extensions
-  (if-let (ghc-exec (cached-executable-find "ghc"))
+  (if-let* ((ghc-exec (cached-executable-find "ghc")))
       (with-temp-buffer
         (call-process ghc-exec
                       nil
