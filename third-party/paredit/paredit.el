@@ -2334,7 +2334,7 @@ With a numerical prefix argument N, kill N S-expressions backward in
 Inside a string, unescape all backslashes, or signal an error if doing
   so would invalidate the buffer's structure."
   (interactive "P")
-  (let ((forward-sexp-function paredit-forward-sexp-function))
+  (let () ;; ((forward-sexp-function paredit-forward-sexp-function))
     (let ((state (paredit-current-parse-state)))
       (if (paredit-in-string-p state)
           (paredit-splice-string argument)
@@ -2414,7 +2414,7 @@ Inside a string, unescape all backslashes, or signal an error if doing
   also kill all S-expressions before the point in the current list.
 With a prefix argument N, kill only the preceding N S-expressions."
   (interactive "P")
-  (let ((forward-sexp-function paredit-forward-sexp-function))
+  (let () ;; ((forward-sexp-function paredit-forward-sexp-function))
     (paredit-splice-sexp (if n
                              (prefix-numeric-value n)
                            '(4)))))

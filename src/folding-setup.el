@@ -541,6 +541,14 @@ possible."
         (progn
           (hs-minor-mode--initialize-preproc hideshow-params comments-supported?)
           (hs-minor-mode +1)
+          ;; (let
+          ;;     (
+          ;;      ;;trick hideshow into thinknig that comments are available.
+          ;;      (comment-start
+          ;;       (or comment-start ""))
+          ;;      (comment-end
+          ;;       (or comment-end "")))
+          ;;   (hs-minor-mode +1))
           (if outline-enabled?
               (progn
                 (when (listp outline-params)

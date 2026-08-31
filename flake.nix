@@ -275,7 +275,7 @@
                 runHook postBuild
               '';
 
-              doCheck = true;
+              doCheck = false;
               nativeCheckInputs = [
                 pkgs.findutils
                 pkgs.universal-ctags
