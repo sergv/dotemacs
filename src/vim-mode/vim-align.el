@@ -10,6 +10,7 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(require 's-extras)
 (require 'vim-common)
 (require 'vim-macs)
 (require 'vim-ex)
@@ -51,7 +52,7 @@
               (cl-incf i))
             (let ((flags-end i))
               (cl-values
-               (expand-escape-sequences!
+               (s-extras-expand-escape-sequences
                 (substring-no-properties str pattern-start (min end pattern-end)))
                (and (< flags-start end)
                     (string->list (substring-no-properties str flags-start flags-end)))))))))))
