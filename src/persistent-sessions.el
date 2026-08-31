@@ -341,7 +341,7 @@ entries."
                                 (sessions/store-ring eshell-history-ring))))))
        (restore ,(lambda (version buffer-name saved-data)
                    (message "Restoring eshell buffer %s" buffer-name)
-                   (when-let (contents (assoc 'contents saved-data))
+                   (when-let* ((contents (assoc 'contents saved-data)))
                      (save-excursion
                        (require 'eshell)
                        (let* ((eshell-buffer-name buffer-name)
@@ -609,9 +609,9 @@ entries."
               (remq nil
                     (-map (lambda (buf)
                             (with-current-buffer buf
-                              (when-let ((spec-entry (assq major-mode
-                                                           sessions/special-modes))
-                                         (save-func (cadr-safe (assq 'save spec-entry))))
+                              (when-let* ((spec-entry (assq major-mode
+                                                            sessions/special-modes))
+                                          (save-func (cadr-safe (assq 'save spec-entry))))
                                 (list major-mode
                                       (sessions/store-string
                                        (buffer-name buf))
@@ -700,7 +700,7 @@ entries."
                   (narrow-to-region-indirect-setup-indirect-buffer))
 
                 (awhen narrowing-bounds
-                  (when-let ((bounds (sessions/versioned/restore-value version it)))
+                  (when-let* ((bounds (sessions/versioned/restore-value version it)))
                     (persistent-narrow-to-region (car bounds) (cdr bounds))))
 
                 (sessions/report-and-ignore-asserts
@@ -819,8 +819,8 @@ entries."
                         (cl-second saved-info)))
                       (special-data (cl-third saved-info)))
                   (condition-case err
-                      (when-let ((spec-entry (assq mmode sessions/special-modes))
-                                 (restore-func (cadr-safe (assq 'restore spec-entry))))
+                      (when-let* ((spec-entry (assq mmode sessions/special-modes))
+                                  (restore-func (cadr-safe (assq 'restore spec-entry))))
                         (funcall restore-func version buf-name special-data))
                     (err
                      (message "sessions/load-from-data: failed to restore buffer %s: %s"

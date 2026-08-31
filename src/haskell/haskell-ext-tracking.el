@@ -84,7 +84,7 @@
           (set (make-local-variable 'haskell-ext-tracking-known-exts--store)
                (haskell-ext-tracking-known-exts--default))
           (let ((buf (current-buffer)))
-            (when-let ((config (flycheck-haskell-get-configuration-for-buf buf (eproj-get-project-for-buf-lax buf))))
+            (when-let* ((config (flycheck-haskell-get-configuration-for-buf buf (eproj-get-project-for-buf-lax buf))))
               (let-alist-static config (extensions languages)
                 (setf (haskell-ext-tracking-known-exts/magic-hash haskell-ext-tracking-known-exts--store)
                       (member "MagicHash" extensions)

@@ -1343,16 +1343,16 @@ paths."
                                resolved-files))
             (setf (eproj-project/cached-file-list proj) resolved-files)
             resolved-files))
-      (when-let (globs
-                 (mapcan (lambda (lang)
-                           (cl-assert (and lang (symbolp lang)) nil
-                                      "Expected a symbol for language but got: %s"
-                                      lang)
-                           (aif (gethash lang eproj/languages-table)
-                               (--map (concat "*." it)
-                                      (eproj-language/extensions it))
-                             (error "Unknown language: %s" lang)))
-                         (eproj-project/languages proj)))
+      (when-let* ((globs
+                    (mapcan (lambda (lang)
+                              (cl-assert (and lang (symbolp lang)) nil
+                                         "Expected a symbol for language but got: %s"
+                                         lang)
+                              (aif (gethash lang eproj/languages-table)
+                                  (--map (concat "*." it)
+                                         (eproj-language/extensions it))
+                                (error "Unknown language: %s" lang)))
+                            (eproj-project/languages proj))))
         (find-rec*
          :root (eproj-project/root proj)
          :globs-to-find (mapcan (lambda (lang)
@@ -1385,7 +1385,7 @@ Returns nil if no relevant entry found in AUX-INFO."
 
 (defun eproj--aux-files (proj)
   "Get aux files, mainly for navigation but can also serve as source for tag generation."
-  (when-let (aux-files-entry (eproj-project/aux-files-entries proj))
+  (when-let* ((aux-files-entry (eproj-project/aux-files-entries proj)))
     (let ((project-root (eproj-project/root proj))
           (aux-trees (make-hash-table :test #'equal))
           (roots (make-hash-table :test #'equal)))
@@ -1434,11 +1434,11 @@ Returns nil if no relevant entry found in AUX-INFO."
              (unless (file-directory-p tree-root)
                (error "Non-directory tree root under aux-files/tree clause: %s" tree-root))
              (unless (and (listp patterns)
-                             (not (null patterns))
-                             (-all? #'stringp patterns))
+                          (not (null patterns))
+                          (-all? #'stringp patterns))
                (error "Invalid patterns under aux-files/tree clause, expected a list of strings but got: %s" patterns))
-             (when-let ((resolved-tree-root
-                         (eproj--resolve-to-abs-path-lax-cached tree-root project-root)))
+             (when-let* ((resolved-tree-root
+                          (eproj--resolve-to-abs-path-lax-cached tree-root project-root)))
                (unless (file-name-absolute-p resolved-tree-root)
                  (error "Resolved aux tree root is not absolute: %s" resolved-tree-root))
                (puthash resolved-tree-root
@@ -1528,13 +1528,13 @@ not exist anywhere."
                    eproj--resolve-to-abs-path-cached//internal-cache
                    eproj--resolve-to-abs-path-cached//uninitialized)))
     (if (eq query eproj--resolve-to-abs-path-cached//uninitialized)
-        (when-let ((value
-                    (resolve-to-abs-path-lax
-                     (if eproj-translate-file-name
-                         (funcall eproj-translate-file-name path)
-                       path)
-                     dir
-                     (lambda (&args _ignored) nil))))
+        (when-let* ((value
+                     (resolve-to-abs-path-lax
+                      (if eproj-translate-file-name
+                          (funcall eproj-translate-file-name path)
+                        path)
+                      dir
+                      (lambda (&args _ignored) nil))))
           (puthash cache-key
                    value
                    eproj--resolve-to-abs-path-cached//internal-cache)
@@ -1762,7 +1762,7 @@ Returns list of eproj-matching-tag structs."
                                  initial-buffers
                                (--filter (or (null (buffer-file-name it))
                                              (gethash it bufs-to-add)
-                                             (when-let (pr (eproj-get-project-for-buf-lax it))
+                                             (when-let* ((pr (eproj-get-project-for-buf-lax it)))
                                                (gethash (eproj-project/root pr) related-roots)))
                                          initial-buffers))))
         (let* ((buffer-abs-file (buffer-file-name buf))
