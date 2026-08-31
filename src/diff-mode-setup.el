@@ -31,6 +31,7 @@ _,_: kill hunk"
 (defconst diff--outline-headings
   '(("diff" . 1)
     ("@@" . 2)))
+
 (defconst diff--outline-header-regexp
   (concat "^\\(?:"
           (mapconcat (lambda (x) (concat "\\(?:" (car x) "\\)"))
@@ -63,7 +64,7 @@ _,_: kill hunk"
         outline-heading-alist diff--outline-headings)
   (outline-minor-mode +1)
 
-  (setup-folding t t)
+  (setup-folding-no-comments t t)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     (("<up>"     "C-t") diff-hunk-prev)
