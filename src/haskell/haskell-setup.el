@@ -143,7 +143,7 @@ With prefix argument puts symbol at point also in substitute part"
            "\\(:?" (regexp-opt pkgs-without-versions) "\\)"
            ".*"
            "/"
-           (s-extras-replace-char! ?. ?/ mod-name)
+           (s-extras-replace-char ?. ?/ mod-name)
            "."
            (eval-when-compile (regexp-opt +haskell-extensions+)))
    proj))
