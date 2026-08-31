@@ -188,7 +188,7 @@ let
               })
             ]
           else [ ];
-        # version        = "30.2";
+        version        = "31.1";
 
         configureFlags = old.configureFlags ++ extraConfigureFlags ++ [
           # https://www.jamescherti.com/compiling-emacs/
