@@ -156,7 +156,7 @@
     (let ((by-project-root
            (ebuf--group-buffers buffers
                                 (lambda (buf)
-                                  (when-let (proj (eproj-get-project-for-buf-lax buf))
+                                  (when-let* ((proj (eproj-get-project-for-buf-lax buf)))
                                     (eproj-project/root proj)))))
           (grouped
            (make-hash-table :test #'equal))
@@ -319,7 +319,7 @@
                                             buf-caption))))))
                   (insert buf-line)
                   (when ebuf-render-filenames?
-                    (when-let ((absolute-path (ebuf--buffer-filename-for-render buf)))
+                    (when-let* ((absolute-path (ebuf--buffer-filename-for-render buf)))
                       (cl-assert (stringp absolute-path))
                       (insert (make-string (+ (max 0
                                                    (- (+ (length prefix)

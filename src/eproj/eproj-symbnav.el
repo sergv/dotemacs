@@ -219,7 +219,7 @@ as accepted by `bounds-of-thing-at-point'.")
 
     (if (and eproj-symbnav-remember-choices
              next-home-entry
-             (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))
+             (when-let* ((next-symbol (eproj-home-entry/symbol next-home-entry)))
                (if use-regexp?
                    (string-match-p identifier next-symbol)
                  (string= identifier next-symbol))))

@@ -141,7 +141,7 @@
   (accept-process-output proc nil nil t)
   (let ((p (point)))
     (while (not (and (eq (char-before p) ?\s)
-                     (when-let ((p2 (char-before (- p 1))))
+                     (when-let* ((p2 (char-before (- p 1))))
                        (or (eq p2 ?\4)
                            (eq p2 ?\5)))))
       (accept-process-output proc nil nil t)

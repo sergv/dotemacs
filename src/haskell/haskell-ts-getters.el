@@ -80,7 +80,7 @@
             (t
              (error "Inexpected record-like node: %s" node))))
          (result
-          (--some (when-let ((open-brace (treesit-node-child node it)))
+          (--some (when-let* ((open-brace (treesit-node-child node it)))
                     (when (string= "{" (treesit-node-type open-brace))
                       open-brace))
                   open-brace-idx-candidates)))
@@ -365,7 +365,7 @@
   (cl-assert (string= (treesit-node-type node) "data_type"))
   (let* ((idx-candidates '(2 3))
          (result
-          (--some (when-let ((equals (treesit-node-child node it nil)))
+          (--some (when-let* ((equals (treesit-node-child node it nil)))
                     (when (string= "=" (treesit-node-type equals))
                       equals))
                   idx-candidates)))

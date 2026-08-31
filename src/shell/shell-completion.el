@@ -250,7 +250,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              ;; Alternatives
              (process-or
               (lambda (definition positional-depth)
-                (when-let (defs (cl-rest definition))
+                (when-let* ((defs (cl-rest definition)))
                   (let* ((positional-def?
                           (lambda (def)
                             (or (stringp (cl-first def))
