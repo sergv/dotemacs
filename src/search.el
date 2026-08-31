@@ -29,12 +29,13 @@
 (require 'keys-def)
 (require 'persistent-sessions-global-vars)
 (require 'solarized)
+(require 's-extras)
 
 ;;; utils
 
 (defun search--expand-escape-sequences (str)
   (when str
-    (expand-escape-sequences str)))
+    (s-extras-expand-escape-sequences str)))
 
 ;;; search faces
 
