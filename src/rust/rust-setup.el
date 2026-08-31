@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'comment-util)
+  (require 'compile)
   (require 'flycheck-setup)
   (require 'macro-util)
   (require 'set-up-platform)
@@ -166,7 +167,7 @@ which is suitable for most programming languages such as C or Lisp."
          ))
   "Regexp to highlight backtrace positions when tests fail.")
 
-;;;###autoload
+;;;###autoload (autoload 'rust-compilation-mode "rust-setup")
 (define-compilation-mode rust-compilation-mode "Rust Compilation"
   "Rust-specific `compilation-mode' derivative."
   (setq-local compilation-error-regexp-alist
