@@ -17,6 +17,7 @@
 (defvar flycheck-check-syntax-automatically)
 (defvar flycheck-checker)
 (defvar flycheck-current-errors)
+(defvar flycheck-disabled-checkers)
 (defvar flycheck-display-errors-delay)
 (defvar flycheck-error-list-mode-map)
 (defvar flycheck-error-message-buffer)
