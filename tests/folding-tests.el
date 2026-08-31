@@ -177,7 +177,7 @@
  (tests-utils--multiline
   ""
   "foo ="
-  "  [_|_ bar]"
+  "  [ _|_bar]"
   ""))
 
 (folding-tests--haskell--test-buffer-contents*
@@ -197,7 +197,7 @@
  (tests-utils--multiline
   ""
   "foo ="
-  "  (_|_ bar)"
+  "  ( _|_bar)"
   ""))
 
 (folding-tests--haskell--test-buffer-contents*
@@ -218,7 +218,7 @@
  (tests-utils--multiline
   ""
   "foo = Foo"
-  "  {_|_ bar = 1}"
+  "  { _|_bar = 1}"
   ""))
 
 (folding-tests--haskell--test-buffer-contents*

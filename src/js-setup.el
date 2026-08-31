@@ -55,7 +55,7 @@ _O_: show all blocks"
 (defun js2-setup ()
   (init-common :use-whitespace 'tabs-only)
   ;; Set up folding but don’t bind keys
-  (setup-folding--impl t nil nil t)
+  (setup-folding-no-keys t nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ("z" hydra-js-vim-normal-z/body)))

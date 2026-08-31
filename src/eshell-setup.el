@@ -250,11 +250,13 @@
              :create-keymaps t)
 
   (hl-line-mode +1)
-  (hs-minor-mode-initialize
-   :start (rx (or "[" "(" "{"))
-   :comment-start-re (rx (or (+ "#")
-                             (>= 2 "/"))))
-  (setup-folding t nil)
+
+  (setup-folding
+   `(:start
+     ,(rx (or "[" "(" "{"))
+     :comment-start-re
+     ,(rx (or (+ "#") (>= 2 "/"))))
+   nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ;; clear all previous output
