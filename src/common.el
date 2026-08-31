@@ -23,6 +23,8 @@
 
 (defvar grep-find-ignored-files)
 
+(provide 'common)
+
 (require 'common-small)
 (require 'common-constants)
 (require 'common-whitespace)
@@ -1683,8 +1685,6 @@ returned non-nil."
                     continue? nil)))
           (setf tmp (cdr tmp)))
         res)))
-
-(provide 'common)
 
 ;; Local Variables:
 ;; End:
