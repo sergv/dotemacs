@@ -118,17 +118,31 @@
     (deactivate-mark)
     (vim:visual-mode-exit:wrapper)))
 
-(el-patch-defun hs-show-all ()
-  "Show everything then run `hs-show-hook'.  See `run-hooks'."
-  (interactive)
-  (hs-life-goes-on
-   (el-patch-remove
-     (message "Showing all blocks ..."))
-   (let ((hs-allow-nesting nil))
-     (hs-discard-overlays (point-min) (point-max)))
-   (el-patch-remove
-     (message "Showing all blocks ... done"))
-   (run-hooks 'hs-show-hook)))
+(when-emacs-version (= 30 it)
+  (el-patch-defun hs-show-all ()
+    "Show everything then run `hs-show-hook'.  See `run-hooks'."
+    (interactive)
+    (hs-life-goes-on
+     (el-patch-remove
+       (message "Showing all blocks ..."))
+     (let ((hs-allow-nesting nil))
+       (hs-discard-overlays (point-min) (point-max)))
+     (el-patch-remove
+       (message "Showing all blocks ... done"))
+     (run-hooks 'hs-show-hook))))
+
+(when-emacs-version (<= 31 it)
+  (el-patch-defun hs-show-all ()
+    "Show everything then run `hs-show-hook'.  See `run-hooks'."
+    (interactive)
+    (hs-life-goes-on
+     (el-patch-remove
+       (message "Showing all blocks ..."))
+     (let (hs-allow-nesting)
+       (hs-discard-overlays (point-min) (point-max)))
+     (el-patch-remove
+       (message "Showing all blocks ... done"))
+     (run-hooks 'hs-show-hook))))
 
 (when-emacs-version (and (<= 29 it) (< it 31))
   (el-patch-defun hs-forward-sexp (match-data arg)
@@ -248,7 +262,7 @@ function; and adjust-block-beginning function."
                (format-mode-line mode-name)))
       (hs-minor-mode-ensure-initialized))))
 
-(when-emacs-version (<= 29 it)
+(when-emacs-version (and (<= 29 it) (< it 31))
   (el-patch-defun hs-grok-mode-type ()
     "Set up hideshow variables for new buffers.
 If `hs-special-modes-alist' has information associated with the
@@ -287,6 +301,29 @@ function; and adjust-block-beginning function."
         (setq hs-minor-mode nil)
         (error "%s Mode doesn't support Hideshow Minor Mode"
                (format-mode-line mode-name)))
+      (hs-minor-mode-ensure-initialized))))
+
+(when-emacs-version (<= 31 it)
+  (el-patch-defun hs-grok-mode-type ()
+    "Set up hideshow variables for new buffers.
+If `hs-special-modes-alist' has information associated with the current
+buffer's major mode, use that.  Otherwise, guess start, end and
+`comment-start' regexps; `forward-sexp' function; and
+adjust-block-beginning function."
+    (el-patch-remove
+     (hs--set-variable 'hs-block-start-regexp
+                       (lambda (v) (car (ensure-list (nth 1 v)))))
+     (hs--set-variable 'hs-block-start-mdata-select
+                       (lambda (v) (cadr (ensure-list (nth 1 v)))))
+     (hs--set-variable 'hs-block-end-regexp 2)
+     (hs--set-variable 'hs-c-start-regexp 3
+                       (string-trim-right (regexp-quote comment-start)))
+     (hs--set-variable 'hs-forward-sexp-function 4)
+     (hs--set-variable 'hs-adjust-block-beginning-function 5)
+     (hs--set-variable 'hs-find-block-beginning-function 6)
+     (hs--set-variable 'hs-find-next-block-function 7)
+     (hs--set-variable 'hs-looking-at-block-start-predicate 8))
+    (el-patch-add
       (hs-minor-mode-ensure-initialized))))
 
 ;;;; Outline

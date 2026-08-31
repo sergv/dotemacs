@@ -171,63 +171,123 @@ current one."
 ;;;###autoload
 (add-to-list 'el-patch-features 'dired)
 
-(el-patch-defun dired--move-to-next-line (arg jumpfun)
-  (let ((wrapped nil)
-        (old-arg arg)
-        (old-position (progn
-                        ;; It's always true that we should move
-                        ;; to the filename when possible.
-                        (dired-move-to-filename)
-                        (point)))
-        ;; Up/Down indicates the direction.
-        (moving-down (if (cl-plusp arg)
-                         1              ; means Down.
-                       -1)))            ; means Up.
-    ;; Line by line in case we forget to skip empty lines.
-    (while (not (zerop arg))
-      (funcall jumpfun moving-down)
-      (el-patch-add
-        (when-let* ((bounds (bounds-of-thing-at-point 'filename)))
-          (when (string= "."
-                         (buffer-substring-no-properties (car bounds) (cdr bounds)))
-            (funcall jumpfun moving-down))))
-      (when (= old-position (point))
-        ;; Now point is at beginning/end of movable area,
-        ;; but it still wants to move farther.
-        (cond
-          ;; `cycle': go to the other end.
-          ((memq dired-movement-style '(cycle cycle-files))
-           ;; Argument not changing on the second wrap
-           ;; means infinite loop with no files found.
-           (if (and wrapped (eq old-arg arg))
-               (setq arg 0)
-             (goto-char (if (cl-plusp moving-down)
-                            (point-min)
-                          (point-max))))
-           (setq wrapped t))
-          ;; `bounded': go back to the last non-empty line.
-          (dired-movement-style ; Either 'bounded or anything else non-nil.
-           (while (and (dired-between-files)
-                       (or (eq dired-movement-style 'bounded-files)
-                           (not (dired-get-subdir)))
-                       (not (zerop arg)))
-             (funcall jumpfun (- moving-down))
-             ;; Point not moving means infinite loop.
-             (if (= old-position (point))
+(when-emacs-version (= 30 it)
+  (el-patch-defun dired--move-to-next-line (arg jumpfun)
+    (let ((wrapped nil)
+          (old-arg arg)
+          (old-position (progn
+                          ;; It's always true that we should move
+                          ;; to the filename when possible.
+                          (dired-move-to-filename)
+                          (point)))
+          ;; Up/Down indicates the direction.
+          (moving-down (if (cl-plusp arg)
+                           1              ; means Down.
+                         -1)))            ; means Up.
+      ;; Line by line in case we forget to skip empty lines.
+      (while (not (zerop arg))
+        (funcall jumpfun moving-down)
+        (el-patch-add
+          (when-let* ((bounds (bounds-of-thing-at-point 'filename)))
+            (when (string= "."
+                           (buffer-substring-no-properties (car bounds) (cdr bounds)))
+              (funcall jumpfun moving-down))))
+        (when (= old-position (point))
+          ;; Now point is at beginning/end of movable area,
+          ;; but it still wants to move farther.
+          (cond
+            ;; `cycle': go to the other end.
+            ((memq dired-movement-style '(cycle cycle-files))
+             ;; Argument not changing on the second wrap
+             ;; means infinite loop with no files found.
+             (if (and wrapped (eq old-arg arg))
                  (setq arg 0)
-               (setq old-position (point))))
-           ;; Encountered a boundary, so let's stop movement.
-           (setq arg (if (and (dired-between-files)
-                              (or (eq dired-movement-style 'bounded-files)
-                                  (not (dired-get-subdir))))
-                         0 moving-down)))))
-      (unless (and (dired-between-files)
-                   (or (memq dired-movement-style '(cycle-files bounded-files))
-                       (not (dired-get-subdir))))
-        ;; Has moved to a non-empty line.  This movement does
-        ;; make sense.
-        (cl-decf arg moving-down))
-      (setq old-position (point)))))
+               (goto-char (if (cl-plusp moving-down)
+                              (point-min)
+                            (point-max))))
+             (setq wrapped t))
+            ;; `bounded': go back to the last non-empty line.
+            (dired-movement-style ; Either 'bounded or anything else non-nil.
+             (while (and (dired-between-files)
+                         (or (eq dired-movement-style 'bounded-files)
+                             (not (dired-get-subdir)))
+                         (not (zerop arg)))
+               (funcall jumpfun (- moving-down))
+               ;; Point not moving means infinite loop.
+               (if (= old-position (point))
+                   (setq arg 0)
+                 (setq old-position (point))))
+             ;; Encountered a boundary, so let's stop movement.
+             (setq arg (if (and (dired-between-files)
+                                (or (eq dired-movement-style 'bounded-files)
+                                    (not (dired-get-subdir))))
+                           0 moving-down)))))
+        (unless (and (dired-between-files)
+                     (or (memq dired-movement-style '(cycle-files bounded-files))
+                         (not (dired-get-subdir))))
+          ;; Has moved to a non-empty line.  This movement does
+          ;; make sense.
+          (cl-decf arg moving-down))
+        (setq old-position (point))))))
+
+(when-emacs-version (<= 31 it)
+  (el-patch-defun dired--move-to-next-line (arg jumpfun)
+    (let ((wrapped nil)
+          (old-arg arg)
+          (old-position (progn
+                          ;; It's always true that we should move
+                          ;; to the filename when possible.
+                          (dired-move-to-filename)
+                          (point)))
+          ;; Up/Down indicates the direction.
+          (moving-down (if (plusp arg)
+                           1            ; means Down.
+                         -1)))          ; means Up.
+      ;; Line by line in case we forget to skip empty lines.
+      (while (not (zerop arg))
+        (funcall jumpfun moving-down)
+        (el-patch-add
+          (when-let* ((bounds (bounds-of-thing-at-point 'filename)))
+            (when (string= "."
+                           (buffer-substring-no-properties (car bounds) (cdr bounds)))
+              (funcall jumpfun moving-down))))
+        (when (= old-position (point))
+          ;; Now point is at beginning/end of movable area,
+          ;; but it still wants to move farther.
+          (cond
+            ;; `cycle': go to the other end.
+            ((memq dired-movement-style '(cycle cycle-files))
+             ;; Argument not changing on the second wrap
+             ;; means infinite loop with no files found.
+             (if (and wrapped (eq old-arg arg))
+                 (setq arg 0)
+               (goto-char (if (plusp moving-down)
+                              (point-min)
+                            (point-max))))
+             (setq wrapped t))
+            ;; `bounded': go back to the last non-empty line.
+            (dired-movement-style ; Either 'bounded or anything else non-nil.
+             (while (and (dired-between-files)
+                         (or (eq dired-movement-style 'bounded-files)
+                             (not (dired-get-subdir)))
+                         (not (zerop arg)))
+               (funcall jumpfun (- moving-down))
+               ;; Point not moving means infinite loop.
+               (if (= old-position (point))
+                   (setq arg 0)
+                 (setq old-position (point))))
+             ;; Encountered a boundary, so let's stop movement.
+             (setq arg (if (and (dired-between-files)
+                                (or (eq dired-movement-style 'bounded-files)
+                                    (not (dired-get-subdir))))
+                           0 moving-down)))))
+        (unless (and (dired-between-files)
+                     (or (memq dired-movement-style '(cycle-files bounded-files))
+                         (not (dired-get-subdir))))
+          ;; Has moved to a non-empty line.  This movement does
+          ;; make sense.
+          (decf arg moving-down))
+        (setq old-position (point))))))
 
 (provide 'dired-setup)
 

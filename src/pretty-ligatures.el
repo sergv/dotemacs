@@ -80,17 +80,34 @@ Regexp match data 0 specifies the characters to be composed."
   ;; Return nil because we're not adding any face property.
   nil)
 
-(el-patch-defun prettify-symbols--make-keywords ()
-  (if prettify-symbols-alist
-      (el-patch-swap
-        `((,(regexp-opt (mapcar 'car prettify-symbols-alist) t)
-           (0 (prettify-symbols--compose-symbol ',prettify-symbols-alist))))
-        (progn
-          (setq-local prettify-symbols--alist-cache
-                      (alist->hash-table prettify-symbols-alist #'equal))
+(when-emacs-version (= 30 it)
+  (el-patch-defun prettify-symbols--make-keywords ()
+    (if prettify-symbols-alist
+        (el-patch-swap
           `((,(regexp-opt (mapcar 'car prettify-symbols-alist) t)
-             (0 (prettify-symbols--compose-symbol nil))))))
-    nil))
+             (0 (prettify-symbols--compose-symbol ',prettify-symbols-alist))))
+          (progn
+            (setq-local prettify-symbols--alist-cache
+                        (alist->hash-table prettify-symbols-alist #'equal))
+            `((,(regexp-opt (mapcar 'car prettify-symbols-alist) t)
+               (0 (prettify-symbols--compose-symbol nil))))))
+      nil)))
+
+(when-emacs-version (<= 31 it)
+  (el-patch-defun prettify-symbols--make-keywords ()
+    (if prettify-symbols-alist
+        (let ((filtered-alist
+               (seq-filter
+                (lambda (elt)
+                  (prettify-symbols--composition-displayable-p (cdr elt)))
+                prettify-symbols-alist)))
+          (el-patch-add
+            (setq-local prettify-symbols--alist-cache
+                        (alist->hash-table filtered-alist #'equal)))
+          `((,(regexp-opt (mapcar 'car filtered-alist) t)
+             (0 (prettify-symbols--compose-symbol (el-patch-swap ',filtered-alist
+                                                                 nil))))))
+      nil)))
 
 ;;;###autoload
 (defun prettify-symbols-decompose-region (start end)

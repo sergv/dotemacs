@@ -118,7 +118,7 @@
       tab-bar-format '(tab-bar-format-tabs)
       tab-bar-auto-width nil)
 
-(when-emacs-version (<= 30 it)
+(when-emacs-version (= 30 it)
   (el-patch-defun tab-bar--format-tab (tab i)
     "Format TAB using its index I and return the result as a keymap."
     (append
@@ -138,6 +138,32 @@
            ,(funcall tab-bar-tab-name-format-function tab i)
            ,(alist-get 'binding tab)
            :help ,(alist-get 'name tab)))))
+     (when (alist-get 'close-binding tab)
+       `((,(if (eq (car tab) 'current-tab) 'C-current-tab
+             (intern (format "C-tab-%i" i)))
+          menu-item ""
+          ,(alist-get 'close-binding tab)))))))
+
+(when-emacs-version (<= 31 it)
+  (el-patch-defun tab-bar--format-tab (tab i)
+    "Format TAB using its index I and return the result as a keymap."
+    (append
+     (el-patch-wrap 2 0
+       (when (< 1 i)
+         `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))))
+     (cond
+       ((eq (car tab) 'current-tab)
+        `((current-tab
+           menu-item
+           ,(funcall tab-bar-tab-name-format-function tab i)
+           ignore
+           :help ,(funcall tab-bar-format-tab-help-text-function tab i))))
+       (t
+        `((,(intern (format "tab-%i" i))
+           menu-item
+           ,(funcall tab-bar-tab-name-format-function tab i)
+           ,(alist-get 'binding tab)
+           :help ,(funcall tab-bar-format-tab-help-text-function tab i)))))
      (when (alist-get 'close-binding tab)
        `((,(if (eq (car tab) 'current-tab) 'C-current-tab
              (intern (format "C-tab-%i" i)))
