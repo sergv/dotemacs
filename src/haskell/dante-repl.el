@@ -85,8 +85,8 @@ otherwise the command for starting repl will be inferred."
                        (buffer-name (current-buffer))
                      (dante-repl-buffer-name))))
 
-    (when-let ((buf (get-buffer buf-name))
-               (proc (get-buffer-process buf)))
+    (when-let* ((buf (get-buffer buf-name))
+                (proc (get-buffer-process buf)))
       (when (and (buffer-live-p buf)
                  (process-live-p proc))
         (delete-process proc)))

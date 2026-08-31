@@ -49,7 +49,7 @@ stick it to the previous operator on line."
         (dolist (entry specs)
           (when (not (string= entry ""))
             (let ((last-idx (1- (length entry))))
-              (when-let ((last (aref entry last-idx)))
+              (when-let* ((last (aref entry last-idx)))
                 (puthash last (cons (substring-no-properties entry 0 last-idx)
                                     (gethash last entries))
                          entries)))))
@@ -80,51 +80,53 @@ stick it to the previous operator on line."
           (let ((whitespace-deleted? nil))
             ;; Delete spaces backwards if there's operator or open
             ;; paren char before the spaces.
-            (when-let ((delete-whitespace?
-                        (when (and char-before-spaces ;; not at beginning of buffer
-                                   (not (zerop ws-size)))
-                          (or (and (eq char-before-spaces ?|)
-                                   (eq char ?-))
-                              (and (eq char-before-spaces ?-)
-                                   (eq char ?>))
-                              (and (cond
-                                     ((and (eq char ?*)
-                                           (memq char-before-spaces
-                                                 rust-smart-operators--chars-to-separate-from-asterisk))
-                                      nil)
-                                     ((and (eq char ?&)
-                                           (memq char-before-spaces
-                                                 rust-smart-operators--chars-to-separate-from-ampersand))
-                                      nil)
-                                     ((and (eq char-before-spaces ?=)
-                                           (not (memq char '(?> ?=))) ;; for =>
-                                           char-is-smart-op?)
-                                      nil)
-                                     ((eq char-before-spaces ?>)
-                                      (if (eq char ?>)
-                                          ;; Either it’s operator >> or generic type.
-                                          t
-                                        ;; If char before-before is a space then we consider
-                                        ;; that ?\> before spaces is an operator.
-                                        (let ((before2 (char-before (1- pt-before-ws))))
-                                          (not (eq before2 ?\s)))))
-                                     (t
-                                      t) ;; Not a > before spaces - ok to delete.
-                                     )
-                                   (let ((char-before-spaces2 (char-before (- pt-before-ws 1))))
-                                     (and (not (rust-smart-operators--char-before-matches
-                                                +rust-smart-operators--composite-operators+
-                                                0
-                                                (lambda (n) `(char-before (- pt-before-ws ,n)))))
-                                          (or (if (eq char ?=)
-                                                  ;; So that we create arithmetic increments, e.g. +=
-                                                  (memq char-before-spaces '(?+ ?- ?* ?/ ?% ?=))
-                                                (memq char-before-spaces rust-smart-operators--operator-chars))
-                                              (eq char-before-spaces ?\()
-                                              (and (eq char ?=)
-                                                   (or (eq char-before-spaces ?!)
-                                                       (and (eq char-before-spaces ?.)
-                                                            (eq char-before-spaces2 ?.))))))))))))
+            (when-let*
+                ((delete-whitespace?
+                  (when (and char-before-spaces ;; not at beginning of buffer
+                             (not (zerop ws-size)))
+                    (or (and (eq char-before-spaces ?|)
+                             (eq char ?-))
+                        (and (eq char-before-spaces ?-)
+                             (eq char ?>))
+                        (and (cond
+                               ((and (eq char ?*)
+                                     (memq char-before-spaces
+                                           rust-smart-operators--chars-to-separate-from-asterisk))
+                                nil)
+                               ((and (eq char ?&)
+                                     (memq char-before-spaces
+                                           rust-smart-operators--chars-to-separate-from-ampersand))
+                                nil)
+                               ((and (eq char-before-spaces ?=)
+                                     (not (memq char '(?> ?=))) ;; for =>
+                                     char-is-smart-op?)
+                                nil)
+                               ((eq char-before-spaces ?>)
+                                (if (eq char ?>)
+                                    ;; Either it’s operator >> or generic type.
+                                    t
+                                  ;; If char before-before is a space then we consider
+                                  ;; that ?\> before spaces is an operator.
+                                  (let ((before2 (char-before (1- pt-before-ws))))
+                                    (not (eq before2 ?\s)))))
+                               (t
+                                t) ;; Not a > before spaces - ok to delete.
+                               )
+                             (let ((char-before-spaces2 (char-before (- pt-before-ws 1))))
+                               (and (not (rust-smart-operators--char-before-matches
+                                          +rust-smart-operators--composite-operators+
+                                          0
+                                          (lambda (n) `(char-before (- pt-before-ws ,n)))))
+                                    (or (if (eq char ?=)
+                                            ;; So that we create arithmetic increments, e.g. +=
+                                            (memq char-before-spaces '(?+ ?- ?* ?/ ?% ?=))
+                                          (memq char-before-spaces rust-smart-operators--operator-chars))
+                                        (eq char-before-spaces 40 ;; (
+                                            )
+                                        (and (eq char ?=)
+                                             (or (eq char-before-spaces ?!)
+                                                 (and (eq char-before-spaces ?.)
+                                                      (eq char-before-spaces2 ?.))))))))))))
               (setf whitespace-deleted? (delete-whitespace-backward)))
 
             (let* ((pt (point))
@@ -199,7 +201,8 @@ stick it to the previous operator on line."
                           (or
                            ;; At beginning of buffer.
                            at-beginning-of-buffer?
-                           (and (not (memq before '(?\s ?\()))
+                           (and (not (memq before '(?\s 40 ;; (
+                                                        )))
                                 (not (memq before rust-smart-operators--operator-chars))
                                 (if (eq char ?=)
                                     (not (eq before ?!))
@@ -231,7 +234,8 @@ stick it to the previous operator on line."
                            (not (eq char ?\<))
 
                            (or at-beginning-of-buffer?
-                               (not (eq before-insert ?\()))
+                               (not (eq before-insert 40 ;; (
+                                        )))
 
                            (if (eq char ?*)
                                (if (memq before rust-smart-operators--chars-to-separate-from-asterisk)

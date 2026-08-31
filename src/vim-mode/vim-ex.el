@@ -271,8 +271,8 @@ but that should be robust in the unexpected case that an error is signaled."
 
 (defun vim-ex--stop-session ()
   "Deinitializes the minibuffer when ex-mode is stopped."
-  (when-let (arg-deactivate (and vim-ex--arg-handler
-                                 (vim-arg-handler-deactivate vim-ex--arg-handler)))
+  (when-let* ((arg-deactivate (and vim-ex--arg-handler
+                                    (vim-arg-handler-deactivate vim-ex--arg-handler))))
     (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
                           vim-ex--arg-handler)))
       (vim-ex--with-demoted-errors format
@@ -313,8 +313,8 @@ argument handler. Gets called on every minibuffer change."
              vim-ex--arg arg
              vim-ex--range (cons beg end))
        ;; ... deactivate old handler ...
-       (when-let (arg-deactivate (and vim-ex--arg-handler
-                                      (vim-arg-handler-deactivate vim-ex--arg-handler)))
+       (when-let* ((arg-deactivate (and vim-ex--arg-handler
+                                         (vim-arg-handler-deactivate vim-ex--arg-handler))))
          (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
                                vim-ex--arg-handler)))
            (vim-ex--with-demoted-errors format
@@ -330,8 +330,8 @@ argument handler. Gets called on every minibuffer change."
            (t
             (setq vim-ex--arg-handler
                   (and cmd (vim-ex--get-arg-handler cmd)))
-            (when-let (arg-activate (and vim-ex--arg-handler
-                                         (vim-arg-handler-activate vim-ex--arg-handler)))
+            (when-let* ((arg-activate (and vim-ex--arg-handler
+                                            (vim-arg-handler-activate vim-ex--arg-handler))))
               (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
                                     vim-ex--arg-handler)))
                 (vim-ex--with-demoted-errors format
