@@ -33,7 +33,8 @@
               (apply #'treesit-font-lock-rules (haskell-ts-lang-selection-resolve haskell-ts-font-lock-rules)))
 
   ;; Associate parser with current buffer.
-  (treesit-parser-create 'hsc (current-buffer))
+  (setq treesit-primary-parser
+        (treesit-parser-create 'hsc (current-buffer)))
 
   (treesit-major-mode-setup))
 

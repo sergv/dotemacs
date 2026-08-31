@@ -31,6 +31,8 @@
            (treesit-available-p))
   (require 'treesit)
 
+  (setq treesit-enabled-modes t)
+
   (when (treesit-language-available-p 'json)
     (add-to-list 'major-mode-remap-alist
                  '(json-mode . json-ts-mode)))
