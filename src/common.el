@@ -1340,56 +1340,6 @@ are CHAR1 and CHAR2 repsectively."
 
 ;;
 
-(defun expand-escape-sequences (str)
-  (expand-escape-sequences! (copy-sequence str)))
-
-(defun expand-escape-sequences! (str)
-  "Expand escape sequences within STR:
-
-\\\\ -> <backspace>
-\\n  -> <newline>
-\\r  -> <carriage-return>
-\\t  -> <tab>
-
-All other backslashes are preserved as is."
-  (cl-assert (stringp str))
-  (let* ((strs (cons nil nil))
-         (tmp strs)
-         (limit (comp-hint-fixnum (length str)))
-         (i (comp-hint-fixnum 0))
-         (prev (comp-hint-fixnum 0))
-         (escapes
-          '((?n  . "\n")
-            (?r  . "\r")
-            (?t  . "\t")
-            (?\\ . "\\"))))
-    (while (< (comp-hint-fixnum i) (comp-hint-fixnum limit))
-      (let ((c (aref str (comp-hint-fixnum i)))
-            (j (+ (comp-hint-fixnum i) 1)))
-        (when-let* ((_ (and (eq (comp-hint-fixnum c) ?\\)
-                            (< (comp-hint-fixnum j) (comp-hint-fixnum limit))))
-                    (entry (assq (aref str (comp-hint-fixnum j)) escapes)))
-          (if (eq (comp-hint-fixnum prev) (comp-hint-fixnum i))
-              (setf tmp (setf (cdr tmp) (cons (cdr entry) nil)))
-            (let ((end (cons (cdr entry) nil)))
-              (setf (cdr tmp) (cons (substring-no-properties str
-                                                             (comp-hint-fixnum prev)
-                                                             (comp-hint-fixnum i))
-                                    end)
-                    tmp end)))
-          (setf i (+ (comp-hint-fixnum j) 1)
-                prev (comp-hint-fixnum i)))
-        (setf i (comp-hint-fixnum j))))
-    (unless (eq (comp-hint-fixnum prev) (comp-hint-fixnum i))
-      (setf (cdr tmp)
-            (cons (substring-no-properties str
-                                           (comp-hint-fixnum prev)
-                                           (comp-hint-fixnum i))
-                  nil)))
-    (apply #'concat (cdr strs))))
-
-;;
-
 (defun shell-command-on-region-and-replace (start end command
                                                   &optional output-buffer
                                                   error-buffer display-error-buffer
