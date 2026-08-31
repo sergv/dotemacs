@@ -27,18 +27,45 @@ Implementation is very straightforward and because of that fast and reliable."
         (cl-incf i))
       res))
 
-(defun s-extras-replace-char (old new s)
-  "Replace all OLD characters with NEW in the S string by mutation."
-  (cl-assert (stringp s))
+(defun s-extras-replace-char (old new str)
+  "Replace all OLD characters with NEW in the STR string and return new string.
+
+Works with both unibyte and multibyte characters."
+  (cl-assert (stringp str))
   (cl-assert (characterp old))
   (cl-assert (characterp new))
-  (let ((end (comp-hint-fixnum (length s)))
-        (i (comp-hint-fixnum 0)))
-    (while (< (comp-hint-fixnum i) (comp-hint-fixnum end))
-      (when (eq (aref s (comp-hint-fixnum i)) old)
-        (setf (aref s (comp-hint-fixnum i)) new))
-      (cl-incf i))
-    s))
+  (let* ((strs (cons nil nil))
+         (tmp strs)
+         (limit (comp-hint-fixnum (length str)))
+         (i (comp-hint-fixnum 0))
+         (prev (comp-hint-fixnum 0))
+         (new-str (char-to-string new)))
+    (while (< (comp-hint-fixnum i)
+              (comp-hint-fixnum limit))
+      (if (eq (aref str (comp-hint-fixnum i))
+                (comp-hint-fixnum old))
+          (progn
+            (if (eq (comp-hint-fixnum prev) (comp-hint-fixnum i))
+                (setf tmp (setf (cdr tmp) (cons new-str nil)))
+              (let ((end (cons new-str nil)))
+                (setf (cdr tmp) (cons (substring-no-properties str
+                                                               (comp-hint-fixnum prev)
+                                                               (comp-hint-fixnum i))
+                                      end)
+                      tmp end)))
+            (setf i (+ (comp-hint-fixnum i) 1)
+                  prev (comp-hint-fixnum i)))
+        (setf i (+ (comp-hint-fixnum i) 1))))
+    (message "prev = %s, i = %s"
+             (pp-to-string prev)
+             (pp-to-string i))
+    (unless (eq (comp-hint-fixnum prev) (comp-hint-fixnum i))
+      (setf (cdr tmp)
+            (cons (substring-no-properties str
+                                           (comp-hint-fixnum prev)
+                                           (comp-hint-fixnum i))
+                  nil)))
+    (apply #'concat (cdr strs))))
 
 (defun s-extras--strip-terminal-save-restore-cursor-escape-sequences! (str)
   (let* ((i 0)
