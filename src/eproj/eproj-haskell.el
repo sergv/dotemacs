@@ -223,12 +223,12 @@ runtime but rather will be silently relied on)."
                           (rx ":"
                               (* ws)
                               (group-n 1
-                                       (* any)
+                                       (* not-newline)
                                        (* (group-n 2
                                                    nl
                                                    (+ wsnl)
                                                    ws
-                                                   (* any)))))))
+                                                   (* not-newline)))))))
                 nil ;; bound
                 t   ;; noerror
                 )
@@ -319,7 +319,7 @@ spaces if they’re quoted with double quotes, e.g. \"foobar\"."
       ((directory-files root
                         nil
                         (rx (or ".cabal"
-                                (seq "stack" (* any) "." (or "yml" "yaml")))
+                                (seq "stack" (* not-newline) "." (or "yml" "yaml")))
                             eos)
                         t)
        '((languages haskell-mode)))
