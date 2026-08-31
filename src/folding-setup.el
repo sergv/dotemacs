@@ -60,7 +60,7 @@
     (while (<= (point) end)
       (forward-sexp 1)
       (backward-sexp 1)
-      (hs-show-block t)        ;; show and reposition
+      (hs-show-block)        ;; show and reposition
       (skip-syntax-forward ")" ;; close delimiters
                            )))
   ;; turn visual mode off
@@ -94,7 +94,7 @@
     (while (<= (point) end)
       (skip-chars-forward "^{" end)
       (when (eq (following-char) ?\{)
-        (hs-show-block t)
+        (hs-show-block)
         (skip-chars-forward "}"))))
   ;; turn visual mode off
   (when (region-active-p)
@@ -130,7 +130,7 @@
      (message "Showing all blocks ... done"))
    (run-hooks 'hs-show-hook)))
 
-(when-emacs-version (<= 29 it)
+(when-emacs-version (and (<= 29 it) (< it 31))
   (el-patch-defun hs-forward-sexp (match-data arg)
     "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' with ARG.
 Original match data is restored upon return."
@@ -140,6 +140,18 @@ Original match data is restored upon return."
         (when hs-block-start-mdata-select
           (goto-char (match-beginning hs-block-start-mdata-select))))
       (funcall hs-forward-sexp-func arg))))
+
+(when-emacs-version (<= 31 it)
+  (el-patch-defun hs-forward-sexp (match-data _arg)
+    "Adjust point based on MATCH-DATA and call `hs-forward-sexp-function' with ARG.
+Original match data is restored upon return."
+    (declare (obsolete "Use `hs-block-positions' instead." "31.1"))
+    (save-match-data
+      (set-match-data match-data)
+      (el-patch-wrap 2 0
+        (when hs-block-start-mdata-select
+          (goto-char (match-beginning hs-block-start-mdata-select))))
+      (funcall hs-forward-sexp-function 1))))
 
 ;;;###autoload
 (cl-defun hs-minor-mode-initialize (&key
