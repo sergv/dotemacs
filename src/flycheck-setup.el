@@ -390,13 +390,13 @@ scheme and it’s view of current buffer is malformed."
   :group 'flycheck-faces)
 
 (defun flycheck-highlight-errors-with-attrap-fix ()
-  (when-let ((checker (flycheck-get-checker-for-buffer))
-             (messages
-              (--filter-nondet
-               (car-sure it)
-               (--map (cons (flycheck-error-message (overlay-get it 'flycheck-error))
-                            it)
-                      (flycheck-enhancements--get-error-overlays)))))
+  (when-let* ((checker (flycheck-get-checker-for-buffer))
+              (messages
+               (--filter-nondet
+                (car-sure it)
+                (--map (cons (flycheck-error-message (overlay-get it 'flycheck-error))
+                             it)
+                       (flycheck-enhancements--get-error-overlays)))))
     (dolist (entry (attrap--find-fixes-for-flycheck-messages checker messages))
       (cl-destructuring-bind (_ _ ov) entry
         (cl-assert (overlayp ov))
