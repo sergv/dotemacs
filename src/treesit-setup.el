@@ -78,107 +78,211 @@ Return the root node of the syntax tree."
 
 (defvar treesit-indent-region--indent-line-impl #'treesit--indent-1)
 
-(el-patch-defun treesit-indent-region (beg end)
-  "Indent the region between BEG and END.
+(when-emacs-version (= 30 it)
+  (el-patch-defun treesit-indent-region (beg end)
+    "Indent the region between BEG and END.
 Similar to `treesit-indent', but indent a region instead."
-  (when (markerp beg) (setq beg (marker-position beg)))
-  (when (markerp end) (setq end (marker-position end)))
-  (treesit-update-ranges beg end)
-  ;; We indent `treesit--indent-region-batch-size' lines at a time, to
-  ;; reduce the number of times the parser needs to re-parse.  In each
-  ;; batch, we go through each line and calculate the anchor and
-  ;; offset as usual, but instead of modifying the buffer, we save
-  ;; these information in a vector.  Once we've collected ANCHOR and
-  ;; OFFSET for each line in the batch, we go through each line again
-  ;; and apply the changes.  Now that buffer is modified, we need to
-  ;; reparse the buffer before continuing to indent the next batch.
-  (let* ((meta-len 2)
-         (vector-len (* meta-len treesit--indent-region-batch-size))
-         ;; This vector saves the indent meta for each line in the
-         ;; batch.  It is a vector [ANCHOR OFFSET ANCHOR OFFSET...].
-         ;; ANCHOR is a marker on the anchor position, and OFFSET is
-         ;; an integer.  ANCHOR and OFFSET are either both nil, or
-         ;; both valid.
-         (meta-vec (make-vector vector-len 0))
-         (lines-left-to-move 0)
-         (end (copy-marker end t))
-         (idx 0)
-         (starting-pos 0)
-         (announce-progress (> (- end beg) 80000)))
-    (save-excursion
-      (goto-char beg)
-      ;; First pass.  Go through each line and compute the
-      ;; indentation.
-      (while (and (eq lines-left-to-move 0) (< (point) end))
-        (setq idx 0
-              starting-pos (point))
-        (while (and (eq lines-left-to-move 0)
-                    (< idx treesit--indent-region-batch-size)
-                    (< (point) end))
-          (if (looking-at (rx (* whitespace) eol) t)
-              ;; Unlike in `indent-line' where we sometimes pre-indent
-              ;; an empty line, We don't indent empty lines in
-              ;; `indent-region'.  Set ANCHOR and OFFSET to nil.
-              (setf (aref meta-vec (* idx meta-len)) nil
-                    (aref meta-vec (+ 1 (* idx meta-len))) nil)
-            (pcase-let* ((`(,anchor . ,offset)
-                          (el-patch-swap
-                            (treesit--indent-1)
-                            (funcall treesit-indent-region--indent-line-impl)))
-                         (marker (aref meta-vec (* idx meta-len))))
-              (if (not (and anchor offset))
-                  ;; No indent for this line, either...
-                  (if (markerp marker)
-                      (progn
-                        ;; ... Set marker and offset to do a dummy
-                        ;; indent, or...
-                        (back-to-indentation)
-                        (move-marker marker (point))
-                        (setf (aref meta-vec (+ 1 (* idx meta-len))) 0))
-                    ;; ...Set anchor to nil so no indent is performed.
-                    (setf (aref meta-vec (* idx meta-len)) nil))
-                (el-patch-remove
-                  ;; Set ANCHOR.
-                  (if (markerp marker)
-                      (move-marker marker anchor)
-                    (setf (aref meta-vec (* idx meta-len))
-                          (copy-marker anchor t)))
-                  ;; SET OFFSET.
-                  (setf (aref meta-vec (+ 1 (* idx meta-len))) offset))
-                (el-patch-add
-                  (treesit-with-evaluated-anchor-and-offset
-                      (anchor-pos anchor)
-                      (offset-num offset)
+    (when (markerp beg) (setq beg (marker-position beg)))
+    (when (markerp end) (setq end (marker-position end)))
+    (treesit-update-ranges beg end)
+    ;; We indent `treesit--indent-region-batch-size' lines at a time, to
+    ;; reduce the number of times the parser needs to re-parse.  In each
+    ;; batch, we go through each line and calculate the anchor and
+    ;; offset as usual, but instead of modifying the buffer, we save
+    ;; these information in a vector.  Once we've collected ANCHOR and
+    ;; OFFSET for each line in the batch, we go through each line again
+    ;; and apply the changes.  Now that buffer is modified, we need to
+    ;; reparse the buffer before continuing to indent the next batch.
+    (let* ((meta-len 2)
+           (vector-len (* meta-len treesit--indent-region-batch-size))
+           ;; This vector saves the indent meta for each line in the
+           ;; batch.  It is a vector [ANCHOR OFFSET ANCHOR OFFSET...].
+           ;; ANCHOR is a marker on the anchor position, and OFFSET is
+           ;; an integer.  ANCHOR and OFFSET are either both nil, or
+           ;; both valid.
+           (meta-vec (make-vector vector-len 0))
+           (lines-left-to-move 0)
+           (end (copy-marker end t))
+           (idx 0)
+           (starting-pos 0)
+           (announce-progress (> (- end beg) 80000)))
+      (save-excursion
+        (goto-char beg)
+        ;; First pass.  Go through each line and compute the
+        ;; indentation.
+        (while (and (eq lines-left-to-move 0) (< (point) end))
+          (setq idx 0
+                starting-pos (point))
+          (while (and (eq lines-left-to-move 0)
+                      (< idx treesit--indent-region-batch-size)
+                      (< (point) end))
+            (if (looking-at (rx (* whitespace) eol) t)
+                ;; Unlike in `indent-line' where we sometimes pre-indent
+                ;; an empty line, We don't indent empty lines in
+                ;; `indent-region'.  Set ANCHOR and OFFSET to nil.
+                (setf (aref meta-vec (* idx meta-len)) nil
+                      (aref meta-vec (+ 1 (* idx meta-len))) nil)
+              (pcase-let* ((`(,anchor . ,offset)
+                            (el-patch-swap
+                              (treesit--indent-1)
+                              (funcall treesit-indent-region--indent-line-impl)))
+                           (marker (aref meta-vec (* idx meta-len))))
+                (if (not (and anchor offset))
+                    ;; No indent for this line, either...
+                    (if (markerp marker)
+                        (progn
+                          ;; ... Set marker and offset to do a dummy
+                          ;; indent, or...
+                          (back-to-indentation)
+                          (move-marker marker (point))
+                          (setf (aref meta-vec (+ 1 (* idx meta-len))) 0))
+                      ;; ...Set anchor to nil so no indent is performed.
+                      (setf (aref meta-vec (* idx meta-len)) nil))
+                  (el-patch-remove
                     ;; Set ANCHOR.
                     (if (markerp marker)
-                        (move-marker marker anchor-pos)
+                        (move-marker marker anchor)
                       (setf (aref meta-vec (* idx meta-len))
-                            (copy-marker anchor-pos t)))
+                            (copy-marker anchor t)))
                     ;; SET OFFSET.
-                    (setf (aref meta-vec (+ 1 (* idx meta-len))) offset-num))))))
-          (cl-incf idx)
-          (setq lines-left-to-move (forward-line 1)))
-        ;; Now IDX = last valid IDX + 1.
-        (goto-char starting-pos)
-        ;; Second pass, go to each line and apply the indentation.
-        (dotimes (jdx idx)
-          (let ((anchor (aref meta-vec (* jdx meta-len)))
-                (offset (aref meta-vec (+ 1 (* jdx meta-len)))))
-            (when (and anchor offset)
-              (let ((col (save-excursion
-                           (goto-char anchor)
-                           (+ offset (el-patch-swap (current-column) (current-column-fixed))))))
-                (indent-line-to col))))
-          (forward-line 1))
-        (when announce-progress
-          (message "Indenting region...%s%%"
-                   (/ (* (- (point) beg) 100) (- end beg)))))
-      ;; Delete markers.
-      (dotimes (idx treesit--indent-region-batch-size)
-        (let ((marker (aref meta-vec (* idx meta-len))))
-          (when (markerp marker)
-            (move-marker marker nil))))
-      (move-marker end nil))))
+                    (setf (aref meta-vec (+ 1 (* idx meta-len))) offset))
+                  (el-patch-add
+                    (treesit-with-evaluated-anchor-and-offset
+                        (anchor-pos anchor)
+                        (offset-num offset)
+                      ;; Set ANCHOR.
+                      (if (markerp marker)
+                          (move-marker marker anchor-pos)
+                        (setf (aref meta-vec (* idx meta-len))
+                              (copy-marker anchor-pos t)))
+                      ;; SET OFFSET.
+                      (setf (aref meta-vec (+ 1 (* idx meta-len))) offset-num))))))
+            (cl-incf idx)
+            (setq lines-left-to-move (forward-line 1)))
+          ;; Now IDX = last valid IDX + 1.
+          (goto-char starting-pos)
+          ;; Second pass, go to each line and apply the indentation.
+          (dotimes (jdx idx)
+            (let ((anchor (aref meta-vec (* jdx meta-len)))
+                  (offset (aref meta-vec (+ 1 (* jdx meta-len)))))
+              (when (and anchor offset)
+                (let ((col (save-excursion
+                             (goto-char anchor)
+                             (+ offset (el-patch-swap (current-column) (current-column-fixed))))))
+                  (indent-line-to col))))
+            (forward-line 1))
+          (when announce-progress
+            (message "Indenting region...%s%%"
+                     (/ (* (- (point) beg) 100) (- end beg)))))
+        ;; Delete markers.
+        (dotimes (idx treesit--indent-region-batch-size)
+          (let ((marker (aref meta-vec (* idx meta-len))))
+            (when (markerp marker)
+              (move-marker marker nil))))
+        (move-marker end nil)))))
+
+(when-emacs-version (<= 31 it)
+  (el-patch-defun treesit-indent-region (beg end)
+    "Indent the region between BEG and END.
+Similar to `treesit-indent', but indent a region instead."
+    (when (markerp beg) (setq beg (marker-position beg)))
+    (when (markerp end) (setq end (marker-position end)))
+    (treesit-update-ranges beg end)
+    ;; We indent `treesit--indent-region-batch-size' lines at a time, to
+    ;; reduce the number of times the parser needs to re-parse.  In each
+    ;; batch, we go through each line and calculate the anchor and
+    ;; offset as usual, but instead of modifying the buffer, we save
+    ;; these information in a vector.  Once we've collected ANCHOR and
+    ;; OFFSET for each line in the batch, we go through each line again
+    ;; and apply the changes.  Now that buffer is modified, we need to
+    ;; reparse the buffer before continuing to indent the next batch.
+    (let* ((meta-len 2)
+           (vector-len (* meta-len treesit--indent-region-batch-size))
+           ;; This vector saves the indent meta for each line in the
+           ;; batch.  It is a vector [ANCHOR OFFSET ANCHOR OFFSET...].
+           ;; ANCHOR is a marker on the anchor position, and OFFSET is
+           ;; an integer.  ANCHOR and OFFSET are either both nil, or
+           ;; both valid.
+           (meta-vec (make-vector vector-len 0))
+           (lines-left-to-move 0)
+           (end (copy-marker end t))
+           (idx 0)
+           (starting-pos 0)
+           (announce-progress (> (- end beg) 80000)))
+      (save-excursion
+        (goto-char beg)
+        ;; First pass.  Go through each line and compute the
+        ;; indentation.
+        (while (and (eq lines-left-to-move 0) (< (point) end))
+          (setq idx 0
+                starting-pos (point))
+          (while (and (eq lines-left-to-move 0)
+                      (< idx treesit--indent-region-batch-size)
+                      (< (point) end))
+            (if (looking-at (rx (* whitespace) eol) t)
+                ;; Unlike in `indent-line' where we sometimes pre-indent
+                ;; an empty line, We don't indent empty lines in
+                ;; `indent-region'.  Set ANCHOR and OFFSET to nil.
+                (setf (aref meta-vec (* idx meta-len)) nil
+                      (aref meta-vec (+ 1 (* idx meta-len))) nil)
+              (pcase-let* ((`(,anchor . ,offset)
+                            (el-patch-swap
+                              (treesit--indent-1)
+                              (funcall treesit-indent-region--indent-line-impl)))
+                           (marker (aref meta-vec (* idx meta-len))))
+                (if (not (and anchor offset))
+                    ;; No indent for this line, either...
+                    (if (markerp marker)
+                        (progn
+                          ;; ... Set marker and offset to do a dummy
+                          ;; indent, or...
+                          (back-to-indentation)
+                          (move-marker marker (point))
+                          (setf (aref meta-vec (+ 1 (* idx meta-len))) 0))
+                      ;; ...Set anchor to nil so no indent is performed.
+                      (setf (aref meta-vec (* idx meta-len)) nil))
+                  ;; Set ANCHOR.
+                  (el-patch-remove
+                    (if (markerp marker)
+                        (move-marker marker anchor)
+                      (setf (aref meta-vec (* idx meta-len))
+                            (copy-marker anchor t)))
+                    ;; SET OFFSET.
+                    (setf (aref meta-vec (+ 1 (* idx meta-len))) offset))
+                  (el-patch-add
+                    (treesit-with-evaluated-anchor-and-offset
+                        (anchor-pos anchor)
+                        (offset-num offset)
+                      ;; Set ANCHOR.
+                      (if (markerp marker)
+                          (move-marker marker anchor-pos)
+                        (setf (aref meta-vec (* idx meta-len))
+                              (copy-marker anchor-pos t)))
+                      ;; SET OFFSET.
+                      (setf (aref meta-vec (+ 1 (* idx meta-len))) offset-num))))))
+            (incf idx)
+            (setq lines-left-to-move (forward-line 1)))
+          ;; Now IDX = last valid IDX + 1.
+          (goto-char starting-pos)
+          ;; Second pass, go to each line and apply the indentation.
+          (dotimes (jdx idx)
+            (let ((anchor (aref meta-vec (* jdx meta-len)))
+                  (offset (aref meta-vec (+ 1 (* jdx meta-len)))))
+              (when (and anchor offset)
+                (let ((col (save-excursion
+                             (goto-char anchor)
+                             (+ offset (el-patch-swap (current-column) (current-column-fixed))))))
+                  (indent-line-to col))))
+            (forward-line 1))
+          (when announce-progress
+            (message "Indenting region...%s%%"
+                     (/ (* (- (point) beg) 100) (- end beg)))))
+        ;; Delete markers.
+        (dotimes (idx treesit--indent-region-batch-size)
+          (let ((marker (aref meta-vec (* idx meta-len))))
+            (when (markerp marker)
+              (move-marker marker nil))))
+        (move-marker end nil)))))
 
 (el-patch-defun treesit--simple-indent-eval (exp)
   "Evaluate EXP.

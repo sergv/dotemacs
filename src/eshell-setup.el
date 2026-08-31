@@ -39,30 +39,7 @@
 ;;;###autoload
 (add-to-list 'el-patch-features 'eshell)
 
-(when-emacs-version (< it 30)
-  (el-patch-defun eshell-emit-prompt ()
-    "Emit a prompt if eshell is being used interactively."
-    (when (boundp 'ansi-color-context-region)
-      (setq ansi-color-context-region nil))
-    (run-hooks 'eshell-before-prompt-hook)
-    (if (not eshell-prompt-function)
-        (set-marker eshell-last-output-end (point))
-      (let ((prompt (funcall eshell-prompt-function)))
-        (and eshell-highlight-prompt
-             (add-text-properties 0 (length prompt)
-                                  '(read-only
-                                    t
-                                    font-lock-face eshell-prompt
-                                    front-sticky (el-patch-swap (font-lock-face read-only)
-                                                                t)
-                                    rear-nonsticky (el-patch-swap (font-lock-face read-only)
-                                                                  t)
-                                    (el-patch-add field prompt))
-                                  prompt))
-        (eshell-interactive-print prompt)))
-    (run-hooks 'eshell-after-prompt-hook)))
-
-(when-emacs-version (<= 30 it)
+(when-emacs-version (= 30 it)
   (el-patch-defun eshell-emit-prompt ()
     "Emit a prompt if eshell is being used interactively."
     (when (boundp 'ansi-color-context-region)
@@ -85,6 +62,28 @@
               front-sticky (field)
               rear-nonsticky (field)))
          prompt)
+        (eshell-interactive-filter nil prompt)))
+    (run-hooks 'eshell-after-prompt-hook)))
+
+(when-emacs-version (<= 31 it)
+  (el-patch-defun eshell-emit-prompt ()
+    "Emit a prompt if eshell is being used interactively."
+    (when (boundp 'ansi-color-context-region)
+      (setq ansi-color-context-region nil))
+    (run-hooks 'eshell-before-prompt-hook)
+    (if (not eshell-prompt-function)
+        (set-marker eshell-last-output-end (point))
+      (let* ((prompt (funcall eshell-prompt-function))
+             (len (length prompt))
+             (el-patch-remove (sticky-props '(field))))
+        (put-text-property 0 len 'field 'prompt prompt)
+        (when eshell-highlight-prompt
+          (add-text-properties
+           0 len '(read-only t font-lock-face eshell-prompt) prompt)
+          (el-patch-remove
+            (setq sticky-props `(read-only font-lock-face . ,sticky-props))))
+        (eshell--append-text-property 0 len 'front-sticky (el-patch-swap sticky-props t) prompt)
+        (eshell--append-text-property 0 len 'rear-nonsticky (el-patch-swap sticky-props t) prompt)
         (eshell-interactive-filter nil prompt)))
     (run-hooks 'eshell-after-prompt-hook)))
 
