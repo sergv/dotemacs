@@ -164,7 +164,7 @@ instance Pretty a => Pretty (Foo a)
 
 This function will strip everything after the first ‘instance’ in order for location
 regexps to not be confused by the instance location."
-  (if-let (end (string-search "\ninstance" str))
+  (if-let* ((end (string-search "\ninstance" str)))
       (substring str nil end)
     str))
 
@@ -260,8 +260,8 @@ regexps to not be confused by the instance location."
                 ((string-match haskell-regexen/ghci-info-definition-site info)
                  (let* ((mod-name (match-string-no-properties 2 info))
                         (pkgs-without-versions
-                         (if-let ((pkg-with-version (match-string-no-properties 1 info))
-                                  (pkg-name (haskell-misc--strip-package-version pkg-with-version)))
+                         (if-let* ((pkg-with-version (match-string-no-properties 1 info))
+                                   (pkg-name (haskell-misc--strip-package-version pkg-with-version)))
                              ;; Can narrow search down to a single package.
                              (list pkg-name)
                            ;; Take all packages in scope since :info didn’t specify a package.

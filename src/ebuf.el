@@ -205,7 +205,7 @@
 (defvar ebuf-recenter-after-refresh? nil)
 
 (defun ebuf--buffer-render-caption (proj-root buf)
-  (if-let ((buf-file (buffer-local-value 'buffer-file-name buf)))
+  (if-let* ((buf-file (buffer-local-value 'buffer-file-name buf)))
       (if proj-root
           (file-relative-name buf-file proj-root)
         (abbreviate-file-name buf-file))
@@ -454,7 +454,7 @@
     (awhen (--find (equal (ebuf-section-name it)
                           (car trail))
                    sections)
-      (if-let (trail-rest (cdr trail))
+      (if-let* ((trail-rest (cdr trail)))
           (ebuf--locate-with-trail (ebuf-section-children it) trail-rest)
         it))))
 

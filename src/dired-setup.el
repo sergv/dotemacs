@@ -112,7 +112,7 @@ to them."
 ;;;###autoload
 (defun dired-with-marked-files (f if-none-selected)
   "Open each marked file and call F with its buffer."
-  (if-let (files (dired-get-marked-files nil 'marked #'dired-nondirectory-p))
+  (if-let* ((files (dired-get-marked-files nil 'marked #'dired-nondirectory-p)))
       (dolist (filename files)
         (let ((buf (find-file-noselect filename)))
           (cl-assert (bufferp buf))
