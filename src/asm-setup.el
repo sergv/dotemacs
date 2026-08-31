@@ -10,6 +10,7 @@
 
 (eval-when-compile
   (require 'macro-util)
+  (require 'whitespace)
 
   (defvar asm-mode-map))
 
