@@ -34,23 +34,23 @@
                  2)))
 
 (ert-deftest s-extras-tests/s-extras-replace-char-1 ()
-  (should (equal (s-extras-replace-char ?o ?a (copy-sequence "foo"))
+  (should (equal (s-extras-replace-char ?o ?a "foo")
                  "faa")))
 
 (ert-deftest s-extras-tests/s-extras-replace-char-2 ()
-  (should (equal (s-extras-replace-char ?a ?b (copy-sequence "foo"))
+  (should (equal (s-extras-replace-char ?a ?b "foo")
                  "foo")))
 
 (ert-deftest s-extras-tests/s-extras-replace-char-3 ()
-  (should (equal (s-extras-replace-char ?a ?b (copy-sequence ""))
+  (should (equal (s-extras-replace-char ?a ?b "")
                  "")))
 
 (ert-deftest s-extras-tests/s-extras-replace-char-4 ()
-  (should (equal (s-extras-replace-char ?a ?b (copy-sequence "a"))
+  (should (equal (s-extras-replace-char ?a ?b "a")
                  "b")))
 
 (ert-deftest s-extras-tests/s-extras-replace-char-5 ()
-  (should (equal (s-extras-replace-char ?a ?b (copy-sequence "aa"))
+  (should (equal (s-extras-replace-char ?a ?b "aa")
                  "bb")))
 
 (ert-deftest s-extras-tests/s-extras-replace-char-6 ()
