@@ -17,7 +17,7 @@
                :use-whitespace nil)
   (setq-local hs-allow-nesting t)
   (setup-indent-size 2)
-  (setup-hideshow-yafolding t nil))
+  (setup-hideshow-yafolding t nil t))
 
 ;;;###autoload
 (add-hook 'gdb-script-mode-hook #'gdb-script-mode-setup)

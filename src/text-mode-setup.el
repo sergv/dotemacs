@@ -18,14 +18,11 @@
   (setq-local hs-allow-nesting t)
   (setup-indent-size 2)
   (setq-local tab-width 8)
-  (let (
-        ;; trick hideshow into thinknig that comments are available.
-        (commend-start "#")
-        (commend-end ""))
-    (hs-minor-mode-initialize
-     :start (rx (or "[" "(" "{"))
+  (setup-hideshow-yafolding-no-comments
+   `(:start
+     ,(rx (or "[" "(" "{"))
      :comment-start-re "#")
-    (setup-hideshow-yafolding t nil)))
+   nil))
 
 ;;;###autoload
 (add-hook 'text-mode-hook #'text-mode-setup)
