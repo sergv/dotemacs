@@ -179,6 +179,10 @@ let
                         "${pkgs.lib.getBin pkgs.stdenv.cc.bintools}/bin"
                         "${pkgs.lib.getBin pkgs.stdenv.cc.bintools.bintools}/bin"
                       ]
+                      ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+                        # The linker needs to know where to find libSystem on Darwin.
+                        "${pkgs.apple-sdk.sdkroot}/usr/lib"
+                      ]
                     )
                   );
               })
