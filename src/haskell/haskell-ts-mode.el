@@ -86,7 +86,7 @@
   (let ((p1 (treesit-node-parent node)))
     (if p1
         (and (not (string= "infix_id" (treesit-node-type p1)))
-             (if-let ((p2 (treesit-node-parent p1)))
+             (if-let* ((p2 (treesit-node-parent p1)))
                  (not (string= "infix_id" (treesit-node-type p2)))
                t))
       t)))
@@ -475,16 +475,16 @@ but when paired then it’s like a string."
              nil
              "Unexpected non-function treesit node: %s"
              node)
-  (let ((names (if-let ((pattern-node (treesit-node-child-by-field-name node "pattern")))
+  (let ((names (if-let* ((pattern-node (treesit-node-child-by-field-name node "pattern")))
                    (if (string= (treesit-node-type pattern-node) "tuple")
                        (--map (if (string= (treesit-node-type it) "variable")
                                   (treesit-node-text-no-properties-unsafe it)
                                 (error "Unexpected binding in function pattern: %s" it))
                               (treesit-node-children pattern-node t))
                      (error "Unexpected function binding pattern: %s" pattern-node))
-                 (if-let ((name-node (treesit-node-child-by-field-name node "name")))
+                 (if-let* ((name-node (treesit-node-child-by-field-name node "name")))
                      (list (treesit-node-text-no-properties-unsafe name-node))
-                   (if-let ((first-child (treesit-node-child node 0))
+                   (if-let* ((first-child (treesit-node-child node 0))
                             (name (haskell-ts--infix-name-node first-child)))
                        (list (treesit-node-text-no-properties-unsafe name))
                      (error "Cannot obtain function nome from node: %s" node))))))
@@ -602,9 +602,9 @@ indented block will be their bounds without any extra processing."
                         func-node-below
                       func-node-above))
                    (do-scan-around?
-                    (if-let ((result (if scan-forward?
-                                         func-node-below
-                                       func-node-above)))
+                    (if-let* ((result (if scan-forward?
+                                          func-node-below
+                                        func-node-above)))
                         result
                       (haskell-ts--search-non-comment-nodes
                        current-node
@@ -664,7 +664,7 @@ indented block will be their bounds without any extra processing."
 (defun haskell-ts-indent-defun (pos)
   "Indent the current function."
   (interactive "d")
-  (if-let ((bounds (haskell-ts--bounds-of-toplevel-entity pos nil nil t t)))
+  (if-let* ((bounds (haskell-ts--bounds-of-toplevel-entity pos nil nil t t)))
       (indent-region (car bounds) (cdr bounds))
     (error "No function at point")))
 

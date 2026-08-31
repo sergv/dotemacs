@@ -61,8 +61,8 @@ as accepted by `bounds-of-thing-at-point'.")
       (trim-whitespace (get-region-string-no-properties))
     (let ((bounds (bounds-of-thing-at-point eproj-symbnav/identifier-type)))
       (cond ((not (null bounds))
-             (if-let ((lang (gethash (eproj/resolve-synonym-modes major-mode)
-                                     eproj/languages-table)))
+             (if-let* ((lang (gethash (eproj/resolve-synonym-modes major-mode)
+                                      eproj/languages-table)))
                  (let ((str (buffer-substring-no-properties (car bounds)
                                                             (cdr bounds))))
                    (aif (eproj-language/normalise-identifier-before-navigation-procedure lang)
@@ -191,7 +191,7 @@ as accepted by `bounds-of-thing-at-point'.")
 
 (defun eproj-symbnav/ensure-tags-loaded! (effective-major-mode proj)
   "Load (i.e. force) tags if there're not loaded yet."
-  (if-let (tags-entry (assq effective-major-mode (eproj-project/tags proj)))
+  (if-let* ((tags-entry (assq effective-major-mode (eproj-project/tags proj))))
       ;; Force loading now.
       (nanothunk-force (cdr tags-entry))
     (progn
@@ -201,7 +201,7 @@ as accepted by `bounds-of-thing-at-point'.")
         (error "Project %s loaded no names - no modes registered\nProject: %s"
                (eproj-project/root proj)
                proj))
-      (if-let (tags-entry2 (assq effective-major-mode (eproj-project/tags proj)))
+      (if-let* ((tags-entry2 (assq effective-major-mode (eproj-project/tags proj))))
           ;; Force loading now.
           (nanothunk-force (cdr tags-entry2))
         (error "No names for mode %s in project %s"

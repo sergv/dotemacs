@@ -260,7 +260,7 @@
 
 (defun packing-pack-file-path-cached (path)
   (cl-assert (stringp path))
-  (if-let (cached (gethash path packing--pack-file-path--cache))
+  (if-let* ((cached (gethash path packing--pack-file-path--cache)))
       cached
     (let ((packed (packing-pack-file-path path)))
       (puthash path packed packing--pack-file-path--cache)

@@ -478,11 +478,11 @@ then Bar would be the result."
                  (if-let* ((node (treesit-node-at (point)))
                            (p (treesit-node-parent node)))
                      (if (string= "operator" (treesit-node-type p))
-                         (if-let ((p2 (treesit-node-parent p)))
+                         (if-let* ((p2 (treesit-node-parent p)))
                              (let ((p2-type (treesit-node-type p2)))
                                (or (string= "ERROR" p2-type)
                                    (and (string= "infix" p2-type)
-                                        (if-let ((p3 (treesit-node-parent p2)))
+                                        (if-let* ((p3 (treesit-node-parent p2)))
                                             (string= "top_splice" (treesit-node-type p3))
                                           nil))))
 
@@ -552,7 +552,7 @@ then Bar would be the result."
              (concat "{-# " pragma " \"${1:cost center name}\" #-}\$0")))
            ((string-match-p (rx bos haskell-regexen/inline-pragmas eos) pragma)
             (yas-expand-snippet
-             (if-let ((entity (haskell-abbrev+--name-of-following-entity)))
+             (if-let* ((entity (haskell-abbrev+--name-of-following-entity)))
                  (concat "{-# " pragma " ${1:" entity "} #-}$0")
                (concat "{-# " pragma " $1 #-}$0"))))
            (t
