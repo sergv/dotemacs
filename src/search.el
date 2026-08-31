@@ -42,7 +42,7 @@
   "A mode for presenting and selecting from a list of items."
   :group 'search)
 
-(defface search-highlight-face '((t (:inherit lazy-highlight)))
+(defface search-highlight-face `((t (:background ,+solarized-magenta+)))
   "Face to highlight main matches for regexp being searched for."
   :group 'search)
 
