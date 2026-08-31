@@ -1009,7 +1009,7 @@
                  (let ((anchor
                         (if node
                             (treesit-node-prev-sibling node)
-                          (if-let ((child (treesit-node-first-child-for-pos parent bol-pos)))
+                          (if-let* ((child (treesit-node-first-child-for-pos parent bol-pos)))
                               (treesit-node-prev-sibling child)
                             parent))))
                    (if (string= (treesit-node-type anchor) "local_binds")

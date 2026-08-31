@@ -269,7 +269,7 @@ stick it to the previous operator on line."
                            (char-before-char-before-spaces (char-before (1- pt-before-ws))))
                       (and char-before-spaces ;; not at beginning of buffer
                            (if (eq char-before-spaces ?#)
-                               (if-let ((char-before-char-before-spaces (char-before (1- pt-before-ws))))
+                               (if-let* ((char-before-char-before-spaces (char-before (1- pt-before-ws))))
                                    ;; If there’s space before previous # then it’s an operator so
                                    ;; delete whitespace backwards.
                                    (or (haskell-smart-operators--is-whitespace-char? char-before-char-before-spaces)

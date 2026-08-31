@@ -20,7 +20,7 @@
                                         (equal buf current-buf)))
                                   (window-prev-buffers win))))
 
-    (if-let ((next-buf-entry (car prev-bufs)))
+    (if-let* ((next-buf-entry (car prev-bufs)))
         (progn
           (set-window-prev-buffers win prev-bufs)
           (set-window-buffer-start-and-point win

@@ -1386,7 +1386,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
            :target it)
         (if fname
             (if (file-directory-p default-directory)
-                (if-let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory fname))))
+                (if-let* ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory fname))))
                     (let ((component nil)
                           (pkg-name nil)
                           (found-cabal-build-root nil))

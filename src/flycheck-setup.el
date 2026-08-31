@@ -228,10 +228,10 @@ scheme and it’s view of current buffer is malformed."
          (curr-buf (current-buffer))
          (all-errors (--separate
                       (let ((err (car-sure it)))
-                        (if-let (fname (flycheck-error-filename err))
+                        (if-let* ((fname (flycheck-error-filename err)))
                             (string= expanded-buffer-file-name
                                      (expand-file-name fname))
-                          (if-let (buf (flycheck-error-buffer err))
+                          (if-let* ((buf (flycheck-error-buffer err)))
                               (eq buf curr-buf)
                             nil)))
                       (sort (--map (cons (overlay-get it 'flycheck-error) it)
