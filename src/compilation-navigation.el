@@ -142,7 +142,7 @@ error location - value of compilation-error structure."
 (defun compilation/goto-error ()
   "Jump to location of error or warning (file, line and column) in current window."
   (interactive)
-  (when-let (err (compilation--error-at-point))
+  (when-let* ((err (compilation--error-at-point)))
     (compilation/jump-to-error
      err
      nil)))
@@ -150,7 +150,7 @@ error location - value of compilation-error structure."
 (defun compilation/goto-error-other-window ()
   "Jump to location of error or warning (file, line and column) in other window."
   (interactive)
-  (when-let (err (compilation--error-at-point))
+  (when-let* ((err (compilation--error-at-point)))
     (compilation/jump-to-error
      err
      t)))

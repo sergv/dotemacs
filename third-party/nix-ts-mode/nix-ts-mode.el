@@ -361,26 +361,26 @@ and for subsequent lines it's the previous line's indentation."
 (defun nix-ts-mode--find-indent-anchor (node parent _bol &rest _)
   (let ((prev node)
         (tmp parent))
-    (when-let ((anchor
-                (catch 'result
-                  (while tmp
-                    (when treesit--indent-verbose
-                      (message "nix-ts-mode--find-indent-anchor: tmp = %s, field-name = %s" tmp (treesit-node-field-name tmp)))
-                    (let ((typ (treesit-node-type tmp)))
-                      (cond
-                        ((member typ '("if_expression"
-                                       ;; Don’t want parens to stop anchor search.
-                                       ;; "parenthesized_expression"
-                                       "with_expression"))
-                         (throw 'result tmp))
-                        ((and (string= "let_expression" typ)
-                              (not (string= "body" (treesit-node-field-name prev))))
-                         (throw 'result prev))
-                        ((treesit-utils-is-standalone-node? tmp)
-                         (throw 'result tmp))
-                        (t
-                         (setf prev tmp
-                               tmp (treesit-node-parent tmp)))))))))
+    (when-let* ((anchor
+                 (catch 'result
+                   (while tmp
+                     (when treesit--indent-verbose
+                       (message "nix-ts-mode--find-indent-anchor: tmp = %s, field-name = %s" tmp (treesit-node-field-name tmp)))
+                     (let ((typ (treesit-node-type tmp)))
+                       (cond
+                         ((member typ '("if_expression"
+                                        ;; Don’t want parens to stop anchor search.
+                                        ;; "parenthesized_expression"
+                                        "with_expression"))
+                          (throw 'result tmp))
+                         ((and (string= "let_expression" typ)
+                               (not (string= "body" (treesit-node-field-name prev))))
+                          (throw 'result prev))
+                         ((treesit-utils-is-standalone-node? tmp)
+                          (throw 'result tmp))
+                         (t
+                          (setf prev tmp
+                                tmp (treesit-node-parent tmp)))))))))
       (when treesit--indent-verbose
         (message "Found nix indent anchor: %s" anchor))
       anchor)))

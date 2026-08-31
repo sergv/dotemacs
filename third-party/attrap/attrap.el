@@ -334,7 +334,7 @@ value is a list which is appended to the result of
 (defun attrap-elisp-fixer (msg _beg _end)
   "An `attrap' fixer for any elisp warning given as MSG."
   (append
-   (when-let ((match (s-match "You should have a section marked \"\\(.*\\)\"" msg nil t)))
+   (when-let* ((match (s-match "You should have a section marked \"\\(.*\\)\"" msg nil t)))
      (attrap-one-option 'insert-section-header
        (beginning-of-line)
        (insert (nth 1 match) "\n")))
@@ -467,11 +467,11 @@ value is a list which is appended to the result of
            filtered-tags))
 
          (parent-name
-          (when-let ((filtered-by-module)
-                     ;; When there’s only one candidate
-                     ((null (cdr filtered-by-module)))
-                     (tag-entry (car filtered-by-module))
-                     (tag (eproj-matching-tag/tag tag-entry)))
+          (when-let* ((filtered-by-module)
+                      ;; When there’s only one candidate
+                      (_ (null (cdr filtered-by-module)))
+                      (tag-entry (car filtered-by-module))
+                      (tag (eproj-matching-tag/tag tag-entry)))
             (attrap-haskell-import--resolve-tag-parent-name tag))))
 
     (attrap-add-to-import--impl identifier parent-name line col)))
@@ -550,12 +550,12 @@ The import ends at LINE and COL in the file."
               :line   (string-to-number (match-string-no-properties 5 normalized-msg))
               :col    (string-to-number (match-string-no-properties 6 normalized-msg)))))
       (t
-       (when-let ((filtered
-                   (--drop-while
-                    (not (string-match-p
-                          (rx (or (seq "Add" (* attrap-ghc-ws) (attrap-ghc-identifier 2) (* attrap-ghc-ws) "to one of these import lists:")))
-                          it))
-                    (s-lines msg))))
+       (when-let* ((filtered
+                    (--drop-while
+                     (not (string-match-p
+                           (rx (or (seq "Add" (* attrap-ghc-ws) (attrap-ghc-identifier 2) (* attrap-ghc-ws) "to one of these import lists:")))
+                           it))
+                     (s-lines msg))))
          (let* ((start (car filtered))
                 (whitespace (when (string-match (rx bos (group-n 1 (+ attrap-ghc-ws))) start)
                               (match-string-no-properties 1 start)))
@@ -725,18 +725,18 @@ Error is given as MSG and reported between POS and END."
                  (search-forward ext)
                  (delete-region (match-beginning 0) (point))
                  (insert replacement)))))
-         (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
+         (when-let* ((match (s-match (rx "Perhaps you want to add " (identifier 1)
                                         " to the import list in the import of " (identifier 2)
                                         " " (parens (src-loc 3 4 5 6)))
-                                    normalized-msg
-                                    nil
-                                    t)))
+                                     normalized-msg
+                                     nil
+                                     t)))
            (list (attrap-add-to-import (nth 1 match) (nth 2 match) (nth 5 match) (nth 6 match))))
-         (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
-                                        " to one of these import lists:")
-                                    normalized-msg
-                                    nil
-                                    t)))
+         (when-let* ((match (s-match (rx "Perhaps you want to add " (identifier 1)
+                                         " to one of these import lists:")
+                                     normalized-msg
+                                     nil
+                                     t)))
            (--map (attrap-add-to-import (nth 1 match) (nth 2 it) (nth 5 it) (nth 6 it))
                   (s-match-strings-all (rx (identifier 2) " " (parens (src-loc 3 4 5 6))) msg)))
 
@@ -748,13 +748,13 @@ Error is given as MSG and reported between POS and END."
          ;;       ‘BackCore.argMax'’ (imported from TensorFlow.GenOps.Core),
          ;;       ‘BackCore.max’ (imported from TensorFlow.GenOps.Core)
          ;;       ‘BackCore.maxx’ (line 523)
-         (when-let ((match
-                     (s-match (rx (or (seq (or "Data constructor" "Variable") " not in scope:"
-                                           (* (any " \n\t")) (group-n 1 (+ (not (any " \n")))))
-                                      (seq "Not in scope: "
-                                           (or "" "data constructor " "type constructor or class " "record field ")
-                                           (identifier 1))))
-                              msg)))
+         (when-let* ((match
+                      (s-match (rx (or (seq (or "Data constructor" "Variable") " not in scope:"
+                                            (* (any " \n\t")) (group-n 1 (+ (not (any " \n")))))
+                                       (seq "Not in scope: "
+                                            (or "" "data constructor " "type constructor or class " "record field ")
+                                            (identifier 1))))
+                               msg)))
            (let* ((delete (nth 1 match))
                   (delete-has-paren (eq ?\( (elt delete 0)))
                   (delete-no-paren (if delete-has-paren (substring delete 1 (1- (length delete))) delete))
@@ -799,19 +799,19 @@ Error is given as MSG and reported between POS and END."
                  (delete-whitespace-backward)
                (delete-whitespace-forward))))
          ;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
-         (when-let ((m (s-match (rx "No module named " (identifier 1) " is imported.")
-                                msg
-                                nil
-                                t)))
+         (when-let* ((m (s-match (rx "No module named " (identifier 1) " is imported.")
+                                 msg
+                                 nil
+                                 t)))
            (attrap-one-option (list "add import" (nth 1 m))
              (goto-char 1)
              (search-forward-regexp (rx "module" (*? anychar) "where"))
              (insert "\n" "import " (nth 1 m) "\n")))
-         (when-let ((match (s-match (rx (or (seq "The " (? "qualified ") "import of " (identifier 1) (* (any ?\s ?\t ?\n ?\r))
-                                                 "from module " (identifier 2) " is redundant")
-                                            (seq bos (ghc-error "61689") " "
-                                                 "Module " (identifier 2) " does not export " (identifier 1))))
-                                    normalized-msg)))
+         (when-let* ((match (s-match (rx (or (seq "The " (? "qualified ") "import of " (identifier 1) (* (any ?\s ?\t ?\n ?\r))
+                                                  "from module " (identifier 2) " is redundant")
+                                             (seq bos (ghc-error "61689") " "
+                                                  "Module " (identifier 2) " does not export " (identifier 1))))
+                                     normalized-msg)))
            (attrap-one-option "delete import"
              (let ((redundant (nth 1 match)))
                (save-excursion
@@ -914,11 +914,11 @@ Error is given as MSG and reported between POS and END."
                                        eos)
                                    buf-text)
                (list (attrap-insert-language-pragma "ExtendedLiterals")))))
-         (when-let (match (s-match (rx "Fields of " (identifier 1) " not initialised: "
-                                       (group-n 2 (+ (not (any "•")))) "•")
-                                   msg
-                                   nil
-                                   t))
+         (when-let* ((match (s-match (rx "Fields of " (identifier 1) " not initialised: "
+                                         (group-n 2 (+ (not (any "•")))) "•")
+                                     msg
+                                     nil
+                                     t)))
            (attrap-one-option "initialize fields"
              (let ((fields (s-split "," (nth 2 match) t)))
                (search-forward "{")
@@ -1008,8 +1008,8 @@ Error is given as MSG and reported between POS and END."
                        is-type-or-class?)))
 
                   specific-import-locations)
-               (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer)))
-                          (candidate-tags (attrap-import--get-matching-tags-for-proj proj identifier)))
+               (when-let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
+                           (candidate-tags (attrap-import--get-matching-tags-for-proj proj identifier)))
                  (attrap-one-option "add import"
                    (attrap--add-haskell-import proj
                                                candidate-tags
@@ -1201,14 +1201,14 @@ Error is given as MSG and reported between POS and END."
         ;; Transform Executable(buildInfo) -> buildInfo for when
         ;; we imported a type’s accessor but GHC reports it together
         ;; with parent type name.
-        (when-let (m (s-match (rx
-                               (* (any ?_))
-                               (any (?A . ?Z))
-                               (* alphanumeric)
-                               "("
-                               (group-n 1 (+ (not ?\))))
-                               ")")
-                              r))
+        (when-let* ((m (s-match (rx
+                                 (* (any ?_))
+                                 (any (?A . ?Z))
+                                 (* alphanumeric)
+                                 "("
+                                 (group-n 1 (+ (not ?\))))
+                                 ")")
+                                r)))
           (setf r (nth 1 m)))
         (re-search-forward (rx-to-string (if (s-matches? (rx bol alphanumeric) r)
                                              `(or (seq word-start ,r word-end)
@@ -1499,7 +1499,7 @@ then all non-authoritative results from that collection should be ignored."
 (defun attrap-haskell-import--resolve-tag-parent-name (tag)
   (cl-assert (eproj-tag-p tag))
   ;; Parent schema is: (<name-string> . <type-character>)
-  (when-let ((tag-parent (eproj-thaskell/tag-get-parent tag)))
+  (when-let* ((tag-parent (eproj-thaskell/tag-get-parent tag)))
     (let ((parent-type (eproj-haskell/tag-parent-type tag-parent)))
       ;; When type is not class.
       (unless (eq parent-type ?c)

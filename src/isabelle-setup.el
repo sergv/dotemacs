@@ -41,7 +41,7 @@ _r_ename
   ("o" hydra-haskell-lsp-toggle/body))
 
 (defun isar-lsp-status ()
-  (when-let (buf-file (buffer-file-name))
+  (when-let* ((buf-file (buffer-file-name)))
     (lsp-isar-progress--get buf-file)))
 
 (defun isabelle-wrap-dquotes ()

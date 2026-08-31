@@ -291,7 +291,7 @@ This macro is similar to `vim:do-motion'."
         (with-region-bounds-unadj start2 end2
           (setf start start2
                 end end2))
-      (when-let (sym-bounds (bounds-of-thing-at-point 'symbol))
+      (when-let* ((sym-bounds (bounds-of-thing-at-point 'symbol)))
         ;; don't wrap if we are at the end of symbol
         (unless (= p (cdr sym-bounds))
           (setf start (car sym-bounds)

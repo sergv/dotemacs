@@ -479,23 +479,23 @@ Consider setting this variable as a directory variable."
                   ms)
         (let ((method-name (car ms)))
           (setf ms (cdr ms))
-          (when-let ((method (dante--methods-lookup method-name dante-methods-defs)))
+          (when-let* ((method (dante--methods-lookup method-name dante-methods-defs)))
             (let ((pred (dante-method/is-enabled-pred method)))
               (when (or (null pred)
                         (funcall pred (current-buffer)))
                 (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
                        (proj-root (awhen proj
                                     (f-full (eproj-project/root it)))))
-                  (when-let ((proj-root (if-let ((find-root-pred (dante-method/find-root-pred method)))
-                                            (locate-dominating-file default-directory
-                                                                    (lambda (dir)
-                                                                      (and (if proj-root
-                                                                               ;; If there’s a project then don’t ascend past it.
-                                                                               (string-prefix-p proj-root
-                                                                                                (f-full dir))
-                                                                             t)
-                                                                           (funcall find-root-pred dir))))
-                                          default-directory)))
+                  (when-let* ((proj-root (if-let ((find-root-pred (dante-method/find-root-pred method)))
+                                             (locate-dominating-file default-directory
+                                                                     (lambda (dir)
+                                                                       (and (if proj-root
+                                                                                ;; If there’s a project then don’t ascend past it.
+                                                                                (string-prefix-p proj-root
+                                                                                                 (f-full dir))
+                                                                              t)
+                                                                            (funcall find-root-pred dir))))
+                                           default-directory)))
                     (setf proj-root (expand-file-name proj-root))
                     (let ((flake-root
                            (when (dante-nix-available? (current-buffer))
@@ -583,7 +583,7 @@ Consider setting this variable as a directory variable."
   "Value of type ‘dante-check-ghci-state’ in the GHCi buffer.")
 
 (defun dante-get-ghci-state (&optional buf)
-  (when-let ((ghci-buf (or buf (dante-buffer-p))))
+  (when-let* ((ghci-buf (or buf (dante-buffer-p))))
     (buffer-local-value 'dante--ghci-state ghci-buf)))
 
 (defvar-local dante-flymake-token 1000)
@@ -595,7 +595,7 @@ Consider setting this variable as a directory variable."
    ;; when whatever green thread was running is over, we're back in
    ;; the original source buffer. It's time to check if anything
    ;; queued should be run.
-   (when-let ((ghci-buf (dante-buffer-p)))
+   (when-let* ((ghci-buf (dante-buffer-p)))
      (with-current-buffer ghci-buf
        (unless lcr-process-callback
          ;; Note that dante green threads are not interleaved,
@@ -1045,8 +1045,8 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
             (setf needs-preprocessing?
                   (catch 'found
                     (dolist (src sources)
-                      (when-let ((preprocessed (trie-matches-string-suffix? already-preprocessed-trie
-                                                                            (file-name-sans-extension src))))
+                      (when-let* ((preprocessed (trie-matches-string-suffix? already-preprocessed-trie
+                                                                             (file-name-sans-extension src))))
                         (when (dante--is-file-newer-than? src (concat component-build-dir "/" preprocessed))
                           (throw 'found t))))
                     nil)))
@@ -1244,9 +1244,9 @@ This applies to paths of the form x:\\foo\\bar"
 (defun dante-destroy ()
   "Stop GHCi and kill its associated process buffer."
   (interactive)
-  (when-let ((ghci-buf (dante-buffer-p)))
+  (when-let* ((ghci-buf (dante-buffer-p)))
     (dante--set-checker-state! 'deleting ghci-buf)
-    (when-let ((process (get-buffer-process ghci-buf)))
+    (when-let* ((process (get-buffer-process ghci-buf)))
       (kill-process process)
       (delete-process process))
     (kill-buffer ghci-buf)))
