@@ -831,7 +831,7 @@ Error is given as MSG and reported between POS and END."
                 (progn
                   (unless (looking-at haskell-regexen/pre-post-qualified-import-line)
                     (error "Import statement not found"))
-                  (goto-char (if-let ((import-list-start (match-beginning 11)))
+                  (goto-char (if-let* ((import-list-start (match-beginning 11)))
                                  import-list-start
                                (match-end 0)))
                   (skip-chars-forward "\t ")
@@ -994,8 +994,8 @@ Error is given as MSG and reported between POS and END."
            (let ((identifier (attrap-strip-parens (match-string-no-properties 1 normalized-msg)))
                  (is-constructor? (not (null (match-beginning 2))))
                  (is-type-or-class? (not (null (match-beginning 3)))))
-             (if-let ((specific-import-locations
-                       (attrap-ghc--extract-add-import-list-suggestions msg normalized-msg)))
+             (if-let* ((specific-import-locations
+                        (attrap-ghc--extract-add-import-list-suggestions msg normalized-msg)))
                  (--map
                   (attrap-option (format "add to import list of ‘%s’" (attrap-ghc-import-location-module it))
                     (save-excursion
@@ -1450,13 +1450,13 @@ Error is given as MSG and reported between POS and END."
 then all non-authoritative results from that collection should be ignored."
   (cl-assert (stringp identifier))
   (cl-assert (stringp mod-name))
-  (if-let ((entry (gethash mod-name attrap--module-name-fixes)))
+  (if-let* ((entry (gethash mod-name attrap--module-name-fixes)))
       (cond
         ((attrap--fixed-mod-name-p entry)
          ;; All identifiers are in scope.
          entry)
         ((hash-table-p entry)
-         (if-let ((new-name (gethash identifier entry)))
+         (if-let* ((new-name (gethash identifier entry)))
              new-name
            (make-attrap--fixed-mod-name
             :new-name mod-name

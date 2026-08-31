@@ -16,9 +16,9 @@
 ;;;###autoload
 (defun eproj-query/build-dir (proj &optional default)
   (declare (pure t) (side-effect-free nil))
-  (if-let ((p proj)
-           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                    'build-dir)))
+  (if-let* ((p proj)
+            (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                     'build-dir)))
       (let ((res (car entry)))
         (unless (or (stringp res)
                     (null res))
@@ -47,11 +47,11 @@
 (defun eproj-query/any-mode/indent-offset (proj mode &optional default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode) "Mode must be a symbol")
-  (if-let ((p proj)
-           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                    'language-specific
-                    mode
-                    'indent-offset)))
+  (if-let* ((p proj)
+            (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                     'language-specific
+                     mode
+                     'indent-offset)))
       (let ((res (car entry)))
         (unless (integerp res)
           (error "language-specific.%s.indent-offset entry in .eproj-info of %s must be an integer, but got %s"
@@ -70,11 +70,11 @@
 (defun eproj-query/any-mode/indent-tab (proj mode &optional default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode) "Mode must be a symbol")
-  (if-let ((p proj)
-           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                    'language-specific
-                    mode
-                    'indent-tab)))
+  (if-let* ((p proj)
+            (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                     'language-specific
+                     mode
+                     'indent-tab)))
       (let ((res (car entry)))
         (unless (booleanp res)
           (error "language-specific.%s.indent-tab entry in .eproj-info of %s must be a boolean, but got %s"
@@ -95,11 +95,11 @@
 sense for modes where cc’s indentation engine works."
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode) "Mode must be a symbol")
-  (if-let ((p proj)
-           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                    'language-specific
-                    mode
-                    'indent-style)))
+  (if-let* ((p proj)
+            (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                     'language-specific
+                     mode
+                     'indent-style)))
       (let ((res (car entry)))
         (unless (stringp res)
           (error "language-specific.%s.indent-style entry in .eproj-info of %s must be a string, but got %s"
@@ -123,11 +123,11 @@ sense for modes where cc’s indentation engine works."
 (defun eproj-query/any-mode/delete-trailing-whitespace (proj mode &optional default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode) "Mode must be a symbol")
-  (if-let ((p proj)
-           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                    'language-specific
-                    mode
-                    'delete-trailing-whitespace)))
+  (if-let* ((p proj)
+            (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                     'language-specific
+                     mode
+                     'delete-trailing-whitespace)))
       (let ((res (car entry)))
         (unless (booleanp res)
           (error "language-specific.%s.delete-trailing-whitespace entry in .eproj-info of %s must be a boolean, but got %s"
@@ -142,10 +142,10 @@ sense for modes where cc’s indentation engine works."
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode))
   (let ((effective-mode (eproj/resolve-synonym-modes mode)))
-    (if-let ((p proj)
-             (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                      'checker
-                      effective-mode)))
+    (if-let* ((p proj)
+              (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                       'checker
+                       effective-mode)))
         (let ((res (car entry)))
           (unless (symbolp res)
             (error "checker.%s entry in .eproj-info of %s must be a symbol, but got %s"
@@ -160,10 +160,10 @@ sense for modes where cc’s indentation engine works."
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode))
   (let ((effective-mode (eproj/resolve-synonym-modes mode)))
-    (if-let ((p proj)
-             (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                      'disabled-checkers
-                      effective-mode)))
+    (if-let* ((p proj)
+              (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                       'disabled-checkers
+                       effective-mode)))
         (let ((res entry))
           (unless (and (listp res)
                        (-all-p #'symbolp res))
@@ -178,10 +178,10 @@ sense for modes where cc’s indentation engine works."
 (defun eproj-query/local-variables (proj mode default)
   (declare (pure t) (side-effect-free nil))
   (let ((effective-mode (eproj/resolve-synonym-modes mode)))
-    (if-let ((p proj)
-             (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                      'local-variables
-                      effective-mode)))
+    (if-let* ((p proj)
+              (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                       'local-variables
+                       effective-mode)))
         (let ((res (cdr entry)))
           (unless (--all? (and (symbolp (car it))
                                (null (cddr it)))

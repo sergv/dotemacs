@@ -140,12 +140,12 @@ performed for some field."
               (setf result
                     (cons old-entry result)))
              (t
-              (if-let (merge-handler (cdr-safe
-                                      (assoc old-entry-key
-                                             persistent-store-merge-handlers)))
-                  (if-let (merged-entry (funcall merge-handler
-                                                 old-entry
-                                                 new-entry))
+              (if-let* ((merge-handler (cdr-safe
+                                         (assoc old-entry-key
+                                                persistent-store-merge-handlers))))
+                  (if-let* ((merged-entry (funcall merge-handler
+                                                    old-entry
+                                                    new-entry)))
                       (setf result
                             (cons merged-entry
                                   result))
