@@ -305,26 +305,26 @@ _j_: send region to repl"
                :use-whitespace 'tabs-only
                :use-fci t)
 
-  (hs-minor-mode-initialize
-   :start (rx line-start
-              (* (syntax whitespace))
-              symbol-start
-              (or "def"
-                  "class"
-                  "for"
-                  "if"
-                  "elif"
-                  "else"
-                  "while"
-                  "try"
-                  "except"
-                  "finally")
-              symbol-end)
-   :comment-start-re "#"
-   :forward-sexp (lambda (_)
-                   (python-forward-indentation-level)))
-
-  (setup-folding t '(:header-start "^[ \t]*" :header-symbol "#" :length-min 3))
+  (setup-folding
+   (list
+    :start (rx line-start
+               (* (syntax whitespace))
+               symbol-start
+               (or "def"
+                   "class"
+                   "for"
+                   "if"
+                   "elif"
+                   "else"
+                   "while"
+                   "try"
+                   "except"
+                   "finally")
+               symbol-end)
+    :comment-start-re "#"
+    :forward-sexp (lambda (_)
+                    (python-forward-indentation-level)))
+   '(:header-start "^[ \t]*" :header-symbol "#" :length-min 3))
 
   (setup-indent-size 4)
   (setq-local whitespace-style '(face lines-tail))
