@@ -176,7 +176,7 @@ Original match data is restored upon return."
      selector
      end
      comment-start-re
-     comments-not-supported
+     comments-supported
      forward-sexp)
   (let ((comment-start-regexp
          (cond
@@ -190,7 +190,7 @@ Original match data is restored upon return."
             "\\(?:#\\|//\\)")
            ((memq major-mode '(lsp-log-io-mode))
             "\\(?:#\\)")
-           (comments-not-supported
+           ((not comments-supported)
             (rx unmatchable))
            (t
             (error "Mode %s has no comment format defined for hideshow to use"
@@ -225,13 +225,13 @@ Original match data is restored upon return."
                          ))
       :end (rx (syntax 41 ;; ?)
                        ))
-      :comments-not-supported (not comments-supported?)))
+      :comments-supported comments-supported?))
     ((eq hideshow-params 'enable-cpp)
      (folding-setup--initialize-hs-minor-mode
       :start +c-preprocessor-open-hideshow-re+
       :end +c-preprocessor-close-hideshow-re+
       :forward-sexp #'c-preprocessor-hideshow-forward-sexp
-      :comments-not-supported (not comments-supported?)))
+      :comments-supported comments-supported?))
     (hideshow-params
      (apply #'folding-setup--initialize-hs-minor-mode hideshow-params))))
 
