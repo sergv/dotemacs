@@ -21,6 +21,7 @@
 (require 'foreign-setup)
 (require 'macro-util)
 (require 'select-mode)
+(require 's-extras)
 
 (autoload 'grep-read-files "grep")
 (autoload 'grep-read-regexp "grep")
@@ -451,7 +452,7 @@ string patterns."
          (eproj-abs-ignored-dirs
           (when proj
             (eproj-get-absolute-ignored-dirs proj))))
-    (egrep-search (expand-escape-sequences regexp)
+    (egrep-search (s-extras-expand-escape-sequences regexp)
                   exts-globs
                   grep-find-ignored-files
                   dir
