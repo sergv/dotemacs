@@ -1040,7 +1040,7 @@ variable or symbol 'unresolved.")
                                             (rx bos
                                                 (or ".git"
                                                     (seq "cabal.project"
-                                                         (? "." (* any))
+                                                         (? "." (* not-newline))
                                                          (? ".local")))
                                                 eos)
                                             t ;; nosort
