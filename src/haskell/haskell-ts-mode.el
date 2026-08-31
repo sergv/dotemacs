@@ -345,7 +345,7 @@ but when paired then it’s like a string."
 
         (let ((beg-bol (line-beginning-position)))
           (dolist (entry
-                   (treesit-query-capture (treesit-buffer-root-node haskell-ts-buffer-lang)
+                   (treesit-query-capture treesit-primary-parser
                                           (haskell-ts-query-resolve haskell-ts-syntax-propertize--query)
                                           beg-bol
                                           end-eol
@@ -1226,7 +1226,8 @@ In effect, normalize contraints."
               (apply #'treesit-font-lock-rules (haskell-ts-lang-selection-resolve haskell-ts-font-lock-rules)))
 
   ;; Associate parser with current buffer.
-  (treesit-parser-create 'haskell (current-buffer))
+  (setq treesit-primary-parser
+        (treesit-parser-create 'haskell (current-buffer)))
 
   (treesit-major-mode-setup))
 
