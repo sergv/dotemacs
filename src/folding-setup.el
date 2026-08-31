@@ -167,6 +167,9 @@ Original match data is restored upon return."
           (goto-char (match-beginning hs-block-start-mdata-select))))
       (funcall hs-forward-sexp-function 1))))
 
+
+(defvar-local hs-minor-mode-initialized? nil)
+
 ;;;###autoload
 (cl-defun hs-minor-mode-initialize (&key
                                     start
@@ -199,15 +202,19 @@ Original match data is restored upon return."
                                                     )))
                 hs-c-start-regexp comment-start-regexp
                 hs-forward-sexp-func (or forward-sexp #'forward-sexp)
+                hs-minor-mode-initialized? t
                 ;; Has good enough default
-                ;; hs-adjust-block-beginning #'identity
+                ;; hs-adjust-block-beginning-function #'identity
                 ))
+  (when (null hs-c-start-regexp)
+    (error "hs-c-start-regexp not initialized!"))
   (cl-assert (stringp hs-block-start-regexp))
   (cl-assert (integerp hs-block-start-mdata-select))
   (cl-assert (stringp hs-block-end-regexp))
   (cl-assert (stringp hs-c-start-regexp))
   (cl-assert (functionp hs-forward-sexp-func))
-  (cl-assert (functionp hs-adjust-block-beginning)))
+  (cl-assert (or (null hs-adjust-block-beginning-function)
+                 (functionp hs-adjust-block-beginning-function))))
 
 (defun hs-minor-mode--initialize-preproc (fold-preprocessor? comments-not-supported?)
   "Must be called before enabling ‘hs-minor-mode’."
@@ -218,49 +225,15 @@ Original match data is restored upon return."
        :forward-sexp #'c-preprocessor-hideshow-forward-sexp
        :comments-not-supported comments-not-supported?)
     (hs-minor-mode-initialize
-     :start (rx (syntax 40 ;;?\(
+     :start (rx (syntax 40 ;; ?(
                         ))
-     :end (rx (syntax 41 ;; ?\)
+     :end (rx (syntax 41 ;; ?)
                       ))
      :comments-not-supported comments-not-supported?)))
 
 (defun hs-minor-mode-ensure-initialized ()
-  (unless (stringp hs-block-start-regexp)
-    (error "‘hs-minor-mode-initialize’ was not called!")))
-
-(when-emacs-version (= 28 it)
-  (el-patch-defun hs-grok-mode-type ()
-    "Set up hideshow variables for new buffers.
-If `hs-special-modes-alist' has information associated with the
-current buffer's major mode, use that.
-Otherwise, guess start, end and `comment-start' regexps; `forward-sexp'
-function; and adjust-block-beginning function."
-    (el-patch-swap
-      (if (and (bound-and-true-p comment-start)
-               (bound-and-true-p comment-end))
-          (let* ((lookup (assoc major-mode hs-special-modes-alist))
-                 (start-elem (or (nth 1 lookup) "\\s(")))
-            (if (listp start-elem)
-                ;; handle (START-REGEXP MDATA-SELECT)
-                (setq hs-block-start-regexp (car start-elem)
-                      hs-block-start-mdata-select (cadr start-elem))
-              ;; backwards compatibility: handle simple START-REGEXP
-              (setq hs-block-start-regexp start-elem
-                    hs-block-start-mdata-select 0))
-            (setq hs-block-end-regexp (or (nth 2 lookup) "\\s)")
-                  hs-c-start-regexp (or (nth 3 lookup)
-                                        (let ((c-start-regexp
-                                               (regexp-quote comment-start)))
-                                          (if (string-match " +$" c-start-regexp)
-                                              (substring c-start-regexp
-                                                         0 (1- (match-end 0)))
-                                            c-start-regexp)))
-                  hs-forward-sexp-func (or (nth 4 lookup) #'forward-sexp)
-                  hs-adjust-block-beginning (or (nth 5 lookup) #'identity)))
-        (setq hs-minor-mode nil)
-        (error "%s Mode doesn't support Hideshow Minor Mode"
-               (format-mode-line mode-name)))
-      (hs-minor-mode-ensure-initialized))))
+  (unless hs-minor-mode-initialized?
+    (error "‘hs-minor-mode-initialize’ was not called, hs-minor-mode not initialized properly")))
 
 (when-emacs-version (and (<= 29 it) (< it 31))
   (el-patch-defun hs-grok-mode-type ()
@@ -311,20 +284,60 @@ buffer's major mode, use that.  Otherwise, guess start, end and
 `comment-start' regexps; `forward-sexp' function; and
 adjust-block-beginning function."
     (el-patch-remove
-     (hs--set-variable 'hs-block-start-regexp
-                       (lambda (v) (car (ensure-list (nth 1 v)))))
-     (hs--set-variable 'hs-block-start-mdata-select
-                       (lambda (v) (cadr (ensure-list (nth 1 v)))))
-     (hs--set-variable 'hs-block-end-regexp 2)
-     (hs--set-variable 'hs-c-start-regexp 3
-                       (string-trim-right (regexp-quote comment-start)))
-     (hs--set-variable 'hs-forward-sexp-function 4)
-     (hs--set-variable 'hs-adjust-block-beginning-function 5)
-     (hs--set-variable 'hs-find-block-beginning-function 6)
-     (hs--set-variable 'hs-find-next-block-function 7)
-     (hs--set-variable 'hs-looking-at-block-start-predicate 8))
+      (hs--set-variable 'hs-block-start-regexp
+                        (lambda (v) (car (ensure-list (nth 1 v)))))
+      (hs--set-variable 'hs-block-start-mdata-select
+                        (lambda (v) (cadr (ensure-list (nth 1 v)))))
+      (hs--set-variable 'hs-block-end-regexp 2)
+      (hs--set-variable 'hs-c-start-regexp 3
+                        (string-trim-right (regexp-quote comment-start)))
+      (hs--set-variable 'hs-forward-sexp-function 4)
+      (hs--set-variable 'hs-adjust-block-beginning-function 5)
+      (hs--set-variable 'hs-find-block-beginning-function 6)
+      (hs--set-variable 'hs-find-next-block-function 7)
+      (hs--set-variable 'hs-looking-at-block-start-predicate 8))
     (el-patch-add
-      (hs-minor-mode-ensure-initialized))))
+      (hs-minor-mode-ensure-initialized)))
+
+  (el-patch-defun hs--get-ellipsis (b e)
+    "Helper function for `hs-make-overlay'.
+This returns the ellipsis string to use and its face."
+    (el-patch-remove
+      (let* ((standard-display-table
+              (or standard-display-table (make-display-table)))
+             (d-t-ellipsis
+              (display-table-slot standard-display-table 'selective-display))
+             ;; Convert ellipsis vector to a propertized string
+             (ellipsis
+              (and (vectorp d-t-ellipsis) ; Ensure the vector is not empty
+                   (not (length= d-t-ellipsis 0))
+                   (mapconcat
+                    (lambda (g)
+                      (apply #'propertize (char-to-string (glyph-char g))
+                             (and (glyph-face g) (list 'face (glyph-face g)))))
+                    d-t-ellipsis)))
+             (ellipsis-face (and ellipsis (get-text-property 0 'face ellipsis)))
+             (apply-face (lambda (str)
+                           (apply #'propertize str
+                                  (and ellipsis-face (list 'face ellipsis-face)))))
+             (lines (when-let* (hs-display-lines-hidden
+                                (l (1- (count-lines b e)))
+                                (l-str (format "%d %s" l
+                                               (if (= l 1) "line" "lines"))))
+                      (funcall apply-face l-str)))
+             (tty-strings (and hs-display-lines-hidden (not (display-graphic-p))))
+             (string
+              (concat (and tty-strings (funcall apply-face "["))
+                      lines
+                      (or ellipsis (truncate-string-ellipsis))
+                      (and tty-strings (funcall apply-face "]")))))
+        (if ellipsis-face
+            ;; Return ELLIPSIS and LINES if ELLIPSIS has no face
+            string
+          ;; Otherwise propertize both with `hs-ellipsis'
+          (propertize string 'face 'hs-ellipsis))))
+    (el-patch-add
+      " ...")))
 
 ;;;; Outline
 
@@ -519,8 +532,7 @@ possible."
   (let ((outline-enabled? (not (null outline-params))))
     (if enable-hideshow?
         (progn
-          (unless hs-block-start-regexp
-            (hs-minor-mode--initialize-preproc (eq enable-hideshow? 'enable-cpp) comments-not-supported?))
+          (hs-minor-mode--initialize-preproc (eq enable-hideshow? 'enable-cpp) comments-not-supported?)
           (hs-minor-mode +1)
           (if outline-enabled?
               (progn
