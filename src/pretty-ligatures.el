@@ -8,6 +8,7 @@
 ;; Inspired by https://github.com/Profpatsch/blog/blob/master/posts/ligature-emulation-in-emacs/post.md.
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'common)
   (require 'dash))
 
@@ -100,10 +101,11 @@ Regexp match data 0 specifies the characters to be composed."
 
 ;; (set-fontset-font t '(#Xe100 . #Xe115) "Iosevka Slab Lig")
 
-(cl-defstruct ligature-glyph
-  symbol ;; character, >= #xe100
-  width  ;; integer
-  )
+(eval-and-compile
+  (cl-defstruct ligature-glyph
+    symbol ;; character, >= #xe100
+    width  ;; integer
+    ))
 
 (eval-and-compile
   (defconst iosevka-slab-lig-wide-unicode-glyphs
