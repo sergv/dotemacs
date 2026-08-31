@@ -59,7 +59,7 @@ _,_: kill hunk"
         outline-heading-alist diff--outline-headings)
   (outline-minor-mode +1)
 
-  (setup-folding-no-comments `(:start ,(rx (or "[" "(" "{"))) t)
+  (setup-folding `(:start ,(rx (or "[" "(" "{")) :comments-supported nil) t)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     (("<up>"     "C-t") diff-hunk-prev)
