@@ -621,7 +621,6 @@
       (tuareg-font-lock-operator-face :foreground ,cyan)
       (tuareg-font-lock-multistage-face :foreground ,blue :bold t)
 
-      (search-highlight-face :inherit search-magenta-face)
       (search-red-face       :box (:line-width ,box-line-width :color ,red) :extend nil)
       (search-orange-face    :box (:line-width ,box-line-width :color ,orange) :extend nil)
       (search-yellow-face    :box (:line-width ,box-line-width :color ,yellow) :extend nil)
@@ -630,6 +629,7 @@
       (search-blue-face      :box (:line-width ,box-line-width :color ,blue) :extend nil)
       (search-violet-face    :box (:line-width ,box-line-width :color ,violet) :extend nil)
       (search-magenta-face   :box (:line-width ,box-line-width :color ,magenta) :extend nil)
+      (search-highlight-face :inherit search-magenta-face)
 
       (search-modeline-highlight-face :foreground ,magenta)
       (search-modeline-red-face       :foreground ,red)
