@@ -67,8 +67,8 @@
                                   (string= parent-t it)
                                 (member it parent-t))))
                         (or (null grand-parent-t)
-                            (when-let ((gp (treesit-node-parent parent))
-                                       (gpt (treesit-node-type gp)))
+                            (when-let* ((gp (treesit-node-parent parent))
+                                        (gpt (treesit-node-type gp)))
                               (if (stringp grand-parent-t)
                                   (string= grand-parent-t gpt)
                                 (member gpt grand-parent-t))))))))
@@ -91,8 +91,8 @@
          (cons 'between-siblings
                (lambda (prev next)
                  (lambda (node _ _)
-                   (when-let ((prev-node (treesit-node-prev-sibling node))
-                              (next-node (treesit-node-next-sibling node)))
+                   (when-let* ((prev-node (treesit-node-prev-sibling node))
+                               (next-node (treesit-node-next-sibling node)))
                      (and (string= (treesit-node-type prev-node) prev)
                           (string= (treesit-node-type next-node) next)))))))
 
@@ -201,7 +201,7 @@
                           curr)))))
             (when (and support-field-update?
                        (string= "field_update" curr-type))
-              (when-let ((field-name (treesit-node-child-by-field-name curr "field")))
+              (when-let* ((field-name (treesit-node-child-by-field-name curr "field")))
                 (throw 'term (haskell-ts-indent--make-trivial-computed-indent field-name))))
             (when (string= "infix" curr-type)
               (let ((left-child (haskell-ts-getters--infix-left-operand curr))
@@ -440,7 +440,7 @@
         (let ((typ (treesit-node-type curr)))
           (cond
             ((string= typ "function")
-             (when-let ((arr (treesit-node-child-by-field-name curr "arrow")))
+             (when-let* ((arr (treesit-node-child-by-field-name curr "arrow")))
                (when (and (or (null haddock-start)
                               ;; Check that arrow is before haddock comment.
                               (< (treesit-node-start arr)
@@ -448,23 +448,23 @@
                           (treesit-utils-is-standalone-node? arr))
                  (throw 'term arr))
                ;; Here ‘curr’ is the immediate parent of our ‘haddock’ node
-               (when-let ((param
-                           (let ((n (treesit-node-child-count curr t))
-                                 (i 0)
-                                 (continue t)
-                                 (non-comment-child nil))
-                             (while (and continue (< i n))
-                               (let ((child (treesit-node-child curr i t)))
-                                 (when (not (string= (treesit-node-type child)
-                                                     "haddock"))
-                                   (setf continue nil
-                                         non-comment-child child)))
-                               (setf i (+ i 1)))
-                             (when (and non-comment-child
-                                        (treesit-utils-is-standalone-node? non-comment-child))
-                               (throw 'term non-comment-child))))))))
+               (when-let* ((param
+                            (let ((n (treesit-node-child-count curr t))
+                                  (i 0)
+                                  (continue t)
+                                  (non-comment-child nil))
+                              (while (and continue (< i n))
+                                (let ((child (treesit-node-child curr i t)))
+                                  (when (not (string= (treesit-node-type child)
+                                                      "haddock"))
+                                    (setf continue nil
+                                          non-comment-child child)))
+                                (setf i (+ i 1)))
+                              (when (and non-comment-child
+                                         (treesit-utils-is-standalone-node? non-comment-child))
+                                (throw 'term non-comment-child))))))))
             ((string= typ "signature")
-             (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
+             (when-let* ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
                (when (treesit-utils-is-standalone-node? double-colon)
                  (throw 'term double-colon))))
             ((string= typ "declarations")
@@ -486,11 +486,11 @@
     (catch 'term
       (let* ((sig prev)
              (sig-end (treesit-node-end sig)))
-        (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon sig)))
+        (when-let* ((double-colon (haskell-ts-indent--get-signature-double-colon sig)))
           (when (treesit-utils-is-standalone-node? double-colon)
             (throw 'term double-colon)))
 
-        (when-let ((last-type (treesit-node-descendant-for-range sig (- sig-end 1) sig-end)))
+        (when-let* ((last-type (treesit-node-descendant-for-range sig (- sig-end 1) sig-end)))
           (haskell-ts-haddock--haddock-arg-doc-anchor--impl last-type nil))))))
 
 (defun haskell-ts-indent--get-topmost-function-node (node)
@@ -571,12 +571,12 @@
              (awhen (haskell-ts-indent--get-context-arrow curr)
                (throw 'term it)))
             ((string= curr-type "signature")
-             (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
+             (when-let* ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
                (throw 'term (if (treesit-utils-is-standalone-node? double-colon)
                                 double-colon
                               (haskell-ts-indent--get-signature-name curr)))))
             ((string= curr-type "gadt_constructor")
-             (when-let ((double-colon (haskell-ts-indent--get-gadt-constructor-double-colon curr)))
+             (when-let* ((double-colon (haskell-ts-indent--get-gadt-constructor-double-colon curr)))
                (throw 'term (if (treesit-utils-is-standalone-node? double-colon)
                                 double-colon
                               (haskell-ts-indent--get-gadt-constructor-name curr))))))
@@ -829,7 +829,7 @@
              (,(lambda (node _ _)
                  (and node
                       (member (treesit-node-type node) '("record" "fields"))
-                      (when-let ((open-brace (haskell-ts-indent--get-record-or-fields-open-brace node)))
+                      (when-let* ((open-brace (haskell-ts-indent--get-record-or-fields-open-brace node)))
                         (eq (treesit-node-start node)
                             (treesit-node-start open-brace)))))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
@@ -1065,7 +1065,7 @@
                      ((string= typ "class_declarations")
                       (haskell-ts-indent--make-trivial-computed-indent parent))
                      ((string= typ "case")
-                      (when-let ((indent (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent node parent bol-pos)))
+                      (when-let* ((indent (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent node parent bol-pos)))
                         (push 'indent-once (treesit-computed-indent-flags indent))
                         indent))
                      (t
@@ -1416,64 +1416,65 @@
 (defun haskell-ts-indent-line ()
   (treesit-update-ranges (line-beginning-position)
                          (line-end-position))
-  (when-let ((indent-res
-              (pcase-let* ((`(,anchor . ,offset) (haskell-ts-indent-line--indent-1)))
-                (unless (and anchor offset)
-                  (error "No treesitter indentation anchor found for line ‘%s_|_%s’"
-                         (buffer-substring-no-properties (line-beginning-position) (point))
-                         (buffer-substring-no-properties (point) (line-end-position))))
-                (when treesit--indent-verbose
-                  (message "haskell-ts-indent-line: anchor = %s" anchor))
-                (when (and anchor offset)
-                  (with-undo-amalgamate
-                    (treesit-with-evaluated-anchor-and-offset
-                        (anchor-pos anchor)
-                        (offset-num offset)
-                      ;; Indent with treesitter
-                      (let* ((target-indent (+ (save-excursion
-                                                 (goto-char anchor-pos)
-                                                 (current-column-fixed))
-                                               offset-num))
-                             (is-on-empty-line?
-                              (save-excursion
-                                (beginning-of-line)
-                                (skip-chars-forward " \t")
-                                (eolp)))
-                             (old-fingerprint
-                              (unless is-on-empty-line?
-                                (haskell-misc--indent-line--fingerprint))))
-                        (undo-boundary)
-                        (let ((delta (- (point-max) (point))))
-                          (indent-line-to target-indent)
-                          (if (or is-on-empty-line?
-                                  (progn
-                                    (treesit-update-ranges (line-beginning-position)
-                                                           (line-end-position))
-                                    (let ((new-fingerprint
-                                           (haskell-misc--indent-line--fingerprint)))
-                                      (equal old-fingerprint new-fingerprint))))
-                              ;; Now point is at the end of indentation. If we started
-                              ;; from within the line, go back to where we started.
-                              (let ((d (- (point-max) delta)))
-                                (when (> d (point))
-                                  (goto-char d))
-                                t)
+  (when-let*
+      ((indent-res
+        (pcase-let* ((`(,anchor . ,offset) (haskell-ts-indent-line--indent-1)))
+          (unless (and anchor offset)
+            (error "No treesitter indentation anchor found for line ‘%s_|_%s’"
+                   (buffer-substring-no-properties (line-beginning-position) (point))
+                   (buffer-substring-no-properties (point) (line-end-position))))
+          (when treesit--indent-verbose
+            (message "haskell-ts-indent-line: anchor = %s" anchor))
+          (when (and anchor offset)
+            (with-undo-amalgamate
+              (treesit-with-evaluated-anchor-and-offset
+                  (anchor-pos anchor)
+                  (offset-num offset)
+                ;; Indent with treesitter
+                (let* ((target-indent (+ (save-excursion
+                                           (goto-char anchor-pos)
+                                           (current-column-fixed))
+                                         offset-num))
+                       (is-on-empty-line?
+                        (save-excursion
+                          (beginning-of-line)
+                          (skip-chars-forward " \t")
+                          (eolp)))
+                       (old-fingerprint
+                        (unless is-on-empty-line?
+                          (haskell-misc--indent-line--fingerprint))))
+                  (undo-boundary)
+                  (let ((delta (- (point-max) (point))))
+                    (indent-line-to target-indent)
+                    (if (or is-on-empty-line?
                             (progn
-                              ;; Our one-line indentation produces different AST
-                              ;; so undo it and try more distruptive but safer
-                              ;; method that keeps spaces alignment of current block.
-                              (undo-start)
-                              (undo-more 1)
-                              ;; Undo then indent with preserving spaces
-                              (let* ((current-indent (indentation-size))
-                                     (diff (abs (- current-indent target-indent))))
-                                (save-position-marker-unsafe
-                                  (skip-to-indentation)
-                                  (if (and (not (zerop diff))
-                                           (< target-indent current-indent))
-                                      (haskell-backspace-with-block-dedent--impl diff t)
-                                    (haskell-space-with-block-indent--impl diff t))
-                                  t))))))))))))
+                              (treesit-update-ranges (line-beginning-position)
+                                                     (line-end-position))
+                              (let ((new-fingerprint
+                                     (haskell-misc--indent-line--fingerprint)))
+                                (equal old-fingerprint new-fingerprint))))
+                        ;; Now point is at the end of indentation. If we started
+                        ;; from within the line, go back to where we started.
+                        (let ((d (- (point-max) delta)))
+                          (when (> d (point))
+                            (goto-char d))
+                          t)
+                      (progn
+                        ;; Our one-line indentation produces different AST
+                        ;; so undo it and try more distruptive but safer
+                        ;; method that keeps spaces alignment of current block.
+                        (undo-start)
+                        (undo-more 1)
+                        ;; Undo then indent with preserving spaces
+                        (let* ((current-indent (indentation-size))
+                               (diff (abs (- current-indent target-indent))))
+                          (save-position-marker-unsafe
+                            (skip-to-indentation)
+                            (if (and (not (zerop diff))
+                                     (< target-indent current-indent))
+                                (haskell-backspace-with-block-dedent--impl diff t)
+                              (haskell-space-with-block-indent--impl diff t))
+                            t))))))))))))
     ;; Normalize spaces between if and | in a multiway if ‘if...|’ construct.
     (let ((line-start-pos (line-beginning-position))
           (line-end-pos (line-end-position)))

@@ -459,9 +459,9 @@ Highlighting starts at the beginning of buffer.")
           (while (and (< i +search-highlight-limit+)
                       (re-search-forward regexp nil t))
             (let ((text-length (- (match-end 0) (match-beginning 0))))
-              (when-let ((overlay (when (< text-length +search-maximum-highlight-length+)
-                                    (make-overlay (match-beginning 0)
-                                                  (match-end 0)))))
+              (when-let* ((overlay (when (< text-length +search-maximum-highlight-length+)
+                                     (make-overlay (match-beginning 0)
+                                                   (match-end 0)))))
                 (overlay-put overlay 'face highlight-face)
                 ;; Original-face stores real highlighting face for the overlay.
                 ;; The intention is that 'face attribute may be set to nil

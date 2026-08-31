@@ -733,7 +733,7 @@ result of `find-first-matching' respectively, if such result is non-nil, and
 return nil otherwise."
   (declare (indent 4))
   (let ((res-var '#:result))
-    `(when-let (,res-var (find-first-matching ,pred ,items))
+    `(when-let* ((,res-var (find-first-matching ,pred ,items)))
        (cl-multiple-value-bind (,item-var ,pred-value-var) ,res-var
          ,@body))))
 
