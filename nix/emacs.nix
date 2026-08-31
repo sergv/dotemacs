@@ -217,7 +217,6 @@ let
           (pkgs.lib.withFeature false "gif")
 
           (pkgs.lib.withFeatureAs true "pdumper" "yes")
-          (pkgs.lib.withFeatureAs true "unexec" "no")
           (pkgs.lib.withFeatureAs true "dumping" "pdumper")
 
           (pkgs.lib.withFeature false "xft")
