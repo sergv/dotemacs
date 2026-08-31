@@ -17,6 +17,7 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(require 's-extras)
 (require 'vim-common)
 (require 'vim-macs)
 (require 'vim-ex)
@@ -612,7 +613,7 @@ regular expressions."
           skip-flags
           (setf flags-end i)))
       (cl-values
-       (expand-escape-sequences!
+       (s-extras-expand-escape-sequences
         (substring-no-properties str pattern-start (min len pattern-end)))
        (when (and replacement-start
                   replacement-end
