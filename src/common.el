@@ -1353,30 +1353,40 @@ are CHAR1 and CHAR2 repsectively."
 
 All other backslashes are preserved as is."
   (cl-assert (stringp str))
-  (let ((limit (length str))
-        (i 0)
-        (r 0))
-    (while (< i limit)
-      (let ((c (aref str i))
-            (j (+ i 1)))
-        (if (and (char= c ?\\)
-                 (< j limit))
-            (pcase (aref str j)
-              (`?n  (setf (aref str r) ?\n
-                          i (+ i 2)))
-              (`?r  (setf (aref str r) ?\r
-                          i (+ i 2)))
-              (`?t  (setf (aref str r) ?\t
-                          i (+ i 2)))
-              (`?\\ (setf (aref str r) ?\\
-                          i (+ i 2)))
-              (_    (setf (aref str r) c
-                          i j)))
-          (progn
-            (setf (aref str r) c
-                  i j)))
-        (setf r (+ r 1))))
-    (substring-no-properties str 0 r)))
+  (let* ((strs (cons nil nil))
+         (tmp strs)
+         (limit (comp-hint-fixnum (length str)))
+         (i (comp-hint-fixnum 0))
+         (prev (comp-hint-fixnum 0))
+         (escapes
+          '((?n  . "\n")
+            (?r  . "\r")
+            (?t  . "\t")
+            (?\\ . "\\"))))
+    (while (< (comp-hint-fixnum i) (comp-hint-fixnum limit))
+      (let ((c (aref str (comp-hint-fixnum i)))
+            (j (+ (comp-hint-fixnum i) 1)))
+        (when-let* ((_ (and (eq (comp-hint-fixnum c) ?\\)
+                            (< (comp-hint-fixnum j) (comp-hint-fixnum limit))))
+                    (entry (assq (aref str (comp-hint-fixnum j)) escapes)))
+          (if (eq (comp-hint-fixnum prev) (comp-hint-fixnum i))
+              (setf tmp (setf (cdr tmp) (cons (cdr entry) nil)))
+            (let ((end (cons (cdr entry) nil)))
+              (setf (cdr tmp) (cons (substring-no-properties str
+                                                             (comp-hint-fixnum prev)
+                                                             (comp-hint-fixnum i))
+                                    end)
+                    tmp end)))
+          (setf i (+ (comp-hint-fixnum j) 1)
+                prev (comp-hint-fixnum i)))
+        (setf i (comp-hint-fixnum j))))
+    (unless (eq (comp-hint-fixnum prev) (comp-hint-fixnum i))
+      (setf (cdr tmp)
+            (cons (substring-no-properties str
+                                           (comp-hint-fixnum prev)
+                                           (comp-hint-fixnum i))
+                  nil)))
+    (apply #'concat (cdr strs))))
 
 ;;
 

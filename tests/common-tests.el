@@ -349,9 +349,17 @@
   (should (equal (string-contains-only-whitespace? "  \t \t    \n \r  ")
                  t)))
 
-(ert-deftest common-tests/expand-escape-sequences-1 ()
+(ert-deftest common-tests/expand-escape-sequences-1a ()
   (should (equal (expand-escape-sequences "abc")
                  "abc")))
+
+(ert-deftest common-tests/expand-escape-sequences-1b ()
+  (should (equal (expand-escape-sequences "a")
+                 "a")))
+
+(ert-deftest common-tests/expand-escape-sequences-1c ()
+  (should (equal (expand-escape-sequences "")
+                 "")))
 
 (ert-deftest common-tests/expand-escape-sequences-2 ()
   (should (equal (expand-escape-sequences "ab\\nc")
@@ -392,6 +400,14 @@
 (ert-deftest common-tests/expand-escape-sequences-11 ()
   (should (equal (expand-escape-sequences "abc\\")
                  "abc\\")))
+
+(ert-deftest common-tests/expand-escape-sequences-12 ()
+  ;; Test that we don’t do anything too funny with Unicode that Emacs won’t like.
+  ;; E.g. Emacs 31 started disallowing assigning multibyte characters into stings
+  ;; so previous implemenation that was reassinging character-by-character
+  ;; stopped working.
+  (should (equal (expand-escape-sequences "foo’bar")
+                 "foo’bar")))
 
 ;;;
 
