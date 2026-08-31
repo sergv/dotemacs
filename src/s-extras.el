@@ -27,7 +27,7 @@ Implementation is very straightforward and because of that fast and reliable."
         (cl-incf i))
       res))
 
-(defun s-extras-replace-char! (old new s)
+(defun s-extras-replace-char (old new s)
   "Replace all OLD characters with NEW in the S string by mutation."
   (cl-assert (stringp s))
   (cl-assert (characterp old))
