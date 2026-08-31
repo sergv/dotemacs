@@ -600,7 +600,7 @@ get proper flycheck checker."
         (eproj--add-cached-file-for-navigation
          fname
          (eproj-project/transient-files-for-navigation proj))
-        (if-let (old-tags-thunk (cdr-safe (assq mode (eproj-project/tags proj))))
+        (if-let* ((old-tags-thunk (cdr-safe (assq mode (eproj-project/tags proj)))))
             (progn
               (cl-assert (nanothunk-p old-tags-thunk))
               ;; If tags are still a thunk (i.e. value is *not* ready yet) then
@@ -650,9 +650,9 @@ cache tags in."
           (sha1 (eproj-project/root proj))))
 
 (cl-defun eproj/load-tags-for-mode (proj mode project-files-thunk &key (consider-tag-files t))
-  (if-let ((lang (gethash mode eproj/languages-table)))
-      (if-let ((create-tags-procedure (eproj-language/create-tags-procedure lang)))
-          (if-let ((parse-tags-procedure (eproj-language/parse-tags-procedure lang)))
+  (if-let* ((lang (gethash mode eproj/languages-table)))
+      (if-let* ((create-tags-procedure (eproj-language/create-tags-procedure lang)))
+          (if-let* ((parse-tags-procedure (eproj-language/parse-tags-procedure lang)))
               (if consider-tag-files
                   (cond
                     ((eproj-project/create-cache-files proj)
@@ -906,7 +906,7 @@ for project at ROOT directory."
 
 (defun eproj-describe-buffer-project (&optional omit-tags)
   (interactive "P")
-  (if-let (proj (eproj-get-project-for-buf (current-buffer)))
+  (if-let* ((proj (eproj-get-project-for-buf (current-buffer))))
       (let ((buf (get-buffer-create (format "*%s description*" (eproj-project/root proj)))))
         (switch-to-buffer-other-window buf)
         (with-current-buffer buf
@@ -1085,7 +1085,7 @@ variable or symbol 'unresolved.")
 (defun eproj--get-info-from-root (root strict is-self-contained-file?)
   "Either read existing .eproj-info file ot try to make up its contents if we can."
   (cl-assert (symbolp is-self-contained-file?))
-  (if-let (eproj-info-file (eproj--get-eproj-info-from-dir root))
+  (if-let* ((eproj-info-file (eproj--get-eproj-info-from-dir root)))
       (eproj-read-eproj-info-file root eproj-info-file)
     (let ((fs eproj--inferrable-project-infos)
           (result nil))
@@ -1148,13 +1148,13 @@ symbol 'unresolved.")
 `eproj-get-project-for-path' but returns nil if there's no
 project for PATH."
   (cl-assert (symbolp is-self-contained-file?))
-  (if-let (proj (gethash path *eproj-projects* nil))
+  (if-let* ((proj (gethash path *eproj-projects* nil)))
       proj
     (when (file-directory-p path)
-      (if-let (proj-root (eproj-get-initial-project-root path is-self-contained-file?))
-          (if-let (proj (gethash proj-root *eproj-projects* nil))
+      (if-let* ((proj-root (eproj-get-initial-project-root path is-self-contained-file?)))
+          (if-let* ((proj (gethash proj-root *eproj-projects* nil)))
               proj
-            (if-let ((info (eproj--get-info-from-root proj-root nil is-self-contained-file?)))
+            (if-let* ((info (eproj--get-info-from-root proj-root nil is-self-contained-file?)))
                 (let ((proj (eproj-make-project proj-root info is-self-contained-file?)))
                   (puthash (eproj-project/root proj)
                            proj
@@ -1174,10 +1174,10 @@ project for PATH."
   ;; Try looking for project with PATH root, if there's none then construct
   ;; proper initial project root by looking for .eproj-info file and try with
   ;; those.
-  (if-let (proj (gethash path *eproj-projects* nil))
+  (if-let* ((proj (gethash path *eproj-projects* nil)))
       proj
-    (if-let (proj-root (eproj-get-initial-project-root path is-self-contained-file?))
-        (if-let (proj (gethash proj-root *eproj-projects* nil))
+    (if-let* ((proj-root (eproj-get-initial-project-root path is-self-contained-file?)))
+        (if-let* ((proj (gethash proj-root *eproj-projects* nil)))
             proj
           (eproj--make-project-and-register! proj-root is-self-contained-file?))
       (error "Could not infer eproj project when looking from %s directory (no .eproj-info file, cabal.project file or .git directory found)"
@@ -1185,7 +1185,7 @@ project for PATH."
 
 (defun eproj--filter-ignored-files-from-file-list (proj files)
   "Filter list of FILES using ignored-files-globs of project PROJ."
-  (if-let ((regexp (eproj-project/cached-ignored-files-re proj)))
+  (if-let* ((regexp (eproj-project/cached-ignored-files-re proj)))
       (cl-delete-if (lambda (x)
                       (cl-assert (not (file-name-absolute-p x)))
                       (string-match-p regexp x))
@@ -1330,10 +1330,10 @@ doing `eproj-switch-to-file-or-buffer'."
 paths."
   ;; Cached files are necessarily from file-list and intended for projects whose
   ;; list of files does not change and may be cached.
-  (if-let (cached-files (eproj-project/cached-file-list proj))
+  (if-let* ((cached-files (eproj-project/cached-file-list proj)))
       cached-files
     ;; If there's a file-list then read it and store to cache.
-    (if-let (file-list-filename (eproj-project/file-list-filename proj))
+    (if-let* ((file-list-filename (eproj-project/file-list-filename proj)))
         (let ((list-of-files (eproj--read-file-list file-list-filename)))
           (cl-assert (listp list-of-files))
           (let ((resolved-files
@@ -1805,7 +1805,7 @@ Returns list of eproj-matching-tag structs."
                 :require-match nil
                 :caller 'eproj-switch-to-file-or-buffer
                 :history 'eproj-switch-to-file--history
-                :preselect (or (if-let (abs-name (buffer-file-name))
+                :preselect (or (if-let* ((abs-name (buffer-file-name)))
                                    (let ((rel-name (file-relative-name abs-name root)))
                                      (cond
                                        ((gethash rel-name collected-entries nil)

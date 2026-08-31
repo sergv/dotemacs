@@ -37,7 +37,7 @@
   "Jump to next error in the compilation buffer."
   (interactive)
   (if (compilation-buffer-p (current-buffer))
-      (if-let (pos (text-property-jump-forward 'compilation-message nil t nil))
+      (if-let* ((pos (text-property-jump-forward 'compilation-message nil t nil)))
           pos
         (error "No compilation errors"))
     (error "Not in a compilation buffer")))
@@ -47,7 +47,7 @@
   "Jump to previous error in the compilation buffer."
   (interactive)
   (if (compilation-buffer-p (current-buffer))
-      (if-let (pos (text-property-jump-backward 'compilation-message nil t nil))
+      (if-let* ((pos (text-property-jump-backward 'compilation-message nil t nil)))
           pos
         (error "No compilation errors"))
     (error "Not in a compilation buffer")))
