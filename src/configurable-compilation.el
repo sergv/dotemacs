@@ -80,7 +80,7 @@ same for a set of buffers rather than being different."
             ,@(when eproj-root-var
                 (list
                  `(,eproj-root-var
-                   (when-let ((epr (eproj-get-project-for-buf-lax (current-buffer))))
+                   (when-let* ((epr (eproj-get-project-for-buf-lax (current-buffer))))
                      (eproj-project/root epr)))))
             (,effective-major-mode-var
              (configurable-compilation--resolve-synonym-modes major-mode))
@@ -179,7 +179,7 @@ same for a set of buffers rather than being different."
       (setf configurable-compilation--proj-root
             (abbreviate-file-name
              (or
-              (when-let ((epr (eproj-get-project-for-buf-lax (current-buffer))))
+              (when-let* ((epr (eproj-get-project-for-buf-lax (current-buffer))))
                 (eproj-project/root epr))
               (when (or (derived-mode-p 'haskell-mode)
                         (derived-mode-p 'haskell-ts-base-mode))
@@ -187,8 +187,8 @@ same for a set of buffers rather than being different."
               (when (derived-mode-p 'rust-ts-mode)
                 (if configurable-compilation--cached-rust-project-root
                     configurable-compilation--cached-rust-project-root
-                  (when-let ((buf (buffer-file-name))
-                             (manifest (flycheck-rust-find-manifest buf)))
+                  (when-let* ((buf (buffer-file-name))
+                              (manifest (flycheck-rust-find-manifest buf)))
                     (setq-local configurable-compilation--cached-rust-project-root
                                 (file-name-directory manifest)))))
               default-directory)))))

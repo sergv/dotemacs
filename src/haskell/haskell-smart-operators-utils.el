@@ -48,7 +48,7 @@
 
 ;;;###autoload
 (defun haskell-smart-operators--literal-insertion? (&optional disable-comment-check?)
-  (or (when-let ((node (treesit-haskell--current-node)))
+  (or (when-let* ((node (treesit-haskell--current-node)))
         (let ((p (point)))
           ;; If we’re not within current node then we’re in a space-filled
           ;; limbo. But that means we’re definitely not in a string or

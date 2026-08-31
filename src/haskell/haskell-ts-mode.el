@@ -552,69 +552,70 @@ but when paired then it’s like a string."
 Classes and data declarations are atomic entities and their
 indented block will be their bounds without any extra processing."
   (with-no-narrowing
-    (when-let ((node
-                (let* ((current-node (treesit-node-at pos))
-                       (n-typ (treesit-node-type current-node)))
-                  (cond
-                    ((string= "declarations" n-typ)
-                     (when do-scan-around?
-                       (let ((next-pos
-                              (save-excursion
-                                (goto-char pos)
-                                (if scan-forward?
-                                    (progn
-                                      (skip-whitespace-forward)
-                                      (min (point) (point-max)))
-                                  (progn
-                                    (skip-whitespace-backward)
-                                    (forward-char -1)
-                                    (max (point) (point-min)))))))
-                         (unless (eq pos next-pos)
-                           (treesit-node-at next-pos)))))
-                    ((and (treesit-haskell--is-comment-node-type? n-typ)
-                          (haskell-ts--is-toplevel-node? current-node))
-                     (let ((func-node-above (haskell-ts--search-non-comment-nodes
-                                             current-node
-                                             nil
-                                             (lambda (_node typ)
-                                               (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
-                                                    ;; (haskell-ts--is-toplevel-node? node)
-                                                    ))
-                                             t))
-                           (func-node-below (haskell-ts--search-non-comment-nodes
-                                             current-node
-                                             t
-                                             (lambda (_node typ)
-                                               (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
-                                                    ;; (haskell-ts--is-toplevel-node? node)
-                                                    ))
-                                             t)))
-
-                       (cond
-                         ((and func-node-above
-                               func-node-below
-                               (not
-                                (sorted-set/empty?
-                                 (sorted-set/intersection (haskell-ts--function-binding-names func-node-above)
-                                                          (haskell-ts--function-binding-names func-node-below)))))
+    (when-let*
+        ((node
+          (let* ((current-node (treesit-node-at pos))
+                 (n-typ (treesit-node-type current-node)))
+            (cond
+              ((string= "declarations" n-typ)
+               (when do-scan-around?
+                 (let ((next-pos
+                        (save-excursion
+                          (goto-char pos)
                           (if scan-forward?
-                              func-node-below
-                            func-node-above))
-                         (do-scan-around?
-                          (if-let ((result (if scan-forward?
-                                               func-node-below
-                                             func-node-above)))
-                              result
-                            (haskell-ts--search-non-comment-nodes
-                             current-node
-                             scan-forward?
-                             (lambda (_ typ)
-                               (not (treesit-haskell--is-comment-node-type? typ)))
-                             t)))
-                         (t
-                          nil))))
-                    (t
-                     current-node)))))
+                              (progn
+                                (skip-whitespace-forward)
+                                (min (point) (point-max)))
+                            (progn
+                              (skip-whitespace-backward)
+                              (forward-char -1)
+                              (max (point) (point-min)))))))
+                   (unless (eq pos next-pos)
+                     (treesit-node-at next-pos)))))
+              ((and (treesit-haskell--is-comment-node-type? n-typ)
+                    (haskell-ts--is-toplevel-node? current-node))
+               (let ((func-node-above (haskell-ts--search-non-comment-nodes
+                                       current-node
+                                       nil
+                                       (lambda (_node typ)
+                                         (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                                              ;; (haskell-ts--is-toplevel-node? node)
+                                              ))
+                                       t))
+                     (func-node-below (haskell-ts--search-non-comment-nodes
+                                       current-node
+                                       t
+                                       (lambda (_node typ)
+                                         (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                                              ;; (haskell-ts--is-toplevel-node? node)
+                                              ))
+                                       t)))
+
+                 (cond
+                   ((and func-node-above
+                         func-node-below
+                         (not
+                          (sorted-set/empty?
+                           (sorted-set/intersection (haskell-ts--function-binding-names func-node-above)
+                                                    (haskell-ts--function-binding-names func-node-below)))))
+                    (if scan-forward?
+                        func-node-below
+                      func-node-above))
+                   (do-scan-around?
+                    (if-let ((result (if scan-forward?
+                                         func-node-below
+                                       func-node-above)))
+                        result
+                      (haskell-ts--search-non-comment-nodes
+                       current-node
+                       scan-forward?
+                       (lambda (_ typ)
+                         (not (treesit-haskell--is-comment-node-type? typ)))
+                       t)))
+                   (t
+                    nil))))
+              (t
+               current-node)))))
       (let ((p nil))
         (while (and (setq p (treesit-node-parent node))
                     (not (string= (treesit-node-type p) "declarations")))

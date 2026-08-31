@@ -237,13 +237,13 @@ _a_lign"
                (-filter pred
                         (reverse (magit-collect-unstaged-hunk-sections))))))
     (dolist (patch matching-patches)
-      (when-let ((sections (magit-collect-unstaged-hunk-sections))
-                 (hunk (-find (lambda (section)
-                                (string= patch
-                                         (buffer-substring-no-properties
-                                          (oref section start)
-                                          (oref section end))))
-                              sections)))
+      (when-let* ((sections (magit-collect-unstaged-hunk-sections))
+                  (hunk (-find (lambda (section)
+                                 (string= patch
+                                          (buffer-substring-no-properties
+                                           (oref section start)
+                                           (oref section end))))
+                               sections)))
         (magit-apply-hunk hunk "--cached")))))
 
 (defhydra-ext hydra-magit (:exit t :foreign-keys warn :hint nil)

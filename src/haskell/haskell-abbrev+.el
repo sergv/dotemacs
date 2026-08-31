@@ -512,9 +512,9 @@ then Bar would be the result."
               (setf continue? nil))))))
     (unless (eobp)
       (or (when (derived-mode-p 'haskell-ts-base-mode)
-            (when-let ((node (treesit-utils-largest-node-starting-at (point)))
-                       ((string= (treesit-node-type node) "signature"))
-                       (name-node (haskell-ts-indent--get-signature-name node)))
+            (when-let* ((node (treesit-utils-largest-node-starting-at (point)))
+                        (_ (string= (treesit-node-type node) "signature"))
+                        (name-node (haskell-ts-indent--get-signature-name node)))
               (treesit-node-text-no-properties-unsafe name-node)))
           (thing-at-point 'haskell-symbol)))))
 

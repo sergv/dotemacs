@@ -187,7 +187,7 @@ for use in utility functions."
   (interactive)
   (latex:save-ex-save-re
    (goto-char (point-min))
-   (when-let (start (re-search-forward latex-document-start nil t))
+   (when-let* ((start (re-search-forward latex-document-start nil t)))
      (setq latex:document-start (copy-marker start)))))
 
 

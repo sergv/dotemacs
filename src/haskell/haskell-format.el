@@ -142,7 +142,7 @@ where \\w matches any whitespace including newlines"
   (let* ((buffer-exts (haskell-format--get-language-extensions (current-buffer) t))
          (cabal-exts
           (let ((buf (current-buffer)))
-            (when-let ((config (flycheck-haskell-get-configuration-for-buf buf (eproj-get-project-for-buf-lax buf))))
+            (when-let* ((config (flycheck-haskell-get-configuration-for-buf buf (eproj-get-project-for-buf-lax buf))))
               (cdr (assq 'extensions config)))))
          (language-extensions
           (remove-duplicates-sorting (nconc buffer-exts
