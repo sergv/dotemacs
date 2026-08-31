@@ -50,6 +50,20 @@ function define() {
     IFS='\n' read -r -d '' ${1} || true
 }
 
+function gen-el-files() {
+    # Don’t compile auctex/style files but do gzip them so that they can
+    # be located later.
+    local print="$1"
+    find "$emacs_dir" \( -path '*/native' -o -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -path '*/auctex/style' -o -name 'scripts' -o -name 'resources' -o -name '.cask' -o -name '.git' \) -prune -o -type f \( \( -name '*.el' -o -name '*.el.gz' \) -a -not \( -name '*test.el' -o -name '*tests.el' -o -name '*test-utils*' -o -name '.dir-locals.el' \) \) "$print"
+}
+
+declare -a load_path
+
+while IFS= read -d $'\0' -r dir ; do
+    load_path+=("-L" "$dir")
+    # emacs  -Q --batch -L. -Lsrc -Lsrc/haskell -Lsrc/lisp
+done < <(gen-el-files "-print" | xargs dirname | sort -u | awk '!/(auctex\/style|targets|template|tests?)([\/]?|$)/' | sed -re 's,^\./,,' | tr '\n' '\0')
+
 function generate-autoloads() {
     local name="$1"
     shift 1
@@ -86,7 +100,7 @@ function generate-autoloads() {
 
   (loaddefs-generate (list ${dirs[*]}) "$name" nil "(defvar el-patch-features nil)"))
 EOF
-    "$emacs" --batch --eval "$emacs_cmd" #>/dev/null 2>&1
+    "$emacs" --batch "${load_path[@]}" --eval "$emacs_cmd" #>/dev/null 2>&1
 
     # Must not compress autoloads. Compressed autoloads break
     # subsequent recompilation because loading them involves
@@ -99,13 +113,6 @@ EOF
 
     # gzip --best --stdout "$name" >"$name.gz"
     # rm "$name"
-}
-
-function gen-el-files() {
-    # Don’t compile auctex/style files but do gzip them so that they can
-    # be located later.
-    local print="$1"
-    find "$emacs_dir" \( -path '*/native' -o -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -path '*/auctex/style' -o -name 'scripts' -o -name 'resources' -o -name '.cask' -o -name '.git' \) -prune -o -type f \( \( -name '*.el' -o -name '*.el.gz' \) -a -not \( -name '*test.el' -o -name '*tests.el' -o -name '*test-utils*' -o -name '.dir-locals.el' \) \) "$print"
 }
 
 inform "Removing generated autoload el files"
@@ -155,13 +162,6 @@ fi
 #     jobs="5"
 # fi
 # jobs="1"
-
-declare -a load_path
-
-while IFS= read -d $'\0' -r dir ; do
-    load_path+=("-L" "$dir")
-    # emacs  -Q --batch -L. -Lsrc -Lsrc/haskell -Lsrc/lisp
-done < <(gen-el-files "-print" | xargs dirname | sort -u | awk '!/(auctex\/style|targets|template|tests?)([\/]?|$)/' | sed -re 's,^\./,,' | tr '\n' '\0')
 
 define eval_prelude <<EOF
 (progn
