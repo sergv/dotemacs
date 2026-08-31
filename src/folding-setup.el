@@ -357,7 +357,7 @@ function; and adjust-block-beginning function."
   (yafolding-show-all))
 
 (defun folding-outline-on-sexp-or-commented? ()
-  (or (when-let (next (following-char))
+  (or (when-let* ((next (following-char)))
         (let ((syn (char-syntax next)))
           (or (eq syn ?\()
               (eq syn ?\))
@@ -365,7 +365,7 @@ function; and adjust-block-beginning function."
       (save-excursion
         (skip-to-indentation)
         (or (looking-at-p hs-block-start-regexp)
-            (when-let (next (following-char))
+            (when-let* ((next (following-char)))
               (let ((syn (char-syntax next)))
                 (or (eq syn ?\()
                     (eq syn ?\))

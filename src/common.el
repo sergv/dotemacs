@@ -724,7 +724,7 @@ return pair (x (F x))."
         (fy nil))
     (while (and (not done) xs)
       (let ((x (car-sure xs)))
-        (when-let (tmp (funcall f x))
+        (when-let* ((tmp (funcall f x)))
           (setf done t
                 y x
                 fy tmp)))

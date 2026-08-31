@@ -20,8 +20,8 @@
   (make-temp-name
    (fold-platform-os-type
     "/tmp/emacs-tmp-"
-    (or (when-let (tmpdir (or (getenv "TMPDIR")
-                              (getenv "TEMP")))
+    (or (when-let* ((tmpdir (or (getenv "TMPDIR")
+                                (getenv "TEMP"))))
           (concat tmpdir "\\emacs-tmp-"))
         (concat +prog-data-path+ "/tmp"))))
   "Path to temporary directory specific to current Emacs session.

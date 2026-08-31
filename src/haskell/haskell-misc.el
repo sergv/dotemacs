@@ -344,30 +344,30 @@ _#-}_: on pragma close"
        (error "Don't know how to reindent construct at point")))))
 
 (defun haskell-misc--point-inside-matching-pragma? (point re)
-  (when-let ((pragma-start-pos
-              (cond
-                ((derived-mode-p 'haskell-mode)
-                 (save-excursion
-                   (save-match-data
-                     (when (search-forward (eval-when-compile
-                                             (unless (equal (regexp-quote haskell-regexen/pragma-end)
-                                                            haskell-regexen/pragma-end)
-                                               (error "Definition of haskell-regexen/pragma-start is not plain string anymore, amend its use in searching"))
-                                             haskell-regexen/pragma-end)
-                                           nil
-                                           t)
-                       (let ((end (point)))
-                         (backward-sexp)
-                         (let ((start (point)))
-                           (when (and (<= start point)
-                                      (<= point end))
-                             start)))))))
-                ((derived-mode-p 'haskell-ts-base-mode)
-                 (when-let ((node (treesit-node-at (point))))
-                   (when (treesit-haskell--is-inside-pragma-node? (point) node)
-                     (treesit-node-start node))))
-                (t
-                 (error "haskell-misc--point-inside-pragma?: not implemented for major mode %s" major-mode)))))
+  (when-let* ((pragma-start-pos
+               (cond
+                 ((derived-mode-p 'haskell-mode)
+                  (save-excursion
+                    (save-match-data
+                      (when (search-forward (eval-when-compile
+                                              (unless (equal (regexp-quote haskell-regexen/pragma-end)
+                                                             haskell-regexen/pragma-end)
+                                                (error "Definition of haskell-regexen/pragma-start is not plain string anymore, amend its use in searching"))
+                                              haskell-regexen/pragma-end)
+                                            nil
+                                            t)
+                        (let ((end (point)))
+                          (backward-sexp)
+                          (let ((start (point)))
+                            (when (and (<= start point)
+                                       (<= point end))
+                              start)))))))
+                 ((derived-mode-p 'haskell-ts-base-mode)
+                  (when-let* ((node (treesit-node-at (point))))
+                    (when (treesit-haskell--is-inside-pragma-node? (point) node)
+                      (treesit-node-start node))))
+                 (t
+                  (error "haskell-misc--point-inside-pragma?: not implemented for major mode %s" major-mode)))))
     (save-excursion
       (goto-char pragma-start-pos)
       (looking-at-p re))))
@@ -801,7 +801,7 @@ a single entity."
                               ;; strings separated by backslashes.
                               nil)
                              ((and (derived-mode-p 'haskell-mode)
-                                   (when-let ((prop (get-char-property p 'haskell-mode-quasiquote)))
+                                   (when-let* ((prop (get-char-property p 'haskell-mode-quasiquote)))
                                      (not (member prop '("" "t" "e" "d")))))
                               ;; Same reasoning as for [Non-Haskell-QQ].
                               nil)
@@ -834,7 +834,7 @@ a single entity."
              (insert-char ?\s function-name-column))
             ([enclosing-bind-node
               (when is-ts-mode?
-                (when-let ((curr-node (treesit-haskell--current-node)))
+                (when-let* ((curr-node (treesit-haskell--current-node)))
                   (cl-destructuring-bind
                       (enclosing-let-node . let-depth)
                       (treesit-utils-find-closest-parent-with-count
@@ -897,7 +897,7 @@ a single entity."
                                 (arg-node (if argument-parethesized?
                                               (let ((parent-type (treesit-node-type parent)))
                                                 (if (string= parent-type "(#")
-                                                    (when-let ((grandparent (treesit-node-parent parent)))
+                                                    (when-let* ((grandparent (treesit-node-parent parent)))
                                                       (when (string= (treesit-node-type grandparent) "unboxed_tuple")
                                                         grandparent))
                                                   (and (member parent-type '("parens" "list" "tuple" "record"))
@@ -1395,7 +1395,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                        for cabal-file in cabal-files
                        while (not component)
                        do
-                       (when-let ((config (flycheck-haskell-get-configuration cabal-file proj)))
+                       (when-let* ((config (flycheck-haskell-get-configuration cabal-file proj)))
                          (let-alist-static config (package-name components cabal-build-root)
                            (let* ((cabal-components (--map (parse-cabal-component cabal-file it) components))
                                   (result
@@ -1599,7 +1599,7 @@ Returns (<component name or nil> . <list of warnings>)"
             (error "Related file doesn’t exist: %s" related-file)))))))
 
 (defun haskell-misc-find-tag-default ()
-  (when-let ((bnds (bounds-of-haskell-symbol)))
+  (when-let* ((bnds (bounds-of-haskell-symbol)))
     (buffer-substring-no-properties (car bnds) (cdr bnds))))
 
 (defun haskell-flycheck-force-run ()
