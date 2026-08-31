@@ -228,8 +228,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 ;;;###autoload
 (defun markup-setup (tags-context-func)
   (init-common :use-whitespace 'tabs-only)
-  (markup-setup-hideshow)
-  (setup-folding t nil)
+  (markup-setup--enable-folding)
   (hl-tags-mode t)
 
   (setq-local yas-fallback-behavior 'call-other-command
@@ -301,12 +300,14 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
          #'nxml-format-buffer
          *mode-indent-functions-table*)
 
-(defun markup-setup-hideshow ()
-  (hs-minor-mode-initialize
-   :start            "<!--\\|<[^/>]*[^/]\\|[\(\[\{]"
-   :end              "-->\\|</[^/>]*[^/]\\|[\)\]\}]"
-   :comment-start-re "<!--" ;; won't work on its own; uses syntax table
-   :forward-sexp     #'my-nxml-forward-element))
+(defun markup-setup--enable-folding ()
+  (setup-folding
+   (list
+    :start            "<!--\\|<[^/>]*[^/]\\|[\(\[\{]"
+    :end              "-->\\|</[^/>]*[^/]\\|[\)\]\}]"
+    :comment-start-re "<!--" ;; won't work on its own; uses syntax table
+    :forward-sexp     #'my-nxml-forward-element)
+   nil))
 
 ;;;###autoload
 (defun nxml-setup ()
@@ -319,8 +320,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 ;;;###autoload
 (defun web-mode-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (markup-setup-hideshow)
-  (setup-folding t nil)
+  (markup-setup--enable-folding)
 
   (put 'hs-set-up-overlay 'permanent-local t)
 

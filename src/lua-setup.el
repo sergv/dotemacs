@@ -43,19 +43,20 @@ _a_lign"
                :use-fci t)
   (setq-local vim-bounds-of-string-guess-start
               #'vim--inclusive-bounds-of-string--guess-via-enclosing-smaller-indent)
-  (hs-minor-mode-initialize
-   :start (eval-when-compile (concat
-                              "\\(:?"
-                              (regexp-opt (mapcar #'car lua-sexp-alist) 'words)
-                              "\\)\\|[({]"))
-   :end (eval-when-compile
-          (concat
-           "\\(:?"
-           (regexp-opt (mapcar #'cdr lua-sexp-alist) 'words)
-           "\\)\\|[)}]"))
-   :forward-sexp
-   #'lua-forward-sexp)
-  (setup-folding t nil)
+  (setup-folding
+   (list
+    :start (eval-when-compile (concat
+                               "\\(:?"
+                               (regexp-opt (mapcar #'car lua-sexp-alist) 'words)
+                               "\\)\\|[({]"))
+    :end (eval-when-compile
+           (concat
+            "\\(:?"
+            (regexp-opt (mapcar #'cdr lua-sexp-alist) 'words)
+            "\\)\\|[)}]"))
+    :forward-sexp
+    #'lua-forward-sexp)
+   nil)
   (setup-indent-size 2)
 
   (def-keys-for-map vim-visual-mode-local-keymap

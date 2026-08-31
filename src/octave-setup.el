@@ -342,34 +342,35 @@ _j_: send region"
                :use-render-formula t
                :use-fci t
                :use-whitespace 'tabs-only)
-  (hs-minor-mode-initialize
-   :start (rx (or "do"
-                  "for"
-                  "parfor"
-                  "function"
-                  "if"
-                  "switch"
-                  "try"
-                  "unwind_protect"
-                  "while"))
-   :end (rx (or "end"
-                "endfor"
-                "endfunction"
-                "endif"
-                "endswitch"
-                "end_try_catch"
-                "end_unwind_protect"
-                "endwhile"
-                "until"))
-   :comment-start-re "\\(?:%+\\|#+\\)"
 
-   ;; :adjust-arg
-   ;; (lambda (arg)
-   ;;   (py-goto-beyond-block)
-   ;;   (skip-chars-backward " \t\n"))
-   )
+  (setup-folding
+   (list
+    :start (rx (or "do"
+                   "for"
+                   "parfor"
+                   "function"
+                   "if"
+                   "switch"
+                   "try"
+                   "unwind_protect"
+                   "while"))
+    :end (rx (or "end"
+                 "endfor"
+                 "endfunction"
+                 "endif"
+                 "endswitch"
+                 "end_try_catch"
+                 "end_unwind_protect"
+                 "endwhile"
+                 "until"))
+    :comment-start-re "\\(?:%+\\|#+\\)"
 
-  (setup-folding t nil)
+    ;; :adjust-arg
+    ;; (lambda (arg)
+    ;;   (py-goto-beyond-block)
+    ;;   (skip-chars-backward " \t\n"))
+    )
+   nil)
 
   (setq-local yas-indent-line 'fixed
               hs-set-up-overlay
