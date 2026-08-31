@@ -53,18 +53,13 @@ _,_: kill hunk"
                :use-hl-line t
                :use-whitespace 'tabs-only
                :smerge nil)
-  (hs-minor-mode-initialize
-   :start (rx (or "[" "(" "{"))
-   :comment-start-re (rx bol
-                         (repeat 3 (or "-" "+"))
-                         " "))
 
   ;; Enable outline by hand because diff mode outline is too specialized
   (setf outline-regexp diff--outline-header-regexp
         outline-heading-alist diff--outline-headings)
   (outline-minor-mode +1)
 
-  (setup-folding-no-comments t t)
+  (setup-folding-no-comments `(:start ,(rx (or "[" "(" "{"))) t)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     (("<up>"     "C-t") diff-hunk-prev)
