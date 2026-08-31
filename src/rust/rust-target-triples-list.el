@@ -13,7 +13,7 @@
 
 ;;;###autoload (autoload 'rust-target-triples "rust-target-triples-list" nil t)
 (defun-once rust-target-triples
-  (if-let (rustc-exec (cached-executable-find "rustc"))
+  (if-let* ((rustc-exec (cached-executable-find "rustc")))
       (with-temp-buffer
         (call-process rustc-exec
                       nil

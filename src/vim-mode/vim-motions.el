@@ -1389,7 +1389,7 @@ The function shouldn’t move point.")
                                :end end
                                :type 'inclusive))
           (signal 'vim/no-such-object nil)))
-    (if-let (bounds (vim--inclusive-bounds-of-string (point)))
+    (if-let* ((bounds (vim--inclusive-bounds-of-string (point))))
         (cl-destructuring-bind (beg . end) bounds
           (cond
             ;; extend whitespaces to the right

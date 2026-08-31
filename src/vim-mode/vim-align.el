@@ -68,7 +68,7 @@ Allowed flags are:
     (cl-multiple-value-bind (pattern flags)
         (vim--parse-align-pattern-flags argument)
       (let* ((pattern-with-group
-              (if-let ((re-groups (parse-regexp-groups pattern)))
+              (if-let* ((re-groups (parse-regexp-groups pattern)))
                   (cons pattern (apply #'min re-groups))
                 (cons (concat "\\(?1:\\s-*\\)\\(?:" pattern "\\)") 1)))
              (regexp (car pattern-with-group))

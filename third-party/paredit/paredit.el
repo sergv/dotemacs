@@ -810,9 +810,9 @@ If such a comment exists, delete the comment (including all leading
           (continue t))
       (while (and (< count magnitude)
                   continue)
-        (if-let (p
-                 (paredit-handle-sexp-errors (scan-sexps (point) direction)
-                   nil))
+        (if-let* ((p
+                    (paredit-handle-sexp-errors (scan-sexps (point) direction)
+                      nil)))
             (progn
               (goto-char p)
               (setq count (+ count 1)))

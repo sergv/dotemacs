@@ -560,11 +560,11 @@ has been pressed."
 
 (defun vim-ex--strip-ex-info (str)
   "Remove info part from string STR."
-  (if-let (info-start (text-property-any 0
-                                         (length str)
-                                         'ex-info
-                                         t
-                                         str))
+  (if-let* ((info-start (text-property-any 0
+                                            (length str)
+                                            'ex-info
+                                            t
+                                            str)))
       (substring str 0 info-start)
     str))
 

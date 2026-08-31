@@ -32,7 +32,7 @@
 
 ;;;###autoload
 (defun rust-metadata-targets (meta f)
-  (if-let ((packages (cdr-safe (assq 'packages meta))))
+  (if-let* ((packages (cdr-safe (assq 'packages meta))))
       (mapcan (lambda (pkg)
                 (aif (cdr-safe (assq 'targets pkg))
                     (funcall f  it)
@@ -51,7 +51,7 @@
 
 ;;;###autoload
 (defun rust-metadata-package-names (meta)
-  (if-let ((packages (cdr-safe (assq 'packages meta))))
+  (if-let* ((packages (cdr-safe (assq 'packages meta))))
       (v--map (cdr-safe (assq 'name it)) packages)
     (error "No 'packages within metadata: %s" meta)))
 
