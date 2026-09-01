@@ -1432,7 +1432,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                                    (format "\nFound problems:\n%s"
                                            (mapconcat (lambda (x) (concat "- " x)) all-warnings "\n"))
                                  ""))))
-                  (error "No cabal files"))
+                  nil)
               (error "Buffer’s directory doesn’t exist: %s" default-directory))
           (error "Buffer has no file: %s" buf))))))
 
