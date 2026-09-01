@@ -1138,6 +1138,7 @@ BODY at runtime."
 
 ;;;
 
+;; Seems like the original doesn’t exist in Emacs 31 any more.
 (defmacro my-defsetf (name arg1 &rest args)
   "Define a `setf' method.
 This macro is an easy-to-use substitute for `define-setf-expander'
