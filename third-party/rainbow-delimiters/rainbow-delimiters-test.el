@@ -1,4 +1,4 @@
-;;; rainbow-delimiters-test.el --- rainbow-delimiters test suite
+;;; rainbow-delimiters-test.el --- rainbow-delimiters test suite -*- lexical-binding: t -*-
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/rainbow-delimiters
