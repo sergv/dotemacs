@@ -283,7 +283,7 @@
 
                 haskell-tools.tools.faster-richer-tags
 
-                # For rughc for flycheck-haskell.
+                # For rughc for flycheck-haskell and for ghci for dante-tests.
                 haskell-pkgs-for-tools.ghc
 
                 # Dependencies for dante tests which won’t work anyway because
