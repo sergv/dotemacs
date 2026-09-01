@@ -11,6 +11,7 @@
   (require 'set-up-platform))
 
 (defvar flycheck-current-errors)
+(defvar flycheck-setup--force-enable-flycheck-for-tests)
 
 (require 'common)
 (require 'dante)
@@ -778,6 +779,60 @@
             (comint-send-input)
             (dante-repl/wait-for-prompt repl-proc)
             (should (string= (dante-repl-get-last-output) "0.0\n"))))))))
+
+(ert-deftest z-dante-tests/simple-check-project-ghci-method-1 ()
+  (unless (executable-find "ghc")
+    (ert-skip "ghc not available"))
+  (unless (treesit-language-available-p 'haskell)
+    (ert-skip "haskell-ts-mode not available"))
+
+  (let ((flycheck-setup--force-enable-flycheck-for-tests t))
+    (test-utils--with-temp-file
+        tmp-file
+        "Main"
+        ".hs"
+        "\
+foo :: Int
+foo = 1
+
+bar :: String
+bar = foo
+"
+
+      (should (derived-mode-p 'haskell-ts-base-mode))
+
+      (let ((cfg (dante-get-config)))
+        (should (not (null cfg)))
+        (should (eq 'bare-ghci (dante-method/name (dante-config/method cfg)))))
+
+      (should flycheck-mode)
+      (should dante-mode)
+
+      (dante-tests/check-buffer-and-assert-when-done
+       (should (not (null flycheck-current-errors)))
+
+       (should (not (null flycheck-current-errors)))
+       (should (= 1 (length flycheck-current-errors)))
+       (let ((err (car flycheck-current-errors)))
+         (should (string= (flycheck-error-filename err) tmp-file))
+         (should (= (flycheck-error-line err) 5))
+         (should (string-search "GHC-83865" (flycheck-error-message err)))
+         (let ((msg (flycheck-error-message err)))
+           (should (string-match-p
+                    (rx-let ((apostrophe (any ?\' ?\’))
+                             (quotes (x) (seq (any ?\` ?\‘) x (any ?\' ?\’) ))
+                             (ws (+ (any ?\s ?\t))))
+                      (rx "Couldn" apostrophe "t" ws
+                          "match" ws
+                          "type" ws (quotes "Int") ws "with" ws (quotes (or "[Char]" "String"))))
+                    msg)))))
+      (progn
+        (goto-line-dumb 1)
+        (move-to-column 1)
+
+        (dante-tests/type-at-point-and-assert-when-done
+         ty
+         (should (string= ty "foo :: Int")))))))
 
 (provide 'dante-tests)
 
