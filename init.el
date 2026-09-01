@@ -86,6 +86,8 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
         (unless (file-directory-p full-dir)
           (error "Important config directory does not exist: %s" full-dir)))))
 
+  (setq load-prefer-newer (equal (getenv "EMACS_FORCE_PRISTINE") "1"))
+
   (setf
    load-path
    (nconc
