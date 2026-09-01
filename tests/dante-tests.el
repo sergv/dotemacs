@@ -158,6 +158,17 @@
                     (looking-at-p "Failed, modules loaded: none\\.$"))))
     (accept-process-output proc nil nil t)))
 
+(ert-deftest dante-tests/dante--extract-current-working-directory-from-show-paths ()
+  (should
+   (string=
+    "/foo/bar"
+    (dante--extract-current-working-directory-from-show-paths
+     (tests-utils--multiline
+      "current working directory: "
+      "  /foo/bar"
+      "module import search paths:"
+      "  .")))))
+
 (ert-deftest z-dante-tests/simple-check-project-1 ()
   (unless (executable-find dante-cabal-executable)
     (ert-skip "cabal not available"))
