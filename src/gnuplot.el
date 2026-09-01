@@ -116,7 +116,7 @@ operators are punctuation characters.")
           "sec\\|wday\\|y\\(?:day\\|ear\\)\\)\\)\\|"
           "valid"
           "\\)\\>")
-         font-lock-function-name-face)
+         'font-lock-function-name-face)
    ;; reserved words associated with
    ;; plotting <AL>
    '("\\<\\(axes\\|every\\|index\\|l\\(?:[stw]\\|ine\\(?:style\\|type\\|width\\)\\)\\|notitle\\|p\\(?:[st]\\|oint\\(?:size\\|type\\)\\)\\|smooth\\|t\\(?:hru\\|itle\\)\\|using\\|with\\)\\>" . font-lock-type-face)
@@ -133,7 +133,7 @@ operators are punctuation characters.")
                  "p\\(?:ause\\|rint\\|wd\\)\\|quit\\|replot\\|"
                  "s\\(?:ave\\|et\\|how\\)\\|unset"
                  "\\)\\>\\|!.*$")
-         font-lock-constant-face)))
+         'font-lock-constant-face)))
 
 
 (defun gnuplot-indent-line ()
