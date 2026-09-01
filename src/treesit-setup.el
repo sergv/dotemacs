@@ -404,6 +404,16 @@ to the offending pattern and highlight the pattern."
 ;;;###autoload
 (add-hook 'treesit--explorer-tree-mode-hook #'treesit-tree-explorer-setup)
 
+(defun treesit-setup-disable-treesit-based-sexp! ()
+  (setq-local forward-sexp-function #'forward-sexp-default-function
+              paredit-forward-sexp-function forward-sexp-function
+              forward-list-function nil
+              up-list-function nil
+              down-list-function nil
+              ;; beginning-of-defun-function #'treesit-sexp-beginning-of-defun
+              ;; end-of-defun-function #'treesit-sexp-end-of-defun
+              ))
+
 ;; Debug indentation:
 ;; (setf treesit--indent-verbose t)
 ;; (setf treesit--font-lock-verbose t)
