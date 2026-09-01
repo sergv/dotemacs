@@ -540,7 +540,15 @@ possible."
     (if hideshow-params
         (progn
           (hs-minor-mode--initialize-preproc hideshow-params comments-supported?)
-          (hs-minor-mode +1)
+          (let (
+                ;; Silence messages like
+                ;; “flycheck-error-message-mode doesn’t support the Hideshow minor mode”
+                ;;
+                ;; Don’t put messages in *Messages* buffer and ...
+                (message-log-max nil)
+                ;; ... don’t show to the user.
+                (inhibit-message t))
+            (hs-minor-mode +1))
           (if outline-enabled?
               (progn
                 (when (listp outline-params)
