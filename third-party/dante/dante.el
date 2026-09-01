@@ -455,6 +455,7 @@ targets and components about current buffer’s ghci session."
                :is-enabled-pred nil
                :find-root-pred (lambda (_) t)
                :repl-buf-name-func #'dante-buffer-name--default
+               :disable-preprocess t
                :template
                (cl-function
                 (lambda (&key &allow-other-keys)
