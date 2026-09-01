@@ -1377,7 +1377,7 @@ Must be called from GHCi process buffer."
     "Return a regexp matching any of REGEXPS."
     (mapconcat (lambda (x) (concat "\\(?:" x "\\)")) regexps "\\|"))
 
-  (defconst dante-ghci-prompt "\4\\(?1:.*\\)|")
+  (defconst dante-ghci-prompt "\4\\(?1:[^|\r\n]*\\)|")
 
   (defconst dante-progress-regexp
     "^\\[[0-9]* of [0-9]*\\] Compiling \\(?2:[^ \n]*\\).*")
