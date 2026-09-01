@@ -140,8 +140,6 @@
       magic-mode-regexp-match-limit 1000000
       suggest-key-bindings nil
 
-      ;; Always prefer *.elc to *.el.
-      load-prefer-newer nil
       kill-ring-max 1024
       save-interprogram-paste-before-kill nil
       enable-recursive-minibuffers t
