@@ -1,4 +1,4 @@
-;;; nix-mode-tests.el -- test nix-mode
+;;; nix-mode-tests.el -- test nix-mode -*- lexical-binding: t -*-
 
 ;;; Commentary:
 
