@@ -397,7 +397,7 @@ references to parsed treesitter modes shall remain."
       (buffer-substring-no-properties (treesit-node-start node) (treesit-node-end node)))))
 
 (defsubst treesit-utils--is-leaf-node? (node)
-  (zerop (treesit-node-child-count node)))
+  (eq 0 (treesit-node-child-count node)))
 
 ;; (defun treesit-utils-node-texts-in-current-buffer= (x y)
 ;;   (cl-assert (treesit-node-p y))

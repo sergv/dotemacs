@@ -331,7 +331,8 @@ _<right>_: move tab to the right"
                    vim-insert-mode-keymap)
   +vim-parens-keys+
   ("C-p"  vim-cmd-paste-after-no-adjust)
-  ("<f4>" vim:render-latex:interactive))
+  ("<f4>" :remove ;; vim:render-latex:interactive
+   ))
 
 ;;; normal mode keybindigs
 

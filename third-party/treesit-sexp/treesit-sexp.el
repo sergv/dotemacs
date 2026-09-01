@@ -72,7 +72,9 @@
         (step (if (eq direction 'forward) #'1+ #'1-))
         (compare-start (if (eq direction 'forward) #'>= #'<))
         (compare-pos (if (eq direction 'forward) #'>= #'<))
-        (wall-types (if (eq direction 'forward) treesit-sexp--forward-wall-node-type treesit-sexp--backward-wall-node-type)))
+        (wall-types (if (eq direction 'forward)
+                        treesit-sexp--forward-wall-node-type
+                      treesit-sexp--backward-wall-node-type)))
 
     (while (and (if (eq direction 'forward)
                     (< i (treesit-node-child-count node))
@@ -474,24 +476,378 @@ accuracy when tree-sitter parsers are available."
 (defun treesit-sexp--is-atom-node? (node)
   (eq 0 (treesit-node-child-count node)))
 
+(defun treesit-sexp--is-phantom-node? (node)
+  (eq (treesit-node-start node)
+      (treesit-node-end node)))
+
 ;; (local-set-key (key-parse "<f8>") #'treesit-sexp-forward-sexp)
+;; (progn
+;;   (global-set-key (key-parse "<f8>") #'treesit-sexp-forward-sexp)
+;;   (global-set-key (key-parse "<f7>") #'treesit-sexp-backward-sexp)
+;;
+;;   (global-set-key (key-parse "<f4>") #'forward-sexp)
+;;   (global-set-key (key-parse "<f3>") #'backward-sexp))
+
+
+(defvar treesit-sexp-open-node-types '("(" "[" "{"))
+(defvar treesit-sexp-close-node-types '(")" "]" "}"))
+
+(defvar treesit-sexp-delimiter-node-types
+  (append treesit-sexp-open-node-types
+          treesit-sexp-close-node-types))
+
+(defun treesit-sexp-backward-sexp (&optional count)
+  (interactive "p")
+  (treesit-sexp-forward-sexp (- count)))
+
+(defun treesit-sexp--node-at-strictly-after (pos &optional parser-or-lang named)
+  (let ((node (treesit-node-at pos)))
+    node
+    ;; (if (<= pos (treesit-node-start node))
+    ;;     node)
+    ))
+
+(defun treesit-sexp--node-at-strictly-before (pos &optional parser-or-lang named)
+  (let ((node (treesit-node-at-backwards pos)))
+    node
+    ))
+
+(defun treesit-node-at-backwards (pos &optional parser-or-lang named)
+  "Return the leaf node at position POS.
+
+A leaf node is a node that doesn't have any child nodes.
+
+The returned node's span covers POS: the node's beginning is before
+or at POS, and the node's end is after POS.
+
+If no such node exists, but there's a leaf node which ends at POS,
+return that node.
+
+Otherwise (e.g., when POS is on whitespace between two leaf
+nodes), return the first leaf node after POS.
+
+If there is no leaf node after POS, return the first leaf node
+before POS.
+
+Return nil if no leaf node can be returned.  If NAMED is non-nil,
+only look for named nodes.
+
+If PARSER-OR-LANG is a parser, use that parser; if PARSER-OR-LANG
+is a language, find the first parser for that language in the
+current buffer, or create one if none exists; If PARSER-OR-LANG
+is nil, try to guess the language at POS using `treesit-language-at'.
+
+If there's a local parser at POS, the local parser takes priority
+unless PARSER-OR-LANG is a parser, or PARSER-OR-LANG is a
+language and doesn't match the language of the local parser."
+  (let* ((root
+          ;; 1. Given a parser, just use the parser's root node.
+          (cond ((treesit-parser-p parser-or-lang)
+                 (treesit-parser-root-node parser-or-lang))
+                ;; 2. Given a language, try local parser, then global
+                ;; parser.
+                (parser-or-lang
+                 (let ((parser (car (treesit-parsers-at
+                                     pos parser-or-lang))))
+                   (when parser
+                     (treesit-parser-root-node parser))))
+                ;; 3. No given language, try to get a language at point.
+                ;; If we got a language, only use parser of that
+                ;; language, otherwise use any parser we can find.  When
+                ;; finding parser, try local parser first, then global
+                ;; parser.
+                (t
+                 ;; LANG can be nil.  Use the parser deepest by embed level.
+                 (let ((parser (car (treesit-parsers-at pos))))
+                   (when parser
+                     (treesit-parser-root-node parser))))))
+         (node root)
+         (node-after root)
+         (pos-1 (max (1- pos) (point-min)))
+         next)
+    (when node
+      ;; This is very fast so no need for C implementation.
+      (while (setq next (treesit-node-first-child-for-pos
+                         node pos-1 named))
+        (setq node next))
+      ;; If POS is at the start of buffer, after all the text, we will
+      ;; end up with NODE = root node.  Instead of returning nil,
+      ;; return the first leaf node in the tree for convenience.
+      (if (treesit-node-eq node root)
+          (progn
+            (while (setq next (treesit-node-child node 1 named))
+              (setq node next))
+            node)
+        ;; Normal case, where we found a node.
+        (if (<= (treesit-node-end node) pos)
+            node
+          ;; So the node we found is completely after POS, try to find
+          ;; a node whose end equals to POS.
+          (while (setq next (treesit-node-first-child-for-pos
+                             node-after pos named))
+            (setq node-after next))
+          (if (eq (treesit-node-start node-after) pos)
+              node-after
+            node))))))
+
+;; (defun treesit-sexp--node-at-strictly-after (pos &optional parser-or-lang named)
+;;   "Like ‘treesit-node-at’ but when point is at node end it returns the next node"
+;;   (let* ((root
+;;           ;; 1. Given a parser, just use the parser's root node.
+;;           (cond ((treesit-parser-p parser-or-lang)
+;;                  (treesit-parser-root-node parser-or-lang))
+;;                 ;; 2. Given a language, try local parser, then global
+;;                 ;; parser.
+;;                 (parser-or-lang
+;;                  (let ((parser (car (treesit-parsers-at
+;;                                      pos parser-or-lang))))
+;;                    (when parser
+;;                      (treesit-parser-root-node parser))))
+;;                 ;; 3. No given language, try to get a language at point.
+;;                 ;; If we got a language, only use parser of that
+;;                 ;; language, otherwise use any parser we can find.  When
+;;                 ;; finding parser, try local parser first, then global
+;;                 ;; parser.
+;;                 (t
+;;                  ;; LANG can be nil.  Use the parser deepest by embed level.
+;;                  (let ((parser (car (treesit-parsers-at pos))))
+;;                    (when parser
+;;                      (treesit-parser-root-node parser))))))
+;;          (node root)
+;;          ;; (node-before root)
+;;          (pos-1 (max (1- pos) (point-min)))
+;;          next)
+;;     (when node
+;;       ;; This is very fast so no need for C implementation.
+;;       (while (setq next (treesit-node-first-child-for-pos
+;;                          node pos named))
+;;         (setq node next))
+;;       ;; If POS is at the end of buffer, after all the text, we will
+;;       ;; end up with NODE = root node.  Instead of returning nil,
+;;       ;; return the last leaf node in the tree for convenience.
+;;       (if (treesit-node-eq node root)
+;;           (progn
+;;             (while (setq next (treesit-node-child node -1 named))
+;;               (setq node next))
+;;             node)
+;;         node
+;;         ;; Normal case, where we found a node.
+;;         (if (<= (treesit-node-start node) pos)
+;;             node
+;;           ;; So the node we found is completely after POS, try to find
+;;           ;; a node whose end equals to POS.
+;;           ;; (while (setq next (treesit-node-first-child-for-pos
+;;           ;;                    node-before pos-1 named))
+;;           ;;   (setq node-before next))
+;;           node
+;;           ;; (if (eq (treesit-node-end node-before) pos)
+;;           ;;     node-before
+;;           ;;   node)
+;;           )))))
+;;
+;; (defun treesit-sexp--node-at-strictly-before (pos &optional parser-or-lang named)
+;;   "Like ‘treesit-node-at’ but try to always return a node before point"
+;;   (let* ((root
+;;           ;; 1. Given a parser, just use the parser's root node.
+;;           (cond ((treesit-parser-p parser-or-lang)
+;;                  (treesit-parser-root-node parser-or-lang))
+;;                 ;; 2. Given a language, try local parser, then global
+;;                 ;; parser.
+;;                 (parser-or-lang
+;;                  (let ((parser (car (treesit-parsers-at
+;;                                      pos parser-or-lang))))
+;;                    (when parser
+;;                      (treesit-parser-root-node parser))))
+;;                 ;; 3. No given language, try to get a language at point.
+;;                 ;; If we got a language, only use parser of that
+;;                 ;; language, otherwise use any parser we can find.  When
+;;                 ;; finding parser, try local parser first, then global
+;;                 ;; parser.
+;;                 (t
+;;                  ;; LANG can be nil.  Use the parser deepest by embed level.
+;;                  (let ((parser (car (treesit-parsers-at pos))))
+;;                    (when parser
+;;                      (treesit-parser-root-node parser))))))
+;;          (node root)
+;;          (node-before root)
+;;          (pos-1 (max (1- pos) (point-min)))
+;;          next)
+;;     (when node
+;;       ;; This is very fast so no need for C implementation.
+;;       (while (setq next (treesit-node-first-child-for-pos
+;;                          node pos named))
+;;         (setq node next))
+;;       ;; If POS is at the end of buffer, after all the text, we will
+;;       ;; end up with NODE = root node.  Instead of returning nil,
+;;       ;; return the last leaf node in the tree for convenience.
+;;       (if (treesit-node-eq node root)
+;;           (progn
+;;             (while (setq next (treesit-node-child node -1 named))
+;;               (setq node next))
+;;             node)
+;;         ;; Normal case, where we found a node.
+;;         (if (<= (treesit-node-start node) pos)
+;;             node
+;;           ;; So the node we found is completely after POS, try to find
+;;           ;; a node whose end equals to POS.
+;;           (while (setq next (treesit-node-first-child-for-pos
+;;                              node-before pos-1 named))
+;;             (setq node-before next))
+;;           node-before
+;;           ;; (if (eq (treesit-node-end node-before) pos)
+;;           ;;     node-before
+;;           ;;   node)
+;;           )))))
+;;
+
+(defun treesit-sexp-forward-sexp--get-initial-node (backward?)
+  (let*
+      ((parser-or-lang nil)
+       (pos (point))
+       (root
+        ;; 1. Given a parser, just use the parser's root node.
+        (cond ((treesit-parser-p parser-or-lang)
+               (treesit-parser-root-node parser-or-lang))
+              ;; 2. Given a language, try local parser, then global
+              ;; parser.
+              (parser-or-lang
+               (let ((parser (car (treesit-parsers-at
+                                   pos parser-or-lang))))
+                 (when parser
+                   (treesit-parser-root-node parser))))
+              ;; 3. No given language, try to get a language at point.
+              ;; If we got a language, only use parser of that
+              ;; language, otherwise use any parser we can find.  When
+              ;; finding parser, try local parser first, then global
+              ;; parser.
+              (t
+               ;; LANG can be nil.  Use the parser deepest by embed level.
+               (let ((parser (car (treesit-parsers-at pos))))
+                 (when parser
+                   (treesit-parser-root-node parser))))))
+       (covering-node
+        (treesit-node-descendant-for-range
+         root
+         pos
+         pos
+         nil))
+       (initial-node nil))
+    (if (treesit-sexp--is-atom-node? covering-node)
+        (setf initial-node covering-node)
+      (let* ((continue? t)
+             (children-count (treesit-node-child-count covering-node))
+             (i (if backward?
+                    (- children-count 1)
+                  0))
+             (limit (if backward?
+                        -1
+                      children-count)))
+        (if backward?
+            (while (and continue?
+                        (< limit i))
+              (let ((node (treesit-node-child covering-node i)))
+                (when (<= (treesit-node-end node) pos)
+                  (setf continue? nil
+                        initial-node node))
+                (setf i (- i 1))))
+          (while (and continue?
+                      (< i limit))
+            (let ((node (treesit-node-child covering-node i)))
+              (when (<= pos (treesit-node-start node))
+                (setf continue? nil
+                      initial-node node))
+              (setf i (+ i 1)))))))
+    (when initial-node
+      (if (treesit-sexp--is-atom-node? initial-node)
+          initial-node
+        (progn
+          (if backward?
+              (while (not (treesit-sexp--is-atom-node? initial-node))
+                (setq initial-node (treesit-sexp-last-non-phantom-non-named-child initial-node)
+                      ))
+            (while (not (treesit-sexp--is-atom-node? initial-node))
+
+              (setq initial-node (treesit-node-child initial-node
+                                                     0
+                                                     nil ;; not only named
+                                                     ))))
+          initial-node)))))
+
+(defun treesit-sexp-last-non-phantom-non-named-child (node)
+  (let ((continue? t)
+        (result nil)
+        (i (- (treesit-node-child-count node) 1)))
+    (while (and continue?
+                (< -1 i))
+      (let ((child (treesit-node-child node i)))
+        (unless (treesit-sexp--is-phantom-node? child)
+          (setf continue? nil
+                result child))
+        (setf i (- i 1))))
+    result))
 
 (defun treesit-sexp-forward-sexp (&optional count)
   (interactive "p")
-  (dotimes (_ (or count 1))
-    (let ((start-node (treesit-node-at (point))))
-      (message "start-node = %s"
-               (pp-to-string start-node))
-      (let ((final-node (treesit-search-forward-goto2 start-node
-                                                      #'treesit-sexp--is-atom-node?
-                                                      nil
-                                                      nil
-                                                      t)))
-        (message "final-node = %s"
-                 (pp-to-string final-node))))))
+  (let* ((i 0)
+         (limit (abs (or count 1)))
+         (backward? (and count
+                         (< count 0)))
+         (continue? t)
+         (start-node (treesit-sexp-forward-sexp--get-initial-node backward?)))
+    (message "start-node = %s"
+             (pp-to-string start-node))
+    (if (not start-node)
+        (goto-char (if backward?
+                       (point-min)
+                     (point-max)))
+      (while (and continue?
+                  (< i limit))
+        (let* (
+               ;; (start-node
+               ;;  (if (treesit-sexp--is-phantom-node? initial-node)
+               ;;      (progn
+               ;;        (message "INITIAL NODE IS PHANTOM")
+               ;;        (cdr
+               ;;         (treesit-search-forward-goto2 initial-node
+               ;;                                       (lambda (node)
+               ;;                                         (not (treesit-sexp--is-phantom-node? node)))
+               ;;                                       backward?
+               ;;                                       backward?)))
+               ;;    initial-node))
+               (p nil))
+          (if start-node
+              (let ((typ (treesit-node-type start-node)))
+                (cond
+                  ((and (member typ (if backward?
+                                        treesit-sexp-close-node-types
+                                      treesit-sexp-open-node-types))
+                        (not (null (setq p (treesit-node-parent start-node)))))
+                   (goto-char (if backward?
+                                  (treesit-node-start p)
+                                (treesit-node-end p))))
+                  ((member typ (if backward?
+                                   treesit-sexp-open-node-types
+                                 treesit-sexp-close-node-types))
+                   ;; Report that we reached the end the way ‘forward-sexp’ would report that.
+                   (user-error (if (> count 0)
+                                   "No next sexp"
+                                 "No previous sexp")))
+                  (t
+                   (when-let* ((new-pos-and-node
+                                (treesit-search-forward-goto2 start-node
+                                                              #'treesit-sexp--is-atom-node?
+                                                              backward?
+                                                              backward?))
+                               ;; (new-node (cdr new-pos-and-node))
+                               )
+                     (awhen (car new-pos-and-node)
+                       (goto-char it)))
+                   )))
+            (setf continue? nil)))
+        (setf i (+ i 1))))))
 
 (defun treesit-search-forward-goto2
-    (node predicate &optional start backward all)
+    (node predicate &optional start backward?)
   "Search forward for a node and move to its end position.
 
 Stop at the first node after NODE that matches PREDICATE.
@@ -508,7 +864,8 @@ progress in terms of buffer position: the start/end position of
 the returned node is always STRICTLY greater/less than that of
 NODE.
 
-BACKWARD and ALL are the same as in `treesit-search-forward'."
+BACKWARD? is the same as in `treesit-search-forward'."
+  (message "treesit-search-forward-goto2: started")
   (when-let* ((start-pos (if start
                              (treesit-node-start node)
                            (treesit-node-end node)))
@@ -522,25 +879,45 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
     ;;
     ;;   |<--------N1------->|
     ;;   |<--N2-->| |<--N3-->|
-    (while (and node (if backward
-                         (>= current-pos start-pos)
-                       (<= current-pos start-pos)))
-      (message "node = %s"
-               (pp-to-string node))
-      (setq node (treesit-search-forward
-                  node predicate backward all))
-      (setq current-pos (if start
-                            (treesit-node-start node)
-                          (treesit-node-end node))))
+    (let ((continue? t))
+      (while (and continue?
+                  node
+                  (if backward?
+                      (>= current-pos start-pos)
+                    (<= current-pos start-pos)))
+        (message "before search: node = %s, current-pos = %s, start-pos = %s"
+                 node
+                 current-pos
+                 start-pos)
+        (setq node (treesit-search-forward node
+                                           predicate
+                                           backward?
+                                           t ;; search for all nodes, not only named
+                                           ))
+
+        (message "after search: node = %s, current-pos = %s, start-pos = %s"
+                 node
+                 current-pos
+                 start-pos)
+        ;; (when (and node
+        ;;            (member (treesit-node-type node) treesit-sexp-delimiter-node-types))
+        ;;   (setf continue? nil))
+        (setq current-pos (if start
+                              (treesit-node-start node)
+                            (treesit-node-end node)))))
+    (message "treesit-search-forward-goto2: done, current-pos = %s" current-pos)
     (when (and node
-               (if backward
+               (if backward?
                    (< current-pos (point))
                  (> current-pos (point))))
       ;; When there is a match and match made progress, go to the
       ;; result position.
-      (goto-char current-pos))
-    node))
-
+      (cons (if start
+                (treesit-node-end node)
+              (treesit-node-start node))
+            ;; current-pos
+            node))))
 
 (provide 'treesit-sexp)
+
 ;;; treesit-sexp.el ends here
