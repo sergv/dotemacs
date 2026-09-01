@@ -513,7 +513,8 @@ Consider setting this variable as a directory variable."
                                     proj
                                     ;; if not defined
                                     (lambda ()
-                                      (fold-platform-os-type "/tmp/dist/dante" "dist-newstyle/dante"))
+                                      (fold-platform-os-type (concat +tmp-path+ "/dist/dante")
+                                                             "dist-newstyle/dante"))
                                     ;; if defined
                                     #'identity))))
                       (cl-assert (stringp proj-root))
