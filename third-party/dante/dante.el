@@ -43,6 +43,7 @@
   (require 'cl-lib)
   (require 'company)
   (require 'haskell-regexen)
+  (require 'macro-util)
   (require 'set-up-platform)
 
   (declare-function company-begin-backend "company")
@@ -559,7 +560,11 @@ Consider setting this variable as a directory variable."
   ;;
   ;; May be different to what ‘dante-config/project-root’ returns
   ;; because of cabal behaviour.
-  ghci-path
+  ;;
+  ;; The field itself is supposed to be hidden from user and should
+  ;; only be accessed through ‘dante-check-ghci-state/ghci-path’ function
+  ;; and the corresponding ‘setf’ method.
+  ghci-path--internal
 
   ;; Command line used to start GHCi, list of strings.
   command-line
@@ -580,6 +585,22 @@ Consider setting this variable as a directory variable."
   ;; to destroy the buffer and create a fresh one without this variable enabled.
   ;; - other value: informative value for the user about what GHCi is doing.
   checker-state)
+
+(defun dante-check-ghci-state/ghci-path (x)
+  (let ((path (dante-check-ghci-state/ghci-path--internal x)))
+    (cl-assert (stringp path) nil "Dante GHCi directory is not a string: ‘%s’" dir)
+    (cl-assert (not (eq 0 (length path))) nil "Dante GHCi directory initialized to empty string")
+    (cl-assert (file-name-absolute-p path) nil "Dante GHCi directory is not absolute: ‘%s’" dir)
+    (cl-assert (file-directory-p path) nil "Dante GHCi directory does not exist: ‘%s’" dir)
+    path))
+
+(my-defsetf dante-check-ghci-state/ghci-path (x) (value)
+  `(let ((path ,value))
+     (cl-assert (stringp path) nil "Dante GHCi directory is not a string: ‘%s’" dir)
+     (cl-assert (not (eq 0 (length path))) nil "Dante GHCi directory initialized to empty string")
+     (cl-assert (file-name-absolute-p path) nil "Dante GHCi directory is not absolute: ‘%s’" dir)
+     (cl-assert (file-directory-p path) nil "Dante GHCi directory does not exist: ‘%s’" dir)
+     (setf (dante-check-ghci-state/ghci-path--internal ,x) path)))
 
 (defvar-local dante--ghci-state nil
   "Value of type ‘dante-check-ghci-state’ in the GHCi buffer.")
@@ -1304,6 +1325,16 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
         (apply fh #'make-process :name name :buffer buf :command (cons program args) :filter filter :sentinel sentinel :file-handler t)
       (apply #'make-process :name name :buffer buf :command (cons program args) :filter filter :sentinel sentinel :file-handler t))))
 
+(defun dante--extract-current-working-directory-from-show-paths (str)
+  (save-match-data
+    (when (string-match
+           (rx-let ((ws (any ?\s ?\t))
+                    (newline (seq (? ?\r) ?\n)))
+             (rx bol "current working directory:" (* ws) newline
+                 (* ws) (group-n 1 (+ not-newline)) eol))
+           str)
+      (match-string-no-properties 1 str))))
+
 (lcr-def dante-start ()
   "Start a GHCi process and return its buffer."
   (let* ((ghci-buf (dante--create-ghci-interaction-buffer))
@@ -1343,13 +1374,17 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
     (lcr-call dante-async-call
               (s-join "\n" (--map (concat ":set " it)
                                   (append dante-load-flags
-                                          (list "prompt \"\\4%s|\""
+                                          (list "local-config ignore"
                                                 ;; Empty continuation prompt so that output
                                                 ;; of :{ will be correctly identified.
                                                 "prompt-cont \"\""
-                                                "-ignore-dot-ghci")))))
-    (let ((dir (fold-platform-os-type (lcr-call dante-async-call ":!pwd")
-                                      (lcr-call dante-async-call "System.IO.putStrLn =<< System.Directory.getCurrentDirectory"))))
+
+                                                ;; Must go last since only after that command
+                                                ;; we’ll stat expecting GHCi responses delimited by
+                                                ;; this prompt.
+                                                "prompt \"\\4%s|\"")))))
+    (let* ((paths (lcr-call dante-async-call ":show paths"))
+           (dir (dante--extract-current-working-directory-from-show-paths paths)))
       (with-current-buffer ghci-buf
         (setf (dante-check-ghci-state/ghci-path dante--ghci-state)
               (fold-platform-os-type
@@ -1556,7 +1591,7 @@ appropriate buffer name on this basis."
       (setq-local dante--config cfg
                   dante--ghci-state
                   (make-dante-check-ghci-state
-                   :ghci-path nil
+                   :ghci-path--internal (dante-config/project-root cfg)
                    :command-line nil
                    :load-message nil
                    :loaded-file "<DANTE:NO-FILE-LOADED>"
