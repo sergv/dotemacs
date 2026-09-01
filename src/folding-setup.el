@@ -167,6 +167,72 @@ Original match data is restored upon return."
           (goto-char (match-beginning hs-block-start-mdata-select))))
       (funcall hs-forward-sexp-function 1))))
 
+(when-emacs-version (<= 31 it)
+  (el-patch-define-minor-mode hs-minor-mode
+    "Minor mode to selectively hide/show code and comment blocks.
+
+When hideshow minor mode is on, the menu bar is augmented with hideshow
+commands and the hideshow commands are enabled.
+The value (hs . t) is added to `buffer-invisibility-spec'.
+
+Turning hideshow minor mode off reverts the menu bar and the
+variables to default values and disables the hideshow commands.
+
+Lastly, the normal hook `hs-minor-mode-hook' is run using `run-hooks'.
+
+Key bindings:
+\\{hs-minor-mode-map}"
+    :group 'hideshow
+    :lighter " hs"
+    :keymap hs-minor-mode-map
+    (setq hs-headline nil)
+
+    (cond
+      (el-patch-remove
+        ((and hs-minor-mode
+              (not (and comment-start comment-end)))
+         (setq hs-minor-mode nil)
+         (message "%S doesn't support the Hideshow minor mode"
+                  major-mode)))
+
+      (hs-minor-mode
+       ;; Set the old variables
+       (el-patch-remove
+         (hs-grok-mode-type))
+       ;; Turn off this mode if we change major modes.
+       (add-hook 'change-major-mode-hook
+                 #'turn-off-hideshow nil t)
+       (setq-local line-move-ignore-invisible t)
+       (add-to-invisibility-spec '(hs . t))
+       ;; Add block indicators
+       (when (and hs-show-indicators
+                  (or (and (integerp hs-indicator-maximum-buffer-size)
+                           (< (buffer-size) hs-indicator-maximum-buffer-size))
+                      (not hs-indicator-maximum-buffer-size)))
+         (when (and (not (display-graphic-p))
+                    (eq hs-indicator-type 'fringe))
+           (setq-local hs-indicator-type 'margin))
+         (when (eq hs-indicator-type 'margin)
+           (setq-local left-margin-width (1+ left-margin-width))
+           (setq-local fringes-outside-margins t)
+           ;; Force display of margins
+           (when (eq (current-buffer) (window-buffer))
+             (set-window-buffer nil (window-buffer))))
+         (jit-lock-register #'hs--add-indicators)))
+
+      (t
+       (remove-from-invisibility-spec '(hs . t))
+       (remove-overlays nil nil 'hs-indicator t)
+       (remove-overlays nil nil 'invisible 'hs)
+       (when hs-show-indicators
+         (jit-lock-unregister #'hs--add-indicators)
+         (when (and (eq hs-indicator-type 'margin)
+                    (< 0 left-margin-width))
+           (setq-local left-margin-width (1- left-margin-width))
+           (kill-local-variable 'fringes-outside-margins)
+           ;; Force removal of margins
+           (when (eq (current-buffer) (window-buffer))
+             (set-window-buffer nil (window-buffer)))))))))
 
 (defvar-local hs-minor-mode-initialized? nil)
 
@@ -540,15 +606,7 @@ possible."
     (if hideshow-params
         (progn
           (hs-minor-mode--initialize-preproc hideshow-params comments-supported?)
-          (let (
-                ;; Silence messages like
-                ;; “flycheck-error-message-mode doesn’t support the Hideshow minor mode”
-                ;;
-                ;; Don’t put messages in *Messages* buffer and ...
-                (message-log-max nil)
-                ;; ... don’t show to the user.
-                (inhibit-message t))
-            (hs-minor-mode +1))
+          (hs-minor-mode +1)
           (if outline-enabled?
               (progn
                 (when (listp outline-params)
