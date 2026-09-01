@@ -703,7 +703,9 @@ language and doesn't match the language of the local parser."
 (defun treesit-sexp-forward-sexp--get-initial-node (backward?)
   (let*
       ((parser-or-lang nil)
-       (pos (point))
+       (pos (if backward?
+                (- (point) 1)
+              (point)))
        (root
         ;; 1. Given a parser, just use the parser's root node.
         (cond ((treesit-parser-p parser-or-lang)
@@ -793,35 +795,33 @@ language and doesn't match the language of the local parser."
          (backward? (and count
                          (< count 0)))
          (continue? t)
-         (start-node (treesit-sexp-forward-sexp--get-initial-node backward?)))
-    (message "start-node = %s"
-             (pp-to-string start-node))
-    (if (not start-node)
+         (curr-node (treesit-sexp-forward-sexp--get-initial-node backward?)))
+    (message "point = %s, start-node = %s"
+             (point)
+             (pp-to-string curr-node))
+    (if (not curr-node)
         (goto-char (if backward?
                        (point-min)
                      (point-max)))
       (while (and continue?
                   (< i limit))
-        (let* (
-               ;; (start-node
-               ;;  (if (treesit-sexp--is-phantom-node? initial-node)
-               ;;      (progn
-               ;;        (message "INITIAL NODE IS PHANTOM")
-               ;;        (cdr
-               ;;         (treesit-search-forward-goto2 initial-node
-               ;;                                       (lambda (node)
-               ;;                                         (not (treesit-sexp--is-phantom-node? node)))
-               ;;                                       backward?
-               ;;                                       backward?)))
-               ;;    initial-node))
-               (p nil))
-          (if start-node
-              (let ((typ (treesit-node-type start-node)))
+        (let* ((p nil))
+          (when-let* ((new-pos-and-node
+                       (treesit-search-forward-goto2 curr-node
+                                                     #'treesit-sexp--is-atom-node?
+                                                     backward?)))
+            (aif new-pos-and-node
+                (progn
+                  (goto-char (car it))
+                  (setf curr-node (cdr it)))
+              (setf curr-node nil)))
+          (if curr-node
+              (let ((typ (treesit-node-type curr-node)))
                 (cond
                   ((and (member typ (if backward?
                                         treesit-sexp-close-node-types
                                       treesit-sexp-open-node-types))
-                        (not (null (setq p (treesit-node-parent start-node)))))
+                        (not (null (setq p (treesit-node-parent curr-node)))))
                    (goto-char (if backward?
                                   (treesit-node-start p)
                                 (treesit-node-end p))))
@@ -833,21 +833,12 @@ language and doesn't match the language of the local parser."
                                    "No next sexp"
                                  "No previous sexp")))
                   (t
-                   (when-let* ((new-pos-and-node
-                                (treesit-search-forward-goto2 start-node
-                                                              #'treesit-sexp--is-atom-node?
-                                                              backward?
-                                                              backward?))
-                               ;; (new-node (cdr new-pos-and-node))
-                               )
-                     (awhen (car new-pos-and-node)
-                       (goto-char it)))
                    )))
             (setf continue? nil)))
         (setf i (+ i 1))))))
 
 (defun treesit-search-forward-goto2
-    (node predicate &optional start backward?)
+    (node predicate backward?)
   "Search forward for a node and move to its end position.
 
 Stop at the first node after NODE that matches PREDICATE.
@@ -865,58 +856,68 @@ the returned node is always STRICTLY greater/less than that of
 NODE.
 
 BACKWARD? is the same as in `treesit-search-forward'."
-  (message "treesit-search-forward-goto2: started")
-  (when-let* ((start-pos (if start
-                             (treesit-node-start node)
-                           (treesit-node-end node)))
-              (current-pos start-pos))
-    ;; When searching forward and stopping at beginnings, or search
-    ;; backward stopping at ends, it is possible to "roll back" in
-    ;; position.  Take three nodes N1, N2, N3 as an example, if we
-    ;; start at N3, search for forward for beginning, and N1 matches,
-    ;; we would stop at beg of N1, which is backwards!  So we skip N1
-    ;; and keep going.
-    ;;
-    ;;   |<--------N1------->|
-    ;;   |<--N2-->| |<--N3-->|
-    (let ((continue? t))
-      (while (and continue?
-                  node
-                  (if backward?
-                      (>= current-pos start-pos)
-                    (<= current-pos start-pos)))
-        (message "before search: node = %s, current-pos = %s, start-pos = %s"
-                 node
-                 current-pos
-                 start-pos)
-        (setq node (treesit-search-forward node
-                                           predicate
-                                           backward?
-                                           t ;; search for all nodes, not only named
-                                           ))
+  (message "treesit-search-forward-goto2: started, node = %s" node)
+  (cond
+    ((and node
+          (member (treesit-node-type node)
+                  treesit-sexp-delimiter-node-types))
+     (cons (point) node))
+    ((and node
+          (if backward?
+          (eq (point) (treesit-node-end node))
+        (eq (point) (treesit-node-start node))))
+     (cons (if backward?
+               (treesit-node-start node)
+             (treesit-node-end node))
+           node))
+    (t
+     (when-let* ((start-pos (if backward?
+                                (treesit-node-start node)
+                              (treesit-node-end node)))
+                 (current-pos start-pos))
+       ;; When searching forward and stopping at beginnings, or search
+       ;; backward stopping at ends, it is possible to "roll back" in
+       ;; position.  Take three nodes N1, N2, N3 as an example, if we
+       ;; start at N3, search for forward for beginning, and N1 matches,
+       ;; we would stop at beg of N1, which is backwards!  So we skip N1
+       ;; and keep going.
+       ;;
+       ;;   |<--------N1------->|
+       ;;   |<--N2-->| |<--N3-->|
+       (let ((continue? t))
+         (while (and continue?
+                     node
+                     (if backward?
+                         (>= current-pos start-pos)
+                       (<= current-pos start-pos)))
+           (message "before search: node = %s, current-pos = %s, start-pos = %s"
+                    node
+                    current-pos
+                    start-pos)
+           (setq node (treesit-search-forward node
+                                              predicate
+                                              backward?
+                                              t ;; search for all nodes, not only named
+                                              ))
 
-        (message "after search: node = %s, current-pos = %s, start-pos = %s"
-                 node
-                 current-pos
-                 start-pos)
-        ;; (when (and node
-        ;;            (member (treesit-node-type node) treesit-sexp-delimiter-node-types))
-        ;;   (setf continue? nil))
-        (setq current-pos (if start
-                              (treesit-node-start node)
-                            (treesit-node-end node)))))
-    (message "treesit-search-forward-goto2: done, current-pos = %s" current-pos)
-    (when (and node
-               (if backward?
-                   (< current-pos (point))
-                 (> current-pos (point))))
-      ;; When there is a match and match made progress, go to the
-      ;; result position.
-      (cons (if start
-                (treesit-node-end node)
-              (treesit-node-start node))
-            ;; current-pos
-            node))))
+           (message "after search: node = %s, current-pos = %s, start-pos = %s"
+                    node
+                    current-pos
+                    start-pos)
+           (setq current-pos (if backward?
+                                 (treesit-node-start node)
+                               (treesit-node-end node)))))
+       (message "treesit-search-forward-goto2: done, current-pos = %s" current-pos)
+       (when (and node
+                  (if backward?
+                      (< current-pos (point))
+                    (> current-pos (point))))
+         ;; When there is a match and match made progress, go to the
+         ;; result position.
+         (cons (if backward?
+                   (treesit-node-end node)
+                 (treesit-node-start node))
+               node))))))
 
 (provide 'treesit-sexp)
 
