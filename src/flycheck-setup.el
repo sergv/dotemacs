@@ -44,6 +44,9 @@ do check that ‘overlay-buffer’ is non-nil before use.")
 (defvar-local flycheck-enhancements--get-project-root-for-current-buffer (lambda () nil)
   "Function that should return potential project root this buffer is part of.")
 
+(defvar flycheck-setup--force-enable-flycheck-for-tests nil
+  "Configure flycheck even when running in noninteractive mode for testing purposes.")
+
 (with-eval-after-load 'flycheck
   ;; Don't show errors on fringes.
   (setf flycheck-indication-mode nil
@@ -348,7 +351,8 @@ scheme and it’s view of current buffer is malformed."
   (flycheck-setup-from-eproj-deferred proj default-checker on-checker-selected #'flycheck-mode))
 
 (defun flycheck-setup-from-eproj-deferred (proj default-checker on-checker-selected consume-outcome)
-  (when (not noninteractive)
+  (when (or (not noninteractive)
+            flycheck-setup--force-enable-flycheck-for-tests)
     (let* ((flycheck-backend
             (eproj-query/checker proj major-mode default-checker)))
       (setq-local flycheck-disabled-checkers
