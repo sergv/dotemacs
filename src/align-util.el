@@ -21,13 +21,16 @@
                        &key
                        (repeat nil)
                        (require-one-or-more-spaces nil)
-                       (put-align-spaces-after-str nil))
+                       (put-align-spaces-after-str nil)
+                       (override-spaces-re nil))
   (declare (indent 1))
-  (let ((spaces-re (concat "\\([ \t]"
-                           (if require-one-or-more-spaces
-                               "+"
-                             "*")
-                           "\\)"))
+  (let ((spaces-re (if override-spaces-re
+                       `(concat "\\(?:" ,override-spaces-re "\\)")
+                     (concat "\\([ \t]"
+                             (if require-one-or-more-spaces
+                                 "+"
+                               "*")
+                             "\\)")))
         (align-re (cond
                     ((stringp align-str)
                      (concat "\\(?:"
