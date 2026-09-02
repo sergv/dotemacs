@@ -410,6 +410,50 @@ Entries should be a list of of elements of the form
   "      result) $ 1"
   ""))
 
+(haskell-tests--test-buffer-contents-region*
+ :name
+ haskell-tests/haskell-align-on-arrows-3a
+ :action
+ (haskell-align-on-arrows)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "_|_  | bar <- quux >=> pippo"
+  "  , baz <- map (\\xxx -> quux xxx) xs"
+  "  = bar --> baz_||_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  | bar <- quux >=> pippo"
+  "  , baz <- map (\\xxx -> quux xxx) xs"
+  "  = bar              --> baz_|_"
+  ""))
+
+(haskell-tests--test-buffer-contents-region*
+ :name
+ haskell-tests/haskell-align-on-arrows-3b
+ :action
+ (haskell-align-on-arrows)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "_|_  | bar <- quux >=> pippo"
+  "  , baz <- map (\\xxx -> quux xxx) xs"
+  "  = bar Frobnicator.--> baz_||_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  | bar <- quux >=> pippo"
+  "  , baz <- map (\\xxx -> quux xxx) xs"
+  "  = bar              Frobnicator.--> baz_|_"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-align-language-pragmas-1
     (haskell-align-language-pragmas (point))
