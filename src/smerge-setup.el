@@ -24,6 +24,8 @@
 (require 'vim-setup)
 
 (setf smerge-auto-leave nil)
+;;;###autoload
+(setf smerge-refine-shadow-cursor nil)
 
 (vim-define-keymap smerge-mode "smerge mode")
 
