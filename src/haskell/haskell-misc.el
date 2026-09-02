@@ -195,13 +195,20 @@ sexps and indentation levels."
 ;;;###autoload (autoload 'haskell-align-on-arrows "haskell-misc" nil t)
 (defalign haskell-align-on-arrows
   (rx
-   (? haskell-regexen/modid ".")
    (or (seq
         (+ (any ?: ?| ?- ?=))
         (+ ">"))
        "→")
    (or " "
-       eol)))
+       eol))
+  :override-spaces-re
+  (rx
+   (or (seq (or line-start
+                (not (syntax ?.)))
+            (group-n 1 (* (any ?\s ?\t))))
+       (seq (group-n 1 (* (any ?\s ?\t)))
+            (seq haskell-regexen/modid ".")))))
+
 ;;;###autoload (autoload 'haskell-align-on-left-arrows "haskell-misc" nil t)
 (defalign haskell-align-on-left-arrows
   (rx
