@@ -211,13 +211,16 @@ sexps and indentation levels."
        "←")
    (or " "
        eol)))
+
 ;;;###autoload (autoload 'haskell-align-on-guards "haskell-misc" nil t)
 (defalign haskell-align-on-guards
   "|\\(?:[^|]\\|$\\)"
   :require-one-or-more-spaces t)
+
 ;;;###autoload (autoload 'haskell-align-on-commas "haskell-misc" nil t)
 (defalign haskell-align-on-commas
   ",\\(?:[^,\)]\\|$\\)")
+
 ;;;###autoload (autoload 'haskell-align-on-comments "haskell-misc" nil t)
 (defalign haskell-align-on-comments
   "--+\\(?: \\|$\\)"
@@ -226,9 +229,11 @@ sexps and indentation levels."
 ;;;###autoload (autoload 'haskell-align-on-double-colons "haskell-misc" nil t)
 (defalign haskell-align-on-double-colons
   haskell-regexen/function-signature-colons)
+
 ;;;###autoload (autoload 'haskell-align-on-pragma-close "haskell-misc" nil t)
 (defalign haskell-align-on-pragma-close
   "#-}")
+
 ;;;###autoload (autoload 'haskell-align-on-pragma-open "haskell-misc" nil t)
 (defalign haskell-align-on-pragma-open
   "{-#")
