@@ -23,7 +23,8 @@
 (require 'smerge-mode)
 (require 'vim-setup)
 
-(setf smerge-auto-leave nil)
+(setf smerge-auto-leave nil
+      smerge-refine-shadow-cursor nil)
 
 (vim-define-keymap smerge-mode "smerge mode")
 
