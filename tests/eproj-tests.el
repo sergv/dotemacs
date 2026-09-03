@@ -116,6 +116,9 @@ under ROOT directory."
 (defconst eproj-tests/implicit-haskell-project-with-local-archive
   (expand-file-name (concat eproj-tests/project-dir "/haskell-implicit-project-with-local.zip")))
 
+(defconst eproj-tests/implicit-haskell-project-with-bare-cabal-file
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-implicit-project-bare-cabal-file.zip")))
+
 (defconst eproj-tests/haskell-project-with-aux-files
   (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-aux-files/prefix-long")))
 
@@ -557,6 +560,43 @@ under ROOT directory."
         (funcall run-check)
         (eproj-reset-projects)
         (funcall run-check)))))
+
+(eproj-tests--define-tests
+    "eproj-tests/implicit-haskell-project-with-bare-cabal-file"
+
+  (unless eproj-tests/faster-richer-tags-exe
+    (ert-skip "faster-richer-tags not available"))
+
+  (test-utils--with-unzipped-project
+      eproj-tests/implicit-haskell-project-with-bare-cabal-file
+      tmp-dir
+    (let ((root (concat tmp-dir "/haskell-implicit-project-bare-cabal-file")))
+      (dolist (path
+               (list
+                (concat tmp-dir "/haskell-implicit-project-bare-cabal-file/exe/EProjTestMain.hs")
+                (concat tmp-dir "/haskell-implicit-project-bare-cabal-file/eproj-haskell-implicit-project-bare-cabal-file.cabal")
+                (concat tmp-dir "/haskell-implicit-project-bare-cabal-file/src/EProjTestLib.hs")
+                root))
+
+        (let ((path (concat tmp-dir "/haskell-implicit-project-bare-cabal-file/exe/EProjTestMain.hs")))
+
+          (let ((run-check
+                 (lambda ()
+                   (let ((proj (eproj-get-project-for-path path nil)))
+
+                     (should (not (null proj)))
+                     (should (eproj-tests/paths=? root (eproj-project/root proj)))
+
+                     (should (null (eproj-project/related-projects proj)))
+
+                     (dolist (name '("foo" "bar" "main"))
+                       (should (eproj-get-matching-tags proj 'haskell-mode name nil t)))))))
+
+            (funcall run-check)
+            (eproj-update-projects)
+            (funcall run-check)))
+
+        (eproj-reset-projects)))))
 
 (eproj-tests--define-tests
     "eproj-tests/haskell-project-with-aux-files"

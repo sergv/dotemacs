@@ -1031,34 +1031,48 @@ variable or symbol 'unresolved.")
                     (file-directory-p path-dir))))
     (awhen (and exists?
                 (or (eproj--locate-dominating-file path-dir ".eproj-info")
-                    (eproj--locate-dominating-file
+                    (eproj--locate-dominating-file-matching
                      path-dir
-                     (lambda (dir)
-                       (condition-case err
-                           (directory-files dir
-                                            nil ;; absolute names
-                                            (rx bos
-                                                (or ".git"
-                                                    (seq "cabal.project"
-                                                         (? "." (* not-newline))
-                                                         (? ".local")))
-                                                eos)
-                                            t ;; nosort
-                                            )
-                         ;; On WSL it happens that ‘file-directory-p’
-                         ;; returns ‘t’ but the directory doesn’t actually
-                         ;; exist any more and the only way to find out is via ‘directory-files’.
-                         (file-missing
-                          (if (and (string= (cadr err) "Opening directory")
-                                   (string= (caddr err) "No such file or directory"))
-                              nil
-                            (signal (car err) (cdr err)))))))
+                     (rx bos
+                         (or ".git"
+                             (seq "cabal.project"
+                                  (? "." (* not-newline))
+                                  (? ".local")))
+                         eos))
+                    (eproj--locate-dominating-file-matching
+                     path-dir
+                     (rx ".cabal" eos))
                     (and is-self-contained-file?
                          path-dir)))
       (eproj-normalise-file-name-expand-cached it))))
 
+(defun eproj--locate-dominating-file-matching (dir regexp)
+  "Like ‘locate-dominating-file’: start at DIR and look upwards for a directory
+that contains filename that matches REGEXP."
+  (eproj--locate-dominating-file
+   dir
+   (lambda (subdir)
+     (condition-case err
+         (directory-files subdir
+                          nil ;; absolute names
+                          regexp
+                          t ;; nosort
+                          )
+       ;; On WSL it happens that ‘file-directory-p’
+       ;; returns ‘t’ but the directory doesn’t actually
+       ;; exist any more and the only way to find out is via ‘directory-files’.
+       (file-missing
+        (if (and (equal (cadr err) "Opening directory")
+                 (equal (caddr err) "No such file or directory"))
+            nil
+          (signal (car err) (cdr err))))))))
+
 (defun eproj--locate-dominating-file (dir name)
-  "Like ‘locate-dominating-file’ but with optimisations."
+  "Like ‘locate-dominating-file’ but with optimisations.
+
+NAME can be either string which will act as explicit filename to check
+for in the directory we’re after or a function which should return t if
+given directory is what we’re after."
   (let ((root nil)
         try)
     (while (not (or root
