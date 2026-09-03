@@ -1176,9 +1176,9 @@ In effect, normalize contraints."
 
 (defun semnav-bounds-of-string-at--ts-haskell (pos)
   (declare (pure nil) (side-effect-free t))
-  (when-let* ((node (treesit-utils--string-at (treesit-haskell--node-at pos)
-                                              #'treesit-haskell--is-string-node-type?)))
-    (cons (treesit-node-start node) (treesit-node-end node))))
+  (treesit-utils-semnav-bounds-of-string-at
+   (treesit-haskell--node-at pos)
+   treesit-haskell--is-string-node-type?))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-base-mode prog-mode "Haskell[ts]"
