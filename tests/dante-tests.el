@@ -140,7 +140,6 @@
   "Spin in a loop until prompt dante-repl prompt shows up before point."
   (cl-assert (processp proc))
   (cl-assert (process-live-p proc))
-  ;; (accept-process-output proc nil nil t)
   (let ((p (point))
         (got-prompt? nil))
     (while (not (setf got-prompt?
@@ -156,12 +155,13 @@
 (defun dante-repl/wait-for-modules-loaded (proc)
   "Spin in a loop until prompt dante-repl prompt shows up before point."
   (cl-assert (processp proc))
-  (accept-process-output proc nil nil t)
   (while (save-excursion
            (goto-char (line-beginning-position 0))
            (not (or (looking-at-p "Ok, modules loaded:.*\\.$")
                     (looking-at-p "Failed, modules loaded: none\\.$"))))
-    (accept-process-output proc nil nil t)))
+    (accept-process-output proc nil nil t)
+    (sit-for 0.05)
+    (redisplay t)))
 
 (ert-deftest dante-tests/dante--extract-current-working-directory-from-show-paths ()
   (should
@@ -779,12 +779,15 @@
               (save-buffer))
 
             (vim:haskell-dante-load-file-into-repl:wrapper)
+            (dante-repl/wait-for-modules-loaded repl-proc)
+
             (dante-repl/wait-for-prompt repl-proc)
 
-            (insert ":t 1 + 2")
+            (insert ":t 1 + 3")
             (comint-send-input)
+
             (dante-repl/wait-for-prompt repl-proc)
-            (should (string= (dante-repl-get-last-output) "1 + 2 :: Num a => a\n"))
+            (should (string= (dante-repl-get-last-output) "1 + 3 :: Num a => a\n"))
 
             (insert ":t baz")
             (comint-send-input)
