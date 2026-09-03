@@ -249,6 +249,7 @@ let
     exe-name: pkg: debug-wrapper:
       {
         inherit exe-name;
+        inherit (pkg) version;
         deriv =
           pkgs.writeScriptBin exe-name ''
             #!${pkgs.bash}/bin/bash

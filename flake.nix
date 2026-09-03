@@ -192,7 +192,7 @@
           emacs-config =
             pkgs.stdenvNoCC.mkDerivation {
               pname   = emacs.deriv.name + "-config";
-              version = "0.9";
+              version = emacs.version + ".1";
               src     = emacs-config-source;
               buildInputs = [
                 emacs.deriv
