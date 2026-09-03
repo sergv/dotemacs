@@ -37,10 +37,10 @@
 
 ;;; Code:
 
+(require 'nix-ts-getters)
+(require 'semnav)
 (require 'treesit)
 (require 'treesit-utils)
-
-(require 'nix-ts-getters)
 
 (unless (treesit-available-p)
   (error "`nix-ts-mode` requires Emacs to be built with tree-sitter support"))
@@ -577,6 +577,82 @@ Return nil if there is no name or if NODE is not a defun node."
                   (nix-ts--mark-string! (- (treesit-node-end last-delim) 1))
                 (nix-ts--reset-string! (- (treesit-node-end last-delim) 1))))))))))
 
+(defun treesit-nix--is-string-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (string= typ "string_fragment"))
+
+(defun treesit-nix--is-comment-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (string= typ "comment"))
+
+(defun treesit-nix--is-inside-string-node? (p node)
+  (declare (pure t) (side-effect-free t))
+  (treesit-utils-is-inside-string-node? p node #'treesit-nix--is-string-node-type?))
+
+(defun treesit-nix--is-inside-comment-node? (p node)
+  (declare (pure t) (side-effect-free t))
+  (treesit-utils-is-inside-comment-node? p node #'treesit-nix--is-comment-node-type?))
+
+(defun treesit-nix--is-inside-string-or-comment-node? (p node)
+  (declare (pure t) (side-effect-free t))
+  (treesit-utils-is-inside-string-or-comment-node?
+   p
+   node
+   #'treesit-nix--is-string-node-type?
+   #'treesit-nix--is-comment-node-type?))
+
+(defun treesit-nix--is-not-inside-string-or-comment-node? (p node)
+  (declare (pure t) (side-effect-free t))
+  (treesit-utils-is-not-inside-string-or-comment-node?
+   p
+   node
+   #'treesit-nix--is-string-node-type?
+   #'treesit-nix--is-comment-node-type?))
+
+(defun treesit-nix--node-at (pos)
+  (when (derived-mode-p 'nix-ts-mode)
+    (treesit-node-at pos (treesit-parser-create 'nix))))
+
+(defun treesit-nix--current-node ()
+  (treesit-nix--node-at (point)))
+
+(defun semnav-bounds-of-string-at--ts-nix (pos)
+  (declare (pure nil) (side-effect-free t))
+  (treesit-utils-semnav-bounds-of-string-at
+   (treesit-nix--node-at pos)
+   treesit-nix--is-string-node-type?))
+
+(defun point-inside-string?--ts-nix (&optional pos)
+  "Return non-nil if point is positioned inside a string."
+  (declare (pure nil) (side-effect-free t))
+  (treesit-nix--is-inside-string-node? (or pos (point))
+                                       (treesit-nix--current-node)))
+
+(defun point-inside-comment?--ts-nix (&optional pos)
+  "Return non-nil if point is positioned inside a string."
+  (declare (pure nil) (side-effect-free t))
+  (setf pos (or pos (point)))
+  (or (point-inside-comment?--default pos)
+      (treesit-nix--is-inside-comment-node? pos
+                                            (treesit-nix--current-node))))
+
+(defun point-inside-string-or-comment?--ts-nix (&optional pos)
+  "Return t if point is positioned inside a string."
+  (declare (pure nil) (side-effect-free t))
+  (setf pos (or pos (point)))
+  (or (point-inside-comment?--default pos)
+      (treesit-nix--is-inside-string-or-comment-node? pos
+                                                      (treesit-nix--current-node))))
+
+(defsubst point-not-inside-string-or-comment?--ts-nix (&optional pos)
+  (declare (pure nil) (side-effect-free t))
+  (setf pos (or pos (point)))
+  (and (not (point-inside-comment?--default pos))
+       (treesit-nix--is-not-inside-string-or-comment-node? pos
+                                                           (treesit-nix--current-node))))
+
 ;;;###autoload
 (define-derived-mode nix-ts-mode prog-mode "Nix"
   "Major mode for editing Nix expressions, powered by treesitter.
@@ -601,6 +677,14 @@ Return nil if there is no name or if NODE is not a defun node."
     ;; Comments
     (setq-local comment-start "# ")
     (setq-local comment-start-skip "#+\\s-*")
+
+
+    (setq-local
+     point-inside-string?-override                #'point-inside-string?--ts-nix
+     point-inside-comment?-override               #'point-inside-comment?--ts-nix
+     point-inside-string-or-comment?-override     #'point-inside-string-or-comment?--ts-nix
+     point-not-inside-string-or-comment?-override #'point-not-inside-string-or-comment?--ts-nix
+     semnav-bounds-of-string-at-override          #'semnav-bounds-of-string-at--ts-nix)
 
     ;; Indentation
     (setq-local treesit-simple-indent-rules nix-ts-mode-indent-rules)
