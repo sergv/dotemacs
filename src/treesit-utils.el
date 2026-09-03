@@ -45,7 +45,7 @@
   (and (<= (treesit-node-start node) p)
        (<= p (treesit-node-end node))))
 
-(defun treesit-haskell--is-inside-node-ex-start? (p node)
+(defun treesit-utils--is-inside-node-ex-start? (p node)
   (declare (pure t) (side-effect-free t))
   (cl-assert (integerp p))
   (cl-assert (treesit-node-p node))
@@ -71,29 +71,58 @@
       (string= typ "string")
       (string= typ "quasiquote_body")))
 
+(defun treesit-utils-is-inside-string-node? (p node is-string-node-type?)
+  (declare (pure t) (side-effect-free t))
+  (and (treesit-utils--is-inside-node-ex-start? p node)
+       (funcall is-string-node-type? (treesit-node-type node))))
+
+(defun treesit-utils-is-inside-comment-node? (p node is-comment-node-type?)
+  (declare (pure t) (side-effect-free t))
+  (and (treesit-utils--is-inside-node-ex-start? p node)
+       (funcall is-comment-node-type? (treesit-node-type node))))
+
+(defun treesit-utils-is-inside-string-or-comment-node? (p node is-string-node-type? is-comment-node-type?)
+  (declare (pure t) (side-effect-free t))
+  (let ((typ (treesit-node-type node)))
+    (and (treesit-utils--is-inside-node-ex-start? p node)
+         (or (funcall is-string-node-type? typ)
+             (funcall is-comment-node-type? typ)))))
+
+(defun treesit-utils-is-not-inside-string-or-comment-node? (p node is-string-node-type? is-comment-node-type?)
+  (declare (pure t) (side-effect-free t))
+  (let ((typ (treesit-node-type node)))
+    (not (and (treesit-utils--is-inside-node-ex-start? p node)
+              (or (funcall is-string-node-type? typ)
+             (funcall is-comment-node-type? typ))))))
+
+(defun treesit-utils-semnav-bounds-of-string-at--ts-haskell (node is-string-node-type?)
+  (declare (pure nil) (side-effect-free t))
+  (when-let* ((node (treesit-utils--string-at node is-string-node-type?)))
+    (cons (treesit-node-start node) (treesit-node-end node))))
+
 (defun treesit-haskell--is-inside-string-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (and (treesit-haskell--is-inside-node-ex-start? p node)
-       (treesit-haskell--is-string-node-type? (treesit-node-type node))))
+  (treesit-utils-is-inside-string-node? p node #'treesit-haskell--is-string-node-type?))
 
 (defun treesit-haskell--is-inside-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (and (treesit-haskell--is-inside-node-ex-start? p node)
-       (treesit-haskell--is-comment-node-type? (treesit-node-type node))))
+  (treesit-utils-is-inside-comment-node? p node #'treesit-haskell--is-comment-node-type?))
 
 (defun treesit-haskell--is-inside-string-or-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (let ((typ (treesit-node-type node)))
-    (and (treesit-haskell--is-inside-node-ex-start? p node)
-         (or (treesit-haskell--is-comment-node-type? typ)
-             (treesit-haskell--is-string-node-type? typ)))))
+  (treesit-utils-is-inside-string-or-comment-node?
+   p
+   node
+   #'treesit-haskell--is-string-node-type?
+   #'treesit-haskell--is-comment-node-type?))
 
 (defun treesit-haskell--is-not-inside-string-or-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (let ((typ (treesit-node-type node)))
-    (not (and (treesit-haskell--is-inside-node-ex-start? p node)
-              (or (treesit-haskell--is-comment-node-type? typ)
-                  (treesit-haskell--is-string-node-type? typ))))))
+  (treesit-utils-is-not-inside-string-or-comment-node?
+   p
+   node
+   #'treesit-haskell--is-string-node-type?
+   #'treesit-haskell--is-comment-node-type?))
 
 (defun treesit-haskell-get-buffer-module-name ()
   (if-let* ((header-candidates (treesit-filter-child
