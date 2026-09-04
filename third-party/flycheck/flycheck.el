@@ -3487,21 +3487,21 @@ ARG is ‘toggle’; disable the mode otherwise."
    (flycheck-mode
     (flycheck-clear)
     (flycheck--sync-margin)
-    (add-hook 'eldoc-documentation-functions #'flycheck-eldoc-function nil t)
-    ;; Guarded by a buffer-local flag that only Flycheck sets, so this is
-    ;; inert everywhere else.  It stays for the session: Eldoc displays for
-    ;; whichever buffer answered last, so removing it when one buffer turns
-    ;; Flycheck off would break the buffers that still have it on.
-    (advice-add 'eldoc-display-in-buffer
-                :around #'flycheck--eldoc-suppress-doc-window)
-    ;; `global-eldoc-mode' may have skipped this buffer because no
-    ;; documentation source was registered when it made its decision;
-    ;; give it another chance now that Flycheck provides one.  Buffers
-    ;; where the user disabled Eldoc entirely are left alone; there the
-    ;; display timer picks up the slack.
-    (when (and (bound-and-true-p global-eldoc-mode)
-               (not (bound-and-true-p eldoc-mode)))
-      (turn-on-eldoc-mode))
+    ;; (add-hook 'eldoc-documentation-functions #'flycheck-eldoc-function nil t)
+    ;; ;; Guarded by a buffer-local flag that only Flycheck sets, so this is
+    ;; ;; inert everywhere else.  It stays for the session: Eldoc displays for
+    ;; ;; whichever buffer answered last, so removing it when one buffer turns
+    ;; ;; Flycheck off would break the buffers that still have it on.
+    ;; (advice-add 'eldoc-display-in-buffer
+    ;;             :around #'flycheck--eldoc-suppress-doc-window)
+    ;; ;; `global-eldoc-mode' may have skipped this buffer because no
+    ;; ;; documentation source was registered when it made its decision;
+    ;; ;; give it another chance now that Flycheck provides one.  Buffers
+    ;; ;; where the user disabled Eldoc entirely are left alone; there the
+    ;; ;; display timer picks up the slack.
+    ;; (when (and (bound-and-true-p global-eldoc-mode)
+    ;;            (not (bound-and-true-p eldoc-mode)))
+    ;;   (turn-on-eldoc-mode))
 
     (pcase-dolist (`(,hook . ,fn) (reverse flycheck-hooks-alist))
       (add-hook hook fn nil 'local))
@@ -3523,7 +3523,7 @@ ARG is ‘toggle’; disable the mode otherwise."
     (unless (eq flycheck-old-next-error-function :unset)
       (setq next-error-function flycheck-old-next-error-function))
 
-    (remove-hook 'eldoc-documentation-functions #'flycheck-eldoc-function t)
+    ;; (remove-hook 'eldoc-documentation-functions #'flycheck-eldoc-function t)
 
     (pcase-dolist (`(,hook . ,fn) flycheck-hooks-alist)
       (remove-hook hook fn 'local))

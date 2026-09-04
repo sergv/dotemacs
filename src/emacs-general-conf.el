@@ -173,7 +173,9 @@
       message-log-max (ash 1 19)
 
       ;; To be able to show tall messages
-      max-mini-window-height 0.5)
+      max-mini-window-height 0.5
+
+      eldoc-echo-area-display-truncation-message nil)
 
 (when-emacs-version (<= 28 it)
   (when (boundp 'native-comp-deferred-compilation-deny-list)
