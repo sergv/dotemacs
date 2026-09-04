@@ -13,30 +13,10 @@
 (declare-function treesit-filter-child "treesit")
 (declare-function treesit-node-at "treesit")
 
-(defvar haskell-regexen/inline-pragmas-complete-pragma)
-(defvar haskell-ts-buffer-lang)
-
 (require 'buffer-span)
 (require 'common)
 (require 'common-small)
 (require 'semnav)
-
-(defsubst treesit-haskell--current-node ()
-  (treesit-haskell--node-at (point)))
-
-(defun treesit-haskell--node-at (pos)
-  (when (derived-mode-p 'haskell-ts-base-mode)
-    (treesit-node-at pos
-                     ;; Hoping the parser will get reused, should be safe for
-                     ;; haskell-ts-mode and its derivatives.
-                     (treesit-parser-create haskell-ts-buffer-lang))))
-
-(defun treesit-haskell--is-multiline-string? (node)
-  (declare (pure nil) (side-effect-free t))
-  (cl-assert (treesit-node-p node))
-  (and (string= "string" (treesit-node-type node))
-       (text-after-pos-matches? (treesit-node-start node) "\"\"\"")
-       (text-before-pos-matches? (treesit-node-end node) "\"\"\"")))
 
 (defun treesit-utils-is-inside-node? (p node)
   (declare (pure t) (side-effect-free t))
@@ -52,173 +32,59 @@
   (and (< (treesit-node-start node) p)
        (<= p (treesit-node-end node))))
 
-(defun treesit-haskell--is-pragma-node-type? (typ)
-  (declare (pure t) (side-effect-free t))
-  (cl-assert (stringp typ))
-  (string= typ "pragma"))
+(defun treesit-utils--do-resolve (f pos node)
+  "Turn predicate F on treesit nodes that may return booleans into function
+that always returns either nil (if the predicate fails) or treesit
+node (if pthe redicate succeeds)."
+  (cl-assert (functionp f))
+  (cl-assert (fixnump pos))
+  (cl-assert (treesit-node-p node))
+  (let ((res (funcall f pos node)))
+    (if (eq res t)
+        node
+      (progn
+        (cl-assert (or (null res) (treesit-node-p res)))
+        res))))
 
-(defun treesit-haskell--is-comment-node-type? (typ)
-  (declare (pure t) (side-effect-free t))
-  (cl-assert (stringp typ))
-  (or (string= typ "comment")
-      (string= typ "haddock")
-      (treesit-haskell--is-pragma-node-type? typ)))
+(defun treesit-utils-is-inside-string-node? (p node resolve-string)
+  "RESOLVE-STRING function that takes treesitter node and returns either nil if it’s not
+a string node or new treesitter node that is a string node (e.g. a parent of the passed node
+that should be considered the string node we’re dealing with instead of the original node
+which may have been a string delimiter that’s too narrow for our purposes).
 
-(defun treesit-haskell--is-string-node-type? (typ)
+Alternatively, RESOLVE-STRING may return t if passed node is the string node to go with,
+in which case the passed node will be used further."
   (declare (pure t) (side-effect-free t))
-  (cl-assert (stringp typ))
-  (or (string= typ "char")
-      (string= typ "string")
-      (string= typ "quasiquote_body")))
+  (and-let* ((resolved (treesit-utils--do-resolve resolve-string p node)))
+    (treesit-utils--is-inside-node-ex-start? p resolved)))
 
-(defun treesit-utils-is-inside-string-node? (p node is-string-node-type?)
+(defun treesit-utils-is-inside-comment-node? (p node resolve-comment)
+  "See ‘treesit-utils-is-inside-string-node?’ for meaning of RESOLVE-COMMENT."
   (declare (pure t) (side-effect-free t))
-  (and (treesit-utils--is-inside-node-ex-start? p node)
-       (funcall is-string-node-type? (treesit-node-type node))))
+  (and-let* ((resolved (treesit-utils--do-resolve resolve-comment p node)))
+    (treesit-utils--is-inside-node-ex-start? p resolved)))
 
-(defun treesit-utils-is-inside-comment-node? (p node is-comment-node-type?)
+(defun treesit-utils-is-inside-string-or-comment-node? (p node resolve-string resolve-comment)
+  "See ‘treesit-utils-is-inside-string-node?’ for meaning of RESOLVE-STRING and RESOLVE-COMMENT."
   (declare (pure t) (side-effect-free t))
-  (and (treesit-utils--is-inside-node-ex-start? p node)
-       (funcall is-comment-node-type? (treesit-node-type node))))
+  (and-let* ((resolved (or (treesit-utils--do-resolve resolve-string p node)
+                           (treesit-utils--do-resolve resolve-comment p node))))
+    (treesit-utils--is-inside-node-ex-start? p resolved)))
 
-(defun treesit-utils-is-inside-string-or-comment-node? (p node is-string-node-type? is-comment-node-type?)
+(defun treesit-utils-is-not-inside-string-or-comment-node? (p node resolve-string resolve-comment)
+  "See ‘treesit-utils-is-inside-string-node?’ for meaning of RESOLVE-STRING and RESOLVE-COMMENT."
   (declare (pure t) (side-effect-free t))
-  (let ((typ (treesit-node-type node)))
-    (and (treesit-utils--is-inside-node-ex-start? p node)
-         (or (funcall is-string-node-type? typ)
-             (funcall is-comment-node-type? typ)))))
+  (not
+   (and-let* ((resolved (or (treesit-utils--do-resolve resolve-string p node)
+                            (treesit-utils--do-resolve resolve-comment p node))))
+     (treesit-utils--is-inside-node-ex-start? p resolved))))
 
-(defun treesit-utils-is-not-inside-string-or-comment-node? (p node is-string-node-type? is-comment-node-type?)
-  (declare (pure t) (side-effect-free t))
-  (let ((typ (treesit-node-type node)))
-    (not (and (treesit-utils--is-inside-node-ex-start? p node)
-              (or (funcall is-string-node-type? typ)
-             (funcall is-comment-node-type? typ))))))
-
-(defun treesit-utils-semnav-bounds-of-string-at--ts-haskell (node is-string-node-type?)
+(defun treesit-utils-semnav-bounds-of-string-at (node is-string-node?)
+  "IS-STRING-NODE? - function that takes a treesitter node and shold return non-nil if it’s
+as string node."
   (declare (pure nil) (side-effect-free t))
-  (when-let* ((node (treesit-utils--string-at node is-string-node-type?)))
+  (when-let* ((node (treesit-utils--string-at node is-string-node?)))
     (cons (treesit-node-start node) (treesit-node-end node))))
-
-(defun treesit-haskell--is-inside-string-node? (p node)
-  (declare (pure t) (side-effect-free t))
-  (treesit-utils-is-inside-string-node? p node #'treesit-haskell--is-string-node-type?))
-
-(defun treesit-haskell--is-inside-comment-node? (p node)
-  (declare (pure t) (side-effect-free t))
-  (treesit-utils-is-inside-comment-node? p node #'treesit-haskell--is-comment-node-type?))
-
-(defun treesit-haskell--is-inside-string-or-comment-node? (p node)
-  (declare (pure t) (side-effect-free t))
-  (treesit-utils-is-inside-string-or-comment-node?
-   p
-   node
-   #'treesit-haskell--is-string-node-type?
-   #'treesit-haskell--is-comment-node-type?))
-
-(defun treesit-haskell--is-not-inside-string-or-comment-node? (p node)
-  (declare (pure t) (side-effect-free t))
-  (treesit-utils-is-not-inside-string-or-comment-node?
-   p
-   node
-   #'treesit-haskell--is-string-node-type?
-   #'treesit-haskell--is-comment-node-type?))
-
-(defun treesit-haskell-get-buffer-module-name ()
-  (if-let* ((header-candidates (treesit-filter-child
-                                (treesit-buffer-root-node haskell-ts-buffer-lang)
-                                (lambda (node)
-                                  (string= "header" (treesit-node-type node))))))
-      (treesit-node-text-no-properties-unsafe (treesit-node-child-by-field-name (car header-candidates) "module"))
-    "Main"))
-
-(cl-defstruct (treesit-haskell-inline-pragma
-               (:conc-name treesit-haskell-inline-pragma/))
-  ;; String
-  (pragma nil :read-only t)
-  ;; String
-  (function-name nil :read-only t)
-  ;; Integer
-  (function-name-start nil :read-only t)
-  ;; Integer
-  (function-name-end nil :read-only t)
-  ;; Treesitter node
-  (node nil :read-only t))
-
-(defun treesit-haskell-inline-pragma-strictly-inside-node? (pragma node)
-  (cl-assert (treesit-haskell-inline-pragma-p pragma))
-  (cl-assert (treesit-node-p node))
-  (let* ((start (treesit-node-start node))
-         (end (treesit-node-end node))
-         (pragma-node (treesit-haskell-inline-pragma/node pragma))
-         (s (treesit-node-start pragma-node))
-         (e (treesit-node-end pragma-node)))
-    (and (< start s)
-         (< s end)
-         (< start e)
-         (< e end))))
-
-(defun treesit-haskell-inline-pragma= (x y)
-  (and (string= (treesit-haskell-inline-pragma/pragma x)
-                (treesit-haskell-inline-pragma/pragma y))
-       (string= (treesit-haskell-inline-pragma/function-name x)
-                (treesit-haskell-inline-pragma/function-name y))
-       (eq (treesit-haskell-inline-pragma/function-name-start x)
-           (treesit-haskell-inline-pragma/function-name-start y))
-       (eq (treesit-haskell-inline-pragma/function-name-end x)
-           (treesit-haskell-inline-pragma/function-name-end y))))
-
-(defun treesit-haskell-inline-pragma-name-same-as-span? (pragma node)
-  (buffer-span-text-in-current-buffer= node
-                                       (treesit-haskell-inline-pragma/function-name-start pragma)
-                                       (treesit-haskell-inline-pragma/function-name-end pragma)))
-
-(defun treesit-haskell-parse-inline-pragma (node)
-  (cl-assert (treesit-node-p node))
-  (when (string= (treesit-node-type node) "pragma")
-    (save-excursion
-      (goto-char (treesit-node-start node))
-      (when (looking-at haskell-regexen/inline-pragmas-complete-pragma)
-        (make-treesit-haskell-inline-pragma
-         :pragma (match-string-no-properties 1)
-         :function-name (match-string-no-properties 2)
-         :function-name-start (match-beginning 2)
-         :function-name-end (match-end 2)
-         :node node)))))
-
-(defun point-inside-string?--ts-haskell (&optional pos)
-  "Return non-nil if point is positioned inside a string."
-  (declare (pure nil) (side-effect-free t))
-  (treesit-haskell--is-inside-string-node? (or pos (point))
-                                           (treesit-haskell--current-node)))
-
-(defun point-inside-comment?--ts-haskell (&optional pos)
-  "Return non-nil if point is positioned inside a string."
-  (declare (pure nil) (side-effect-free t))
-  (setf pos (or pos (point)))
-  (or (point-inside-comment?--default pos)
-      (treesit-haskell--is-inside-comment-node? pos
-                                                (treesit-haskell--current-node))))
-
-(defun point-inside-string-or-comment?--ts-haskell (&optional pos)
-  "Return t if point is positioned inside a string."
-  (declare (pure nil) (side-effect-free t))
-  (setf pos (or pos (point)))
-  (or (point-inside-comment?--default pos)
-      (treesit-haskell--is-inside-string-or-comment-node? pos
-                                                          (treesit-haskell--current-node))))
-
-(defsubst point-not-inside-string-or-comment?--ts-haskell (&optional pos)
-  (declare (pure nil) (side-effect-free t))
-  (setf pos (or pos (point)))
-  (and (not (point-inside-comment?--default pos))
-       (treesit-haskell--is-not-inside-string-or-comment-node? pos
-                                                               (treesit-haskell--current-node))))
-
-(defun treesit-haskell--is-inside-pragma-node? (p node)
-  (declare (pure t) (side-effect-free t))
-  (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
-       (treesit-utils-is-inside-node? p node)))
 
 ;;;###autoload
 (defun treesit-utils--string-at (node string-node-type-pred)
@@ -233,7 +99,6 @@
   (anchor-node nil :read-only t)
   ;; list of symbols
   flags)
-
 
 (defun treesit-matched-anchor-node-type (x)
   (cl-assert (or (treesit-node-p x)
