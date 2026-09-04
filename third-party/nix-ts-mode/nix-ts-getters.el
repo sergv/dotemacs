@@ -16,7 +16,7 @@
 (require 'common-whitespace)
 (require 'haskell-lexeme)
 (require 'treesit)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (defun nix-ts-getters--find-child (node type-to-find)
   (catch 'result
