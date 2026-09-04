@@ -17,7 +17,7 @@
 (require 'buffer-span)
 (require 'treesit)
 (require 'treesit-setup)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (defconst haskell-ts-rename--renameable-identifier-query
   (haskell-ts-query-compile

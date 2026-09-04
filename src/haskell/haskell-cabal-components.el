@@ -11,7 +11,7 @@
   (require 'subr-x)
   (require 'macro-util)
   (require 'set-up-platform)
-  (require 'treesit-utils)
+  (require 'treesit-haskell)
   (require 'trie))
 
 (cl-defstruct (cabal-component

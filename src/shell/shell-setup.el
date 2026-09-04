@@ -55,13 +55,14 @@
 
 (defun treesit-bash--is-string-node-type? (typ)
   (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
   (member typ '("string" "raw_string")))
 
 (defun semnav-bounds-of-string-at--ts-bash (pos)
   (declare (pure nil) (side-effect-free t))
-  (when-let* ((node (treesit-utils--string-at (treesit-node-at pos)
-                                              #'treesit-bash--is-string-node-type?)))
-    (cons (treesit-node-start node) (treesit-node-end node))))
+  (treesit-utils-semnav-bounds-of-string-at
+   (treesit-node-at pos)
+   #'treesit-bash--is-string-node-type?))
 
 ;;;###autoload
 (defun shell-script-setup ()

@@ -35,7 +35,7 @@
 (require 's)
 (require 'search)
 (require 'start-common)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 (require 'trie)
 
 (require 'abbrev+)
