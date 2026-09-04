@@ -1,0 +1,119 @@
+name: Recorded output
+
+# A recording says what a tool printed on the day it was recorded, and the
+# specs that read it keep passing whatever the tool does afterwards.  That
+# is the point on a machine without the tool, and a blind spot everywhere
+# else, so the tools that are here get run again and compared.
+#
+# A difference is not a broken test.  It means a tool changed what it
+# prints, and the checker that reads it may need to change too.
+
+on:
+  schedule:
+    # Mondays, early enough to be waiting when the week starts
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'test/fixtures/**'
+      - 'test/record-fixture.el'
+
+permissions:
+  contents: read
+
+jobs:
+  # On a pull request, against whatever the runner can be given quickly.
+  # This is for telling someone their recording is wrong while they are
+  # still looking at it, not for covering every checker.
+  changed:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - uses: jcs090218/setup-emacs@54b61ac9c1d7011a54d2b6d66dedbcddf20e2fb9 # master, 2026-08-06
+      with:
+        version: 30.2
+
+    - uses: emacs-eask/setup-eask@5e7d164250e4b5e438fb02a21b57d001a3b189b2 # master, 2026-08-06
+      with:
+        version: 'snapshot'
+
+    - name: Install the checkers the runner does not already have
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes --no-install-recommends \
+          cppcheck gawk tidy lua5.4 shellcheck libxml2-utils
+        pip install --quiet flake8 pylint
+        npm install --global --silent --ignore-scripts stylelint stylelint-config-standard \
+          markdownlint-cli markdownlint-cli2 oxlint
+
+    - run: make init
+
+    - name: Compare the recordings against the tools
+      run: make verify-fixtures
+
+  # Weekly, against the image, which has nearly every tool we record from.
+  # Hand-listing them above reaches a fraction of the recordings and drifts
+  # from the image besides, so the run that has to be thorough uses the
+  # same thing `make record-fixtures' records with.
+  everything:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      # A red badge on a scheduled run is a blind spot; drift gets filed
+      # as an issue instead, by the step at the bottom
+      issues: write
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    # The image is large, and a runner arrives with tens of gigabytes of
+    # toolchains this job has no use for.
+    - name: Make room for the image
+      run: |
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android \
+          /usr/local/share/boost /usr/share/swift
+        df -h /
+
+    # Plain `docker build': the image runs to several gigabytes, which is
+    # not something to push through the Actions cache every week.  Once a
+    # week from scratch is the cheaper trade.
+    - name: Build the image
+      run: make checker-image
+
+    - name: Compare every recording against its tool
+      run: |
+        set -o pipefail
+        make verify-fixtures-in-image 2>&1 | tee verify.log
+
+    - name: File the drift as an issue
+      if: failure() && github.event_name == 'schedule'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        {
+          echo "The weekly check found recordings their tools no longer produce."
+          echo "A difference is not a broken test: it means a tool changed what"
+          echo "it prints, and the checker that reads it may need to change too."
+          echo
+          echo "[Run log]($RUN_URL); the tail of the comparison:"
+          echo
+          echo '```'
+          tail -40 verify.log
+          echo '```'
+        } > body.md
+        existing=$(gh issue list --label fixture-drift --state open \
+                     --json number --jq '.[0].number')
+        if [ -n "$existing" ]; then
+          gh issue comment "$existing" --body-file body.md
+        else
+          gh issue create --title "A checker stopped reading its tool" \
+            --label fixture-drift --body-file body.md
+        fi
