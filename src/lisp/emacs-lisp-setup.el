@@ -137,7 +137,8 @@ _e_val
                    :indent-region #'indent-region
                    :in-char-p #'paredit-in-lisp-char-p
                    :space-before-open-paren t)
-  (setq-local company-backends '(company-elisp))
+  (setq-local company-backends '((company-elisp company-dabbrev-code)
+                                 company-dabbrev))
 
   (emacs-lisp-highlight-keywords)
 
