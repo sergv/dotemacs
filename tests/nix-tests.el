@@ -922,7 +922,7 @@
  :action
  (point-inside-string? (point))
  :expected-value
- nil
+ t
  :contents
  (tests-utils--multiline
   "let suffix = if builtins.isNull alias-version then \"\" else \"-${alias-version}_|_\";"
