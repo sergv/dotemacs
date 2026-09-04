@@ -726,7 +726,7 @@ After a lambda (backslash) there are two possible cases:
   "Parse toplevel statements."
   (haskell-indentation-layout
    (lambda ()
-     (if-let ((parser (assoc current-token haskell-indentation-toplevel-list)))
+     (if-let* ((parser (assoc current-token haskell-indentation-toplevel-list)))
          (funcall (cdr parser))
        (haskell-indentation-declaration)))))
 
@@ -1073,8 +1073,8 @@ parser.  If parsing ends here, set indentation to left-indent."
                   (haskell-indentation-add-indentation left-indent)))
            (throw 'return nil))
           (t
-           (if-let (parser (assoc current-token
-                                  haskell-indentation-expression-list))
+           (if-let* ((parser (assoc current-token
+                                    haskell-indentation-expression-list)))
                (progn
                  (funcall (cdr parser)) ; run parser
 
