@@ -157,13 +157,15 @@
            menu-item
            ,(funcall tab-bar-tab-name-format-function tab i)
            ignore
-           :help ,(funcall tab-bar-format-tab-help-text-function tab i))))
+           (el-patch-remove :help)
+           (el-patch-remove ,(funcall tab-bar-format-tab-help-text-function tab i)))))
        (t
         `((,(intern (format "tab-%i" i))
            menu-item
            ,(funcall tab-bar-tab-name-format-function tab i)
            ,(alist-get 'binding tab)
-           :help ,(funcall tab-bar-format-tab-help-text-function tab i)))))
+           (el-patch-remove :help)
+           (el-patch-remove ,(funcall tab-bar-format-tab-help-text-function tab i))))))
      (when (alist-get 'close-binding tab)
        `((,(if (eq (car tab) 'current-tab) 'C-current-tab
              (intern (format "C-tab-%i" i)))
