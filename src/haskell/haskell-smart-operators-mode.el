@@ -29,7 +29,7 @@
 
 (require 'treesit)
 (require 'treesit-setup)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (defconst haskell-smart-operators--operator-chars-str "!#$%&*+./:<=>?@\\^|~-")
 

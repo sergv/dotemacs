@@ -43,7 +43,7 @@
 (eval-when-compile
   (require 'macro-util)
   (require 'set-up-platform)
-  (require 'treesit-utils))
+  (require 'treesit-haskell))
 
 (require 'cl-lib)
 (require 'haskell-lexeme)
@@ -52,7 +52,7 @@
 (require 'haskell-smart-operators-utils)
 (require 'macro-util)
 (require 'smart-operators-utils)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (defgroup haskell-indentation nil
   "Haskell indentation."
