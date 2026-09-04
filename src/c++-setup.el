@@ -186,12 +186,7 @@ _<tab>_: format region
 (defun c++-setup ()
   (cc-setup :define-special-keys t)
   (cc-setup/set-up-c-basic-offset)
-  (setq-local company-backends
-              '(company-clang
-                company-files
-                (company-eproj company-dabbrev-code company-keywords)
-                company-dabbrev)
-              indent-tabs-mode nil)
+  (setq-local indent-tabs-mode nil)
   (setup-folding 'enable-cpp '(:header-symbol "/" :length-min 3))
 
   (configurable-compilation-install-command-presets!
@@ -202,6 +197,11 @@ _<tab>_: format region
   (let (;; NB may be nil.
         (proj (eproj-get-project-for-buf-lax (current-buffer))))
 
+    ;; (setq-local company-backends
+    ;;             '(company-clang
+    ;;               company-files
+    ;;               (company-eproj company-dabbrev-code company-keywords)
+    ;;               company-dabbrev))
     (setq-local company-backends
                 `(company-files
                   ,(if proj
