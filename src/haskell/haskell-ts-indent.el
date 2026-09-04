@@ -10,7 +10,7 @@
   (require 'cl-lib)
   (require 'dash)
   (require 'macro-util)
-  (require 'treesit-utils))
+  (require 'treesit-haskell))
 
 (declare-function haskell-backspace-with-block-dedent--impl "haskell-block-indent")
 (declare-function haskell-misc--indent-line--fingerprint "haskell-misc")
@@ -27,7 +27,7 @@
 (require 'haskell-lexeme)
 (require 'haskell-ts-getters)
 (require 'treesit)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (defconst haskell-ts--treesit-simple-indent-presets
   (append

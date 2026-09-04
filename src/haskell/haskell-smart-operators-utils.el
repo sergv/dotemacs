@@ -11,7 +11,7 @@
   (require 'macro-util))
 
 (require 'haskell-ts-mode)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (defun haskell-smart-operators--treesit--in-quasiquote-body? (node)
   (and node

@@ -15,7 +15,7 @@
 (require 'common-whitespace)
 (require 'haskell-lexeme)
 (require 'treesit)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (defun haskell-ts-getters--get-opening-paren (node)
   (cl-assert (member (treesit-node-type node) '("parens" "tuple")))
