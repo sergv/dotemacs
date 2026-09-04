@@ -21,7 +21,7 @@
 (require 'haskell-snippets)
 (require 's)
 (require 'semnav)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 (require 'trie)
 (require 'v)
 

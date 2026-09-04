@@ -21,7 +21,7 @@
 (require 'semnav)
 (require 'sorted-set)
 (require 'treesit)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (declare-function treesit-parser-create "treesit.c")
 
@@ -1178,7 +1178,7 @@ In effect, normalize contraints."
   (declare (pure nil) (side-effect-free t))
   (treesit-utils-semnav-bounds-of-string-at
    (treesit-haskell--node-at pos)
-   treesit-haskell--is-string-node-type?))
+   #'treesit-haskell--is-string-node-type?))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-base-mode prog-mode "Haskell[ts]"

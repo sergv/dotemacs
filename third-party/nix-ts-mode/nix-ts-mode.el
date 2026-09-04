@@ -40,7 +40,7 @@
 (require 'nix-ts-getters)
 (require 'semnav)
 (require 'treesit)
-(require 'treesit-utils)
+(require 'treesit-haskell)
 
 (unless (treesit-available-p)
   (error "`nix-ts-mode` requires Emacs to be built with tree-sitter support"))
@@ -577,39 +577,59 @@ Return nil if there is no name or if NODE is not a defun node."
                   (nix-ts--mark-string! (- (treesit-node-end last-delim) 1))
                 (nix-ts--reset-string! (- (treesit-node-end last-delim) 1))))))))))
 
-(defun treesit-nix--is-string-node-type? (typ)
+(defun treesit-nix--resolve-string-node (p node)
   (declare (pure t) (side-effect-free t))
-  (cl-assert (stringp typ))
-  (string= typ "string_fragment"))
+  (cl-assert (treesit-node-p node))
+  (let ((typ (treesit-node-type node)))
+    (cl-assert (stringp typ))
+    (or (and (string= "string_fragment" typ)
+             (treesit-node-parent node))
+        (and (string= "\"" typ)
+             (let ((parent (treesit-node-parent node)))
+               (cl-assert (treesit-node-p parent))
+               (and (string= "string_expression" (treesit-node-type parent))
+                    parent)))
+        (and (string= "''" typ)
+             (let ((parent (treesit-node-parent node)))
+               (cl-assert (treesit-node-p parent))
+               (and (string= "indented_string_expression" (treesit-node-type parent))
+                    parent)))
+        (and (string= "${" typ)
+             (eq p (treesit-node-start node))
+             (treesit-utils--string-at node #'treesit-nix--is-proper-string-node-type?)))))
 
-(defun treesit-nix--is-comment-node-type? (typ)
+(defun treesit-nix--is-proper-string-node-type? (typ)
   (declare (pure t) (side-effect-free t))
   (cl-assert (stringp typ))
-  (string= typ "comment"))
+  (member typ '("string_expression" "indented_string_expression")))
+
+(defun treesit-nix--is-comment-node? (_ node)
+  (declare (pure t) (side-effect-free t))
+  (string= (treesit-node-type node) "comment"))
 
 (defun treesit-nix--is-inside-string-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (treesit-utils-is-inside-string-node? p node #'treesit-nix--is-string-node-type?))
+  (treesit-utils-is-inside-string-node? p node #'treesit-nix--resolve-string-node))
 
 (defun treesit-nix--is-inside-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
-  (treesit-utils-is-inside-comment-node? p node #'treesit-nix--is-comment-node-type?))
+  (treesit-utils-is-inside-comment-node? p node #'treesit-nix--is-comment-node?))
 
 (defun treesit-nix--is-inside-string-or-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
   (treesit-utils-is-inside-string-or-comment-node?
    p
    node
-   #'treesit-nix--is-string-node-type?
-   #'treesit-nix--is-comment-node-type?))
+   #'treesit-nix--resolve-string-node
+   #'treesit-nix--is-comment-node?))
 
 (defun treesit-nix--is-not-inside-string-or-comment-node? (p node)
   (declare (pure t) (side-effect-free t))
   (treesit-utils-is-not-inside-string-or-comment-node?
    p
    node
-   #'treesit-nix--is-string-node-type?
-   #'treesit-nix--is-comment-node-type?))
+   #'treesit-nix--resolve-string-node
+   #'treesit-nix--is-comment-node?))
 
 (defun treesit-nix--node-at (pos)
   (when (derived-mode-p 'nix-ts-mode)
@@ -622,7 +642,7 @@ Return nil if there is no name or if NODE is not a defun node."
   (declare (pure nil) (side-effect-free t))
   (treesit-utils-semnav-bounds-of-string-at
    (treesit-nix--node-at pos)
-   treesit-nix--is-string-node-type?))
+   #'treesit-nix--is-proper-string-node-type?))
 
 (defun point-inside-string?--ts-nix (&optional pos)
   "Return non-nil if point is positioned inside a string."
