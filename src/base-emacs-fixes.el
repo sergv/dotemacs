@@ -1320,30 +1320,37 @@ toolkit."
             (not (display-graphic-p)))
         (tooltip-show-help-non-mode text)
       ((el-patch-swap condition-case condition-case-unless-debug) error
-	  (let ((params (copy-sequence tooltip-frame-parameters))
-	        (fg (face-attribute (or default-face 'tooltip) :foreground))
-	        (bg (face-attribute (or default-face 'tooltip) :background)))
-	    (when (stringp fg)
-	      (setf (alist-get 'foreground-color params) fg)
-	      (setf (alist-get 'border-color params) fg))
-	    (when (stringp bg)
-	      (setf (alist-get 'background-color params) bg))
-            ;; Use non-nil APPEND argument below to avoid overriding any
-            ;; faces used in our TEXT.  Among other things, this allows
-            ;; tooltips to use the `help-key-binding' face used in
-            ;; `substitute-command-keys' substitutions.
-            (add-face-text-property 0 (length text)
-                                    (or text-face 'tooltip) t text)
-            (x-show-tip text
-		        (selected-frame)
-		        params
-		        tooltip-hide-delay
-		        tooltip-x-offset
-		        tooltip-y-offset))
-        (error
-         (message "Error while displaying tooltip: %s" error)
-         (sit-for 1)
-         (message "%s" text))))))
+	     (let ((params (copy-sequence tooltip-frame-parameters))
+	           (fg (face-attribute (or default-face 'tooltip) :foreground))
+	           (bg (face-attribute (or default-face 'tooltip) :background)))
+	       (when (stringp fg)
+	         (setf (alist-get 'foreground-color params) fg)
+	         (setf (alist-get 'border-color params) fg))
+	       (when (stringp bg)
+	         (setf (alist-get 'background-color params) bg))
+         ;; Use non-nil APPEND argument below to avoid overriding any
+         ;; faces used in our TEXT.  Among other things, this allows
+         ;; tooltips to use the `help-key-binding' face used in
+         ;; `substitute-command-keys' substitutions.
+         (add-face-text-property 0 (length text)
+                                 (or text-face 'tooltip) t text)
+         (x-show-tip text
+		                 (selected-frame)
+		                 (el-patch-swap params
+                                    (--map (if (and (eq (car it) 'no-special-glyphs)
+                                                    (cdr it))
+                                               ;; Replace ‘t’ -> ‘1’ to fix type error
+                                               ;; somewhere in the Emacs X display bowels.
+                                               (cons (car it) 1)
+                                             it)
+                                           params))
+		                 tooltip-hide-delay
+		                 tooltip-x-offset
+		                 tooltip-y-offset))
+       (error
+        (message "Error while displaying tooltip: %s" error)
+        (sit-for 1)
+        (message "%s" text))))))
 
 (provide 'base-emacs-fixes)
 
