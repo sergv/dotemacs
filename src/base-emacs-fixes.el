@@ -1352,6 +1352,12 @@ toolkit."
         (sit-for 1)
         (message "%s" text))))))
 
+(defun make-temp-file--ensure-temp-dir-exists (&rest _args)
+  (unless (file-directory-p temporary-file-directory)
+    (make-directory temporary-file-directory t)))
+
+(advice-add 'make-temp-file :before #'make-temp-file--ensure-temp-dir-exists)
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
