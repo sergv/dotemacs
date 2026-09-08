@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs = {
-      url = "nixpkgs";
+      url = "flake:nixpkgs";
     };
 
     haskell-nixpkgs-improvements = {
