@@ -89,12 +89,12 @@ very large Nix files (all-packages.nix)."
   :group 'nix-faces)
 
 (defface nix-store-path-realised-face
-  '((t :inherit 'nix-store-path-face))
+  '((t :inherit nix-store-path-face))
   "Face used to highlight realised Nix store paths."
   :group 'nix-faces)
 
 (defface nix-store-path-unrealised-face
-  '((t :inherit 'nix-store-path-face))
+  '((t :inherit nix-store-path-face))
   "Face used to highlight unrealised Nix store paths."
   :group 'nix-faces)
 
