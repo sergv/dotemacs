@@ -106,6 +106,17 @@ use that, otherwise either use past specified value or a reasonable default."
     (dolist (frame (frame-list))
       (set-face-attribute 'default frame :height effective-scaling))))
 
+(defun mouse-wheel-font-scaling (event)
+  (interactive (list last-input-event))
+  (let* ((button (event-basic-type event))
+         (new-scaling
+          (cond ((mwheel--is-dir-p down button)
+                 (+ current-font-scaling 5))
+                ((mwheel--is-dir-p up button)
+                 (- current-font-scaling 5)))))
+    (update-font-scaling new-scaling)
+    (message "New scaling is %s" current-font-scaling)))
+
 ;; Texture healing disabled for now as it doesn’t bring any noticeable benefits.
 ;; (when (pretty-ligatures-supported?)
 ;;   ;; Does not have any effect, left for future reference in case it’s needed.
