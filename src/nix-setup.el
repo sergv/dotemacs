@@ -155,6 +155,7 @@ _a_lign"
                   nix-ts-mode--syntax-table
                 nix-mode-syntax-table))))
     (modify-syntax-entry ?. "_" tbl)
+    (modify-syntax-entry ?_ "w" tbl)
     (modify-syntax-entry ?- "w" tbl)
     (modify-syntax-entry ?\' "w" tbl)
     tbl)
