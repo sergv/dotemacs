@@ -431,6 +431,11 @@ another KEY-COMMAND-LIST spliced in place of a variable;
             (lambda (xs)
               (and (funcall singleton-vector? xs)
                    (characterp (aref xs 0)))))
+           (singleton-vector-of-chars-or-symbols?
+            (lambda (xs)
+              (and (funcall singleton-vector? xs)
+                   (or (characterp (aref xs 0))
+                       (symbolp (aref xs 0))))))
            (expand-key-spec
             (lambda (key handle-single-keybinding)
               (when (characterp key)
@@ -468,7 +473,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                  (unless (key-valid-p key)
                    (error "Invalid key: ‘%s’" key))
                  (let ((parsed (key-parse key)))
-                   (if (funcall singleton-vector-of-chars? parsed)
+                   (if (funcall singleton-vector-of-chars-or-symbols? parsed)
                        (list (funcall handle-single-keybinding
                                       `(vector
                                         ,(let ((def (aref parsed 0)))
@@ -476,8 +481,17 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                                                `(quote ,def)
                                              def)))))
                      (list (funcall handle-single-keybinding parsed)))))
+                ((vectorp key)
+                 (if (funcall singleton-vector-of-chars-or-symbols? key)
+                     (list (funcall handle-single-keybinding
+                                    `(vector
+                                      ,(let ((def (aref key 0)))
+                                         (if (symbolp def)
+                                             `(quote ,def)
+                                           def)))))
+                   (list (funcall handle-single-keybinding key))))
                 (t
-                 (error "Invalid key: ‘%s’" key)))))
+                 (error "Unhandled key specification: ‘%s’" key)))))
            (quoted?
             (lambda (x)
               (eq 'quote (car-safe x))))
