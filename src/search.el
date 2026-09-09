@@ -733,10 +733,6 @@ is assumed to be identifier at point.")
     (bounds-of-thing-at-point 'nix-symbol)
     (lambda (x) `(search--next-impl ,x))
   :is-forward t
-  ;; nix-mode’s symbol table is botched: syntax of ‘'’ quote character is not symbol
-  ;; constituent but it can be part of symbol and there are no text properties to
-  ;; rectify it. We want to be able to search for ‘foo'’ so cannot use regular
-  ;; symbol bounds here.
   :regex-start "\\<"
   :regex-end "\\>"
   :error-message "No symbol at point")
@@ -749,10 +745,6 @@ is assumed to be identifier at point.")
     (bounds-of-thing-at-point 'nix-symbol)
     (lambda (x) `(search--prev-impl ,x))
   :is-forward nil
-  ;; nix-mode’s symbol table is botched: syntax of ‘'’ quote character is not symbol
-  ;; constituent but it can be part of symbol and there are no text properties to
-  ;; rectify it. We want to be able to search for ‘foo'’ so cannot use regular
-  ;; symbol bounds here.
   :regex-start "\\<"
   :regex-end "\\>"
   :error-message "No symbol at point")
