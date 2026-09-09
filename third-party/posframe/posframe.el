@@ -759,7 +759,7 @@ ACCEPT-FOCUS."
                        (top . ,(if (consp position) (cdr position) 0))
                        (width . 1)
                        (height . 1)
-                       (no-special-glyphs . t)
+                       (no-special-glyphs . ,(if (eq window-system 'x) 1 t))
                        (skip-taskbar . t)
                        (inhibit-double-buffering . ,posframe-inhibit-double-buffering)
                        ;; Do not save child-frame when use desktop.el
