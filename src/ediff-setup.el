@@ -12,6 +12,7 @@
   (require 'macro-util)
   (require 'set-up-platform))
 
+(require 'common)
 (require 'ediff)
 (require 'el-patch)
 (require 'hydra-setup)
@@ -20,12 +21,20 @@
 (setf ediff-verbose-p nil)
 
 ;; Don’t need mouse help in ediff control buffer.
-(define-key ediff-help-region-map [mouse-2] nil)
+(setf ediff-help-region-map nil)
 (fmakunbound #'ediff-help-for-quick-help)
 (fmakunbound #'ediff-submit-report)
 
 (fmakunbound #'ediff-set-help-overlays)
 (defun ediff-set-help-overlays ())
+
+;;;###autoload
+(defun ediff-setup-keymap--unbind-unused-keys ()
+  (def-keys-for-map ediff-mode-map
+    (([down-mouse-1] [drag-mouse-1] [mouse-1] [mouse-2] [mouse-3]) ignore)))
+
+;;;###autoload
+(add-hook 'ediff-keymap-setup-hook #'ediff-setup-keymap--unbind-unused-keys)
 
 (defhydra-ext hydra-ediff-z-ext (:exit t :foreign-keys nil :hint nil)
   "
