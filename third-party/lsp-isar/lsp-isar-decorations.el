@@ -152,7 +152,7 @@
 (defface lsp-isar-font-background-unprocessed1
   `((((class color) (background dark)) :background "#610061")
     (((class color) (background light)) :background "#83d496")
-    (t :priority 0))
+    (t ()))
   "The face used to mark inactive regions."
   :group 'lsp-isar-sem)
 
@@ -160,7 +160,7 @@
 (defface lsp-isar-font-background-unprocessed
   `((((class color) (background dark)) :background "#ffa000")
     (((class color) (background light)) :background "#002b36")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -168,7 +168,7 @@
 (defface lsp-isar-font-background-running1
   '((((class color) (background dark)) :background "#ffa0a0")
     (((class color) (background light)) :background "#eee8d5")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -184,7 +184,7 @@
 (defface lsp-isar-font-background-intensify
   '((((class color) (background dark)) :foreground "#cc8800")
     (((class color) (background light)) :foreground "#cc8800")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -192,7 +192,7 @@
 (defface lsp-isar-font-background-quoted
   '((((class color) (background dark)) :foreground "#969696")
     (((class color) (background light)) :foreground "#eee8d5")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -200,7 +200,7 @@
 (defface lsp-isar-font-background-antiquoted
   '((((class color) (background dark)) :foreground "#ffd666")
     (((class color) (background light)) :foreground "#ffd666")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -216,7 +216,7 @@
 (defface lsp-isar-font-background-markdown-bullet2
   '((((class color) (background dark)) :foreground "#cc8f00")
     (((class color) (background light)) :foreground "#2aa198")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -224,7 +224,7 @@
 (defface lsp-isar-font-background-markdown-bullet3
   '((((class color) (background dark)) :foreground "#0000cc")
     (((class color) (background light)) :foreground "#859900")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -232,20 +232,20 @@
 (defface lsp-isar-font-background-markdown-bullet4
   '((((class color) (background dark)) :foreground "#cc0069")
     (((class color) (background light)) :foreground "#cb4b16")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
 
 (defface lsp-isar-font-foreground-quoted
   '((((class color) (background dark)) :background "#402b36")
-    (t :priority 0))
+    (t ()))
   "Font used inside quotes and cartouches"
   :group 'lsp-isar-sem)
 
 
 (defface lsp-isar-font-foreground-antiquoted
-  '((t :priority 0))
+  '((t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -279,7 +279,7 @@
 (defface lsp-isar-font-default
   '((((class color) (background dark)) :foreground "green" :underline t)
     (((class color) (background light)) :foreground "#657b83" :underline t)
-    (t :priority 0))
+    (t ()))
   "Unused default font: useful to see if Isabelle uses new font
 classes."
   :group 'lsp-isar-sem)
@@ -288,7 +288,7 @@ classes."
 (defface lsp-isar-font-text-main
   '((((class color) (background dark)) :foreground "#d4d4d4")
     (((class color) (background light)) :foreground "#657b83")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -296,7 +296,7 @@ classes."
 (defface lsp-isar-font-text-keyword1
   '((((class color) (background dark)) :foreground "#c586c0")
     (((class color) (background light)) :foreground "#268bd2")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -304,7 +304,7 @@ classes."
 (defface lsp-isar-font-text-keyword2
   '((((class color) (background dark)) :foreground "#b5cea8")
     (((class color) (background light)) :foreground "#2aa198")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -312,7 +312,7 @@ classes."
 (defface lsp-isar-font-text-keyword3
   '((((class color) (background dark)) :foreground "#4ec9b0")
     (((class color) (background light)) :foreground "#cb4b16")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -320,7 +320,7 @@ classes."
 (defface lsp-isar-font-text-quasi_keyword
   '((((class color) (background dark)) :foreground "#cd3131")
     (((class color) (background light)) :foreground "#859900")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -328,7 +328,7 @@ classes."
 (defface lsp-isar-font-text-improper
   '((((class color) (background dark)) :foreground "#f44747")
     (((class color) (background light)) :foreground "#d33682")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -336,7 +336,7 @@ classes."
 (defface lsp-isar-font-text-operator
   '((((class color) (background dark)) :foreground "#d4d4d4")
     (((class color) (background light)) :foreground "#b58900")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -344,7 +344,7 @@ classes."
 (defface lsp-isar-font-text-tfree
   '((((class color) (background dark)) :foreground "#a020f0")
     (((class color) (background light)) :foreground "#a020f0")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -352,7 +352,7 @@ classes."
 (defface lsp-isar-font-text-tvar
   '((((class color) (background dark)) :foreground "#a020f0")
     (((class color) (background light)) :foreground "#a020f0")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -360,7 +360,7 @@ classes."
 (defface lsp-isar-font-text-free
   '((((class color) (background dark)) :foreground "#569cd6")
     (((class color) (background light)) :foreground "#2aa198")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -368,7 +368,7 @@ classes."
 (defface lsp-isar-font-text-skolem
   '((((class color) (background dark)) :foreground "#d2691e")
     (((class color) (background light)) :foreground "#d2691e")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -376,7 +376,7 @@ classes."
 (defface lsp-isar-font-text-bound
   '((((class color) (background dark)) :foreground "#608b4e")
     (((class color) (background light)) :foreground "#608b4e")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -384,7 +384,7 @@ classes."
 (defface lsp-isar-font-text-var
   '((((class color) (background dark)) :foreground "#9cdcfe")
     (((class color) (background light)) :foreground "#268bd2")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -392,7 +392,7 @@ classes."
 (defface lsp-isar-font-text-inner_numeral
   '((((class color) (background dark)) :foreground "#b5cea8")
     (((class color) (background light)) :foreground "#b5cea8")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -400,7 +400,7 @@ classes."
 (defface lsp-isar-font-text-inner_quoted
   '((((class color) (background dark)) :foreground "#ce9178")
     (((class color) (background light)) :foreground "#ce9178")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -416,7 +416,7 @@ classes."
 (defface lsp-isar-font-text-inner_comment
   '((((class color) (background dark)) :foreground "#608b4e")
     (((class color) (background light)) :foreground "#608b4e")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -424,7 +424,7 @@ classes."
 (defface lsp-isar-font-text-dynamic
   '((((class color) (background dark)) :foreground "#dcdcaa")
     (((class color) (background light)) :foreground "#dcdcaa")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -432,7 +432,7 @@ classes."
 (defface lsp-isar-font-text-class_parameter
   '((((class color) (background dark)) :foreground "#d2691e")
     (((class color) (background light)) :foreground "#d2691e")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -440,7 +440,7 @@ classes."
 (defface lsp-isar-font-text-antiquote
   '((((class color) (background dark)) :foreground "#c586c0")
     (((class color) (background light)) :foreground "#c586c0")
-    (t :priority 0))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -481,7 +481,7 @@ classes."
   :group 'lsp-isar-sem)
 
 (defface lsp-isar-font-nothing
-  '((t :priority 0))
+  '((t ()))
   ""
   :group 'lsp-isar-sem)
 
