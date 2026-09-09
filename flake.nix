@@ -43,7 +43,8 @@
           pkgs,
           haskell-tools,
           debug,
-          native
+          native,
+          assertions ? false
         }:
         let
           # cc = pkgs.clang;
@@ -78,13 +79,13 @@
                 {
                   emacs-native =
                     (x: hlib.enableCabalFlag "standalone-foreign-lib" x)
-                      ((x: if debug then hlib.enableCabalFlag "runtime-checks" x else x)
+                      ((x: if assertions then hlib.enableCabalFlag "runtime-checks" x else x)
                         (old.callCabal2nix "emacs-native" ./native/emacs-native {}));
 
                   rure-ffi = old.callCabal2nix "rure-ffi" ./native/rure-ffi {};
 
                   emacs-module =
-                    (x: if debug then hlib.enableCabalFlag "assertions" (hlib.enableCabalFlag "call-stacks" x) else x)
+                    (x: if assertions then hlib.enableCabalFlag "assertions" (hlib.enableCabalFlag "call-stacks" x) else x)
                       (old.callHackageDirect
                         {
                           pkg    = "emacs-module";
@@ -99,7 +100,7 @@
             haskell-pkgs-with-emacs-native.emacs-native + "/lib/ghc-${haskell-pkgs-with-emacs-native.ghc.version}/lib/libemacs-native${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}";
 
           emacs-pkg = import ./nix/emacs.nix {
-            inherit pkgs arch debug native;
+            inherit pkgs arch debug native assertions;
             emacs-src = if emacs-src == null then inputs.emacs-src else emacs-src;
           };
 
@@ -385,14 +386,20 @@
             haskell-tools
           }@args:
           let
-            bytecode     = mk-emacs-with-config (args // { debug = false; native = false; });
-            debug        = mk-emacs-with-config (args // { debug = true;  native = false; });
-            native       = mk-emacs-with-config (args // { debug = false; native = true; });
-            native-debug = mk-emacs-with-config (args // { debug = true;  native = true; });
+            mk                  = extra: mk-emacs-with-config (args // extra);
+            # Regular fully optimized builds.
+            bytecode            = mk { debug = false; native = false; };
+            native              = mk { debug = false; native = true;  };
+            # Fully optimized builds with debug info running under gdb.
+            debug               = mk { debug = true;  native = false; };
+            native-debug        = mk { debug = true;  native = true;  };
+            # Slowest unoptimized builds with all runtime checks, debug info running under gdb.
+            bytecode-assertions = mk { debug = true;  native = false; assertions = true; };
+            native-assertions   = mk { debug = true;  native = true;  assertions = true; };
           in
           {
             default = bytecode;
-            inherit bytecode debug native native-debug;
+            inherit bytecode debug native native-debug bytecode-assertions native-assertions;
           };
       };
 
