@@ -10891,6 +10891,24 @@ _|_bar")
   "in foo + foo-bar_|_ + baz"
   ""))
 
+(vim-tests--test-fresh-buffer-contents-equivalent-commands*
+ :modes (nix-mode)
+ :names-and-actions
+ ((vim-tests/search-for-nix-symbol-at-point-8a (execute-kbd-macro (kbd "*")))
+  (vim-tests/search-for-nix-symbol-at-point-8b (search-for-nix-symbol-at-point-forward 1)))
+ :contents
+ (tests-utils--multiline
+  "de_|_bug: {"
+  "  lib = debug_info pkgs.foo;"
+  "  bar = pkgs.lib.quux debug;"
+  "}")
+ :expected-value
+ (tests-utils--multiline
+  "debug: {"
+  "  lib = debug_info pkgs.foo;"
+  "  bar = pkgs.lib.quux debug_|_;"
+  "}"))
+
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
     vim-tests/shell-command-on-region-1a
   ((default (execute-kbd-macro (kbd "v E s ! e c h o SPC - n SPC q u u x <return>"))))
