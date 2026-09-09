@@ -2,7 +2,8 @@
   arch,
   emacs-src,
   debug,
-  native
+  native,
+  assertions
 }:
 let
   march-mtune-args =
@@ -312,12 +313,14 @@ let
     ];
 
   emacs-raw-pkg =
-    if debug
-    then
-      # pkgs.enableDebugging (mk-emacs-base emacs-debug-cfg)
-      pkgs.enableDebugging (mk-emacs-base (mk-emacs-release-cfg (if native then "-g3" else "-g0")))
+    if assertions
+    then pkgs.enableDebugging (mk-emacs-base emacs-debug-cfg)
     else
-      mk-emacs-base (mk-emacs-release-cfg "-g0");
+      (if debug
+       then
+         pkgs.enableDebugging (mk-emacs-base (mk-emacs-release-cfg (if native then "-g3" else "-g0")))
+       else
+         mk-emacs-base (mk-emacs-release-cfg "-g0"));
 
   emacs-wrapped =
     let
