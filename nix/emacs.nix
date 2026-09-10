@@ -339,12 +339,14 @@ let
       emacs-raw-pkg
       (if debug then debug_wrapper else []);
 
+  icon = ./icons/emacs.png;
+
   desktop-entry = {
+    inherit icon;
     type        = "Application";
     exec        = "emacs %u";
     terminal    = false;
     name        = "Emacs";
-    icon        = ./icons/emacs.png;
     comment     = "Edit text";
     genericName = "Text Editor";
     categories  = [
@@ -374,7 +376,7 @@ let
   };
 
 in {
-  inherit desktop-entry;
+  inherit icon desktop-entry;
 
   raw = emacs-raw-pkg;
   wrapped = emacs-wrapped;
