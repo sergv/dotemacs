@@ -839,6 +839,9 @@
               0
               ;; haskell-indent-offset
               )
+             ((n-p-gp "field" "fields" nil)
+              haskell-ts-indent--standalone-record-start
+              haskell-indent-offset)
 
              ;; If then else
              ((n-p-gp '("then" "else") "conditional" nil) parent 0)
