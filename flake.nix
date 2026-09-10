@@ -370,7 +370,7 @@
 
         in {
           built-config = emacs-config;
-          inherit (emacs-pkg) desktop-entry raw wrapped;
+          inherit (emacs-pkg) icon desktop-entry raw wrapped;
           # sample-treesitter = builtins.head treesitter-derivs;
           # emacs-native-so   = haskell-pkgs-with-emacs-native.emacs-native;
           # emacs-raw         = emacs-raw;
