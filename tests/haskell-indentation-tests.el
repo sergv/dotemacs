@@ -2264,6 +2264,42 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-8a
+ :contents
+ (tests-utils--multiline
+  "data Foo = "
+  "  {"
+  "  _|_bar :: Int"
+  "  , baz :: Int"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo = "
+  "  {"
+  "    _|_bar :: Int"
+  "  , baz :: Int"
+  "  }"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-8b
+ :contents
+ (tests-utils--multiline
+  "data Foo = "
+  "  {"
+  "    bar :: Int"
+  "  ,"
+  "  _|_baz :: Int"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo = "
+  "  {"
+  "    bar :: Int"
+  "  ,"
+  "    _|_baz :: Int"
+  "  }"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-field-update-1a
  :contents
  (tests-utils--multiline
