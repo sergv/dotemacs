@@ -3769,6 +3769,128 @@
   "foo = _"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/overloaded-strings-1
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-83865] [-Wdeferred-type-errors]"
+  "    • Couldn't match type: [Char]"
+  "                     with: Prettyprinter.Internal.Doc ann"
+  "      Expected: Prettyprinter.Internal.Doc ann"
+  "        Actual: String"
+  "      Type synonyms expanded:"
+  "      Expected type: Prettyprinter.Internal.Doc ann"
+  "        Actual type: [Char]"
+  "    • In the expression: \"EarlyTermination\""
+  "      In an equation for ‘pretty’:"
+  "          pretty EarlyTermination = \"EarlyTermination\""
+  "      In the instance declaration for ‘Pretty EarlyTermination’"
+  "    • Relevant bindings include"
+  "        pretty :: EarlyTermination -> Prettyprinter.Internal.Doc ann"
+  "          (bound at /foo/Bar.hs:24:3)")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "-- | User requested to terminate computation early via C-g."
+  "data EarlyTermination = EarlyTermination"
+  "  deriving (Show)"
+  ""
+  "instance Exception EarlyTermination"
+  ""
+  "instance Pretty EarlyTermination where"
+  "  pretty EarlyTermination = _|_\"EarlyTermination\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "-- | User requested to terminate computation early via C-g."
+  "data EarlyTermination = EarlyTermination"
+  "  deriving (Show)"
+  ""
+  "instance Exception EarlyTermination"
+  ""
+  "instance Pretty EarlyTermination where"
+  "  pretty EarlyTermination = _|_\"EarlyTermination\""
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/overloaded-strings-2a
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-83865] [-Wdeferred-type-errors]"
+  "    • Couldn't match type ‘[Char]’ with ‘Text’"
+  "      Expected: Text"
+  "        Actual: String"
+  "      Type synonyms expanded:"
+  "      Expected type: Text"
+  "        Actual type: [Char]"
+  "    • In the first argument of ‘foo’, namely ‘\"quux\"’"
+  "      In the expression: foo \"quux\""
+  "      In an equation for ‘bar’: bar = foo \"quux\"")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Data.Text (Text)"
+  "import Data.Text qualified as T"
+  ""
+  "foo :: Text -> Int"
+  "foo = undefined"
+  ""
+  "bar = foo _|_\"quux\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import Data.Text (Text)"
+  "import Data.Text qualified as T"
+  ""
+  "foo :: Text -> Int"
+  "foo = undefined"
+  ""
+  "bar = foo _|_\"quux\""
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/overloaded-strings-2b
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-83865] [-Wdeferred-type-errors]"
+  "    • Couldn't match type ‘[Char]’ with ‘Data.Text.Internal.Text’"
+  "      Expected: Text"
+  "        Actual: String"
+  "      Type synonyms expanded:"
+  "      Expected type: Text"
+  "        Actual type: [Char]"
+  "    • In the first argument of ‘foo’, namely ‘\"quux\"’"
+  "      In the expression: foo \"quux\""
+  "      In an equation for ‘bar’: bar = foo \"quux\"")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Foo (foo)"
+  ""
+  "bar = foo _|_\"quux\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE OverloadedStrings #-}"
+  ""
+  "import Foo (foo)"
+  ""
+  "bar = foo _|_\"quux\""
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
