@@ -116,8 +116,7 @@ Ensures a final newline is inserted."
           post-content-initialisation
           buffer-id
           suppress-cursor
-          collect-actual-contents
-          expected-result)
+          collect-actual-contents)
   (declare (indent nil))
   `(tests-utils--with-temp-buffer
     :initialisation ,initialisation
