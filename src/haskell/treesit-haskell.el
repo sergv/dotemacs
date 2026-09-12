@@ -59,6 +59,12 @@
       (string= typ "string")
       (string= typ "quasiquote_body")))
 
+(defun treesit-haskell--is-string-node-type-affected-by-overloaded-strings? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (or (string= typ "string")
+      (string= typ "quasiquote_body")))
+
 (defun treesit-haskell--is-inside-string-node? (p node)
   (declare (pure t) (side-effect-free t))
   (treesit-utils-is-inside-string-node?
