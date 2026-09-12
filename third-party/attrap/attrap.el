@@ -495,8 +495,11 @@ The import ends at LINE and COL in the file."
 ;;   arrow
 ;;   )
 
+(rx-define attrap-ghc-quoted (x)
+  (seq "‘" x "’"))
+
 (rx-define attrap-ghc-identifier (n)
-  (seq "‘" (group-n n (* (not "’"))) "’"))
+  (attrap-ghc-quoted (group-n n (* (not "’")))))
 
 (rx-define attrap-ghc-parens (body)
   (seq "(" body ")"))
@@ -726,8 +729,8 @@ Error is given as MSG and reported between POS and END."
                  (delete-region (match-beginning 0) (point))
                  (insert replacement)))))
          (when-let* ((match (s-match (rx "Perhaps you want to add " (identifier 1)
-                                        " to the import list in the import of " (identifier 2)
-                                        " " (parens (src-loc 3 4 5 6)))
+                                         " to the import list in the import of " (identifier 2)
+                                         " " (parens (src-loc 3 4 5 6)))
                                      normalized-msg
                                      nil
                                      t)))
@@ -1188,7 +1191,31 @@ Error is given as MSG and reported between POS and END."
                            (let ((node (treesit-node-at pos)))
                              (delete-region (treesit-node-start node) (treesit-node-end node))
                              (insert it))))
-                       candidates))))))))))
+                       candidates)))
+
+            (when (and
+                   (when-let* ((node (treesit-haskell--current-node)))
+                     (treesit-haskell--is-string-node-type-affected-by-overloaded-strings? (treesit-node-type node)))
+                   (string-match-p
+                    (rx-let
+                        ((attrap-haskell-string-like-type
+                          (seq
+                           ;; Skip optional qualification
+                           (? (+ not-newline)
+                              ".")
+                           (or "Doc" "Text" "ByteString" "ShortByteString" "OsPath" "OsString"))))
+                      (rx (ghc-warning "83865" "deferred-type-errors")
+                          (+ ws) "• Couldn" (or ?' "’") "t match type"
+                          (or (seq ": [Char]"
+                                   (+ ws) "with:" (+ ws) attrap-haskell-string-like-type eow)
+                              (seq (+ ws)
+                                   (attrap-ghc-quoted "[Char]")
+                                   (+ ws)
+                                   "with"
+                                   (+ ws)
+                                   (attrap-ghc-quoted attrap-haskell-string-like-type)))))
+                    msg))
+              (list (attrap-insert-language-pragma "OverloadedStrings"))))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
