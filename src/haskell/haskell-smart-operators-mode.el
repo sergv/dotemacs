@@ -764,7 +764,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defun haskell-smart-operators-open-bracket ()
   (interactive)
-  (let ((literal-insertion? (haskell-smart-operators--literal-insertion?)))
+  (let ((literal-insertion? (haskell-smart-operators--literal-insertion?))
+        (p (point)))
     (smart-operators--insert-pair ?\[
                                   ?\]
                                   (lambda (before)
@@ -773,7 +774,16 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                              (eq before ?\[)
                                              (eq before ?\\)
                                              (eq before ?@)
-                                             (eq before ?'))))
+                                             (eq before ?')
+                                             (when (derived-mode-p 'haskell-ts-base-mode)
+                                               (and (eq before ?!)
+                                                    (treesit-utils-find-topmost-parent
+                                                     (treesit-node-at p)
+                                                     (lambda (x)
+                                                       (let ((typ (treesit-node-type x)))
+                                                         (and (or (string= typ "data_constructor")
+                                                                  (string= typ "gadt_constructor"))
+                                                              (treesit-utils-is-inside-node? p x))))))))))
                                   (lambda (after)
                                     (not (or literal-insertion?
                                              (eq after ?\))
