@@ -44,13 +44,15 @@
           expected-value
           (modes '(haskell-mode haskell-ts-mode haskell-hsc-mode))
           fresh-buffer
-          initialise-after-content)
+          initialise-after-content
+          expected-result)
   (declare (indent nil))
   `(progn
      ,@(cl-loop
         for mode in modes
         collect
         `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+           :expected-result ,(or expected-result :passed)
            (tests-utils--test-buffer-contents
             :action ,action
             :contents ,contents
@@ -9661,6 +9663,85 @@ Entries should be a list of of elements of the form
    "type family Map f (xs :: [k]) :: [k'] where"
    "  Map f '[_|_]"
    ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-bracket-6a
+ :action
+ (haskell-smart-operators-open-bracket)
+ :contents
+ (tests-utils--multiline
+  "data Config = Config"
+  "  { cfgRoots :: ![OsPath]"
+  "  , regexp   :: !Text"
+  "  , globsToFind :: !_|_"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Config = Config"
+  "  { cfgRoots :: ![OsPath]"
+  "  , regexp   :: !Text"
+  "  , globsToFind :: ![_|_]"
+  "  }")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-bracket-6b
+ :action
+ (haskell-smart-operators-open-bracket)
+ :contents
+ (tests-utils--multiline
+  "data Config = Int `Config` !_|_")
+ :expected-value
+ (tests-utils--multiline
+  "data Config = Int `Config` ![_|_]")
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :expected-result :failed)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-bracket-6c
+ :action
+ (haskell-smart-operators-open-bracket)
+ :contents
+ (tests-utils--multiline
+  "data Config = !_|_ `Config` Int")
+ :expected-value
+ (tests-utils--multiline
+  "data Config = ![_|_] `Config` Int")
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :expected-result :failed)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-bracket-6d
+ :action
+ (haskell-smart-operators-open-bracket)
+ :contents
+ (tests-utils--multiline
+  "data Config where"
+  " Config :: Int -> !_|_ -> Config")
+ :expected-value
+ (tests-utils--multiline
+  "data Config where"
+  " Config :: Int -> ![_|_] -> Config")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-bracket-6e
+ :action
+ (haskell-smart-operators-open-bracket)
+ :contents
+ (tests-utils--multiline
+  "data Config where"
+  " Config :: !_|_ -> Int -> Config")
+ :expected-value
+ (tests-utils--multiline
+  "data Config where"
+  " Config :: ![_|_] -> Int -> Config")
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--open-brace-1
