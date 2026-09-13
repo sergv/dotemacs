@@ -93,9 +93,9 @@ asynchronously."
 (defmacro cc:generator (callback &rest body)
   "Create a generator object. If BODY has `yield' symbols, it
 means calling callback function CALLBACK."
-  (let ((chain (cl-gensym))
-        (cc (cl-gensym))
-        (waiter (cl-gensym)))
+  (let ((chain (gensym))
+        (cc (gensym))
+        (waiter (gensym)))
     `(let* (,chain
             (,cc ,callback)
             (,waiter (deferred:new))
@@ -123,7 +123,7 @@ CHAIN is the previous deferred task."
    ((eq 'while (car line))
     (let ((condition (cadr line))
           (body (cddr line))
-          (retsym (cl-gensym)))
+          (retsym (gensym)))
     `(setq ,chain
       (deferred:nextc ,chain
         (deferred:lambda (x)
@@ -141,8 +141,8 @@ CHAIN is the previous deferred task."
 
 (defmacro cc:thread (wait-time-msec &rest body)
   "Return a thread object."
-  (let ((chain (cl-gensym))
-        (dstart (cl-gensym)))
+  (let ((chain (gensym))
+        (dstart (gensym)))
     `(let* (,chain
             (,dstart (deferred:new)))
        (setq ,chain ,dstart)
