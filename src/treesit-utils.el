@@ -290,6 +290,24 @@ references to parsed treesitter modes shall remain."
                      (eq (buffer-base-buffer (current-buffer)) (treesit-node-buffer node))))
       (buffer-substring-no-properties (treesit-node-start node) (treesit-node-end node)))))
 
+(defun treesit-node-text-with-surrounding-whitespace-no-properties-unsafe (node)
+  (cl-assert (not (null node)))
+  (cl-assert (treesit-node-p node))
+  (cl-assert (or (eq (current-buffer) (treesit-node-buffer node))
+                 (eq (buffer-base-buffer (current-buffer)) (treesit-node-buffer node))))
+  (save-excursion
+    (let ((begin (treesit-node-start node))
+          (stop (treesit-node-end node)))
+      (goto-char begin)
+      (skip-whitespace-backward)
+      (let ((start (point)))
+        (goto-char stop)
+        (skip-whitespace-forward)
+        (let ((end (point)))
+          (list (buffer-substring-no-properties start begin)
+                (buffer-substring-no-properties begin stop)
+                (buffer-substring-no-properties stop end)))))))
+
 (defsubst treesit-utils--is-leaf-node? (node)
   (zerop (treesit-node-child-count node)))
 

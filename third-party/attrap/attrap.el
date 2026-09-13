@@ -577,6 +577,21 @@ The import ends at LINE and COL in the file."
                               :col    (string-to-number (match-string-no-properties 6 str))))))
                    (cdr filtered))))))))
 
+(defun attrap-ghc--find-required-enclosing-sig-or-instance ()
+  (let ((sig-or-instance
+         (treesit-utils-find-topmost-parent (treesit-haskell-current-node)
+                                            (lambda (x)
+                                              (member-str (treesit-node-type x)
+                                                          "signature"
+                                                          "instance"
+                                                          "function"
+                                                          "bind")))))
+    (unless sig-or-instance
+      (error "Failed to find enclosing instance or function signature"))
+    (if (member-str (treesit-node-type sig-or-instance) "function" "bind")
+        (treesit-haskell--find-signature-for-function-containing-node sig-or-instance)
+      sig-or-instance)))
+
 (defun attrap-ghc-fixer (msg pos end)
   "An `attrap' fixer for any GHC error or warning.
 Error is given as MSG and reported between POS and END."
@@ -594,7 +609,8 @@ Error is given as MSG and reported between POS and END."
                (spaces0 (* ?\s))
                (spaces1 (+ ?\s))
                (spaces (+ ?\s))
-               (name-capture (n) (group-n n (+ (not (any ?\n ?\r ?\s ?\t)))))
+               (name-capture (n) (group-n n (+ (not ws))))
+               (not-quote (not (any ?\’)))
                (ghc-warning (n name)
                             (seq (or "error:" "warning:")
                                  (optional spaces "[GHC-" n "]")
@@ -664,16 +680,17 @@ Error is given as MSG and reported between POS and END."
                    (while (< col (indentation-size))
                      (forward-line)))
                  (insert (concat name " = _\n"))))))
-         (when (string-match "add (\\(.*\\)) to the context of[\n ]*the type signature for:[ \n]*\\([^ ]*\\) ::" msg)
-           (let ((missing-constraint (match-string 1 msg))
-                 (function-name (match-string 2 msg)))
-             (attrap-one-option "add constraint to context"
-               (search-backward-regexp (concat (regexp-quote function-name) "[ \t]*::[ \t]*" )) ; find type sig
-               (goto-char (match-end 0))
-               (when (looking-at "forall\\|∀") ; skip quantifiers
-                 (search-forward "."))
-               (skip-chars-forward "\n\t ") ; skip spaces
-               (insert (concat missing-constraint " => ")))))
+         (unless (derived-mode-p 'haskell-ts-base-mode)
+           (when (string-match "add (\\(.*\\)) to the context of[\n ]*the type signature for:[ \n]*\\([^ ]*\\) ::" msg)
+             (let ((missing-constraint (match-string 1 msg))
+                   (function-name (match-string 2 msg)))
+               (attrap-one-option "add constraint to context"
+                 (search-backward-regexp (concat (regexp-quote function-name) "[ \t]*::[ \t]*" )) ; find type sig
+                 (goto-char (match-end 0))
+                 (when (looking-at "forall\\|∀") ; skip quantifiers
+                   (search-forward "."))
+                 (skip-chars-forward "\n\t ") ; skip spaces
+                 (insert (concat missing-constraint " => "))))))
          (when (string-match "Patterns not matched:" msg)
            (attrap-one-option "add missing patterns"
              (let ((patterns (mapcar #'trim-whitespace
@@ -912,14 +929,14 @@ Error is given as MSG and reported between POS and END."
                (search-forward "{")
                (dolist (f fields)
                  (insert (format ",%s = _\n" (s-trim f)))))))
-         (when (string-match (rx "• "
+         (when (string-match (rx "•" spaces1
                                  (or "No instance for"
                                      "Could not deduce")
-                                 " ‘"
-                                 (group-n 1 (or "Generic" "Pretty"))
-                                 (+ (any ?\s ?\t ?\r ?\n))
-                                 (group-n 2 (+ (not (any ?\’))))
-                                 "’")
+                                 spaces1
+                                 (attrap-ghc-quoted
+                                  (seq (group-n 1 (or "Generic" "Pretty"))
+                                       (+ ws)
+                                       (group-n 2 (+ not-quote)))))
                              msg)
            (let ((class-name (match-string-no-properties 1 msg))
                  (type-name (replace-regexp-in-string "[ \r\n]+" " " (match-string-no-properties 2 msg))))
@@ -1138,18 +1155,10 @@ Error is given as MSG and reported between POS and END."
                                 normalized-msg)
               (let ((constraint (match-string 1 normalized-msg)))
                 (attrap-one-option "delete redundant constraint"
-                  (let ((names-to-remove (haskell-ts-parse-constraint-names constraint))
-                        (sig-or-instance
-                         (treesit-utils-find-topmost-parent (treesit-node-at (point))
-                                                            (lambda (x)
-                                                              (let ((typ (treesit-node-type x)))
-                                                                (or (string= "signature" typ)
-                                                                    (string= "instance" typ)))))))
-                    (unless sig-or-instance
-                      (error "Failed to find enclosing instance or function signature"))
+                  (let ((names-to-remove (haskell-ts-parse-constraint-names constraint)))
                     (haskell-ts-remove-constraints-from-instance-or-signature-node
                      names-to-remove
-                     sig-or-instance)))))
+                     (attrap-ghc--find-required-enclosing-sig-or-instance))))))
 
             (when (string-match-p
                    (rx (ghc-warning "21030" "unbanged-strict-patterns")
@@ -1224,7 +1233,27 @@ Error is given as MSG and reported between POS and END."
                                    (+ ws)
                                    (attrap-ghc-quoted attrap-haskell-string-like-type)))))
                     msg))
-              (list (attrap-insert-language-pragma "OverloadedStrings"))))))))))
+              (list (attrap-insert-language-pragma "OverloadedStrings")))
+
+            (when (string-match (rx (ghc-warning "39999" "deferred-type-errors") spaces1
+                                    (? "•" spaces1)
+                                    (or
+                                     ;; In function
+                                     (seq "Could not deduce"
+                                          spaces1
+                                          (attrap-ghc-quoted (group-n 1 (+ not-quote))))
+                                     ;; In instance
+                                     (seq "No instance for"
+                                          spaces1
+                                          (attrap-ghc-quoted (group-n 1 (+ not-quote)))
+                                          spaces1
+                                          "arising from a use of")))
+                                normalized-msg)
+              (let ((constraint (match-string 1 normalized-msg)))
+                (attrap-one-option (list 'add 'constraint constraint)
+                  (haskell-ts-add-constraints-to-instance-or-signature-node
+                   (list constraint)
+                   (attrap-ghc--find-required-enclosing-sig-or-instance))))))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
