@@ -1150,7 +1150,7 @@ BODY at runtime."
     `(progn
        ,@body)))
 
-;;;
+;;; my-defsetf
 
 ;; Seems like the original doesn’t exist in Emacs 31 any more.
 (defmacro my-defsetf (name arg1 &rest args)
@@ -1196,6 +1196,20 @@ You can replace this form with `gv-define-setter'.
                            (lambda (,@(car args) ,@arg1) ,@(cdr args)))
                           do args)))
     `(gv-define-simple-setter ,name ,arg1 ,(car args))))
+
+;;; member-str
+
+(defmacro member-str (x &rest cases)
+  "Like ‘member’ but for strings."
+  (cl-assert (cl-every #'stringp cases))
+  (if (< (length cases) 6)
+      `(let ((x-val ,x))
+         (cl-assert (stringp x-val))
+         ,(cons 'or
+                (mapcar (lambda (case)
+                          `(string= x-val ,case))
+                        cases)))
+    `(member ,x ',cases)))
 
 ;;; end
 
