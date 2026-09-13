@@ -584,15 +584,16 @@ get proper flycheck checker."
 (defun eproj-update-current-buffer-within-its-project! ()
   "Update tags only for current buffer in project that contains it."
   (interactive)
-  (let ((proj (eproj-get-project-for-buf (current-buffer)))
-        (eproj-verbose-tag-loading nil))
+  (let* ((proj (eproj-get-project-for-buf (current-buffer)))
+         (root (eproj-project/root proj))
+         (eproj-verbose-tag-loading nil))
     (when proj
       (let* ((fname (expand-file-name buffer-file-name))
              (mode (eproj/resolve-synonym-modes major-mode)))
         (unless (memq mode
                       (eproj-project/languages proj))
           (error "Project %s does not manage %s files"
-                 (eproj-project/root proj)
+                 root
                  mode))
         (unless (eproj-project/transient-files-for-navigation proj)
           (setf (eproj-project/transient-files-for-navigation proj)
@@ -618,13 +619,13 @@ get proper flycheck checker."
                         ;; the cached ones!
                         :consider-tag-files nil)))
                   (eproj-tag-index-drop-tags-from-file! fname
-                                                        (eproj-project/root proj)
+                                                        root
                                                         old-tags)
                   (eproj-tag-index-merge!
                    old-tags
                    new-tags))))
           (error "Project '%s' does not have tags for '%s'"
-                 (eproj-project/root proj)
+                 root
                  mode))))))
 
 (defun eproj/tag-file-name (proj mode)
@@ -1769,7 +1770,7 @@ Returns list of eproj-matching-tag structs."
                                                                   rel-path
                                                                   (concat related-root "/" rel-path)
                                                                   related-shares-same-hierarchy-as-main-project?)))
-          (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
+          (let ((eproj-file (concat related-root "/.eproj-info")))
             (when (file-exists-p eproj-file)
               (funcall add-file nil eproj-file related-shares-same-hierarchy-as-main-project?)))))
       (dolist (buf (nreverse (if include-all-buffers?
