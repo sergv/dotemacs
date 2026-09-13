@@ -846,7 +846,7 @@ a single entity."
              (insert-char ?\s function-name-column))
             ([enclosing-bind-node
               (when is-ts-mode?
-                (when-let* ((curr-node (treesit-haskell--current-node)))
+                (when-let* ((curr-node (treesit-haskell-current-node)))
                   (cl-destructuring-bind
                       (enclosing-let-node . let-depth)
                       (treesit-utils-find-closest-parent-with-count

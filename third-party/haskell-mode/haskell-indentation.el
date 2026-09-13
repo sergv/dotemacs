@@ -550,7 +550,7 @@ and indent when all of the following are true:
                          (and (skip-syntax-forward "-")
                               (eolp)
                               (not (> (forward-line 1) 0))
-                              (not (or (haskell-smart-operators--treesit--in-comment? (treesit-haskell--current-node))
+                              (not (or (haskell-smart-operators--treesit--in-comment? (treesit-haskell-current-node))
                                        (nth 4 (syntax-ppss))))))
                        (haskell-indentation-parse-to-indentations)
                      (haskell-indentation-first-indentation)))
