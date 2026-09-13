@@ -1202,7 +1202,7 @@ Error is given as MSG and reported between POS and END."
                        candidates)))
 
             (when (and
-                   (when-let* ((node (treesit-haskell--current-node)))
+                   (when-let* ((node (treesit-haskell-current-node)))
                      (treesit-haskell--is-string-node-type-affected-by-overloaded-strings? (treesit-node-type node)))
                    (string-match-p
                     (rx-let
