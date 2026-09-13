@@ -15,7 +15,8 @@
 
 (defface ghc-profiling-expensive-face
   `((t (:underline (:style wave :color ,+solarized-orange+))))
-  "Face to highlight expensive entries with in the profile")
+  "Face to highlight expensive entries with in the profile"
+  :group 'haskell)
 
 (defvar ghc-profiling-mode-expensive-cumulative-threshold 5
   "Highlight profile entries that take more percentage either in

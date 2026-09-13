@@ -34,7 +34,8 @@
                   -1)
              :color
              "#2aa198")))
-  "Face for names currently being renamed.")
+  "Face for names currently being renamed."
+  :group 'haskell)
 
 (defvar haskell-ts-rename-keymap
   (let ((map (make-sparse-keymap)))

@@ -431,7 +431,7 @@ comment.  May return a qualified name."
           (goto-char start)
           (when (looking-at-p (rx "."))
             (forward-char))
-          (if-let (pos (haskell-mode--skip-qualification-backward))
+          (if-let* ((pos (haskell-mode--skip-qualification-backward)))
               (setq start pos)))
         ;; Finally, let's try to go right.
         (save-excursion
@@ -725,7 +725,7 @@ list marker of some kind), and end of the obstacle."
             (continue t))
         (while (and (> arg 0)
                     continue)
-          (if-let (token-kind (haskell-lexeme-looking-at-token-raw))
+          (if-let* ((token-kind (haskell-lexeme-looking-at-token-raw)))
               (cond
                 ((or (eq token-kind 'comment)
                      (eq token-kind 'nested-comment))
