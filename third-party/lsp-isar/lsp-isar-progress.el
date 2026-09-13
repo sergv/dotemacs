@@ -54,7 +54,7 @@
 and rendered message (populated lazily, thus may be nil).")
 
 (defun lsp-isar-progress--get (filename)
-  (when-let (progress (gethash filename lsp-isar-progress-message-map))
+  (when-let* ((progress (gethash filename lsp-isar-progress-message-map)))
     (cl-assert (consp progress))
     (aif (cdr progress)
         it

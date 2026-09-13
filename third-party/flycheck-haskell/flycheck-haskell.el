@@ -269,7 +269,7 @@ Return the configuration."
           (with-current-buffer buf
             (setq-local flycheck-haskell--script-cache-configuration
                         (flycheck-haskell-parse-script-configuration buf proj))))
-    (when-let ((config-file (flycheck-haskell--find-config-file buf)))
+    (when-let* ((config-file (flycheck-haskell--find-config-file buf)))
       (flycheck-haskell-get-configuration config-file proj))))
 
 

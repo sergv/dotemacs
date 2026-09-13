@@ -395,7 +395,7 @@ entities. Entities must be valid Haskell import/export names. E.g.
 
 (defun haskell-sort-imports--reconstruct-import-statement (import)
   (cl-assert (haskell-import-p import))
-  (if-let (import-list (haskell-import-import-list import))
+  (if-let* ((import-list (haskell-import-import-list import)))
       (concat (haskell-import-str-before-import-list import)
               (haskell-sort-imports-format-import-list import-list))
     (haskell-import-str-before-import-list import)))
