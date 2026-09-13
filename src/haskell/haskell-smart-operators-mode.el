@@ -537,8 +537,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                  (string= (treesit-node-field-name x) "field"))
                             (and (string= parent-type "infix")
                                  (when-let* ((field-name (treesit-node-field-name x)))
-                                   (or (string= field-name "left_operand")
-                                       (string= field-name "right_operand")))))))))))
+                                   (member-str field-name "left_operand" "right_operand"))))))))))
 
            (inside-gadt-constructor?
             (when (and (or preceded-by-arrow?
@@ -781,8 +780,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                                      (treesit-node-at p)
                                                      (lambda (x)
                                                        (let ((typ (treesit-node-type x)))
-                                                         (and (or (string= typ "data_constructor")
-                                                                  (string= typ "gadt_constructor"))
+                                                         (and (member-str typ "data_constructor" "gadt_constructor")
                                                               (treesit-utils-is-inside-node? p x))))))))))
                                   (lambda (after)
                                     (not (or literal-insertion?

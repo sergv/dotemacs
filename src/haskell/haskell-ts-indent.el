@@ -269,15 +269,11 @@
               (throw 'term (haskell-ts-indent--make-trivial-computed-indent it)))
 
             (cond
-              ((and (or (string= "let" curr-type)
-                        (string= "let_in" curr-type))
+              ((and (member-str curr-type "let" "let_in")
                     (string= "qualifier" (treesit-node-field-name curr)))
                (when prev2
                  (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev2))))
-              ((or (string= "list" curr-type)
-                   (string= "list_comprehension" curr-type)
-                   (string= "tuple" curr-type)
-                   (string= "unboxed_tuple" curr-type))
+              ((member-str curr-type "list" "list_comprehension" "tuple" "unboxed_tuple")
                (throw 'term
                       (haskell-ts-indent--make-trivial-computed-indent (if return-list-or-tuple-child?
                                                                            prev1
@@ -356,8 +352,7 @@
 (defun haskell-ts-indent--standalone-record-start (node parent bol)
   (let ((typ (treesit-node-type parent)))
     (cond
-      ((when (or (string= "record" typ)
-                 (string= "fields" typ))
+      ((when (member-str typ "record" "fields")
          (haskell-ts-indent--get-record-or-fields-open-brace parent)))
       (t
        (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update node parent bol)))))
@@ -377,7 +372,7 @@
                     (treesit-utils-is-standalone-node?
                      (setf tmp (haskell-ts-indent--get-lambda-arrow curr))))
                (throw 'term tmp))
-              ((member curr-type '("list" "tuple" "unboxed_tuple"))
+              ((member-str curr-type "list" "tuple" "unboxed_tuple")
                (throw 'term prev1))
               ((and (string= "match" curr-type)
                     (treesit-node-child-by-field-name curr "expression"))
@@ -401,8 +396,7 @@
   (let* ((n (treesit-node-prev-sibling node))
          (typ (treesit-node-type n)))
     (while (and n
-                (not (or (string= typ "=")
-                         (string= typ "|"))))
+                (not (member-str typ "=" "|")))
       (setq n (treesit-node-prev-sibling n)
             typ (treesit-node-type n)))
     n))
@@ -497,7 +491,7 @@
   (cl-assert (treesit-node-p node))
   (let ((result nil))
     (while (and node
-                (not (member (treesit-node-type node) '("function" "context" "forall" "gadt_constructor"))))
+                (not (member-str (treesit-node-type node) "function" "context" "forall" "gadt_constructor")))
       (setf node (treesit-node-parent node)))
     ;; Go up only one level to not traverse through nested functions.
     (dolist (target '("function" "context" "forall" "gadt_constructor"))
@@ -528,10 +522,7 @@
                                       (treesit-node-parent pp)
                                     pp)))
                              (p-type (treesit-node-type p))
-                             ((or (string= "parens" p-type)
-                                  (string= "tuple" p-type)
-                                  (string= "unboxed_tuple" p-type)
-                                  (string= "list" p-type))))
+                             (_ (member-str p-type "parens" "tuple" "unboxed_tuple" "list")))
                    p)))
           ;; Check that there’s enough space to put ‘->’ back like this
           ;; (      Foo
@@ -671,12 +662,9 @@
          (parent-typ (awhen parent
                        (treesit-matched-anchor-node-type it))))
     (cond
-      ((or (string= "::" typ)
-           (string= "=>" typ)
-           (string= "forall" typ))
+      ((member-str typ "::" "=>" "forall")
        0)
-      ((and (or (string= "parens" parent-typ)
-                (string= "tuple" parent-typ))
+      ((and (member-str parent-typ "parens" "tuple")
             ;; Check that there’s enough space to put ‘->’ back like this
             ;; (      Foo
             ;;     -> Bar
@@ -685,8 +673,7 @@
                    (treesit-node-end (haskell-ts-getters--get-opening-paren parent)))
                 2))
        -3)
-      ((or (string= "parens" typ)
-           (string= "tuple" typ))
+      ((member-str typ "parens" "tuple")
        0)
       (t
        haskell-indent-offset))))
@@ -732,7 +719,7 @@
 
 (defun haskell-ts-indent--first-guard-or-parent (node parent _bol)
   (let ((bind-node parent))
-    (cl-assert (member (treesit-node-type bind-node) '("bind" "multi_way_if" "function" "alternative")))
+    (cl-assert (member-str (treesit-node-type bind-node) "bind" "multi_way_if" "function" "alternative"))
     (let ((first-match nil)
           (continue? t)
           (i 0)
@@ -779,7 +766,7 @@
 
 (defun haskell-ts-indent--comment-in-datatype-anchor (node parent _bol)
   (let ((typ (treesit-node-type parent)))
-    (cl-assert (member typ '("data_type" "data_constructors")))
+    (cl-assert (member-str typ "data_type" "data_constructors"))
     (let ((prev-sib (treesit-node-prev-sibling node))
           (datatype-anchor
            (haskell-ts-indent--first-data-constructor-anchor--impl
@@ -787,7 +774,7 @@
                 (treesit-node-parent parent)
               parent))))
       (if (and prev-sib
-               (member (treesit-node-type prev-sib) '("|" "=")))
+               (member-str (treesit-node-type prev-sib) "|" "="))
           (haskell-ts-indent--make-trivial-computed-indent
            (if (treesit-utils-is-standalone-node? prev-sib)
                prev-sib
@@ -828,7 +815,7 @@
 
              (,(lambda (node _ _)
                  (and node
-                      (member (treesit-node-type node) '("record" "fields"))
+                      (member-str (treesit-node-type node) "record" "fields")
                       (when-let* ((open-brace (haskell-ts-indent--get-record-or-fields-open-brace node)))
                         (eq (treesit-node-start node)
                             (treesit-node-start open-brace)))))
@@ -982,7 +969,7 @@
                     ((numberp matched-anchor)
                      0)
                     ((and (treesit-computed-indent-p matched-anchor)
-                          (member (treesit-matched-anchor-node-type matched-anchor) '("string" "literal")))
+                          (member-str (treesit-matched-anchor-node-type matched-anchor) "string" "literal"))
                      0)
                     (t
                      haskell-indent-offset)))))
@@ -1034,8 +1021,7 @@
                             ((string= (treesit-node-type matched-anchor)
                                       "local_binds"))
                             (gp (treesit-node-parent matched-anchor))
-                            ((member (treesit-node-type gp)
-                                     '("let" "let_in"))))
+                            ((member-str (treesit-node-type gp) "let" "let_in")))
                       1
                     0))))
 
@@ -1126,7 +1112,7 @@
                     (setq n (treesit-node-prev-sibling n)))
                   (and (string= "where" (treesit-node-type n))
                        (when-let* ((p (treesit-node-parent n)))
-                         (not (member (treesit-node-type p) '("class" "instance")))))))
+                         (not (member-str (treesit-node-type p) "class" "instance"))))))
               (lambda (node _ _)
                 ;; In situation
                 ;; ```
@@ -1168,7 +1154,7 @@
                      haskell-indent-offset))))
 
              (,(lambda (n p _)
-                 (and (member (treesit-node-type n) '("=" "->"))
+                 (and (member-str (treesit-node-type n) "=" "->")
                       (string= "match" (treesit-node-type p))
                       (treesit-node-child-by-field-name p "guards")))
               ,(lambda (_ p _)
@@ -1237,7 +1223,7 @@
               haskell-ts-indent--gadt-type-function-in-context-first-arg-anchor
               ,(lambda (_ _ _)
                  (lambda (matched-anchor)
-                   (if (member (treesit-node-type matched-anchor) '("=>" "::"))
+                   (if (member-str (treesit-node-type matched-anchor) "=>" "::")
                        (+ haskell-indent-offset 1)
                      haskell-indent-offset))))
 
@@ -1280,8 +1266,8 @@
               haskell-ts-indent--type-function-first-arg-anchor
               ,(lambda (_ parent _)
                  (lambda (_matched-anchor)
-                   (if-let* ((parent)
-                             ((string= (treesit-node-type parent) "function"))
+                   (if-let* ((_ parent)
+                             (_ (string= (treesit-node-type parent) "function"))
                              (arrow (haskell-ts-indent--get-function-arrow parent))
                              ((not (treesit-utils-is-standalone-node? arrow))))
                        haskell-indent-offset

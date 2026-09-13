@@ -463,9 +463,7 @@ but when paired then it’s like a string."
 
 (defun haskell-ts--is-toplevel-function-related-named-node-type? (typ)
   (cl-assert (stringp typ))
-  (or (string= typ "signature")
-      (string= typ "function")
-      (string= typ "bind")))
+  (member-str typ "signature" "function" "bind"))
 
 (defun haskell-ts--is-toplevel-function-related-node? (node)
   (haskell-ts--is-toplevel-function-related-named-node-type? (treesit-node-type node)))
@@ -815,7 +813,7 @@ indented block will be their bounds without any extra processing."
                           (constructor-nodes (treesit-node-children children t)))
                 (dolist (constructor constructor-nodes)
                   (let ((typ (treesit-node-type constructor)))
-                    (unless (member typ '("constructor" "all_names"))
+                    (unless (member-str typ "constructor" "all_names")
                       (error "Unexpected constructor node: %s" constructor))
                     (when (string= "constructor" typ)
                       (let ((str (treesit-node-text-no-properties-unsafe constructor)))
@@ -964,7 +962,7 @@ reverse order, e.g.
    do
    (let* ((child (treesit-node-child node i))
           (typ (treesit-node-type child)))
-     (unless (member typ '("(" ")" ","))
+     (unless (member-str typ "(" ")" ",")
        (setf acc (if (string= "tuple" typ)
                      (haskell-ts-foldr-toplevel-tuples child f acc)
                    (funcall f child acc))))))
@@ -1027,7 +1025,7 @@ will become nested lists."
     (setf typ (treesit-node-type node)))
   (cl-assert (treesit-node-p node))
   (cl-assert (string= (treesit-node-type node) typ))
-  (cl-assert (member typ '("name" "apply" "infix")) nil
+  (cl-assert (member-str typ "name" "apply" "infix") nil
              "Unexpected node type: %s"
              typ)
   (-map (lambda (x)
