@@ -644,21 +644,28 @@ Error is given as MSG and reported between POS and END."
                       (insert it))
                     options)))
          (when (string-match (rx (ghc-warning "30606" "redundant-constraints") spaces1
-                                 "Redundant constraint" (? "s") ":" spaces1
-                                 (or (group-n 1 "(" (* anything) ")")
-                                     (group-n 1 (* anything)))
+                                 (? "•" spaces1) "Redundant constraint" (? "s") ":" spaces1
+                                 (or (group-n 1 "(" (* (not ?•)) ")")
+                                     (group-n 1 (* (not ?•))))
                                  spaces1
-                                 "In the type signature for:")
+                                 (? "•" spaces1) "In the" spaces1
+                                 (or "type signature" "instance declaration") spaces1
+                                 "for")
                              normalized-msg)
            (let ((constraint (match-string 1 normalized-msg)))
              (attrap-one-option "delete redundant constraint"
                (let ((names-to-remove (haskell-ts-parse-constraint-names constraint))
-                     (sig (treesit-utils-find-topmost-parent (treesit-node-at (point))
-                                                             (lambda (x)
-                                                               (string= "signature" (treesit-node-type x))))))
-                 (unless sig
-                   (error "Point is not inside function signature"))
-                 (haskell-ts-remove-constraints-from-signature-node names-to-remove sig)))))
+                     (sig-or-instance
+                      (treesit-utils-find-topmost-parent (treesit-node-at (point))
+                                                         (lambda (x)
+                                                           (let ((typ (treesit-node-type x)))
+                                                             (or (string= "signature" typ)
+                                                                 (string= "instance" typ)))))))
+                 (unless sig-or-instance
+                   (error "Failed to find enclsing instance or function signature"))
+                 (haskell-ts-remove-constraints-from-instance-or-signature-node
+                  names-to-remove
+                  sig-or-instance)))))
          ;; error: [GHC-44432]
          ;;     The type signature for ‘withSystemTempFileContents’
          ;;       lacks an accompanying binding

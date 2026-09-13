@@ -2502,7 +2502,7 @@
   "  ) where"))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1aa
+ :name attrap/haskell-dante/redundant-constraint-in-function-1aa
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2526,7 +2526,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1aba
+ :name attrap/haskell-dante/redundant-constraint-in-function-1aba
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2550,7 +2550,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1abb
+ :name attrap/haskell-dante/redundant-constraint-in-function-1abb
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2574,7 +2574,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1ac
+ :name attrap/haskell-dante/redundant-constraint-in-function-1ac
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2599,7 +2599,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1ad
+ :name attrap/haskell-dante/redundant-constraint-in-function-1ad
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2624,7 +2624,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1ae
+ :name attrap/haskell-dante/redundant-constraint-in-function-1ae
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2648,7 +2648,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1b
+ :name attrap/haskell-dante/redundant-constraint-in-function-1b
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2672,7 +2672,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1c
+ :name attrap/haskell-dante/redundant-constraint-in-function-1c
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2696,7 +2696,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1d
+ :name attrap/haskell-dante/redundant-constraint-in-function-1d
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2720,7 +2720,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1e
+ :name attrap/haskell-dante/redundant-constraint-in-function-1e
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2744,7 +2744,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1f
+ :name attrap/haskell-dante/redundant-constraint-in-function-1f
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2768,7 +2768,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1g
+ :name attrap/haskell-dante/redundant-constraint-in-function-1g
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2792,7 +2792,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1h
+ :name attrap/haskell-dante/redundant-constraint-in-function-1h
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2816,7 +2816,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1i
+ :name attrap/haskell-dante/redundant-constraint-in-function-1i
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2840,7 +2840,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-1j
+ :name attrap/haskell-dante/redundant-constraint-in-function-1j
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2864,7 +2864,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-2
+ :name attrap/haskell-dante/redundant-constraint-in-function-2
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2890,7 +2890,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-3
+ :name attrap/haskell-dante/redundant-constraint-in-function-3
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2916,7 +2916,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-4a
+ :name attrap/haskell-dante/redundant-constraint-in-function-4a
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2944,7 +2944,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-4b
+ :name attrap/haskell-dante/redundant-constraint-in-function-4b
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -2972,7 +2972,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-4c
+ :name attrap/haskell-dante/redundant-constraint-in-function-4c
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -3000,7 +3000,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-4d
+ :name attrap/haskell-dante/redundant-constraint-in-function-4d
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -3040,7 +3040,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-4e
+ :name attrap/haskell-dante/redundant-constraint-in-function-4e
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -3078,7 +3078,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-5a
+ :name attrap/haskell-dante/redundant-constraint-in-function-5a
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -3120,7 +3120,7 @@
   "    (input recipe)"))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-5b
+ :name attrap/haskell-dante/redundant-constraint-in-function-5b
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -3162,7 +3162,7 @@
   "    (input recipe)"))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/redundant-constraint-5c
+ :name attrap/haskell-dante/redundant-constraint-in-function-5c
  :modes (haskell-ts-mode)
  :error-message
  (tests-utils--multiline
@@ -3202,6 +3202,147 @@
   "        HM.delete label acc)"
   "    bag"
   "    (input recipe)"))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-in-instance-1a
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    • Redundant constraint: Foo1 a"
+  "    • In the instance declaration for ‘Foo1 (Int, Int, a)’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "instance _|_Foo1 a => Foo1 (Int, Int, a) where"
+  "  foofoo1 x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "instance _|_Foo1 (Int, Int, a) where"
+  "  foofoo1 x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-in-instance-1b
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    • Redundant constraints: (Foo1 a, Bar a)"
+  "    • In the instance declaration for ‘Foo1 (Int, a)’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance _|_(Foo1 a, Bar a) => Foo1 (Int, a) where"
+  "  foofoo1 x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance _|_Foo1 (Int, a) where"
+  "  foofoo1 x = x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-in-instance-1c
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    • Redundant constraint: Foo1 a"
+  "    • In the instance declaration for ‘Foo1 (Int, a)’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance _|_(Foo1 a, Bar a) => Foo1 (Int, a) where"
+  "  foofoo1 (x, y) = (x, barbar y)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance _|_Bar a => Foo1 (Int, a) where"
+  "  foofoo1 (x, y) = (x, barbar y)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-in-instance-1d
+ :modes (haskell-ts-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    • Redundant constraint: Foo1 a"
+  "    • In the instance declaration for ‘Foo1 (Int, a)’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "class Baz a where"
+  "  bazbaz :: a -> a"
+  ""
+  "instance _|_(Baz a, Foo1 a, Bar a) => Foo1 (Int, a) where"
+  "  foofoo1 (x, y) = (x, bazbaz (barbar y))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "class Baz a where"
+  "  bazbaz :: a -> a"
+  ""
+  "instance _|_(Baz a, Bar a) => Foo1 (Int, a) where"
+  "  foofoo1 (x, y) = (x, bazbaz (barbar y))"
+  ""))
+
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/unticked-promoted-constructor-1
