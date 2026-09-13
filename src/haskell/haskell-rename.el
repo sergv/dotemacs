@@ -51,7 +51,7 @@
   (let ((typ (treesit-node-type node))
         (parent nil)
         (grandparent nil))
-    (when (and (member typ '("module_id" "."))
+    (when (and (member-str typ "module_id" ".")
                (string= (treesit-node-type (setf parent
                                                  (treesit-node-parent node)))
                         "module")
@@ -63,7 +63,7 @@
       (setf node (haskell-ts-getters--qualified-id grandparent)
             typ (treesit-node-type node)))
     (cond
-      ((member typ '("variable" "name" "constructor" "operator" "pragma"))
+      ((member-str typ "variable" "name" "constructor" "operator" "pragma")
        (haskell-ts-rename-at-point--take-qualified-parent-if-present node))
       ((and (string= typ "(")
             (string= (treesit-node-type (setf parent
@@ -75,7 +75,7 @@
 
 (defun haskell-ts-rename-at-point--take-qualified-parent-if-present (node)
   (if-let* ((p (treesit-node-parent node))
-            ((string= "qualified" (treesit-node-type p))))
+            (_ (string= "qualified" (treesit-node-type p))))
       p
     node))
 
@@ -102,16 +102,16 @@
            (treesit-utils-find-topmost-parent
             initial-node
             (lambda (x)
-              (member (treesit-node-type x)
-                      '("function"
-                        "signature"
-                        "data_type"
-                        "newtype"
-                        "bind"
-                        "class"
-                        "instance"
-                        "type_family"
-                        "pragma"))))))
+              (member-str (treesit-node-type x)
+                          "function"
+                          "signature"
+                          "data_type"
+                          "newtype"
+                          "bind"
+                          "class"
+                          "instance"
+                          "type_family"
+                          "pragma")))))
       (unless closest-scope
         (error "Internal error: failed to find scoping node above variable at point"))
       (let* ((ovs nil)
