@@ -970,43 +970,51 @@ reverse order, e.g.
                    (funcall f child acc))))))
   acc)
 
-(defun haskell-ts-foldr-type-context (typ on-arrow on-parens f acc)
+(defun haskell-ts-foldr-context (context-node on-arrow on-parens f acc)
+  "Folds ‘context’ nodes."
+  (cl-assert (or (null context-node)
+                 (treesit-node-p context-node)))
+  (if context-node
+      (if (string= "context" (treesit-node-type context-node))
+          (if-let* ((arr (treesit-node-child-by-field-name context-node "arrow"))
+                    (ctx (treesit-node-child-by-field-name context-node "context")))
+              (funcall on-arrow
+                       context-node
+                       arr
+                       (pcase (treesit-node-type ctx)
+                         ("parens"
+                          (funcall on-parens
+                                   context-node
+                                   (haskell-ts-getters--get-opening-paren ctx)
+                                   (haskell-ts-getters--get-closing-paren ctx)
+                                   (funcall f context-node (haskell-ts-getters--get-parens-content ctx) acc)))
+                         ("tuple"
+                          (funcall on-parens
+                                   context-node
+                                   (haskell-ts-getters--get-opening-paren ctx)
+                                   (haskell-ts-getters--get-closing-paren ctx)
+                                   (haskell-ts-foldr-toplevel-tuples ctx (lambda (x acc2) (funcall f context-node x acc2)) acc)))
+                         (_
+                          (funcall f context-node ctx acc))))
+            (error "Unexpected context node: %s" context-node))
+        acc)
+    acc))
+
+(defun haskell-ts-foldr-context-of-type-node (type-node on-arrow on-parens f acc)
   "Folds singleton and nested contexts of ‘type’ nodes."
   ;; NB this function is applicable to many node types so it’s hard to
   ;; enumerate them all in assert.
-  (cl-assert (or (null typ)
-                 (treesit-node-p typ)))
-  (if typ
+  (cl-assert (or (null type-node)
+                 (treesit-node-p type-node)))
+  (if type-node
       (progn
         (setf acc
-              (haskell-ts-foldr-type-context (treesit-node-child-by-field-name typ "type")
-                                             on-arrow
-                                             on-parens
-                                             f
-                                             acc))
-        (if (string= "context" (treesit-node-type typ))
-            (if-let* ((arr (treesit-node-child-by-field-name typ "arrow"))
-                      (ctx (treesit-node-child-by-field-name typ "context")))
-                (funcall on-arrow
-                         typ
-                         arr
-                         (pcase (treesit-node-type ctx)
-                           ("parens"
-                            (funcall on-parens
-                                     typ
-                                     (haskell-ts-getters--get-opening-paren ctx)
-                                     (haskell-ts-getters--get-closing-paren ctx)
-                                     (funcall f typ (haskell-ts-getters--get-parens-content ctx) acc)))
-                           ("tuple"
-                            (funcall on-parens
-                                     typ
-                                     (haskell-ts-getters--get-opening-paren ctx)
-                                     (haskell-ts-getters--get-closing-paren ctx)
-                                     (haskell-ts-foldr-toplevel-tuples ctx (lambda (x acc2) (funcall f typ x acc2)) acc)))
-                           (_
-                            (funcall f typ ctx acc))))
-              (error "Unexpected context node: %s" typ))
-          acc))
+              (haskell-ts-foldr-context-of-type-node (treesit-node-child-by-field-name type-node "type")
+                                                     on-arrow
+                                                     on-parens
+                                                     f
+                                                     acc))
+        (haskell-ts-foldr-context type-node on-arrow on-parens f acc))
     acc))
 
 (defun haskell-ts--extract-single-constraint-name-with-children (node &optional typ str)
@@ -1131,7 +1139,17 @@ In effect, normalize contraints."
                  unmerged-intervals-per-constraints)))))
         (mapc (lambda (x) (interval-with-margins-delete! x delete-all?)) to-delete-with-parens)))))
 
-(defun haskell-ts-remove-constraints-from-signature-node (names-to-remove sig)
+(defun haskell-ts-remove-constraints-from-instance-or-signature-node (names-to-remove node)
+  (let ((typ (treesit-node-type node)))
+    (cond
+      ((string= "signature" typ)
+       (haskell-ts--remove-constraints-from-signature-node names-to-remove node))
+      ((string= "instance" typ)
+       (haskell-ts--remove-constraints-from-instance-node names-to-remove node))
+      (t
+       (error "Don’t know how to remove constraints from node %s" node)))))
+
+(defun haskell-ts--remove-constraints-from-signature-node (names-to-remove sig)
   (cl-assert (listp names-to-remove))
   (cl-assert (treesit-node-p sig))
   (cl-assert (string= (treesit-node-type sig) "signature"))
@@ -1145,8 +1163,53 @@ In effect, normalize contraints."
                  :rparen nil
                  :arrow nil))))
          (states-for-all-contexts
-          (haskell-ts-foldr-type-context
+          (haskell-ts-foldr-context-of-type-node
            (treesit-node-child-by-field-name sig "type")
+           (lambda (ctx arr per-ctx-states)
+             (let ((state (funcall get-state ctx per-ctx-states)))
+               (setf (haskell-ts--remove-constraints-state/arrow state) arr)
+               (setf (gethash ctx per-ctx-states) state)
+               per-ctx-states))
+           (lambda (ctx lparen rparen per-ctx-states)
+             (let ((state (funcall get-state ctx per-ctx-states)))
+               (setf (haskell-ts--remove-constraints-state/lparen state) lparen
+                     (haskell-ts--remove-constraints-state/rparen state) rparen)
+               (setf (gethash ctx per-ctx-states) state)
+               per-ctx-states))
+           (lambda (ctx x per-ctx-states)
+             (let ((state (funcall get-state ctx per-ctx-states)))
+               (cl-incf (haskell-ts--remove-constraints-state/total-constraints state))
+               (when (member (haskell-ts--extract-single-constraint-name-with-children x)
+                             names-to-remove)
+                 (push x (haskell-ts--remove-constraints-state/constrains-to-remove state)))
+               (setf (gethash ctx per-ctx-states) state)
+               per-ctx-states))
+           (make-hash-table :test #'equal))))
+    (dolist (state (sort (hash-table->alist states-for-all-contexts)
+                         :lessp (lambda (x y)
+                                  (> (treesit-node-start (car x))
+                                     (treesit-node-start (car y))))
+                         :in-place t))
+      (haskell-ts-remove-constraints--single-context (cdr state)))))
+
+(defun haskell-ts--remove-constraints-from-instance-node (names-to-remove node)
+  (cl-assert (listp names-to-remove))
+  (cl-assert (treesit-node-p node))
+  (cl-assert (string= (treesit-node-type node) "instance"))
+  (let* ((get-state
+          (lambda (ctx states)
+            (or (gethash ctx states)
+                (make-haskell-ts--remove-constraints-state
+                 :constrains-to-remove nil
+                 :total-constraints 0
+                 :lparen nil
+                 :rparen nil
+                 :arrow nil))))
+         (context
+          (treesit-node-child-by-field-name node "context"))
+         (states-for-all-contexts
+          (haskell-ts-foldr-context
+           context
            (lambda (ctx arr per-ctx-states)
              (let ((state (funcall get-state ctx per-ctx-states)))
                (setf (haskell-ts--remove-constraints-state/arrow state) arr)
