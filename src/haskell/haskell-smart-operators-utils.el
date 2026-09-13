@@ -48,7 +48,7 @@
 
 ;;;###autoload
 (defun haskell-smart-operators--literal-insertion? (&optional disable-comment-check?)
-  (or (when-let* ((node (treesit-haskell--current-node)))
+  (or (when-let* ((node (treesit-haskell-current-node)))
         (let ((p (point)))
           ;; If we’re not within current node then we’re in a space-filled
           ;; limbo. But that means we’re definitely not in a string or
@@ -63,7 +63,7 @@
   (string= (treesit-node-type node) "import_list"))
 
 (defun haskell-smart-operators--in-import-list? ()
-  (awhen (treesit-haskell--current-node)
+  (awhen (treesit-haskell-current-node)
     (treesit-utils-find-closest-parent-limited
      it
      #'haskell-smart-operators--treesit--in-import-list?
@@ -73,7 +73,7 @@
   (string= (treesit-node-type node) "exports"))
 
 (defun haskell-smart-operators--in-export-list? ()
-  (awhen (treesit-haskell--current-node)
+  (awhen (treesit-haskell-current-node)
     (treesit-utils-find-closest-parent-limited
      it
      #'haskell-smart-operators--treesit--in-export-list?
