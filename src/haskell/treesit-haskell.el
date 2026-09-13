@@ -23,7 +23,7 @@
 
 (require 'treesit-utils)
 
-(defsubst treesit-haskell--current-node ()
+(defsubst treesit-haskell-current-node ()
   (treesit-haskell--node-at (point)))
 
 (defun treesit-haskell--node-at (pos)
@@ -161,7 +161,7 @@
   "Return non-nil if point is positioned inside a string."
   (declare (pure nil) (side-effect-free t))
   (treesit-haskell--is-inside-string-node? (or pos (point))
-                                           (treesit-haskell--current-node)))
+                                           (treesit-haskell-current-node)))
 
 (defun point-inside-comment?--ts-haskell (&optional pos)
   "Return non-nil if point is positioned inside a string."
@@ -169,7 +169,7 @@
   (setf pos (or pos (point)))
   (or (point-inside-comment?--default pos)
       (treesit-haskell--is-inside-comment-node? pos
-                                                (treesit-haskell--current-node))))
+                                                (treesit-haskell-current-node))))
 
 (defun point-inside-string-or-comment?--ts-haskell (&optional pos)
   "Return t if point is positioned inside a string."
@@ -177,14 +177,14 @@
   (setf pos (or pos (point)))
   (or (point-inside-comment?--default pos)
       (treesit-haskell--is-inside-string-or-comment-node? pos
-                                                          (treesit-haskell--current-node))))
+                                                          (treesit-haskell-current-node))))
 
 (defsubst point-not-inside-string-or-comment?--ts-haskell (&optional pos)
   (declare (pure nil) (side-effect-free t))
   (setf pos (or pos (point)))
   (and (not (point-inside-comment?--default pos))
        (treesit-haskell--is-not-inside-string-or-comment-node? pos
-                                                               (treesit-haskell--current-node))))
+                                                               (treesit-haskell-current-node))))
 
 (defun treesit-haskell--is-inside-pragma-node? (p node)
   (declare (pure t) (side-effect-free t))
