@@ -5,6 +5,8 @@
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created:  4 September 2026
 ;; Description:
+;; General utilities for processing Haskell treesitter ASTs.
+;; Also see ‘haskell-ts-getters.el’.
 
 (eval-when-compile
   (require 'cl-lib))
@@ -187,6 +189,34 @@
   (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
        (treesit-utils-is-inside-node? p node)))
 
+(defun treesit-haskell--find-signature-for-function-containing-node (node)
+  (cl-assert (treesit-node-p node))
+  (unless (haskell-ts--is-toplevel-function-related-node? node)
+    (while (and (setq p (treesit-node-parent node))
+                (not (string= (treesit-node-type p) "declarations")))
+      (setf node p)))
+  (unless (haskell-ts--is-toplevel-function-related-node? node)
+    (error "Unable to find signature for node %s" node))
+  (let* ((func-names (haskell-ts--function-binding-names node))
+         (signature-node-before
+          (haskell-ts--search-non-comment-nodes
+           node
+           nil
+           ;; Keep spinning while function cases are named as we expect
+           (lambda (x typ)
+             (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                  (not
+                   (sorted-set/empty?
+                    (sorted-set/intersection func-names
+                                             (haskell-ts--function-binding-names x))))))
+           (lambda (found-node)
+             (cl-assert (treesit-node-p found-node))
+             ;; Keep searching until we find signature
+             (not (string= "signature" (treesit-node-type found-node)))))))
+
+    (when (and signature-node-before
+               (string= "signature" (treesit-node-type signature-node-before)))
+      signature-node-before)))
 
 (provide 'treesit-haskell)
 
