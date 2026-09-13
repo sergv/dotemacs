@@ -4032,6 +4032,876 @@
   "bar = foo _|_\"quux\""
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1aa
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: a -> a"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: Foo1 a => a -> a"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1ab
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: a -> a"
+  "foo x"
+  "  | isPippo x = pippo x"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: Foo1 a => a -> a"
+  "foo x"
+  "  | isPippo x = pippo x"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1ac
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • No instance for ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. a"
+  "    • In the expression: foofoo1 undefined"
+  "      In an equation for ‘foo’: foo = foofoo1 undefined")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: a"
+  "foo = _|_foofoo1 undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: Foo1 a => a"
+  "foo = _|_foofoo1 undefined"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1ad
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo"
+  "  :: a"
+  "  -> a"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo"
+  "  :: Foo1 a"
+  "  => a"
+  "  -> a"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1ba
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: HasCallStack => a -> a"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: (HasCallStack, Foo1 a) => a -> a"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1bb
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: HasCallStack => Bar a => a -> a"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: HasCallStack => Bar a => Foo1 a => a -> a"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1c
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: (HasCallStack, Bar a) => a -> a"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "foo :: (HasCallStack, Bar a, Foo1 a) => a -> a"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1d
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-39999]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "foo"
+  "  :: forall a."
+  "     ( HasCallStack"
+  "     , Bar a"
+  "     )"
+  "  => a"
+  "  -> a"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "foo"
+  "  :: forall a."
+  "     ( HasCallStack"
+  "     , Bar a"
+  "     , Foo1 a"
+  "     )"
+  "  => a"
+  "  -> a"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1ea
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-39999]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "foo"
+  "  :: forall a."
+  "     (HasCallStack, Bar a)"
+  "  => Baz a"
+  "  => a"
+  "  -> a"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "foo"
+  "  :: forall a."
+  "     (HasCallStack, Bar a)"
+  "  => (Baz a, Foo1 a)"
+  "  => a"
+  "  -> a"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-1eb
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-39999]"
+  "    • Could not deduce ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      from the context: HasCallStack"
+  "        bound by the type signature for:"
+  "                   foo :: forall a. HasCallStack => a -> a"
+  "        at /tmp/tmp/Test.hs:33:1-29"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of"
+  "          the type signature for:"
+  "            foo :: forall a. HasCallStack => a -> a"
+  "    • In the expression: foofoo1 x"
+  "      In an equation for ‘foo’: foo x = foofoo1 x")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "foo"
+  "  :: forall a."
+  "     (HasCallStack, Bar a)"
+  "  => (Baz a, Quux a)"
+  "  => a"
+  "  -> a"
+  "foo x = _|_foofoo1 x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "foo"
+  "  :: forall a."
+  "     (HasCallStack, Bar a)"
+  "  => (Baz a, Quux a, Foo1 a)"
+  "  => a"
+  "  -> a"
+  "foo x = _|_foofoo1 x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-function-2
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • Could not deduce ‘MonadEarlyTerminate (m s)’"
+  "        arising from a use of ‘runWithEarlyTermination’"
+  "      from the context: (WithCallStack, MonadEmacs m v, MonadIO (m s),"
+  "                         MonadThrow (m s), MonadBaseControl IO (m s), Forall (Pure (m s)),"
+  "                         NFData (v s), Prim (v s), UM.PrimState (m s) ~ RealWorld)"
+  "        bound by the type signature for:"
+  "                   scoreMatches :: forall {k} (m :: k -> * -> *) (v :: k -> *)"
+  "                                          (s :: k)."
+  "                                   (WithCallStack, MonadEmacs m v, MonadIO (m s), MonadThrow (m s),"
+  "                                    MonadBaseControl IO (m s), Forall (Pure (m s)), NFData (v s),"
+  "                                    Prim (v s), UM.PrimState (m s) ~ RealWorld) =>"
+  "                                   EmacsFunction (S (S (S Z))) Z False m v s"
+  "        at /home/sergey/projects/emacs/projects/emacs-native/src/Emacs/FuzzyMatch.hs:(75,1)-(87,52)"
+  "    • In the first argument of ‘($)’, namely ‘runWithEarlyTermination’"
+  "      In a stmt of a 'do' block:"
+  "        (matches :: U.Vector SortKey) <- runWithEarlyTermination"
+  "                                           $ do let chunk :: Int"
+  "                                                    !chunk = 256"
+  "                                                    totalHaystacks :: Int"
+  "                                                    !totalHaystacks = V.length haystacks'"
+  "                                                    needleSegments :: NonEmpty (Text, NeedleChars)"
+  "                                                    needleSegments = preprocessNeedle needle'"
+  "                                                jobs <- getNumCapabilities"
+  "                                                jobSync <- Counter.new (jobs * chunk)"
+  "                                                scoresCount <- Counter.new 0"
+  "                                                (scores :: UM.MVector RealWorld SortKey) <- UM.new"
+  "                                                                                              totalHaystacks"
+  "                                                let processOne ::"
+  "                                                      forall ss. ReusableState ss"
+  "                                                                 -> Text -> Int -> ST ss ()"
+  "                                                    processOne !store !haystack !n"
+  "                                                      = do let haystackLen :: Int"
+  "                                                               !haystackLen = T.length haystack"
+  "                                                           !match <- fuzzyMatch"
+  "                                                                       store"
+  "                                                                       (computeHeatmap"
+  "                                                                          store haystack haystackLen"
+  "                                                                          seps')"
+  "                                                                       needleSegments haystack"
+  "                                                           for_ match $ \\ Match {mScore} -> do ..."
+  "                                                    processChunk ::"
+  "                                                      forall ss. ReusableState ss"
+  "                                                                 -> Int -> Int -> ST ss ()"
+  "                                                    processChunk !store !start !end"
+  "                                                      = loopM start end"
+  "                                                          $ \\ !n"
+  "                                                              -> do let ..."
+  "                                                                    processOne store haystack n"
+  "                                                    processChunks :: forall ss. Int -> ST ss ()"
+  "                                                    processChunks !k"
+  "                                                      = do store <- mkReusableState"
+  "                                                                      (T.length needle')"
+  "                                                           let go :: Int -> ST ss ()"
+  "                                                               go !start"
+  "                                                                 | start < totalHaystacks = ..."
+  "                                                                 | otherwise = pure ()"
+  "                                                           let !initStart = chunk * k"
+  "                                                           go initStart"
+  "                                                traverse_ wait"
+  "                                                  =<<"
+  "                                                    traverse"
+  "                                                      (async . stToIO . processChunks)"
+  "                                                      [0 .. jobs - 1]"
+  "                                                totalScores <- Counter.get scoresCount"
+  "                                                let scores' = UM.unsafeSlice 0 totalScores scores"
+  "                                                ...."
+  "      In the expression:"
+  "        do seps' <- extractSeps seps"
+  "           needle' <- extractText needle"
+  "           (haystacks' :: V.Vector (Text, v s)) <- extractVectorWith"
+  "                                                     (\\ str -> (, str) <$> extractText str)"
+  "                                                     haystacks"
+  "           (matches :: U.Vector SortKey) <- runWithEarlyTermination"
+  "                                              $ do let chunk :: Int"
+  "                                                       !chunk = 256"
+  "                                                       totalHaystacks :: Int"
+  "                                                       !totalHaystacks = V.length haystacks'"
+  "                                                       needleSegments ::"
+  "                                                         NonEmpty (Text, NeedleChars)"
+  "                                                       ...."
+  "                                                   jobs <- getNumCapabilities"
+  "                                                   jobSync <- Counter.new (jobs * chunk)"
+  "                                                   scoresCount <- Counter.new 0"
+  "                                                   (scores :: UM.MVector RealWorld SortKey) <- UM.new"
+  "                                                                                                 totalHaystacks"
+  "                                                   let processOne ::"
+  "                                                         forall ss. ReusableState ss"
+  "                                                                    -> Text -> Int -> ST ss ()"
+  "                                                       processOne !store !haystack !n"
+  "                                                         = do let ..."
+  "                                                              !match <- fuzzyMatch"
+  "                                                                          store"
+  "                                                                          (computeHeatmap"
+  "                                                                             store haystack"
+  "                                                                             haystackLen seps')"
+  "                                                                          needleSegments haystack"
+  "                                                              ...."
+  "                                                       processChunk ::"
+  "                                                         forall ss. ReusableState ss"
+  "                                                                    -> Int -> Int -> ST ss ()"
+  "                                                       processChunk !store !start !end"
+  "                                                         = loopM start end $ \\ !n -> do ..."
+  "                                                       processChunks :: forall ss. Int -> ST ss ()"
+  "                                                       ...."
+  "                                                   traverse_ wait"
+  "                                                     =<<"
+  "                                                       traverse"
+  "                                                         (async . stToIO . processChunks)"
+  "                                                         [0 .. jobs - 1]"
+  "                                                   ...."
+  "           nilVal <- nil"
+  "           let mkListLoop :: Int -> v s -> m s (v s)"
+  "               mkListLoop 0 res = pure res"
+  "               mkListLoop i res"
+  "                 = do let !j = i - 1"
+  "                          idx :: Int"
+  "                          ...."
+  "                      mkListLoop j =<< cons (snd $ haystacks' `V.unsafeIndex` idx) res"
+  "           mkListLoop (U.length matches) nilVal  ")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "scoreMatches"
+  "  :: forall m v s."
+  "     ( WithCallStack"
+  "     , MonadEmacs m v"
+  "     , MonadIO (m s)"
+  "     , MonadThrow (m s)"
+  "     , MonadBaseControl IO (m s)"
+  "     , Forall (Pure (m s))"
+  "     , NFData (v s)"
+  "     , Prim (v s)"
+  "     , PM.PrimState (m s) ~ RealWorld"
+  "     )"
+  "  => EmacsFunction ('S ('S ('S 'Z))) 'Z 'False m v s"
+  "scoreMatches (R seps (R needle (R haystacks Stop))) = do"
+  "  seps'   <- extractSeps seps"
+  "  needle' <- extractText needle"
+  ""
+  "  (haystacks' :: V.Vector (Text, v s)) <- extractVectorWith (\\str -> (, str) <$> extractText str) haystacks"
+  ""
+  "  -- Will rethrow EarlyTermination if user aborted."
+  "  (matches :: U.Vector SortKey) <- _|_runWithEarlyTermination $ do"
+  "    let chunk :: Int"
+  "        !chunk = 256"
+  "        totalHaystacks :: Int"
+  "        !totalHaystacks = V.length haystacks'"
+  "        needleSegments :: NonEmpty (Text, NeedleChars)"
+  "        needleSegments = preprocessNeedle needle'"
+  ""
+  "    jobs    <- getNumCapabilities"
+  "    jobSync <- Counter.new (jobs * chunk)"
+  ""
+  "    scoresCount <- Counter.new 0"
+  ""
+  "    (scores :: UM.MVector RealWorld SortKey) <- UM.new totalHaystacks"
+  ""
+  "    let processOne :: forall ss. ReusableState ss -> Text -> Int -> ST ss ()"
+  "        processOne !store !haystack !n = do"
+  "          let haystackLen :: Int"
+  "              !haystackLen = T.length haystack"
+  "          !match <- fuzzyMatch"
+  "            store"
+  "            (computeHeatmap store haystack haystackLen seps')"
+  "            needleSegments"
+  "            haystack"
+  "          for_ match $ \\Match{mScore} -> do"
+  "            let !sortKey = mkSortKey mScore (fromIntegral haystackLen) (fromIntegral n)"
+  "            k <- unsafeIOToST $ Counter.add scoresCount 1"
+  "            unsafeIOToST $ UM.unsafeWrite scores k sortKey"
+  ""
+  "        processChunk :: forall ss. ReusableState ss -> Int -> Int -> ST ss ()"
+  "        processChunk !store !start !end ="
+  "          loopM start end $ \\ !n -> do"
+  "            let !haystack = fst $ haystacks' `V.unsafeIndex` n"
+  "            processOne store haystack n"
+  ""
+  "        processChunks :: forall ss. Int -> ST ss ()"
+  "        processChunks !k = do"
+  "          store <- mkReusableState (T.length needle')"
+  ""
+  "          let go :: Int -> ST ss ()"
+  "              go !start"
+  "                | start < totalHaystacks"
+  "                = do"
+  "                  processChunk store start (min totalHaystacks (start + chunk))"
+  "                  go =<< unsafeIOToST (Counter.add jobSync chunk)"
+  "                | otherwise"
+  "                = pure ()"
+  "          let !initStart = chunk * k"
+  "          go initStart"
+  ""
+  "    traverse_ wait =<< traverse (async . stToIO . processChunks) [0..jobs - 1]"
+  ""
+  "    totalScores <- Counter.get scoresCount"
+  ""
+  "    let scores' = UM.unsafeSlice 0 totalScores scores"
+  ""
+  "    stToIO $ sortSortKeyPar scores'"
+  "    U.unsafeFreeze scores'"
+  ""
+  "  nilVal <- nil"
+  ""
+  "  let mkListLoop :: Int -> v s -> m s (v s)"
+  "      mkListLoop 0 res = pure res"
+  "      mkListLoop i res = do"
+  "        let !j = i - 1"
+  "            idx :: Int"
+  "            !idx = fromIntegral $ view idxL $ matches `U.unsafeIndex` j"
+  "        mkListLoop j =<< cons (snd $ haystacks' `V.unsafeIndex` idx) res"
+  ""
+  "  mkListLoop (U.length matches) nilVal"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "scoreMatches"
+  "  :: forall m v s."
+  "     ( WithCallStack"
+  "     , MonadEmacs m v"
+  "     , MonadIO (m s)"
+  "     , MonadThrow (m s)"
+  "     , MonadBaseControl IO (m s)"
+  "     , Forall (Pure (m s))"
+  "     , NFData (v s)"
+  "     , Prim (v s)"
+  "     , PM.PrimState (m s) ~ RealWorld"
+  "     , MonadEarlyTerminate (m s)"
+  "     )"
+  "  => EmacsFunction ('S ('S ('S 'Z))) 'Z 'False m v s"
+  "scoreMatches (R seps (R needle (R haystacks Stop))) = do"
+  "  seps'   <- extractSeps seps"
+  "  needle' <- extractText needle"
+  ""
+  "  (haystacks' :: V.Vector (Text, v s)) <- extractVectorWith (\\str -> (, str) <$> extractText str) haystacks"
+  ""
+  "  -- Will rethrow EarlyTermination if user aborted."
+  "  (matches :: U.Vector SortKey) <- _|_runWithEarlyTermination $ do"
+  "    let chunk :: Int"
+  "        !chunk = 256"
+  "        totalHaystacks :: Int"
+  "        !totalHaystacks = V.length haystacks'"
+  "        needleSegments :: NonEmpty (Text, NeedleChars)"
+  "        needleSegments = preprocessNeedle needle'"
+  ""
+  "    jobs    <- getNumCapabilities"
+  "    jobSync <- Counter.new (jobs * chunk)"
+  ""
+  "    scoresCount <- Counter.new 0"
+  ""
+  "    (scores :: UM.MVector RealWorld SortKey) <- UM.new totalHaystacks"
+  ""
+  "    let processOne :: forall ss. ReusableState ss -> Text -> Int -> ST ss ()"
+  "        processOne !store !haystack !n = do"
+  "          let haystackLen :: Int"
+  "              !haystackLen = T.length haystack"
+  "          !match <- fuzzyMatch"
+  "            store"
+  "            (computeHeatmap store haystack haystackLen seps')"
+  "            needleSegments"
+  "            haystack"
+  "          for_ match $ \\Match{mScore} -> do"
+  "            let !sortKey = mkSortKey mScore (fromIntegral haystackLen) (fromIntegral n)"
+  "            k <- unsafeIOToST $ Counter.add scoresCount 1"
+  "            unsafeIOToST $ UM.unsafeWrite scores k sortKey"
+  ""
+  "        processChunk :: forall ss. ReusableState ss -> Int -> Int -> ST ss ()"
+  "        processChunk !store !start !end ="
+  "          loopM start end $ \\ !n -> do"
+  "            let !haystack = fst $ haystacks' `V.unsafeIndex` n"
+  "            processOne store haystack n"
+  ""
+  "        processChunks :: forall ss. Int -> ST ss ()"
+  "        processChunks !k = do"
+  "          store <- mkReusableState (T.length needle')"
+  ""
+  "          let go :: Int -> ST ss ()"
+  "              go !start"
+  "                | start < totalHaystacks"
+  "                = do"
+  "                  processChunk store start (min totalHaystacks (start + chunk))"
+  "                  go =<< unsafeIOToST (Counter.add jobSync chunk)"
+  "                | otherwise"
+  "                = pure ()"
+  "          let !initStart = chunk * k"
+  "          go initStart"
+  ""
+  "    traverse_ wait =<< traverse (async . stToIO . processChunks) [0..jobs - 1]"
+  ""
+  "    totalScores <- Counter.get scoresCount"
+  ""
+  "    let scores' = UM.unsafeSlice 0 totalScores scores"
+  ""
+  "    stToIO $ sortSortKeyPar scores'"
+  "    U.unsafeFreeze scores'"
+  ""
+  "  nilVal <- nil"
+  ""
+  "  let mkListLoop :: Int -> v s -> m s (v s)"
+  "      mkListLoop 0 res = pure res"
+  "      mkListLoop i res = do"
+  "        let !j = i - 1"
+  "            idx :: Int"
+  "            !idx = fromIntegral $ view idxL $ matches `U.unsafeIndex` j"
+  "        mkListLoop j =<< cons (snd $ haystacks' `V.unsafeIndex` idx) res"
+  ""
+  "  mkListLoop (U.length matches) nilVal"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-instance-1a
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • No instance for ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of the instance declaration"
+  "    • In the expression: foofoo1 y"
+  "      In the expression: (x, foofoo1 y)"
+  "      In an equation for ‘barbar’: barbar (x, y) = (x, foofoo1 y)")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance Bar (Int, a) where"
+  "  barbar (x, y) = (x, _|_foofoo1 y)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance Foo1 a => Bar (Int, a) where"
+  "  barbar (x, y) = (x, _|_foofoo1 y)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-instance-1b
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • No instance for ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of the instance declaration"
+  "    • In the expression: foofoo1 y"
+  "      In the expression: (x, foofoo1 y)"
+  "      In an equation for ‘barbar’: barbar (x, y) = (x, foofoo1 y)")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance Quux a => Bar (Int, a) where"
+  "  barbar (x, y) = (x, _|_foofoo1 y)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance (Quux a, Foo1 a) => Bar (Int, a) where"
+  "  barbar (x, y) = (x, _|_foofoo1 y)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/add-constraint-to-instance-1c
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-39999] [-Wdeferred-type-errors]"
+  "    • No instance for ‘Foo1 a’ arising from a use of ‘foofoo1’"
+  "      Possible fix:"
+  "        add (Foo1 a) to the context of the instance declaration"
+  "    • In the expression: foofoo1 y"
+  "      In the expression: (x, foofoo1 y)"
+  "      In an equation for ‘barbar’: barbar (x, y) = (x, foofoo1 y)")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance (Quux a, Pippo a) => Bar (Int, a) where"
+  "  barbar (x, y) = (x, _|_foofoo1 y)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Foo1 a where"
+  "  foofoo1 :: a -> a"
+  ""
+  "class Bar a where"
+  "  barbar :: a -> a"
+  ""
+  "instance (Quux a, Pippo a, Foo1 a) => Bar (Int, a) where"
+  "  barbar (x, y) = (x, _|_foofoo1 y)"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
