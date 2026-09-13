@@ -86,8 +86,7 @@ automatically duplicated."
               node
               (lambda (x)
                 (let ((typ (treesit-node-type x)))
-                  (or (string= typ "type_family")
-                      (string= typ "signature")
+                  (or (member-str typ "type_family" "signature")
                       (string= (treesit-node-field-name x) "type"))))))))
 
 (provide 'haskell-smart-operators-utils)
