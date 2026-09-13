@@ -522,21 +522,22 @@ but when paired then it’s like a string."
     (error "Infix node without both left and right children: %s" node)))
 
 (defun haskell-ts--search-non-comment-nodes
-    (start search-forward? found-predicate stop-after-first-find?)
-  "CONTINUE-PREDICATE should take treesit-node and return boolean whether to continue scanning."
+    (start search-forward? is-matching-predicate continue-predicate)
+  "Keep searching forward or backward from START node across its siblings while
+IS-MATCHING-PREDICATE keeps returning true. When match is found call CONTINUE-PREDICATE
+and continue to next/previous sibling if it returns non-nil."
   (let ((tmp start)
         (continue? t)
-        (result nil)
-        (continue-after-first-find? (not stop-after-first-find?)))
+        (result nil))
     (while (and continue?
                 (setq tmp (if search-forward?
                               (treesit-node-next-sibling tmp)
                             (treesit-node-prev-sibling tmp))))
       (let ((tmp-type (treesit-node-type tmp)))
         (cond
-          ((funcall found-predicate tmp tmp-type)
+          ((funcall is-matching-predicate tmp tmp-type)
            (setf result tmp
-                 continue? continue-after-first-find?))
+                 continue? (funcall continue-predicate tmp)))
           ((treesit-haskell--is-comment-node-type? tmp-type)
            ;; Continue search.
            )
@@ -552,10 +553,13 @@ indented block will be their bounds without any extra processing."
   (with-no-narrowing
     (when-let*
         ((node
+          ;; Resolve situations when cursor is not in a function so current
+          ;; node is some toplevel comment or empty space.
           (let* ((current-node (treesit-node-at pos))
                  (n-typ (treesit-node-type current-node)))
             (cond
               ((string= "declarations" n-typ)
+               ;; "declarations" is toplevel node.
                (when do-scan-around?
                  (let ((next-pos
                         (save-excursion
@@ -579,7 +583,8 @@ indented block will be their bounds without any extra processing."
                                          (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
                                               ;; (haskell-ts--is-toplevel-node? node)
                                               ))
-                                       t))
+                                       ;; Stop at first match.
+                                       (lambda (_) nil)))
                      (func-node-below (haskell-ts--search-non-comment-nodes
                                        current-node
                                        t
@@ -587,7 +592,8 @@ indented block will be their bounds without any extra processing."
                                          (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
                                               ;; (haskell-ts--is-toplevel-node? node)
                                               ))
-                                       t)))
+                                       ;; Stop at first match.
+                                       (lambda (_) nil))))
 
                  (cond
                    ((and func-node-above
@@ -609,7 +615,8 @@ indented block will be their bounds without any extra processing."
                        scan-forward?
                        (lambda (_ typ)
                          (not (treesit-haskell--is-comment-node-type? typ)))
-                       t)))
+                       ;; Stop at first match.
+                       (lambda (_) nil))))
                    (t
                     nil))))
               (t
@@ -635,7 +642,8 @@ indented block will be their bounds without any extra processing."
                                    (sorted-set/empty?
                                     (sorted-set/intersection func-names
                                                              (haskell-ts--function-binding-names x))))))
-                           nil)
+                           ;; Continue scanning after match.
+                           (lambda (_) t))
                           first-node)))
 
               ;; Search forward as much as possible.
@@ -650,7 +658,8 @@ indented block will be their bounds without any extra processing."
                                    (sorted-set/empty?
                                     (sorted-set/intersection func-names
                                                              (haskell-ts--function-binding-names x))))))
-                           nil)
+                           ;; Continue scanning after match.
+                           (lambda (_) t))
                           last-node)))
 
               (cons (treesit-node-start first-node)

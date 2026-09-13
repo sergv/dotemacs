@@ -156,7 +156,9 @@
                            continue?)
                  (pcase (treesit-node-type n)
                    ((or "function" "bind")
-                    ;; Found previous function’s definition.
+                    ;; Found previous function definition or another case of our function.
+                    ;; In both cases we don’t rename in bodies of other cases, but we
+                    ;; do rename in signature.
                     (setf continue? nil))
                    ("pragma"
                     (when-let* ((pragma (treesit-haskell-parse-inline-pragma n))
