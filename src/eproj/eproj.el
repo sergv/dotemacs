@@ -1769,7 +1769,7 @@ Returns list of eproj-matching-tag structs."
                                                                   rel-path
                                                                   (concat related-root "/" rel-path)
                                                                   related-shares-same-hierarchy-as-main-project?)))
-          (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
+          (let ((eproj-file (concat related-root "/.eproj-info")))
             (when (file-exists-p eproj-file)
               (funcall add-file nil eproj-file related-shares-same-hierarchy-as-main-project?)))))
       (dolist (buf (nreverse (if include-all-buffers?
