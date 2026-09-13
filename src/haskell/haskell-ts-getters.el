@@ -168,6 +168,18 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-indent--get-signature-type (node)
+  "Get ‘type’ field from a signature NODE."
+  (cl-assert (string= "signature" (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "type")))
+    (cl-assert (not (null result))
+               nil
+               "No ‘type’ in signature node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (defun haskell-ts-indent--get-context-arrow (node)
   "Get ‘=>’ from a context NODE."
   (cl-assert (string= "context" (treesit-node-type node)))
@@ -188,6 +200,18 @@
     (cl-assert (not (null result))
                nil
                "Empty ‘context’ field of context node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-context-name (node)
+  "Get ‘name’ from a context NODE."
+  (cl-assert (string= "context" (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "name")))
+    (cl-assert (not (null result))
+               nil
+               "Empty ‘name’ field of context node: %s, node = %s, parent = %s"
                result
                node
                (treesit-node-parent node))
@@ -414,6 +438,32 @@
       (when (not (eq 3 (treesit-node-child-count node)))
         (error "Unexpected prefix_id node with other than 3 children: %s" node)))
     second))
+
+(defun haskell-ts-indent--get-instance-context (node)
+  "Get ‘context’ context from na instance NODE."
+  (cl-assert (string= "instance" (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "context")))
+    (cl-assert (or (null result)
+                   (and (treesit-node-p result)
+                        (string= (treesit-node-type result) "context")))
+               nil
+               "Invalid ‘context’ field of instance node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-instance-name (node)
+  "Get ‘name’ from an instance NODE."
+  (cl-assert (string= "instance" (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "name")))
+    (cl-assert (not (null result))
+               nil
+               "Empty ‘name’ of instance node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
 
 (provide 'haskell-ts-getters)
 
