@@ -960,10 +960,17 @@ indented block will be their bounds without any extra processing."
         (error "Constructor application has either no constructor or argument field: %s" node)))
     (cons constructor children)))
 
-(defun haskell-ts-foldr-toplevel-tuples (node f acc)
+(defun haskell-ts-foldr-toplevel-tuples (node on-elements on-commas acc)
   "Fold over elements of potentially nested tuples within tuple NODE in
 reverse order, e.g.
-(a, (b, c), d) becomes (f a (f b (f c (f d acc))))."
+(a, (b, c), d) becomes
+(on-elements a
+             (on-commas #<treesit-node \",\">
+                        (on-elements b
+                                     (on-commas #<treesit-node \",\">
+                                                (on-elements c
+                                                             (on-commas #<treesit-node \",\">
+                                                                        (on-elements d acc)))))))."
   (cl-assert (treesit-node-p node))
   (cl-assert (string= (treesit-node-type node) "tuple"))
   (cl-loop
@@ -971,13 +978,18 @@ reverse order, e.g.
    do
    (let* ((child (treesit-node-child node i))
           (typ (treesit-node-type child)))
-     (unless (member-str typ "(" ")" ",")
-       (setf acc (if (string= "tuple" typ)
-                     (haskell-ts-foldr-toplevel-tuples child f acc)
-                   (funcall f child acc))))))
+     (unless (member-str typ "(" ")")
+       (setf acc (cond
+                   ((string= "tuple" typ)
+                    (haskell-ts-foldr-toplevel-tuples child on-elements on-commas acc))
+                   ((string= "," typ)
+                    (funcall on-commas child acc))
+                   (t
+                    (funcall on-elements child acc)))))))
   acc)
 
-(defun haskell-ts-foldr-context (context-node on-arrow on-parens f acc)
+(defun haskell-ts-foldr-context
+    (context-node on-double-arrow on-toplevel-parens on-commas on-constraints acc)
   "Folds ‘context’ nodes."
   (cl-assert (or (null context-node)
                  (treesit-node-p context-node)))
@@ -985,29 +997,41 @@ reverse order, e.g.
       (if (string= "context" (treesit-node-type context-node))
           (if-let* ((arr (treesit-node-child-by-field-name context-node "arrow"))
                     (ctx (treesit-node-child-by-field-name context-node "context")))
-              (funcall on-arrow
+              (funcall on-double-arrow
                        context-node
                        arr
                        (pcase (treesit-node-type ctx)
                          ("parens"
-                          (funcall on-parens
+                          (funcall on-toplevel-parens
                                    context-node
                                    (haskell-ts-getters--get-opening-paren ctx)
                                    (haskell-ts-getters--get-closing-paren ctx)
-                                   (funcall f context-node (haskell-ts-getters--get-parens-content ctx) acc)))
+                                   (funcall on-constraints context-node (haskell-ts-getters--get-parens-content ctx) acc)))
                          ("tuple"
-                          (funcall on-parens
+                          (funcall on-toplevel-parens
                                    context-node
                                    (haskell-ts-getters--get-opening-paren ctx)
                                    (haskell-ts-getters--get-closing-paren ctx)
-                                   (haskell-ts-foldr-toplevel-tuples ctx (lambda (x acc2) (funcall f context-node x acc2)) acc)))
+                                   (haskell-ts-foldr-toplevel-tuples ctx
+                                                                     (lambda (x acc2)
+                                                                       (funcall on-constraints
+                                                                                context-node
+                                                                                x
+                                                                                acc2))
+                                                                     (lambda (x acc2)
+                                                                       (funcall on-commas
+                                                                                context-node
+                                                                                x
+                                                                                acc2))
+                                                                     acc)))
                          (_
-                          (funcall f context-node ctx acc))))
+                          (funcall on-constraints context-node ctx acc))))
             (error "Unexpected context node: %s" context-node))
         acc)
     acc))
 
-(defun haskell-ts-foldr-context-of-type-node (type-node on-arrow on-parens f acc)
+(defun haskell-ts-foldr-context-of-type-node
+    (type-node on-double-arrow on-toplevel-parens on-commas on-constraints acc)
   "Folds singleton and nested contexts of ‘type’ nodes."
   ;; NB this function is applicable to many node types so it’s hard to
   ;; enumerate them all in assert.
@@ -1016,12 +1040,14 @@ reverse order, e.g.
   (if type-node
       (progn
         (setf acc
-              (haskell-ts-foldr-context-of-type-node (treesit-node-child-by-field-name type-node "type")
-                                                     on-arrow
-                                                     on-parens
-                                                     f
-                                                     acc))
-        (haskell-ts-foldr-context type-node on-arrow on-parens f acc))
+              (haskell-ts-foldr-context-of-type-node
+               (treesit-node-child-by-field-name type-node "type")
+               on-double-arrow
+               on-toplevel-parens
+               on-commas
+               on-constraints
+               acc))
+        (haskell-ts-foldr-context type-node on-double-arrow on-toplevel-parens on-commas on-constraints acc))
     acc))
 
 (defun haskell-ts--extract-single-constraint-name-with-children (node &optional typ str)
@@ -1051,10 +1077,14 @@ will become nested lists."
                          (haskell-ts--infix-children node))))))
 
 (defun haskell-ts--extract-tuple-contraints (node str)
-  (haskell-ts-foldr-toplevel-tuples node
-                                   (lambda (x acc)
-                                     (cons (haskell-ts--extract-single-constraint-name-with-children x nil str) acc))
-                                   nil))
+  (haskell-ts-foldr-toplevel-tuples
+   node
+   (lambda (x acc)
+     (cons (haskell-ts--extract-single-constraint-name-with-children x nil str)
+           acc))
+   (lambda (_comma acc)
+     acc)
+   nil))
 
 (defun haskell-ts-parse-import-statement (str)
   "Extract module name and list of imported names from STR
@@ -1160,7 +1190,7 @@ In effect, normalize contraints."
   (cl-assert (listp names-to-remove))
   (cl-assert (treesit-node-p sig))
   (cl-assert (string= (treesit-node-type sig) "signature"))
-  (let* ((get-state
+  (let* ((get-state!
           (lambda (ctx states)
             (or (gethash ctx states)
                 (make-haskell-ts--remove-constraints-state
@@ -1171,20 +1201,22 @@ In effect, normalize contraints."
                  :arrow nil))))
          (states-for-all-contexts
           (haskell-ts-foldr-context-of-type-node
-           (treesit-node-child-by-field-name sig "type")
+           (haskell-ts-indent--get-signature-type sig)
            (lambda (ctx arr per-ctx-states)
-             (let ((state (funcall get-state ctx per-ctx-states)))
+             (let ((state (funcall get-state! ctx per-ctx-states)))
                (setf (haskell-ts--remove-constraints-state/arrow state) arr)
                (setf (gethash ctx per-ctx-states) state)
                per-ctx-states))
            (lambda (ctx lparen rparen per-ctx-states)
-             (let ((state (funcall get-state ctx per-ctx-states)))
+             (let ((state (funcall get-state! ctx per-ctx-states)))
                (setf (haskell-ts--remove-constraints-state/lparen state) lparen
                      (haskell-ts--remove-constraints-state/rparen state) rparen)
                (setf (gethash ctx per-ctx-states) state)
                per-ctx-states))
+           (lambda (_ctx _comma per-ctx-states)
+             per-ctx-states)
            (lambda (ctx x per-ctx-states)
-             (let ((state (funcall get-state ctx per-ctx-states)))
+             (let ((state (funcall get-state! ctx per-ctx-states)))
                (cl-incf (haskell-ts--remove-constraints-state/total-constraints state))
                (when (member (haskell-ts--extract-single-constraint-name-with-children x)
                              names-to-remove)
@@ -1203,38 +1235,38 @@ In effect, normalize contraints."
   (cl-assert (listp names-to-remove))
   (cl-assert (treesit-node-p node))
   (cl-assert (string= (treesit-node-type node) "instance"))
-  (let* ((get-state
+  (let* ((get-state!
           (lambda (ctx states)
             (or (gethash ctx states)
-                (make-haskell-ts--remove-constraints-state
-                 :constrains-to-remove nil
-                 :total-constraints 0
-                 :lparen nil
-                 :rparen nil
-                 :arrow nil))))
-         (context
-          (treesit-node-child-by-field-name node "context"))
+                (puthash ctx
+                         (make-haskell-ts--remove-constraints-state
+                          :constrains-to-remove nil
+                          :total-constraints 0
+                          :lparen nil
+                          :rparen nil
+                          :arrow nil)
+                         states))))
+         (context (haskell-ts-indent--get-instance-context node))
          (states-for-all-contexts
           (haskell-ts-foldr-context
            context
            (lambda (ctx arr per-ctx-states)
-             (let ((state (funcall get-state ctx per-ctx-states)))
+             (let ((state (funcall get-state! ctx per-ctx-states)))
                (setf (haskell-ts--remove-constraints-state/arrow state) arr)
-               (setf (gethash ctx per-ctx-states) state)
                per-ctx-states))
            (lambda (ctx lparen rparen per-ctx-states)
-             (let ((state (funcall get-state ctx per-ctx-states)))
+             (let ((state (funcall get-state! ctx per-ctx-states)))
                (setf (haskell-ts--remove-constraints-state/lparen state) lparen
                      (haskell-ts--remove-constraints-state/rparen state) rparen)
-               (setf (gethash ctx per-ctx-states) state)
                per-ctx-states))
+           (lambda (_ctx _comma per-ctx-states)
+             per-ctx-states)
            (lambda (ctx x per-ctx-states)
-             (let ((state (funcall get-state ctx per-ctx-states)))
+             (let ((state (funcall get-state! ctx per-ctx-states)))
                (cl-incf (haskell-ts--remove-constraints-state/total-constraints state))
                (when (member (haskell-ts--extract-single-constraint-name-with-children x)
                              names-to-remove)
                  (push x (haskell-ts--remove-constraints-state/constrains-to-remove state)))
-               (setf (gethash ctx per-ctx-states) state)
                per-ctx-states))
            (make-hash-table :test #'equal))))
     (dolist (state (sort (hash-table->alist states-for-all-contexts)
@@ -1249,6 +1281,168 @@ In effect, normalize contraints."
   (treesit-utils-semnav-bounds-of-string-at
    (treesit-haskell--node-at pos)
    #'treesit-haskell--is-string-node-type?))
+
+(defun haskell-ts-add-constraints-to-instance-or-signature-node--format-new-constraints
+    (constraints)
+  (if (eq 1 (length constraints))
+      (car constraints)
+    (concat "(" (mapconcat #'identity constraints ", ") ")")))
+
+(defun haskell-ts--fold-type-arrows (type-node on-arrow acc)
+  (if type-node
+      (progn
+        (if (string= "function" (treesit-node-type type-node))
+            (dotimes (i (treesit-node-child-count type-node))
+              (let ((child (treesit-node-child type-node i)))
+                (setf acc (if (string= "->" (treesit-node-type child))
+                              (funcall on-arrow (haskell-ts-indent--get-function-arrow type-node) acc)
+                            (haskell-ts--fold-type-arrows child on-arrow acc)))))
+          (dotimes (i (treesit-node-child-count type-node))
+            (let ((child (treesit-node-child type-node i)))
+              (setf acc (haskell-ts--fold-type-arrows child on-arrow acc)))))
+        acc)
+    acc))
+
+(cl-defstruct (haskell-ts-add-constraints--state
+               (:conc-name haskell-ts-add-constraints--state/))
+  double-arrow-node
+  contains-parens?
+  ;; Last constraint before closing node
+  last-item
+  ;; When inner item is
+  longest-comma-str)
+
+(defun haskell-ts-add-constraints-to-instance-or-signature-node--add-to-type-or-context-node
+    (type-node constraints-to-add)
+  (let* ((get-state!
+          (lambda (ctx states)
+            (or (gethash ctx states)
+                (puthash ctx
+                         (make-haskell-ts-add-constraints--state
+                          ;; :rparen nil
+                          :double-arrow-node nil
+                          :contains-parens? nil
+                          :last-item nil
+                          :longest-comma-str nil)
+                         states))))
+         (states-for-all-contexts
+          (hash-table-values
+           (haskell-ts-foldr-context-of-type-node
+            type-node
+            ;; on double arrow
+            (lambda (ctx arr per-ctx-states)
+              (let ((state (funcall get-state! ctx per-ctx-states)))
+                (cl-assert (string= "=>" (treesit-node-type arr)))
+                (setf (haskell-ts-add-constraints--state/double-arrow-node state) arr)
+                per-ctx-states))
+            ;; on toplevel parens
+            (lambda (ctx _lparen _rparen per-ctx-states)
+              (let ((state (funcall get-state! ctx per-ctx-states)))
+                (setf (haskell-ts-add-constraints--state/contains-parens? state) t)
+                per-ctx-states))
+            ;; on commas
+            (lambda (ctx comma-node per-ctx-states)
+              (let ((delimiter-str
+                     (apply #'concat
+                            (treesit-node-text-with-surrounding-whitespace-no-properties-unsafe
+                             comma-node)))
+                    (state (funcall get-state! ctx per-ctx-states)))
+                (setf (haskell-ts-add-constraints--state/longest-comma-str state)
+                      (if-let* ((prev-delim
+                                 (haskell-ts-add-constraints--state/longest-comma-str state)))
+                          (longest-str delimiter-str prev-delim)
+                        delimiter-str))
+                per-ctx-states))
+            ;; on constraints
+            (lambda (ctx x per-ctx-states)
+              (let ((state (funcall get-state! ctx per-ctx-states)))
+                (when (null (haskell-ts-add-constraints--state/last-item state))
+                  (setf (haskell-ts-add-constraints--state/last-item state) x))
+                per-ctx-states))
+            ;; acc
+            (make-hash-table :test #'equal)))))
+    (save-excursion
+      (if (and
+           (--all? (not (haskell-ts-add-constraints--state/contains-parens? it))
+                   states-for-all-contexts)
+           (< 1 (length states-for-all-contexts)))
+          (let* ((last-arrow
+                  (-max-by (lambda (x y)
+                             (> (treesit-node-end x)
+                                (treesit-node-end y)))
+                           (-map #'haskell-ts-add-constraints--state/double-arrow-node
+                                 states-for-all-contexts)))
+                 (separator (apply #'concat
+                                   (treesit-node-text-with-surrounding-whitespace-no-properties-unsafe
+                                    last-arrow))))
+            (goto-char (treesit-node-end last-arrow))
+            (skip-whitespace-forward)
+            (apply #'insert (--map (concat it separator) constraints-to-add)))
+        (progn
+          (cl-assert (not (zerop (length states-for-all-contexts))))
+          (let* ((state (car (last states-for-all-contexts)))
+                 (last-item (haskell-ts-add-constraints--state/last-item state)))
+            (cl-assert (treesit-node-p last-item))
+
+            (if (haskell-ts-add-constraints--state/contains-parens? state)
+                (let ((separator (haskell-ts-add-constraints--state/longest-comma-str state)))
+                  (goto-char (treesit-node-end last-item))
+                  (insert separator (mapconcat #'identity constraints-to-add separator)))
+              (progn
+                (goto-char (treesit-node-end last-item))
+                (apply #'insert (--map (concat ", " it) constraints-to-add))
+                (insert-char 41 ;; )
+                             )
+                (goto-char (treesit-node-start last-item))
+                (insert-char 40 ;; (
+                             ))))))
+      (vim-save-position))))
+
+(defun haskell-ts-add-constraints-to-instance-or-signature-node (constraints-to-add node)
+  (pcase (treesit-node-type node)
+    ("signature"
+     (let* ((type-node (haskell-ts-indent--get-signature-type node))
+            (context-node (treesit-node-child-by-field-name type-node "type")))
+       (if context-node
+           (haskell-ts-add-constraints-to-instance-or-signature-node--add-to-type-or-context-node
+            type-node
+            constraints-to-add)
+         ;; No context, add new one.
+         (let ((longest-arrow
+                (haskell-ts--fold-type-arrows
+                 type-node
+                 (lambda (arrow-node old-arrow)
+                   (cl-assert (string= "->" (treesit-node-type arrow-node)))
+                   (let ((new-arrow
+                          (treesit-node-text-with-surrounding-whitespace-no-properties-unsafe arrow-node)))
+                     (if (< (apply #'+ (mapcar #'length old-arrow))
+                            (apply #'+ (mapcar #'length new-arrow)))
+                         new-arrow
+                       old-arrow)))
+                 '(" "
+                   "->"
+                   " "))))
+           (save-excursion
+             (goto-char (treesit-node-start type-node))
+             (insert (haskell-ts-add-constraints-to-instance-or-signature-node--format-new-constraints constraints-to-add))
+             (vim-save-position)
+             (insert (car longest-arrow)
+                     "=>"
+                     (caddr longest-arrow)))))))
+    ("instance"
+     (let ((context-node (haskell-ts-indent--get-instance-context node)))
+       (if context-node
+           (haskell-ts-add-constraints-to-instance-or-signature-node--add-to-type-or-context-node
+            context-node
+            constraints-to-add)
+         (let ((name (haskell-ts-indent--get-instance-name node)))
+           (save-excursion
+             (goto-char (treesit-node-start name))
+             (insert (haskell-ts-add-constraints-to-instance-or-signature-node--format-new-constraints constraints-to-add))
+             (vim-save-position)
+             (insert " => "))))))
+    (_
+     (error "Don’t know how to remove constraints from node %s" node))))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-base-mode prog-mode "Haskell[ts]"
