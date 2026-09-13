@@ -1177,19 +1177,8 @@ In effect, normalize contraints."
         (mapc (lambda (x) (interval-with-margins-delete! x delete-all?)) to-delete-with-parens)))))
 
 (defun haskell-ts-remove-constraints-from-instance-or-signature-node (names-to-remove node)
-  (let ((typ (treesit-node-type node)))
-    (cond
-      ((string= "signature" typ)
-       (haskell-ts--remove-constraints-from-signature-node names-to-remove node))
-      ((string= "instance" typ)
-       (haskell-ts--remove-constraints-from-instance-node names-to-remove node))
-      (t
-       (error "Don’t know how to remove constraints from node %s" node)))))
-
-(defun haskell-ts--remove-constraints-from-signature-node (names-to-remove sig)
   (cl-assert (listp names-to-remove))
-  (cl-assert (treesit-node-p sig))
-  (cl-assert (string= (treesit-node-type sig) "signature"))
+  (cl-assert (treesit-node-p node))
   (let* ((get-state!
           (lambda (ctx states)
             (or (gethash ctx states)
@@ -1201,7 +1190,13 @@ In effect, normalize contraints."
                  :arrow nil))))
          (states-for-all-contexts
           (haskell-ts-foldr-context-of-type-node
-           (haskell-ts-indent--get-signature-type sig)
+           (pcase (treesit-node-type node)
+             ("signature"
+              (haskell-ts-indent--get-signature-type node))
+             ("instance"
+              (haskell-ts-indent--get-instance-context node))
+             (_
+              (error "Don’t know how to remove constraints from node %s" node)))
            (lambda (ctx arr per-ctx-states)
              (let ((state (funcall get-state! ctx per-ctx-states)))
                (setf (haskell-ts--remove-constraints-state/arrow state) arr)
@@ -1222,51 +1217,6 @@ In effect, normalize contraints."
                              names-to-remove)
                  (push x (haskell-ts--remove-constraints-state/constrains-to-remove state)))
                (setf (gethash ctx per-ctx-states) state)
-               per-ctx-states))
-           (make-hash-table :test #'equal))))
-    (dolist (state (sort (hash-table->alist states-for-all-contexts)
-                         :lessp (lambda (x y)
-                                  (> (treesit-node-start (car x))
-                                     (treesit-node-start (car y))))
-                         :in-place t))
-      (haskell-ts-remove-constraints--single-context (cdr state)))))
-
-(defun haskell-ts--remove-constraints-from-instance-node (names-to-remove node)
-  (cl-assert (listp names-to-remove))
-  (cl-assert (treesit-node-p node))
-  (cl-assert (string= (treesit-node-type node) "instance"))
-  (let* ((get-state!
-          (lambda (ctx states)
-            (or (gethash ctx states)
-                (puthash ctx
-                         (make-haskell-ts--remove-constraints-state
-                          :constrains-to-remove nil
-                          :total-constraints 0
-                          :lparen nil
-                          :rparen nil
-                          :arrow nil)
-                         states))))
-         (context (haskell-ts-indent--get-instance-context node))
-         (states-for-all-contexts
-          (haskell-ts-foldr-context
-           context
-           (lambda (ctx arr per-ctx-states)
-             (let ((state (funcall get-state! ctx per-ctx-states)))
-               (setf (haskell-ts--remove-constraints-state/arrow state) arr)
-               per-ctx-states))
-           (lambda (ctx lparen rparen per-ctx-states)
-             (let ((state (funcall get-state! ctx per-ctx-states)))
-               (setf (haskell-ts--remove-constraints-state/lparen state) lparen
-                     (haskell-ts--remove-constraints-state/rparen state) rparen)
-               per-ctx-states))
-           (lambda (_ctx _comma per-ctx-states)
-             per-ctx-states)
-           (lambda (ctx x per-ctx-states)
-             (let ((state (funcall get-state! ctx per-ctx-states)))
-               (cl-incf (haskell-ts--remove-constraints-state/total-constraints state))
-               (when (member (haskell-ts--extract-single-constraint-name-with-children x)
-                             names-to-remove)
-                 (push x (haskell-ts--remove-constraints-state/constrains-to-remove state)))
                per-ctx-states))
            (make-hash-table :test #'equal))))
     (dolist (state (sort (hash-table->alist states-for-all-contexts)
