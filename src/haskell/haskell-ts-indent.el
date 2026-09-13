@@ -1243,12 +1243,13 @@
                  (lambda (matched-anchor)
                    (let ((ctx-arrow-standalone?
                           (treesit-utils-is-standalone-node?
-                           (haskell-ts-indent--get-context-arrow parent))))
+                           (haskell-ts-indent--get-context-arrow parent)))
+                         (typ (treesit-node-type matched-anchor)))
                      (cond
-                       ((and (string= (treesit-node-type matched-anchor) "parens")
+                       ((and (string= typ "parens")
                              ctx-arrow-standalone?)
                         (+ haskell-indent-offset 3))
-                       ((or (string= (treesit-node-type matched-anchor) "::")
+                       ((or (string= typ "::")
                             ctx-arrow-standalone?)
                         (+ haskell-indent-offset 1))
                        (t
