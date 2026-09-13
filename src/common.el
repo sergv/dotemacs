@@ -1646,6 +1646,15 @@ returned non-nil."
           (setf tmp (cdr tmp)))
         res)))
 
+;;;;;
+
+(defun longest-str (x y)
+  (cl-assert (or (null x) (stringp x)))
+  (cl-assert (or (null y) (stringp y)))
+  (if (< (length x) (length y))
+      y
+    x))
+
 ;; Local Variables:
 ;; End:
 
