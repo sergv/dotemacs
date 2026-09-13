@@ -15,7 +15,8 @@
 (defconst hl-paren-open-parentheses (string-to-list "({["))
 
 (defface hl-paren-selection-face '((t (:underline "#d33682")))
-  "Face to highlight parentheses.")
+  "Face to highlight parentheses."
+  :group 'hl-paren)
 
 (cl-defstruct hl-paren-state
   first  ;; Current paren overlay
