@@ -91,11 +91,6 @@ within that region."
   longest-sep ;; Longest , together with surrounding space seen in this import list.
   )
 
-(defun haskell-sort-imports--longest-str (x y)
-  (if (< (length x) (length y))
-      y
-    x))
-
 (defun haskell-sort-imports--symmetric-append-import-lists (xs ys)
   (cl-assert (or (haskell-import-list-p xs) (null xs)))
   (cl-assert (or (haskell-import-list-p ys) (null xs)))
@@ -121,8 +116,8 @@ within that region."
          :sep       sep
          :end-str   (haskell-import-list-end-str base)
          :longest-sep
-         (haskell-sort-imports--longest-str (haskell-import-list-longest-sep xs)
-                                            (haskell-import-list-longest-sep ys))
+         (longest-str (haskell-import-list-longest-sep xs)
+                      (haskell-import-list-longest-sep ys))
          :entries   (if xs-entries
                         (if ys-entries
                             (append xs-entries (cons sep ys-entries))
@@ -334,7 +329,7 @@ entities. Entities must be valid Haskell import/export names. E.g.
         (is-qualified? (haskell-import-is-qualified? a))
         (qualified-as-name (haskell-import-qualified-as-name a))
         (merged-str-before-import-list
-         (haskell-sort-imports--longest-str
+         (longest-str
           (haskell-import-str-before-import-list a)
           (haskell-import-str-before-import-list b))))
     (cl-assert (equal (haskell-import-mod-name a)
