@@ -108,8 +108,8 @@ that:\n
   :type  'hook
   :group 'dos)
 
-(defface dos-mode-label-face '((t :weight bold :inherit 'default)) "Font fase: dos-mode labels." :group 'dos)
-(defface dos-mode-param-face '((t :inherit 'font-lock-warning-face)) "Font face: dos-mode command line params." :group 'dos)
+(defface dos-mode-label-face '((t :weight bold :inherit default)) "Font fase: dos-mode labels." :group 'dos)
+(defface dos-mode-param-face '((t :inherit font-lock-warning-face)) "Font face: dos-mode command line params." :group 'dos)
 ;; 3  Internal variables
 
 (defvar dos-font-lock-keywords (eval-when-compile (
