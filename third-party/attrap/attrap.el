@@ -643,29 +643,6 @@ Error is given as MSG and reported between POS and END."
                       (delete-char 1)
                       (insert it))
                     options)))
-         (when (string-match (rx (ghc-warning "30606" "redundant-constraints") spaces1
-                                 (? "•" spaces1) "Redundant constraint" (? "s") ":" spaces1
-                                 (or (group-n 1 "(" (* (not ?•)) ")")
-                                     (group-n 1 (* (not ?•))))
-                                 spaces1
-                                 (? "•" spaces1) "In the" spaces1
-                                 (or "type signature" "instance declaration") spaces1
-                                 "for")
-                             normalized-msg)
-           (let ((constraint (match-string 1 normalized-msg)))
-             (attrap-one-option "delete redundant constraint"
-               (let ((names-to-remove (haskell-ts-parse-constraint-names constraint))
-                     (sig-or-instance
-                      (treesit-utils-find-topmost-parent (treesit-node-at (point))
-                                                         (lambda (x)
-                                                           (let ((typ (treesit-node-type x)))
-                                                             (or (string= "signature" typ)
-                                                                 (string= "instance" typ)))))))
-                 (unless sig-or-instance
-                   (error "Failed to find enclsing instance or function signature"))
-                 (haskell-ts-remove-constraints-from-instance-or-signature-node
-                  names-to-remove
-                  sig-or-instance)))))
          ;; error: [GHC-44432]
          ;;     The type signature for ‘withSystemTempFileContents’
          ;;       lacks an accompanying binding
@@ -1149,6 +1126,30 @@ Error is given as MSG and reported between POS and END."
 
          (when (derived-mode-p 'haskell-ts-base-mode)
            (append
+            (when (string-match (rx (ghc-warning "30606" "redundant-constraints") spaces1
+                                    (? "•" spaces1) "Redundant constraint" (? "s") ":" spaces1
+                                    (or (group-n 1 "(" (* (not ?•)) ")")
+                                        (group-n 1 (* (not ?•))))
+                                    spaces1
+                                    (? "•" spaces1) "In the" spaces1
+                                    (or "type signature" "instance declaration") spaces1
+                                    "for")
+                                normalized-msg)
+              (let ((constraint (match-string 1 normalized-msg)))
+                (attrap-one-option "delete redundant constraint"
+                  (let ((names-to-remove (haskell-ts-parse-constraint-names constraint))
+                        (sig-or-instance
+                         (treesit-utils-find-topmost-parent (treesit-node-at (point))
+                                                            (lambda (x)
+                                                              (let ((typ (treesit-node-type x)))
+                                                                (or (string= "signature" typ)
+                                                                    (string= "instance" typ)))))))
+                    (unless sig-or-instance
+                      (error "Failed to find enclosing instance or function signature"))
+                    (haskell-ts-remove-constraints-from-instance-or-signature-node
+                     names-to-remove
+                     sig-or-instance)))))
+
             (when (string-match-p
                    (rx (ghc-warning "21030" "unbanged-strict-patterns")
                        (+ ws)
