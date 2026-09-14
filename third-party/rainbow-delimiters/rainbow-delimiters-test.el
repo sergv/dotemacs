@@ -145,10 +145,13 @@
   (with-temp-buffer-in-mode 'c++-mode
     (with-string (str "foo<int> x;")
       (should (ert-equal-including-properties
-               (progn
+               (let ((str (buffer-string)))
                  (remove-list-of-text-properties
-                  (point-min) (point-max) '(category c-type c-<>-c-types-set syntax-table))
-                 (buffer-string))
+                  1
+                  (- (length str) 1)
+                  '(category c-type syntax-table)
+                  str)
+                 str)
                #("foo<int> x;"
                  0 3 (face font-lock-type-face)
                  3 4 (face (rainbow-delimiters-depth-1-face))
@@ -284,4 +287,9 @@
                    2 3 (face (rainbow-delimiters-depth-2-face)))))))))
 
 (provide 'rainbow-delimiters-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; rainbow-delimiters-test.el ends here
