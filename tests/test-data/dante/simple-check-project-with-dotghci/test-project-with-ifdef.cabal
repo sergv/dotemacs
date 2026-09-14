@@ -1,0 +1,79 @@
+cabal-version: 3.6
+
+-- Created : 11 September 2026
+
+name:
+  test-project-with-ifdef
+version:
+  0.1
+synopsis:
+  TODO
+description:
+  TODO
+copyright:
+  (c) Sergey Vinokurov 2026
+license:
+  Apache-2.0
+-- license-file:
+--   LICENSE
+author:
+  Sergey Vinokurov
+maintainer:
+  Sergey Vinokurov <serg.foo@gmail.com>
+
+build-type:
+  Simple
+
+extra-source-files:
+  Changelog.md
+  Readme.md
+
+common ghc-options
+  default-language:
+    GHC2024
+
+  ghc-options:
+    -Weverything
+    -Wno-all-missed-specialisations
+    -Wno-implicit-prelude
+    -Wno-missed-specialisations
+    -Wno-missing-import-lists
+    -Wno-missing-local-signatures
+    -Wno-safe
+    -Wno-unsafe
+
+  if impl(ghc >= 8.8)
+    ghc-options:
+      -Wno-missing-deriving-strategies
+
+  if impl(ghc >= 8.10)
+    ghc-options:
+      -Wno-missing-safe-haskell-mode
+
+  if impl(ghc >= 9.2)
+    ghc-options:
+      -Wno-missing-kind-signatures
+
+  if impl(ghc >= 9.8)
+    ghc-options:
+      -Wno-missing-role-annotations
+      -Wno-missing-poly-kind-signatures
+
+flag throw-error
+  description:
+    Throw error during compilation
+  default:
+    False
+  manual:
+    True
+
+library
+  import: ghc-options
+  exposed-modules:
+    Foo
+  hs-source-dirs:
+    .
+  build-depends:
+    , base >= 4.16
+  if flag(throw-error)
+    cpp-options: -DTHROW_ERROR
