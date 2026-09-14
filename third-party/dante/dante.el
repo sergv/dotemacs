@@ -295,23 +295,45 @@ targets and components about current buffer’s ghci session."
                 (concat "-" (sha1 it))))
     (concat "dist-newstyle/" name)))
 
-(defconst dante-methods-defs
-  (let* ((ghci-options
-          '("-fbyte-code"
-            "-Wall"
-            "-Wcompat"
-            "-Wname-shadowing"
-            "-Wincomplete-uni-patterns"
-            "-Wincomplete-record-updates"
-            "-Wno-missing-home-modules"
-            "-Wno-type-defaults"
-            "-fdiagnostics-color=always"
-            "-dsuppress-module-prefixes"
-            "-fshow-loaded-modules"
-            "-fprint-potential-instances"
-            "-fdefer-typed-holes"))
+(defconst dante-ghci-check-static-options
+  '("-fdefer-typed-holes"
+    "-fdiagnostics-color=always"
+    "-ferror-spans"
+    "-fno-diagnostics-show-caret"
+    "-Wwarn=inconsistent-flags"
+    "-Wwarn=missing-home-modules"
 
-         (get-check-build-dir (lambda (proj-root build-dir)
+    ;; Make dante checker not error out if cabal file contains
+    ;; -Werror. Pass -Wwarn during initialization at runtime to
+    ;; override.
+    "-Wwarn"
+
+    "-ignore-dot-ghci")
+  "GHCi options passed on command line.")
+
+(defconst dante-ghci-check-dynamic-options
+  '("+c")
+  "GHCi options passed via :set on stdin.")
+
+(defconst dante-ghci-repl-options
+  '("-fbyte-code"
+    "-Wall"
+    "-Wcompat"
+    "-Wname-shadowing"
+    "-Wincomplete-uni-patterns"
+    "-Wincomplete-record-updates"
+    "-Wno-missing-home-modules"
+    "-Wno-type-defaults"
+    "-fdiagnostics-color=always"
+    "-dsuppress-module-prefixes"
+    "-fshow-loaded-modules"
+    "-fprint-potential-instances"
+    "-fdefer-typed-holes"
+    "-no-ignore-dot-ghci")
+  "GHCi options for interactive REPL.")
+
+(defconst dante-methods-defs
+  (let* ((get-check-build-dir (lambda (proj-root build-dir)
                                 (cl-assert (stringp proj-root))
                                 (cl-assert (file-directory-p proj-root))
                                 (cl-assert (stringp build-dir))
@@ -321,7 +343,6 @@ targets and components about current buffer’s ghci session."
                                (cl-assert (stringp build-dir))
                                (dante--get-build-dir "dante-repl" proj-root build-dir)))
 
-         (repl-options (--mapcat (list "--repl-option" it) ghci-options))
          (mk-dante-method
           (cl-function
            (lambda
@@ -335,11 +356,12 @@ targets and components about current buffer’s ghci session."
                 (let ((result
                        (funcall template
                                 :flake-root (dante-config/flake-root cfg)
-                                :flags (list "--disable-profiling"
-                                             "--disable-library-profiling"
-                                             "--disable-optimization"
-                                             "--builddir"
-                                             (dante-config/build-dir cfg))
+                                :cabal-flags (list "--disable-profiling"
+                                                   "--disable-library-profiling"
+                                                   "--disable-optimization"
+                                                   "--builddir"
+                                                   (dante-config/build-dir cfg))
+                                :ghci-flags dante-ghci-check-static-options
                                 :target (dante-config/cabal-target cfg))))
                   (cl-assert (cmdline-p result)
                              nil
@@ -351,20 +373,21 @@ targets and components about current buffer’s ghci session."
                 (let ((load-all-mods
                        (funcall template
                                 :flake-root (dante-config/flake-root cfg)
-                                :flags (append (list "--disable-profiling"
-                                                     "--disable-library-profiling"
-                                                     "--builddir"
-                                                     (dante-config/repl-dir cfg))
-                                               repl-options)
+                                :cabal-flags (list "--disable-profiling"
+                                                   "--disable-library-profiling"
+                                                   "--builddir"
+                                                   (dante-config/repl-dir cfg))
+                                :ghci-flags dante-ghci-repl-options
                                 :target (dante-config/cabal-target cfg)))
                       (load-no-mods
                        (funcall template
                                 :flake-root (dante-config/flake-root cfg)
-                                :flags (append (list "--disable-profiling"
-                                                     "--disable-library-profiling"
-                                                     "--builddir"
-                                                     (dante-config/repl-dir cfg))
-                                               (cons "--repl-no-load" repl-options))
+                                :cabal-flags (list "--disable-profiling"
+                                                   "--disable-library-profiling"
+                                                   "--builddir"
+                                                   (dante-config/repl-dir cfg)
+                                                   "--repl-no-load")
+                                :ghci-flags dante-ghci-repl-options
                                 :target (dante-config/cabal-target cfg))))
                   (cl-assert (cmdline-p load-all-mods))
                   (cl-assert (cmdline-p load-no-mods))
@@ -385,16 +408,17 @@ targets and components about current buffer’s ghci session."
                   (let ((result
                          (funcall template
                                   :flake-root (dante-config/flake-root cfg)
-                                  :flags (append (if is-repl?
-                                                     (list "--builddir"
-                                                           (dante-config/repl-dir cfg))
-                                                   (list "--disable-optimization"
-                                                         "--builddir"
-                                                         (dante-config/build-dir cfg)))
-                                                 (list "--disable-profiling"
-                                                       "--disable-library-profiling"
-                                                       "--repl-no-load"
-                                                       "--with-repl=echo"))
+                                  :cabal-flags (append (if is-repl?
+                                                           (list "--builddir"
+                                                                 (dante-config/repl-dir cfg))
+                                                         (list "--disable-optimization"
+                                                               "--builddir"
+                                                               (dante-config/build-dir cfg)))
+                                                       (list "--disable-profiling"
+                                                             "--disable-library-profiling"
+                                                             "--repl-no-load"
+                                                             "--with-repl=echo"))
+                                  :ghci-flags dante-ghci-check-static-options
                                   :target (dante-config/cabal-target cfg))))
                     (cl-assert (cmdline-p result)
                                nil
@@ -411,8 +435,13 @@ targets and components about current buffer’s ghci session."
                :disable-preprocess t
                :template
                (cl-function
-                (lambda (&key flake-root flags &allow-other-keys)
-                  (nix-call-via-flakes dante-cabal-executable `("repl" ,buffer-file-name ,@flags) flake-root))))
+                (lambda (&key flake-root cabal-flags ghci-flags &allow-other-keys)
+                  (nix-call-via-flakes dante-cabal-executable
+                                       `("repl"
+                                         ,buffer-file-name
+                                         ,@cabal-flags
+                                         ,@(--mapcat (list "--repl-option" it) ghci-flags))
+                                       flake-root))))
 
       (funcall mk-dante-method
                :name 'nix-flakes-build
@@ -421,9 +450,14 @@ targets and components about current buffer’s ghci session."
                :repl-buf-name-func #'dante-buffer-name--default
                :template
                (cl-function
-                (lambda (&key flake-root flags target)
+                (lambda (&key flake-root cabal-flags ghci-flags target)
                   (cl-assert (stringp target))
-                  (nix-call-via-flakes dante-cabal-executable `("repl" ,target ,@flags) flake-root))))
+                  (nix-call-via-flakes dante-cabal-executable
+                                       `("repl"
+                                         ,target
+                                         ,@cabal-flags
+                                         ,@(--mapcat (list "--repl-option" it) ghci-flags))
+                                       flake-root))))
 
       (funcall mk-dante-method
                :name 'build-script
@@ -433,10 +467,13 @@ targets and components about current buffer’s ghci session."
                :disable-preprocess t
                :template
                (cl-function
-                (lambda (&key flags &allow-other-keys)
+                (lambda (&key cabal-flags ghci-flags &allow-other-keys)
                   (make-cmdline
                    :exe dante-cabal-executable
-                   :args `("repl" ,buffer-file-name ,@flags)))))
+                   :args `("repl"
+                           ,buffer-file-name
+                           ,@cabal-flags
+                           ,@(--mapcat (list "--repl-option" it) ghci-flags))))))
 
       (funcall mk-dante-method
                :name 'build
@@ -445,11 +482,14 @@ targets and components about current buffer’s ghci session."
                :repl-buf-name-func #'dante-buffer-name--default
                :template
                (cl-function
-                (lambda (&key flags target &allow-other-keys)
+                (lambda (&key cabal-flags ghci-flags target &allow-other-keys)
                   (cl-assert (stringp target))
                   (make-cmdline
                    :exe dante-cabal-executable
-                   :args `("repl" ,target ,@flags)))))
+                   :args `("repl"
+                           ,target
+                           ,@cabal-flags
+                           ,@(--mapcat (list "--repl-option" it) ghci-flags))))))
 
       (funcall mk-dante-method
                :name 'bare-ghci
@@ -459,8 +499,10 @@ targets and components about current buffer’s ghci session."
                :disable-preprocess t
                :template
                (cl-function
-                (lambda (&key &allow-other-keys)
-                  (make-cmdline :exe "ghci"))))))))
+                (lambda (&key ghci-flags &allow-other-keys)
+                  (make-cmdline
+                   :exe "ghci"
+                   :args ghci-flags))))))))
 
 (defcustom dante-methods (dante--methods-names dante-methods-defs)
   "Keys in `dante-methods-alist' to try, in order.
@@ -1297,18 +1339,7 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
     (dante-start cont)))
 
 (defcustom dante-load-flags
-  '("+c"
-    "-fdefer-typed-holes"
-    "-fdiagnostics-color=always"
-    "-ferror-spans"
-    "-fno-diagnostics-show-caret"
-    "-Wwarn=inconsistent-flags"
-    "-Wwarn=missing-home-modules"
-
-    ;; Make dante checker not error out if cabal file contains
-    ;; -Werror. Pass -Wwarn during initialization at runtime to
-    ;; override.
-    "-Wwarn")
+  '()
   "Flags to set whenever GHCi is started."
   :type (cons 'set (--map (list 'const :tag (concat (car it) ": " (cadr it)) (car it))
                           '(("+c" "Gather type information (necessary for `dante-type-at')")
@@ -1373,7 +1404,7 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
     (dante--set-checker-state! 'starting ghci-buf)
     (lcr-call dante-async-call
               (s-join "\n" (--map (concat ":set " it)
-                                  (append dante-load-flags
+                                  (append dante-ghci-check-dynamic-options
                                           (list "local-config ignore"
                                                 ;; Empty continuation prompt so that output
                                                 ;; of :{ will be correctly identified.
