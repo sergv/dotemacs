@@ -16,8 +16,8 @@ export EMACS_DEBUG=0
 emacs="${EMACS:-emacs}"
 emacs_dir=${1:-"${EMACS_ROOT}"}
 
-if [[ "${EMACS_SKIP_ELC:-0}" == 1 ]]; then
-    echo "Don't recompile with EMACS_SKIP_ELC = 1, loading elisp files will fail" >&2
+if [[ "${EMACS_SKIP_COMPILED:-0}" == 1 ]]; then
+    echo "Don't recompile with EMACS_SKIP_COMPILED = 1, loading elisp files will fail" >&2
     exit 1
 fi
 
