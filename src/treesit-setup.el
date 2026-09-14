@@ -387,6 +387,21 @@ to the offending pattern and highlight the pattern."
             (when (> (- (point-max) delta) (point))
               (goto-char (- (point-max) delta)))))))))
 
+(el-patch-defun treesit--explorer-jump (button)
+  "Mark the original text corresponding to BUTTON."
+  (when (and (derived-mode-p 'treesit--explorer-tree-mode)
+             (buffer-live-p treesit--explorer-source-buffer))
+    (with-current-buffer treesit--explorer-source-buffer
+      (let ((start (button-get button 'node-start))
+            (end (button-get button 'node-end)))
+        (when treesit--explorer-highlight-overlay
+          (delete-overlay treesit--explorer-highlight-overlay))
+        (setq-local treesit--explorer-highlight-overlay
+                    (make-overlay start end nil t nil))
+        (overlay-put treesit--explorer-highlight-overlay
+                     'face
+                     (el-patch-swap 'highlight 'search-highlight-face))))))
+
 (defun treesit--named-children (node)
   "Get all children of NODE along with their names, return list of (NAME . CHILD) pairs."
   (cl-loop
