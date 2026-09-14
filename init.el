@@ -78,7 +78,7 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
           (funcall collect-dirs root "")
           dirs)))))
 
-(let ((skip-elc? (equal (getenv "EMACS_SKIP_ELC") "1")))
+(let ((skip-compiled? (equal (getenv "EMACS_SKIP_COMPILED") "1")))
 
   (dolist (dir (list "src" "src/custom"))
     (when dir
@@ -96,7 +96,7 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
       (lambda (x) (directory-file-name (concat +emacs-config-path+ "/" x)))
       (delq nil
             (list "compiled"
-                  (unless skip-elc?
+                  (unless skip-compiled?
                     "compiled/elc")
                   "lib")))
      (mapcar
@@ -164,11 +164,21 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
   ;;     (startup-redirect-eln-cache compiled-dir)))
 
   ;; Sometimes there are extra entries, remove them all except the last one.
-  (when (boundp 'native-comp-eln-load-path)
-    (while (cdr native-comp-eln-load-path)
-      (setf native-comp-eln-load-path (cdr native-comp-eln-load-path)))
-    (push (directory-file-name (concat +emacs-config-path+ "/compiled/eln"))
-          native-comp-eln-load-path)))
+  (when (and (boundp 'native-comp-eln-load-path)
+             (not skip-compiled?))
+    (if skip-compiled?
+        (progn
+          ;; Load elc files for these to speed up processing and/or eliminate
+          ;; load loops.
+          (require 'jka-compr)
+          (require 'comp)
+          (require 'byte-opt)
+          (setf load-suffixes (remove ".elc" load-suffixes)))
+      (progn
+        (while (cdr native-comp-eln-load-path)
+          (setf native-comp-eln-load-path (cdr native-comp-eln-load-path)))
+        (push (directory-file-name (concat +emacs-config-path+ "/compiled/eln"))
+              native-comp-eln-load-path)))))
 
 ;; Make it an error instead.
 (when (boundp 'native-comp-warning-on-missing-source)
