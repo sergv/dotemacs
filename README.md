@@ -24,7 +24,7 @@ bombardment, explosions, cave-ins, and/or frogs falling from the sky.
 - `EMACS_WRITABLE_ROOT` - path
 - `EMACS_SYSTEM_TYPE`   - e.g. `(linux home)`
 - `EMACS_ENV_DEFS`      - redirect .bashrc
-- `EMACS_SKIP_ELC`      - `0` or `1`
+- `EMACS_SKIP_COMPILED` - `0` or `1`
 - `EMACS_NIX_STORE_DIR` - unused legacy?
 - `EMACS_NIX_STATE_DIR` - unused legacy?
 

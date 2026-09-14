@@ -11,7 +11,7 @@ set -u
 set -o pipefail
 
 # Don’t load elc files because they have asserts disabled
-export EMACS_SKIP_ELC=1
+export EMACS_SKIP_COMPILED=1
 export EMACS_FORCE_PRISTINE=1
 # export EMACS=emacs-bytecode
 if [[ "$#" = 0 ]]; then
