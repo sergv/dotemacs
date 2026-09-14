@@ -14,7 +14,11 @@ set -o pipefail
 export EMACS_SKIP_ELC=1
 export EMACS_FORCE_PRISTINE=1
 # export EMACS=emacs-bytecode
-"$(dirname "$(realpath "${BASH_SOURCE[0]}")")/tests/run-tests.sh" '"t"'
+if [[ "$#" = 0 ]]; then
+    "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/tests/run-tests.sh" '"t"'
+else
+    "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/tests/run-tests.sh" "${@}"
+fi
 
 exit 0
 
