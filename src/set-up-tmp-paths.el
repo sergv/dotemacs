@@ -51,7 +51,7 @@ restarts.")
 ;;
 ;; ;; Shadow everything else
 ;; (push (concat +emacs-compiled-path+ "/compiled") load-path)
-;; (unless (equal (getenv "EMACS_SKIP_ELC") "1")
+;; (unless (equal (getenv "EMACS_SKIP_COMPILED") "1")
 ;;   (push (concat +emacs-compiled-path+ "/compiled/elc") load-path))
 
 (add-to-list 'exec-path +execs-path+)
