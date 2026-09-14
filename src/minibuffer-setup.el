@@ -35,6 +35,7 @@
   ("<delete>"          delete-char)
 
   ("C-SPC"             delete-minibuffer-contents)
+  ("C-<return>"        exit-minibuffer)
   ;; ("SPC"               self-insert-command)
 
   ("S-<delete>"        delete-whitespace-forward)
