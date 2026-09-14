@@ -57,6 +57,9 @@
 (defconst dante-test-data/simple-repl-test-project-with-hsc
   (concat dante-test-data/resources-root "/dante/simple-repl-project-with-hsc"))
 
+(defconst dante-test-data/simple-check-test-project-with-dotghci
+  (concat dante-test-data/resources-root "/dante/simple-check-project-with-dotghci"))
+
 (defmacro dante-tests/with-file (path &rest body)
   (declare (indent 1))
   (let ((buf-var '#:buf))
@@ -419,6 +422,27 @@
     (ert-skip "neither trix nor nix are not available"))
 
   (dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl t))
+
+(ert-deftest z-dante-tests/simple-check-project-6-with-dotghci-leading-to-errors ()
+  (unless (executable-find dante-cabal-executable)
+    (ert-skip "cabal not available"))
+  (unless (executable-find "ghc")
+    (ert-skip "ghc not available"))
+
+  (dante-tests/with-file
+   (concat dante-test-data/simple-check-test-project-with-dotghci "/Foo.hs")
+
+   (should (derived-mode-p 'haskell-ts-base-mode))
+   (should flycheck-mode)
+   (should dante-mode)
+
+   (should (string= (dante-config/cabal-target (dante-get-config))
+                    "test-project-with-ifdef:lib:test-project-with-ifdef"))
+
+   (delete-directory (dante-config/build-dir (dante-get-config)) t)
+
+   (dante-tests/check-buffer-and-assert-when-done
+    (should (null flycheck-current-errors)))))
 
 (ert-deftest z-dante-tests/simple-repl-project-1 ()
   (unless (executable-find dante-cabal-executable)
