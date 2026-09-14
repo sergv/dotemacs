@@ -339,7 +339,7 @@
 (defun haskell-ts-indent--match-parent-anchor (node parent bol)
   (cl-assert (string= "match" (treesit-node-type parent)))
   (if-let* ((match-first-node (haskell-ts-indent--get-match-equals-or-guard-pipe-or-arrow parent))
-            ((treesit-utils-is-standalone-node? match-first-node)))
+            (_ (treesit-utils-is-standalone-node? match-first-node)))
       match-first-node
     (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent node parent bol)))
 
@@ -586,9 +586,9 @@
      (string= (treesit-node-type x) "signature"))))
 
 (defun haskell-ts-indent--type-function-first-arg-anchor (node parent bol)
-  (if-let* (((string= (treesit-node-type parent) "function"))
+  (if-let* ((_ (string= (treesit-node-type parent) "function"))
             (arrow (haskell-ts-indent--get-function-arrow parent))
-            ((not (treesit-utils-is-standalone-node? arrow)))
+            (_ (not (treesit-utils-is-standalone-node? arrow)))
             (above-forall (haskell-ts-indent--type-function--find-above-forall parent)))
       above-forall
     (haskell-ts-indent--type-function-anchor--impl node parent bol nil t)))
@@ -616,8 +616,8 @@
       (let ((ctx-contents (haskell-ts-indent--get-context-context context)))
         (if (treesit-utils-is-standalone-node? ctx-contents)
             ctx-contents
-          (if-let* (((not (null forall)))
-                    ((string= "forall" (treesit-node-type forall))))
+          (if-let* ((_ forall)
+                    (_ (string= "forall" (treesit-node-type forall))))
               forall
             ctx-contents))))))
 
@@ -870,9 +870,9 @@
               ,(lambda (_ parent _)
                  (lambda (matched-anchor)
                    (cl-assert (treesit-node-p matched-anchor))
-                   (if-let* (((string= "infix" (treesit-node-type matched-anchor)))
+                   (if-let* ((_ (string= "infix" (treesit-node-type matched-anchor)))
                              (right (haskell-ts-getters--infix-right-operand parent))
-                             ((not (treesit-utils-is-standalone-node? right))))
+                             (_ (not (treesit-utils-is-standalone-node? right))))
                        haskell-indent-offset
                      0))))
 
@@ -1017,11 +1017,11 @@
               haskell-ts-indent--under-local-binds-anchor
               (lambda (_ _ _)
                 (lambda (matched-anchor)
-                  (if-let* (((treesit-node-p matched-anchor))
-                            ((string= (treesit-node-type matched-anchor)
-                                      "local_binds"))
+                  (if-let* ((_ (treesit-node-p matched-anchor))
+                            (_ (string= (treesit-node-type matched-anchor)
+                                        "local_binds"))
                             (gp (treesit-node-parent matched-anchor))
-                            ((member-str (treesit-node-type gp) "let" "let_in")))
+                            (_ (member-str (treesit-node-type gp) "let" "let_in")))
                       1
                     0))))
 
@@ -1270,7 +1270,7 @@
                    (if-let* ((_ parent)
                              (_ (string= (treesit-node-type parent) "function"))
                              (arrow (haskell-ts-indent--get-function-arrow parent))
-                             ((not (treesit-utils-is-standalone-node? arrow))))
+                             (_ (not (treesit-utils-is-standalone-node? arrow))))
                        haskell-indent-offset
                      (+ haskell-indent-offset 1)))))
 
