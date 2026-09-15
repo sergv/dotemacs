@@ -543,11 +543,13 @@
         -3))))
 
 (defun haskell-ts-indent--type-function-anchor--impl
-    (node parent _bol consider-spaces-after-open-paren? consider-context?)
+    (node parent _bol consider-spaces-after-open-paren? consider-context? always-pick-signature-double-colon?)
   (let ((prev node)
         (curr parent))
     (catch 'term
       (while curr
+        (when treesit--indent-verbose
+          (message "haskell-ts-indent--type-function-anchor--impl: curr = %s" curr))
         (let ((curr-type (treesit-node-type curr)))
           (when-let* ((candidate (haskell-ts-indent--select-parens-anchor curr-type curr prev consider-spaces-after-open-paren?))
                       ;; Never select forall as our anchor
@@ -563,7 +565,8 @@
                (throw 'term it)))
             ((string= curr-type "signature")
              (when-let* ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
-               (throw 'term (if (treesit-utils-is-standalone-node? double-colon)
+               (throw 'term (if (or always-pick-signature-double-colon?
+                                    (treesit-utils-is-standalone-node? double-colon))
                                 double-colon
                               (haskell-ts-indent--get-signature-name curr)))))
             ((string= curr-type "gadt_constructor")
@@ -574,9 +577,6 @@
           (setf prev curr
                 curr (treesit-node-parent curr)))))))
 
-(defun haskell-ts-indent--type-function-context-anchor (node parent bol)
-  (haskell-ts-indent--type-function-anchor--impl node parent bol nil nil))
-
 (defun haskell-ts-indent--type-function--find-above-forall (node)
   (treesit-utils-find-closest-parent-until
    node
@@ -585,13 +585,32 @@
    (lambda (x)
      (string= (treesit-node-type x) "signature"))))
 
+(defun haskell-ts-indent--type-function-context-or-fist-arg-anchor (node parent bol consider-context?)
+  (if-let* ((arrow
+             (pcase (treesit-node-type parent)
+               ("function" (haskell-ts-indent--get-function-arrow parent))
+               ("context"  (haskell-ts-indent--get-context-arrow parent))
+               (_          ))))
+      (let ((arrow-is-standalone? (treesit-utils-is-standalone-node? arrow)))
+        (if-let* ((_ (not arrow-is-standalone?))
+                  (above-forall (haskell-ts-indent--type-function--find-above-forall parent)))
+            above-forall
+          (haskell-ts-indent--type-function-anchor--impl
+           node
+           parent
+           bol
+           nil
+           consider-context?
+           ;; Standalone arrow will be aligned with :: so we should be
+           ;; too.
+           arrow-is-standalone?)))
+    (error "Cannot locate arrow in node %s and parent %s" node parent)))
+
+(defun haskell-ts-indent--type-function-context-anchor (node parent bol)
+  (haskell-ts-indent--type-function-context-or-fist-arg-anchor node parent bol nil))
+
 (defun haskell-ts-indent--type-function-first-arg-anchor (node parent bol)
-  (if-let* ((_ (string= (treesit-node-type parent) "function"))
-            (arrow (haskell-ts-indent--get-function-arrow parent))
-            (_ (not (treesit-utils-is-standalone-node? arrow)))
-            (above-forall (haskell-ts-indent--type-function--find-above-forall parent)))
-      above-forall
-    (haskell-ts-indent--type-function-anchor--impl node parent bol nil t)))
+  (haskell-ts-indent--type-function-context-or-fist-arg-anchor node parent bol t))
 
 (defun haskell-ts-indent--type-function-second-or-later-arg-anchor (_node parent _bol)
   (cl-assert (string= (treesit-node-type parent) "function"))
@@ -1248,7 +1267,7 @@
                      (cond
                        ((and (string= typ "parens")
                              ctx-arrow-standalone?)
-                        (+ haskell-indent-offset 3))
+                        (+ haskell-indent-offset 1))
                        ((or (string= typ "::")
                             ctx-arrow-standalone?)
                         (+ haskell-indent-offset 1))
