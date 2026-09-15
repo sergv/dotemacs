@@ -24,6 +24,10 @@
       (file-truename x)
     x))
 
+(defun dante-tests--paths= (x y)
+  (string= (dante-tests--truename-on-macos x)
+           (dante-tests--truename-on-macos y)))
+
 (defconst dante-test-data/resources-root
   (concat +test-utils--test-root+ "/test-data"))
 
@@ -201,8 +205,8 @@
      (let ((err (--find (string-suffix-p "Baz.hs" (flycheck-error-filename it) t)
                         flycheck-current-errors)))
        (should (not (null err)))
-       (should (string= (flycheck-error-filename err)
-                        (concat dante-test-data/simple-check-test-project "/src/Bar/Baz.hs")))
+       (should (dante-tests--paths= (flycheck-error-filename err)
+                                    (concat dante-test-data/simple-check-test-project "/src/Bar/Baz.hs")))
        (should (= (flycheck-error-line err) 10))
        (should (string-search "GHC-25897" (flycheck-error-message err)))
        (should (string-search "Couldn't match expected type ‘b’ with actual type ‘a’"
@@ -250,8 +254,8 @@
          (let ((err (--find (string-suffix-p "Baz.hs" (flycheck-error-filename it) t)
                             flycheck-current-errors)))
            (should (not (null err)))
-           (should (string= (flycheck-error-filename err)
-                            (concat proj-dir "/src/Bar/Baz.hs")))
+           (should (dante-tests--paths= (flycheck-error-filename err)
+                                        (concat proj-dir "/src/Bar/Baz.hs")))
            (should (= (flycheck-error-line err) 10))
            (should (string-search "GHC-25897" (flycheck-error-message err)))
            (should (string-search "Couldn't match expected type ‘b’ with actual type ‘a’"
@@ -260,8 +264,8 @@
         (progn
           (flycheck-enhancements-next-error-with-wraparound)
 
-          (should (string= (concat proj-dir "/src/Bar/Baz.hs")
-                           (buffer-file-name))))
+          (should (dante-tests--paths= (concat proj-dir "/src/Bar/Baz.hs")
+                                       (buffer-file-name))))
 
         (progn
           (goto-line-dumb 10)
@@ -314,8 +318,8 @@
                              (string-search "GHC-63397" (flycheck-error-message it)))
                         flycheck-current-errors)))
        (should (not (null err)))
-       (should (string= (flycheck-error-filename err)
-                        (concat dante-test-data/simple-test-project-name-shadowing-error "/src/Foo.hs")))
+       (should (dante-tests--paths= (flycheck-error-filename err)
+                                    (concat dante-test-data/simple-test-project-name-shadowing-error "/src/Foo.hs")))
        (should (string-search "This binding for ‘x’ shadows the existing binding"
                               (flycheck-error-message err)))))
 
@@ -375,8 +379,8 @@
         (should (looking-at-p (rx symbol-start "bar" symbol-end)))
 
         (dante-tests/haskell-symbnav-go-to-symbol-home-and-assert-when-done
-         (should (string= (dante-tests--truename-on-macos (concat proj-dir "/main/src/Baz/Quux.hs"))
-                          (dante-tests--truename-on-macos (buffer-file-name))))
+         (should (dante-tests--paths= (concat proj-dir "/main/src/Baz/Quux.hs")
+                                      (buffer-file-name)))
          (should (string= (buffer-substring-no-properties (line-beginning-position) (line-end-position))
                           "bar x = x"))))
 
@@ -396,14 +400,14 @@
                                  (string-search "GHC-25277" (flycheck-error-message it)))
                             flycheck-current-errors)))
            (should (not (null err)))
-           (should (string= (dante-tests--truename-on-macos (flycheck-error-filename err))
-                            (dante-tests--truename-on-macos (concat proj-dir "/main/src/Baz/Quux.hs"))))))
+           (should (dante-tests--paths= (flycheck-error-filename err)
+                                        (concat proj-dir "/main/src/Baz/Quux.hs")))))
 
         (progn
           (flycheck-enhancements-next-error-with-wraparound)
 
-          (should (string= (dante-tests--truename-on-macos (concat proj-dir "/main/src/Baz/Quux.hs"))
-                           (dante-tests--truename-on-macos (buffer-file-name)))))))))
+          (should (dante-tests--paths= (concat proj-dir "/main/src/Baz/Quux.hs")
+                                       (buffer-file-name))))))))
 
 (ert-deftest z-dante-tests/simple-check-project-4-error-with-relative-path-from-subproject ()
   (unless (executable-find dante-cabal-executable)
@@ -533,8 +537,8 @@
          (let ((err (--find (string-suffix-p "Baz.hsc" (flycheck-error-filename it) t)
                             flycheck-current-errors)))
            (should (not (null err)))
-           (should (string= (flycheck-error-filename err)
-                            (concat proj-dir "/src/Bar/Baz.hsc")))
+           (should (dante-tests--paths= (flycheck-error-filename err)
+                                        (concat proj-dir "/src/Bar/Baz.hsc")))
            (should (= (flycheck-error-line err) 18))
            (should (string-search "GHC-25897" (flycheck-error-message err)))
            (should (string-search "Couldn't match expected type ‘a’ with actual type ‘CDoubleTyp’"
@@ -543,8 +547,8 @@
         (progn
           (flycheck-enhancements-next-error-with-wraparound)
 
-          (should (string= (concat proj-dir "/src/Bar/Baz.hsc")
-                           (buffer-file-name)))
+          (should (dante-tests--paths= (concat proj-dir "/src/Bar/Baz.hsc")
+                                       (buffer-file-name)))
 
           (dante-tests/check-buffer-and-assert-when-done
            (should (not (null flycheck-current-errors)))
@@ -552,8 +556,8 @@
            (let ((err (--find (string-suffix-p "Baz.hsc" (flycheck-error-filename it) t)
                               flycheck-current-errors)))
              (should (not (null err)))
-             (should (string= (flycheck-error-filename err)
-                              (concat proj-dir "/src/Bar/Baz.hsc")))
+             (should (dante-tests--paths= (flycheck-error-filename err)
+                                          (concat proj-dir "/src/Bar/Baz.hsc")))
              (should (= (flycheck-error-line err) 18))
              (should (string-search "GHC-25897" (flycheck-error-message err)))
              (should (string-search "Couldn't match expected type ‘a’ with actual type ‘CDoubleTyp’"
@@ -610,8 +614,8 @@
          (let ((err (--find (string-suffix-p "Baz.hsc" (flycheck-error-filename it) t)
                             flycheck-current-errors)))
            (should (not (null err)))
-           (should (string= (flycheck-error-filename err)
-                            (concat proj-dir "/src/Bar/Baz.hsc")))
+           (should (dante-tests--paths= (flycheck-error-filename err)
+                                        (concat proj-dir "/src/Bar/Baz.hsc")))
            (should (= (flycheck-error-line err) 18))
            (should (string-search "GHC-25897" (flycheck-error-message err)))
            (should (string-search "Couldn't match expected type ‘a’ with actual type ‘CDoubleTyp’"
@@ -857,7 +861,8 @@ bar = foo
        (should (not (null flycheck-current-errors)))
        (should (= 1 (length flycheck-current-errors)))
        (let ((err (car flycheck-current-errors)))
-         (should (string= (flycheck-error-filename err) tmp-file))
+         (should (dante-tests--paths= (flycheck-error-filename err)
+                                      tmp-file))
          (should (= (flycheck-error-line err) 5))
          (should (string-search "GHC-83865" (flycheck-error-message err)))
          (let ((msg (flycheck-error-message err)))
