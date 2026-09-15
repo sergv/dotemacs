@@ -61,21 +61,25 @@ let
       march-mtune-args;
     elispLinkFlags =
       [
-        # -Wl,-z,pack-relative-relocs compresses
-        # relocation tables to reduce file size and
-        # slightly improve load times.
-        "-Wl,-z,pack-relative-relocs"
-
         # -Wl,-O2 applies standard linker-level
         # optimizations (like string merging) to the
         # generated shared object.
         "-Wl,-O2"
+      ] ++
+      (if isDarwin
+       then []
+       else
+         [
+           # -Wl,-z,pack-relative-relocs compresses
+           # relocation tables to reduce file size and
+           # slightly improve load times.
+           "-Wl,-z,pack-relative-relocs"
 
-        # -Wl,--as-needed prevents the linker from
-        # recording dependencies on libraries that
-        # are not actually used by the code.
-        "-Wl,--as-needed"
-      ];
+           # -Wl,--as-needed prevents the linker from
+           # recording dependencies on libraries that
+           # are not actually used by the code.
+           "-Wl,--as-needed"
+         ]);
   };
 
   emacs-debug-cfg = {
