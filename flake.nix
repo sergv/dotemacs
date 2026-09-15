@@ -333,13 +333,13 @@
                 "$dest_abs/bin/emacs" --batch --eval "$sanity_check_command"
 
                 if [[ -f "$dest_abs/init.elc" ]]; then
-                  echo "[Function source test for vanilla .elc]"
-                  EMACS_FORCE_PRISTINE=1 "$dest_abs/bin/emacs" --batch --load "$dest_abs/init.elc" --eval "$sanity_check_command"
+                    echo "[Function source test for vanilla .elc]"
+                    EMACS_FORCE_PRISTINE=1 "$dest_abs/bin/emacs" --batch --load "$dest_abs/init.elc" --eval "$sanity_check_command"
                 fi
 
                 if [[ -f "$dest_abs/init.eln" ]]; then
-                  echo "[Function source test for vanilla .eln]"
-                  EMACS_FORCE_PRISTINE=1 "$dest_abs/bin/emacs" --batch --load "$dest_abs/init.eln" --eval "$sanity_check_command"
+                    echo "[Function source test for vanilla .eln]"
+                    EMACS_FORCE_PRISTINE=1 "$dest_abs/bin/emacs" --batch --load "$dest_abs/init.eln" --eval "$sanity_check_command"
                 fi
 
                 runHook postCheck
