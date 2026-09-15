@@ -268,8 +268,8 @@
           (move-to-column 4)
 
           (dante-tests/type-at-point-and-assert-when-done
-           ty
-           (should (string= ty "x :: a"))))
+              ty
+            (should (string= ty "x :: a"))))
 
         (progn
           (goto-char (point-min))
@@ -332,8 +332,8 @@
       ;; Test that :type-at still works even when project doesn’t build because of -Werror.
       ;; Dante must override -Werror with -Wwarn to make this work.
       (dante-tests/type-at-point-and-assert-when-done
-       ty
-       (should (string= ty "myreplicate :: Int -> [a] -> [[a]]"))))))
+          ty
+        (should (string= ty "myreplicate :: Int -> [a] -> [[a]]"))))))
 
 (defun dante-tests--simple-check-project--error-with-relative-path-from-subproject-impl (enable-flakes?)
   (unless (executable-find dante-cabal-executable)
@@ -874,8 +874,8 @@ bar = foo
         (move-to-column 1)
 
         (dante-tests/type-at-point-and-assert-when-done
-         ty
-         (should (string= ty "foo :: Int")))))))
+            ty
+          (should (string= ty "foo :: Int")))))))
 
 (provide 'dante-tests)
 
