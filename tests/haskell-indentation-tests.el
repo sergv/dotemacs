@@ -5990,12 +5990,13 @@ have different input states."
   "foo = undefined"
   "")
  :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
  (tests-utils--multiline
   ""
   "foo"
   "  :: forall w."
   "     ( forall s."
-  "          _|_Foo w Int"
+  "        _|_Foo w Int"
   "       => Bar w s Int"
   "       -> ST s ()"
   "     )"
@@ -6021,12 +6022,13 @@ have different input states."
   "foo = undefined"
   "")
  :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
  (tests-utils--multiline
   ""
   "foo"
   "  ::"
   "     ("
-  "          _|_Foo w Int"
+  "        _|_Foo w Int"
   "       => Bar w s Int"
   "       -> ST s ()"
   "     )"
@@ -6036,7 +6038,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-11a
+ :name haskell-indentation-tests--test-treesitter-type-11aa
  :contents
  (tests-utils--multiline
   ""
@@ -6052,12 +6054,47 @@ have different input states."
   "foo = undefined"
   "")
  :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
  (tests-utils--multiline
   ""
   "foo"
   "  :: forall w."
   "     ( forall s."
   "        _|_Foo w Int"
+  "       -> Bar w s Int"
+  "       -> ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-11ab
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     ( forall s."
+  "               _|_Ord s"
+  "       => Foo w Int"
+  "       -> Bar w s Int"
+  "       -> ST s ()"
+  "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     ( forall s."
+  "        _|_Ord s"
+  "       => Foo w Int"
   "       -> Bar w s Int"
   "       -> ST s ()"
   "     )"
@@ -6083,6 +6120,7 @@ have different input states."
   "foo = undefined"
   "")
  :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
  (tests-utils--multiline
   ""
   "foo"
@@ -6191,7 +6229,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-12b
+ :name haskell-indentation-tests--test-treesitter-type-12ba
  :contents
  (tests-utils--multiline
   ""
@@ -6216,6 +6254,29 @@ have different input states."
   "       -> Bar w s Int"
   "       -> ST s ()"
   "     )"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-12bb
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "       _|_Int"
+  "  -> Int"
+  "  -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "     _|_Int"
   "  -> Int"
   "  -> Int"
   "foo = undefined"
@@ -7233,6 +7294,169 @@ have different input states."
   "  => Int"
   "foo = undefined"))
 
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31aa
+ :contents
+ (tests-utils--multiline
+  "foo :: forall a."
+  "         _|_Ord a -> a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: forall a."
+  "         _|_Ord a -> a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31ab
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "       :: forall a."
+  "                         _|_Ord a -> a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "       :: forall a."
+  "            _|_Ord a -> a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31baa
+ :contents
+ (tests-utils--multiline
+  "foo :: forall a."
+  "                           _|_Ord a => a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: forall a."
+  "         _|_Ord a => a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31babaa
+ :contents
+ (tests-utils--multiline
+  "foo :: forall a."
+  "                           _|_Ord a"
+  " => a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: forall a."
+  "       _|_Ord a"
+  " => a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31babab
+ :contents
+ (tests-utils--multiline
+  "foo :: forall a."
+  "                           _|_Ord a"
+  " -> a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: forall a."
+  "       _|_Ord a"
+  " -> a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31babb
+ :contents
+ (tests-utils--multiline
+  "foo :: forall a."
+  "                           Ord a"
+  "                            _|_=> a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: forall a."
+  "                           Ord a"
+  "    _|_=> a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31bba
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "       :: forall a."
+  "                  _|_Ord a => a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "       :: forall a."
+  "            _|_Ord a => a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31bbba
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "       :: forall a."
+  "                  _|_Ord a"
+  " => a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "       :: forall a."
+  "          _|_Ord a"
+  " => a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31bbbb
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "       :: forall a."
+  "                  Ord a"
+  "                                        _|_=> a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "       :: forall a."
+  "                  Ord a"
+  "       _|_=> a"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-31c
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "       ::"
+  "                 _|_forall a."
+  "                   Ord a"
+  "                                        => a"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "       ::"
+  "          _|_forall a."
+  "                   Ord a"
+  "                                        => a"
+  "foo x = x"))
 
 
 (haskell-indentation-tests--test-treesitter
