@@ -416,6 +416,7 @@
       (org-cancelled :foreground ,violet :bold t)
       (org-waiting :foreground ,orange :bold t)
       (org-started :foreground ,blue :bold t)
+      (org-formula :foreground ,cyan)
 
       (org-agenda-date :foreground ,blue)
       (org-agenda-date-today :foreground ,blue :bold t)
