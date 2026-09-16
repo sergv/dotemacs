@@ -842,7 +842,7 @@ Magit status buffer."
   "Default sentinel used by `magit-start-process'."
   (when (memq (process-status process) '(exit signal))
     (setq event (substring event 0 -1))
-    (when (string-match "^finished" event)
+    (when (string-prefix-p "^finished" event)
       (message (concat (capitalize (process-name process)) " finished")))
     (magit-process-finish process)
     (when (eq process magit-this-process)
@@ -1250,7 +1250,7 @@ Limited by `magit-process-error-tooltip-max-lines'."
   (when (buffer-live-p process-buf)
     (with-current-buffer process-buf
       (magit-process-finish-section section arg)))
-  (if (= arg 0)
+  (if (eq arg 0)
       (magit-process-unset-mode-line default-dir)
     (let ((msg (magit-process-error-summary process-buf section)))
       (if magit-process-display-mode-line-error
