@@ -486,7 +486,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (preceded-by-arrow?
             (save-excursion
               (goto-char p-before-ws)
-              (preceded-by2 ?> ?-)))
+              (or (preceded-by2 ?> ?-)
+                  (preceded-by2 ?> ?=))))
            (preceded-by-operator?
             (save-excursion
               (goto-char p-before-ws)

@@ -3689,6 +3689,44 @@ Entries should be a list of of elements of the form
 
 (haskell-tests--test-buffer-contents*
  :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-13a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Insert n k v where"
+  "  FoundSpace :: Ord k => _|_Foo k -> v ->"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Insert n k v where"
+  "  FoundSpace :: Ord k => !(_|_Foo k) -> v ->"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-13b
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Insert n k v where"
+  "  FoundSpace :: Ord k => Foo _|_k -> v ->"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Insert n k v where"
+  "  FoundSpace :: Ord k => !(Foo _|_k) -> v ->"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
  haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1a
  :action
  (haskell-smart-operators-exclamation-mark)
