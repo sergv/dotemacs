@@ -15,8 +15,8 @@
   (fold-platform-os-type
    (if (getenv "IN_NIX_SHELL")
        "/tmp"
-     temporary-file-directory)
-   temporary-file-directory)
+     (directory-file-name temporary-file-directory))
+   (directory-file-name temporary-file-directory))
   "Path to temporary files that are visible across different emacs instances.")
 
 (provide 'set-up-paths)
