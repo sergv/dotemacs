@@ -734,6 +734,13 @@
       (tramp-remote-shell "/bin/sh") (tramp-remote-shell-login ("-l"))
       (tramp-remote-shell-args ("-c"))))))
 
+(ert-deftest common-tests/strip-directory-and-separator-prefix ()
+  (should (string= (strip-directory-and-separator-prefix "" "") ""))
+  (should (string= (strip-directory-and-separator-prefix "" "/foo") "foo"))
+  (should (string= (strip-directory-and-separator-prefix "/foo" "/foo/") ""))
+  (should (string= (strip-directory-and-separator-prefix "/foo" "/foobar") "/foobar"))
+  (should (string= (strip-directory-and-separator-prefix "/foo" "/foo/bar") "bar")))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
