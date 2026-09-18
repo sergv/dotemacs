@@ -38,6 +38,7 @@
 (defvar tramp-echo-mark)
 (defvar tramp-histfile-override)
 (defvar tramp-methods)
+(defvar tramp-persistency-file-name)
 (defvar tramp-remote-path)
 (defvar tramp-remote-process-environment)
 (defvar tramp-use-scp-direct-remote-copying)
@@ -59,7 +60,8 @@
       tramp-connection-timeout 5
       tramp-histfile-override nil
       ;; tramp-default-remote-shell "/bin/sh"
-      )
+
+      tramp-persistency-file-name (concat +tmp-global-path+ "/tramp-connections"))
 
 (connection-local-set-profile-variables
  'remote-direct-async-process
