@@ -2851,6 +2851,9 @@ value.  Otherwise return CHILDREN as is.")
   (transient--init-transient)
   (transient--push-keymap 'transient--transient-map)
   (transient--push-keymap 'transient--redisplay-map)
+  (when prefix-arg
+    (transient--pop-keymap 'universal-argument-map)
+    (universal-argument--mode))
   (transient--redisplay))
 
 (defun transient--pre-command ()
