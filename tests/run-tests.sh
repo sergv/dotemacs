@@ -66,9 +66,15 @@ fi
 
 if [[ "${#to_load[@]}" == 0 ]]; then
     for x in "$emacs_tests_dir"/*.el; do
-        tests+=( "$(basename "${x%%.el}")" )
-        # tests="$tests -l $x"
-        # tests="$tests (require '$(basename "${x%%.el}"))"
+        case  "$(basename "$x")" in
+            "tests-utils.el" | "dante-tests-utils.el" )
+                ;;
+            * )
+                tests+=( "$(basename "${x%%.el}")" )
+                # tests="$tests -l $x"
+                # tests="$tests (require '$(basename "${x%%.el}"))"
+                ;;
+        esac
     done
 
     # "lsp-mode/test"
