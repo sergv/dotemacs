@@ -1453,6 +1453,9 @@ Error is given as MSG and reported between POS and END."
                    "Data.Coerce"
                    ("Coercible"
                     "coerce"))
+                  (("GHC.Internal.Types")
+                   "Data.Kind"
+                   ("Constraint"))
                   (("GHC.IO" "GHC.Internal.IO")
                    "Control.Exception"
                    ("evaluate"))
