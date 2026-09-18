@@ -574,6 +574,7 @@ get proper flycheck checker."
 
 (defsubst eproj--add-cached-file-for-navigation (fname files-cache)
   (cl-assert (stringp fname) nil "Invalid cached file: ‘%s’" fname)
+  (cl-assert (not (file-name-absolute-p fname)) nil "Attempting to add absolute cached file name: ‘%s’" fname)
   (push fname (eproj--cached-files-for-navigation-files files-cache)))
 
 (defsubst eproj--reset-cached-files-for-navigation! (files-cache)
