@@ -600,7 +600,7 @@ get proper flycheck checker."
           (setf (eproj-project/transient-files-for-navigation proj)
                 (make-eproj--cached-files-for-navigation)))
         (eproj--add-cached-file-for-navigation
-         fname
+         (strip-directory-and-separator-prefix root fname)
          (eproj-project/transient-files-for-navigation proj))
         (if-let* ((old-tags-thunk (cdr-safe (assq mode (eproj-project/tags proj)))))
             (progn
