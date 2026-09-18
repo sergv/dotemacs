@@ -57,6 +57,8 @@
 (require 'pcase)
 (require 'pp)
 
+(require 'set-up-paths)
+
 (eval-and-compile
   (when (and (featurep 'seq)
              (not (fboundp 'seq-keep)))
@@ -668,21 +670,21 @@ give you as many additional suffixes as you hoped.)"
                  (const :tag "7 - most suffixes" 7)))
 
 (defcustom transient-levels-file
-  (locate-user-emacs-file "transient/levels.el")
+  (concat +tmp-global-path+ "/transient/levels.el")
   "File used to save levels of transients and their suffixes."
   :package-version '(transient . "0.1.0")
   :group 'transient
   :type 'file)
 
 (defcustom transient-values-file
-  (locate-user-emacs-file "transient/values.el")
+  (concat +tmp-global-path+ "/transient/values.el")
   "File used to save values of transients."
   :package-version '(transient . "0.1.0")
   :group 'transient
   :type 'file)
 
 (defcustom transient-history-file
-  (locate-user-emacs-file "transient/history.el")
+  (concat +tmp-global-path+ "/transient/history.el")
   "File used to save history of transients and their infixes."
   :package-version '(transient . "0.1.0")
   :group 'transient
