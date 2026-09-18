@@ -416,12 +416,19 @@ main table and value in aux table."
     str))
 
 (defun strip-directory-and-separator-prefix (prefix str)
-  (cl-assert (not (eq ?/ (aref prefix (1- (length prefix)))))
-             nil
-             "Prefix must not end with slash.")
-  (substring str (+ (length prefix)
-                    ;; Account for trailing slash in prefix
-                    1)))
+  (declare (pure t) (side-effect-free t))
+  (let ((prefix-len (length prefix)))
+    (cl-assert (or (zerop prefix-len)
+                   (not (eq ?/ (aref prefix (1- prefix-len)))))
+               nil
+               "Prefix must not end with slash.")
+    (if (and (string-prefix-p prefix str)
+             (< prefix-len (length str))
+             (eq ?/ (aref str prefix-len)))
+        (substring str (+ prefix-len
+                          ;; Account for trailing slash in prefix
+                          1))
+      str)))
 
 ;;;
 
