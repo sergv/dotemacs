@@ -30,23 +30,30 @@
 
 ;; (company-posframe-mode +1)
 
-(defsubst delete-duplicate-candidates--introduced-by-company-dabbrev-code? (x)
-  (eq (get-text-property 0 'company-backend x)
-      'company-dabbrev-code))
+(defun delete-duplicate-candidates--can-delete? (x)
+  (let ((prop (get-text-property 0 'company-backend x)))
+    (or (null prop)
+        (eq prop 'company-dabbrev-code))))
+
+(defconst delete-duplicate-candidates-from-company-dabbrev-code--introduced-by-other
+  (make-hash-table :test #'equal))
 
 (defun delete-duplicate-candidates-from-company-dabbrev-code (xs)
-  "Remove candidates introduced by ‘company-dabbrev-code’ backend if they were
+  "Remove candidates introduced by ‘company-dabbrev-code’ backend or
+candidates without backend if they were
 introduced by some other backend."
   (if (cdr xs)
       ;; Only invoke if there’s more than one candidate
-      (let ((introduced-by-other (make-hash-table :test #'equal)))
-        (dolist (x xs)
-          (unless (delete-duplicate-candidates--introduced-by-company-dabbrev-code? x)
-            (puthash x t introduced-by-other)))
-        (inplace-delete-if! (lambda (x)
-                              (and (delete-duplicate-candidates--introduced-by-company-dabbrev-code? x)
-                                   (gethash x introduced-by-other)))
-                            xs))
+      (unwind-protect
+          (progn
+            (dolist (x xs)
+              (unless (delete-duplicate-candidates--can-delete? x)
+                (puthash x t delete-duplicate-candidates-from-company-dabbrev-code--introduced-by-other)))
+            (inplace-delete-if! (lambda (x)
+                                  (and (delete-duplicate-candidates--can-delete? x)
+                                       (gethash x delete-duplicate-candidates-from-company-dabbrev-code--introduced-by-other)))
+                                xs))
+        (clrhash delete-duplicate-candidates-from-company-dabbrev-code--introduced-by-other))
     xs))
 
 (provide 'company-mode-setup)
