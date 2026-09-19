@@ -19,7 +19,7 @@
   (should (equal (delete-duplicate-candidates-from-company-dabbrev-code
                   (cl-copy-list
                    '(#("foo" 0 3
-                       (:file "/root/test-file.txt" :line 100 :kind "Function"))
+                       (company-backend company-eproj :file "/root/test-file.txt" :line 100 :kind "Function"))
                      #("foo" 0 3
                        (company-backend company-dabbrev-code)))))
                  '(#("foo" 0 3
@@ -31,7 +31,7 @@
                    '(#("foo" 0 3
                        (company-backend company-dabbrev-code))
                      #("foo" 0 3
-                       (:file "/root/test-file.txt" :line 100 :kind "Function")))))
+                       (company-backend company-eproj :file "/root/test-file.txt" :line 100 :kind "Function")))))
                  '(#("foo" 0 3
                      (:file "/root/test-file.txt" :line 100 :kind "Function"))))))
 
@@ -49,7 +49,7 @@
                    '(#("foo" 0 3
                        (company-backend company-dabbrev-code))
                      #("foo" 0 3
-                       (:file "/root/test-file.txt" :line 100 :kind "Function"))
+                       (company-backend company-eproj :file "/root/test-file.txt" :line 100 :kind "Function"))
                      #("foo" 0 3
                        (company-backend company-dabbrev-code)))))
                  '(#("foo" 0 3
