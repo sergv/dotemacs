@@ -60,6 +60,7 @@
 (require 'haskell-mode)
 (require 'nix-integration)
 (require 's)
+(require 'semnav)
 (require 'xref)
 (require 'lcr)
 (when-windows
@@ -992,10 +993,6 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
          (common (nth 2 (read (concat "(" (car lines) ")")))))
     (--map (concat common (read it)) (cdr lines))))
 
-(defun dante--in-a-comment ()
-  "Return non-nil if point is in a comment."
-  (nth 4 (syntax-ppss)))
-
 (defun dante-company (command &optional arg &rest _ignored)
   "Company backend for dante.
 See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
@@ -1005,15 +1002,19 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
     (sorted t)
     (prefix
      (let ((bounds (haskell-misc--bounds-of-symbol-impl t -1 nil nil)))
-       (when (and dante-mode (not (dante--in-a-comment)) bounds)
-         (let* ((id-start (car bounds))
-                (_ (save-excursion (re-search-backward "import[\t ]*" (line-beginning-position) t)))
-                (import-end (match-end 0))
-                (import-start (match-beginning 0))
-                (is-import (eq import-end id-start)))
-           (buffer-substring-no-properties (if is-import import-start id-start) (point))))))
+       (when (and dante-mode
+                  (point-not-inside-string-or-comment?)
+                  bounds)
+         (save-match-data
+           (let* ((id-start (car bounds))
+                  (_ (save-excursion (re-search-backward "import[\t ]*" (line-beginning-position) t)))
+                  (import-end (match-end 0))
+                  (import-start (match-beginning 0))
+                  (is-import (eq import-end id-start)))
+             (buffer-substring-no-properties (if is-import import-start id-start) (point)))))))
     (candidates
-     (unless (eq (awhen (dante-get-ghci-state) (dante-check-ghci-state/checker-state it)) 'dead)
+     (when-let* ((ghci-state (dante-get-ghci-state))
+                 (_ (not (eq (dante-check-ghci-state/checker-state ghci-state) 'dead))))
        (cons :async (lambda (callback) (lcr-spawn (lcr-halt callback (lcr-call dante-complete arg)))))))))
 
 (with-eval-after-load 'company
