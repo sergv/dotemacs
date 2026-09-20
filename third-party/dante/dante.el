@@ -62,6 +62,7 @@
 (require 's)
 (require 'semnav)
 (require 'xref)
+(require 'xterm-color)
 (require 'lcr)
 (when-windows
  (require 'windows-setup))
@@ -597,6 +598,18 @@ Consider setting this variable as a directory variable."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Session-local variables. These are set *IN THE GHCi INTERACTION BUFFER*
 
+;; Messages from GHCi, typically errors and warnings.
+(cl-defstruct (dante-load-message
+               (:conc-name dante-load-message/))
+  ;; String
+  abs-file
+  ;; String
+  location-raw
+  ;; String
+  short-description
+  ;; String
+  body)
+
 (cl-defstruct (dante-check-ghci-state
                (:conc-name dante-check-ghci-state/))
   ;; Path where GHCi runs.
@@ -612,7 +625,8 @@ Consider setting this variable as a directory variable."
   ;; Command line used to start GHCi, list of strings.
   command-line
 
-  ;; Load messages from GHCi before actual repl starts.
+  ;; Result of calling :load or :reload command.
+  ;; List of ‘dante-load-message’ structs.
   load-message
 
   loaded-file
@@ -886,8 +900,7 @@ and over."
             (setf (dante-check-ghci-state/loaded-file ghci-state)
                   src-fname
                   (dante-check-ghci-state/load-message ghci-state)
-                  (let ((ansi-color-context nil))
-                    (--map (-map #'ansi-color-apply it) err-messages)))))))))
+                  err-messages)))))))
 
 (defun dante-local-name (fname)
   "Local name of FNAME on the remote host."
@@ -944,11 +957,14 @@ process."
   "Map of regular expressions to flycheck error types, ordered by priority."
   :group 'dante :type '(repeat (cons regex symbol)))
 
-(defun dante-fly-message (matched checker buf temp-file)
+(defun dante-fly-message (ghci-msg checker buf temp-file)
   "Convert the MATCHED message to flycheck format.
 CHECKER and BUFFER are added if the error is in TEMP-FILE."
   (save-match-data
-    (cl-destructuring-bind (file location-raw err-type msg) matched
+    (let ((file (dante-load-message/abs-file ghci-msg))
+          (location-raw (dante-load-message/location-raw ghci-msg))
+          (err-type (dante-load-message/short-description ghci-msg))
+          (msg (dante-load-message/body ghci-msg)))
       (let* ((type (cdr (--first (string-match (car it) err-type) dante-flycheck-types)))
              (fixed-err-type (if (eq type 'error)
                                  err-type
@@ -1375,6 +1391,7 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                         cfg))
          (arglist (cmdline-to-executable-command args))
          (ghc-initialising? t)
+         ;; Load messages from GHCi before actual repl starts.
          (initial-ghc-messages nil)
          (vanilla-filter (lcr-process-make-filter ghci-buf))
          (process (with-current-buffer ghci-buf
@@ -1487,7 +1504,7 @@ ACC umulate input and ERR-MSGS."
                  ;;      (string-match dante-ghci-prompt m))
                  (setf (dante-check-ghci-state/checker-state ghci-state)
                        (list 'ghc-err (pcase (dante-check-ghci-state/checker-state ghci-state)
-                                        (`(compiling ,module) (ansi-color-apply module))
+                                        (`(compiling ,module) (xterm-color-filter-strip module))
                                         (_ cur-file)))) ; when the module name is wrong, ghc does not output any "Compiling ..." message
                  (setq result (list 'failed (nreverse err-msgs) (match-string 1 acc))))
 
@@ -1513,11 +1530,13 @@ ACC umulate input and ERR-MSGS."
                       (not (zerop (length rest)))
                       (/= (aref rest 0) ?\s)) ;; make sure we're matching a full error message
                  (when (match-beginning 4)
-                   (let* ((file (match-string 4 acc))
-                          (err-msg (list (expand-file-name file ghci-dir)
-                                         (match-string 5 acc)
-                                         (match-string 6 acc)
-                                         (match-string 7 acc))))
+                   (let* ((file (xterm-color-filter-strip (match-string 4 acc)))
+                          (err-msg
+                           (make-dante-load-message
+                            :abs-file (expand-file-name file ghci-dir)
+                            :location-raw (xterm-color-filter-strip (match-string 5 acc))
+                            :short-description (xterm-color-filter-strip (match-string 6 acc))
+                            :body (xterm-color-filter-strip (match-string 7 acc)))))
                      (setq cur-file file)
                      (push err-msg err-msgs)
                      (when err-fn (funcall err-fn (list err-msg))))))
@@ -1536,13 +1555,12 @@ ACC umulate input and ERR-MSGS."
   (with-current-buffer (dante-buffer-p)
     (dante-async-write cmd)
     (let ((acc "")
-          (matched nil)
-          (ansi-color-context nil))
+          (matched nil))
       (save-match-data
         (while (not matched)
           (setq acc (concat acc (lcr-call dante-async-read)))
           (setq matched (string-match dante-ghci-prompt acc)))
-        (ansi-color-apply (trim-whitespace-right (substring acc 0 (1- (match-beginning 1)))))))))
+        (xterm-color-filter-strip (trim-whitespace-right (substring acc 0 (1- (match-beginning 1)))))))))
 
 (defun dante-sentinel (process change initial-ghc-messages)
   "Handle when PROCESS reports a CHANGE.
@@ -1809,30 +1827,33 @@ The command block is indicated by the >>> symbol."
       (move-to-character-column (1- c))
       (point))))
 
-(defun dante-fm-message (matched buf temp-file)
+(defun dante-fm-message (ghci-msg buf temp-file)
   "Convert the MATCHED message to flymake format.
 Or nil if BUFFER / TEMP-FILE are not relevant to the message."
-  (cl-destructuring-bind (file location-raw first-line msg) matched
-    ;; Flymake bug: in fact, we would want to report all errors,
-    ;; with buffer = (if (string= temp-file file) buffer (find-buffer-visiting file)),
-    ;; but flymake actually ignores the buffer argument of flymake-make-diagnostic (?!).
+  ;; Flymake bug: in fact, we would want to report all errors,
+  ;; with buffer = (if (string= temp-file file) buffer (find-buffer-visiting file)),
+  ;; but flymake actually ignores the buffer argument of flymake-make-diagnostic (?!).
+  (let ((file (dante-load-message/abs-file ghci-msg)))
     (when (string= temp-file file)
-      (let* ((type-analysis
-              (cl-destructuring-bind (typ msg-start) (s-split-up-to ":" first-line 1)
-                (cond ((string-equal typ "warning")
-                       (if (s-matches? "\\[-W\\(typed-holes\\|deferred-\\(type-errors\\|out-of-scope-variables\\)\\)\\]" msg-start)
-                           (list :error "")
-                         (list :warning "")))
-                      ((string-equal typ "splicing") (list :info ""))
-                      (t (list :error msg-start)))))
-             (location (dante-parse-error-location location-raw))
-             (r (pcase location
-                  (`(,l1 ,c1 ,l2 ,c2) (cons (dante-pos-at-line-col buf l1 c1) (dante-pos-at-line-col buf (or l2 l1) (1+ c2))))
-                  (`(,l ,c) (flymake-diag-region buf l c)))))
-        (when r
-          (cl-destructuring-bind (type msg-first-line) type-analysis
-            (let* ((final-msg (trim-whitespace (concat msg-first-line "\n" (replace-regexp-in-string "^    " "" msg)))))
-              (flymake-make-diagnostic buf (car r) (cdr r) type final-msg))))))))
+      (let ((location-raw (dante-load-message/location-raw ghci-msg))
+            (first-line (dante-load-message/short-description ghci-msg))
+            (msg (dante-load-message/body ghci-msg)))
+        (let* ((type-analysis
+                (cl-destructuring-bind (typ msg-start) (s-split-up-to ":" first-line 1)
+                  (cond ((string-equal typ "warning")
+                         (if (s-matches? "\\[-W\\(typed-holes\\|deferred-\\(type-errors\\|out-of-scope-variables\\)\\)\\]" msg-start)
+                             (list :error "")
+                           (list :warning "")))
+                        ((string-equal typ "splicing") (list :info ""))
+                        (t (list :error msg-start)))))
+               (location (dante-parse-error-location location-raw))
+               (r (pcase location
+                    (`(,l1 ,c1 ,l2 ,c2) (cons (dante-pos-at-line-col buf l1 c1) (dante-pos-at-line-col buf (or l2 l1) (1+ c2))))
+                    (`(,l ,c) (flymake-diag-region buf l c)))))
+          (when r
+            (cl-destructuring-bind (type msg-first-line) type-analysis
+              (let* ((final-msg (trim-whitespace (concat msg-first-line "\n" (replace-regexp-in-string "^    " "" msg)))))
+                (flymake-make-diagnostic buf (car r) (cdr r) type final-msg)))))))))
 
 (provide 'dante)
 
