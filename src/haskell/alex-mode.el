@@ -100,7 +100,7 @@
   (setq-local paragraph-start (concat "^$\\|" page-delimiter)
               paragraph-separate paragraph-start
               paragraph-ignore-fill-prefix t
-              indent-line-function 'alex-indent-line
+              indent-line-function #'alex-indent-line
               require-final-newline t
               comment-start "--"
               comment-end ""
