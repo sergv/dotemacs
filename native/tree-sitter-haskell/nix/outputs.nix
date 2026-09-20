@@ -1,8 +1,10 @@
-{config, pkgs, rust-overlay, filter}: let
+{config, util, pkgs, rust-overlay, tree-sitter, filter}: let
 
   version = "1.0.0";
 
   tools = config.outputs.packages.tools;
+
+  tsUpstream = tree-sitter.packages.${pkgs.system}.default;
 
   console = ''
   message_part() {
@@ -13,7 +15,7 @@
   }
   '';
 
-  scriptErr = name: text: pkgs.writeScript name ''
+  scriptErr = name: text: util.hixScript name { path = [tsUpstream]; } ''
   #!${pkgs.runtimeShell}
   ${text}
   '';
@@ -102,12 +104,11 @@
       name = "tree-sitter-${name}-parser-wasm";
       inherit version;
       src = parserSrc;
-      nativeBuildInputs = [pkgs.nodejs pkgs.tree-sitter pkgs.emscripten];
+      nativeBuildInputs = [pkgs.tree-sitter pkgs.pkgsCross.wasi32.stdenv.cc];
+      env.TREE_SITTER_WASI_SDK_PATH = "${pkgs.pkgsCross.wasi32.stdenv.cc}";
 
       buildPhase = ''
       runHook preBuild
-      mkdir -p .emscriptencache
-      export EM_CACHE=$(pwd)/.emscriptencache
       tree-sitter build --wasm
       runHook postBuild
       '';
@@ -207,7 +208,7 @@
   shell = pkgs.mkShell {
     name = "tree-sitter-haskell";
     packages = [
-      pkgs.tree-sitter
+      tsUpstream
       pkgs.nodejs
       pkgs.emscripten
       pkgs.python3
@@ -332,7 +333,7 @@
   for rev in $(git rev-list $range)
   do
     git checkout $rev
-    tree-sitter generate --no-bindings --build
+    tree-sitter generate --build
     eval ${benchWith {warmup = 0;} "\${bench_history_libs:-haskell-language-server}"} ''${bench_history_runs:-5}
     git clean -fd
     git reset --hard
@@ -356,7 +357,7 @@
   ciApp = pkgs.writeShellApplication {
     name = "tree-sitter-haskell-ci";
     runtimeInputs = [
-      pkgs.tree-sitter
+      tsUpstream
       pkgs.nodejs
       pkgs.emscripten
       pkgs.python3
@@ -422,6 +423,11 @@
   cp ${dialect-hsc.parserGen}/src/* hsc/src/
   '';
 
+  tests-gen = script "tree-sitter-haskell-tests-gen" ''
+  tree-sitter generate --build
+  ${tests}
+  '';
+
 in {
   inherit
     dialect-haskell
@@ -436,6 +442,7 @@ in {
     benchWith
     unit-tests
     tests
+    tests-gen
     ci
     rust
     report
