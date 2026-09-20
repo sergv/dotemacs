@@ -145,7 +145,7 @@
           ((haddock) @haskell-ts-haddock-face)
 
           ;; constant
-          ([(integer) (float)] @haskell-ts-constant-face)
+          ([(integer) (negation (literal (integer))) (float)] @haskell-ts-constant-face)
 
           (quasiquote "|" @haskell-ts-quasiquote-pipe-face)
 
@@ -1437,7 +1437,8 @@ In effect, normalize contraints."
 
   ;; Font locking
   (setq-local treesit-font-lock-settings
-              (apply #'treesit-font-lock-rules (haskell-ts-lang-selection-resolve haskell-ts-font-lock-rules)))
+              (apply #'treesit-font-lock-rules
+                     (haskell-ts-lang-selection-resolve haskell-ts-font-lock-rules)))
 
   ;; Associate parser with current buffer.
   (setq treesit-primary-parser
