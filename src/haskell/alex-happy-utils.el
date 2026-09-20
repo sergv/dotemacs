@@ -23,6 +23,7 @@
     (modify-syntax-entry ?\} "){4nb" tbl)
     (modify-syntax-entry ?\' "."     tbl)
     (modify-syntax-entry ?\" "\""    tbl)
+    (modify-syntax-entry ?\\ "\\"    tbl)
     (modify-syntax-entry ?-  ". 123" tbl)
     (modify-syntax-entry ?\n ">"     tbl)
     tbl)
