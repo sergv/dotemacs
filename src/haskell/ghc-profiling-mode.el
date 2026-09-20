@@ -25,7 +25,7 @@ cpu time or allocations that the value of this variable.")
 (defconst ghc-profiling-mode-entry-re
   (rx-let ((ws (any ?\s ?\t))
            (non-ws (not (any ?\s ?\t ?\n ?\r)))
-           (integer (+ digit))
+           (integer (+ (any (?0 . ?9) ?, ?_)))
            (float (seq integer "." integer)))
     (rx bol
         (* ws)
