@@ -24,6 +24,10 @@ fi
 tree-sitter generate "${@}"
 tree-sitter generate --build -o hsc/src hsc/grammar.js "${@}"
 
+for x in hsc/src/grammar.json hsc/src/node-types.json hsc/src/parser.c src/grammar.json src/node-types.json src/parser.c; do
+    xz --compress --best --extreme --force "$x"
+done
+
 #tree-sitter generate --build
 
 exit 0
