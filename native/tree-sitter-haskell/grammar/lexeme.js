@@ -2,6 +2,7 @@ const {
   id_char,
   varid_start_char,
   conid_start_char,
+  string_char,
 } = require('./util.js')
 
 module.exports = {
@@ -12,7 +13,12 @@ module.exports = {
 
   name: _ => token(seq(conid_start_char, id_char, /#*/)),
 
-  label: _ => token(seq('#', varid_start_char, id_char)),
+  label: _ => token(
+    choice(
+      seq('#', repeat1(id_char)),
+      seq('#"', repeat(string_char), '"'),
+    )
+  ),
 
   _carrow: _ => choice('=>', '⇒'),
   _arrow: _ => choice('->', '→'),

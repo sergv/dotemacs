@@ -3,17 +3,20 @@
 
   inputs = {
     hix.url = "github:tek/hix";
-    hix.inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    hix.inputs.nixpkgs.url = "github:nixos/nixpkgs/02f5696b0e6097e589076d886b317b83ff0437d7";
     rust-overlay.url = "github:oxalica/rust-overlay";
     nix-filter.url = "github:numtide/nix-filter";
+    tree-sitter.url = "github:tree-sitter/tree-sitter/v0.27.0";
+    tree-sitter.inputs.nixpkgs.follows = "hix/nixpkgs";
   };
 
-  outputs = {self, hix, rust-overlay, nix-filter, ...}: hix.lib.pro ({config, lib, util, ...}: {
+  outputs = {self, hix, rust-overlay, nix-filter, tree-sitter, ...}: hix.lib.pro ({config, lib, util, ...}: {
 
     cabal = {
       license = "MIT";
       license-file = "LICENSE";
       author = "Torsten Schmits";
+      language = "GHC2021";
       prelude = {
         enable = true;
         package = {
@@ -30,8 +33,8 @@
       library = {
         enable = true;
         dependencies = [
-          "exon >= 1.4 && < 1.7"
-          "optparse-applicative ^>= 0.17"
+          "exon >= 1.4 && < 1.9"
+          "optparse-applicative >= 0.17 && < 0.19"
           "path ^>= 0.9"
           "path-io >= 1.7 && < 1.9"
           "transformers"
@@ -41,9 +44,9 @@
       test = {
         enable = true;
         dependencies = [
-          "hedgehog >= 1.1 && < 1.3"
+          "hedgehog >= 1.1 && < 1.6"
           "path ^>= 0.9"
-          "tasty ^>= 1.4"
+          "tasty >= 1.4 && < 1.6"
           "tasty-hedgehog >= 1.3 && < 1.5"
         ];
       };
@@ -53,7 +56,7 @@
     outputs = let
       inherit (config) pkgs;
 
-      outputs = import ./nix/outputs.nix { inherit config pkgs rust-overlay; filter = nix-filter.lib; };
+      outputs = import ./nix/outputs.nix { inherit config util pkgs rust-overlay tree-sitter; filter = nix-filter.lib; };
 
       hs = outputs.dialect-haskell;
       hsc = outputs.dialect-hsc;
@@ -74,7 +77,7 @@
         parser-hsc-wasm = hsc.parserWasm;
       };
 
-      apps = lib.genAttrs ["tests" "unit-tests" "ci"] (name: util.app outputs.${name}) // {
+      apps = lib.genAttrs ["tests" "unit-tests" "ci" "tests-gen"] (name: util.app outputs.${name}) // {
         gen-bitmaps = util.app outputs.gen-bitmaps;
         bench-all = util.app (outputs.bench "effects postgrest polysemy ivory haskell-language-server");
         bench-hls = util.app (outputs.bench "haskell-language-server");

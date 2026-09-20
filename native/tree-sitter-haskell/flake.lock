@@ -23,11 +23,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1714563532,
-        "narHash": "sha256-oQHfcwnxyPQNhL6ifOZdyMh825v8Te4jjC0ALmQEEOI=",
+        "lastModified": 1778327276,
+        "narHash": "sha256-83U+W5CIjZ/2xHv8EHlcQFXuKvMPEgQOPtp/LcJ/d2s=",
         "owner": "tek",
         "repo": "hix",
-        "rev": "37a2c326fe751746f02be26b04656a3bc8e359ff",
+        "rev": "115f30ca73a8473028e686c209d1215fd186f61d",
         "type": "github"
       },
       "original": {
@@ -53,17 +53,17 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1748662220,
-        "narHash": "sha256-7gGa49iB9nCnFk4h/g9zwjlQAyjtpgcFkODjcOQS0Es=",
+        "lastModified": 1789264731,
+        "narHash": "sha256-llGJbC0CcU8DfROr6mZjRJgMLQd/SKwfpzxJH/2lHO4=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "59138c7667b7970d205d6a05a8bfa2d78caa3643",
+        "rev": "02f5696b0e6097e589076d886b317b83ff0437d7",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
-        "ref": "nixpkgs-unstable",
         "repo": "nixpkgs",
+        "rev": "02f5696b0e6097e589076d886b317b83ff0437d7",
         "type": "github"
       }
     },
@@ -87,7 +87,8 @@
       "inputs": {
         "hix": "hix",
         "nix-filter": "nix-filter",
-        "rust-overlay": "rust-overlay"
+        "rust-overlay": "rust-overlay",
+        "tree-sitter": "tree-sitter"
       }
     },
     "rust-overlay": {
@@ -121,6 +122,28 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "tree-sitter": {
+      "inputs": {
+        "nixpkgs": [
+          "hix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788108552,
+        "narHash": "sha256-X5Hd0zcw7hxj7w7Jp1QBxLzsRSH9NgV2KquEvGdo3pE=",
+        "owner": "tree-sitter",
+        "repo": "tree-sitter",
+        "rev": "6070dbfefd326bd735e5683eb128cc1b57dad0c0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tree-sitter",
+        "ref": "v0.27.0",
+        "repo": "tree-sitter",
         "type": "github"
       }
     }
