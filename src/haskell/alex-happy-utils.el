@@ -41,7 +41,7 @@
         (let ((parse-sexp-lookup-properties nil))
           (while continue
             (if (funcall search (if enable-alex-heuristinc?
-                                    "\\(?:\\`\\|[^> \t\r\n][ \t\r\n]*\\){[ \t\r\n%]"
+                                    "\\(?:^[ \t]*\\|[^> \t\r\n][ \t\r\n]*\\){[ \t\r\n%]"
                                   "{[ \t\r\n%]")
                          nil
                          t)
@@ -73,7 +73,19 @@
                         (let ((open-positions (nth 9 syntax-state)))
                           (when open-positions
                             (let ((outermost (car open-positions)))
-                              (setf result (cons outermost (+ 2 outermost)))))
+                              (when enable-alex-heuristinc?
+                                ;; Skip { in alex that start with <...> because
+                                ;; that’s Alex rule grouping block and inside it
+                                ;; is not Haskell syntax.
+                                (while (and outermost
+                                            (save-excursion
+                                              (goto-char outermost)
+                                              (goto-char (line-beginning-position))
+                                              (looking-at-p "^<[^>\r\n]+>[ \t\n\r]+{")))
+                                  (setf open-positions (cdr open-positions)
+                                        outermost (car open-positions))))
+                              (when outermost
+                                (setf result (cons outermost (+ 2 outermost))))))
                           (setf continue nil))))))
               (setf continue nil))))))
     result))
