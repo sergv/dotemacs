@@ -8143,7 +8143,8 @@ have different input states."
   "  ) where"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-multi-way-if-1
+ :modes (haskell-ts-mode)
+ :name haskell-indentation-tests--test-multi-way-if-1a
  :contents
  (tests-utils--multiline
   "{-# INLINE utf8SizeChar# #-}"
@@ -8172,6 +8173,38 @@ have different input states."
   "                | startsWith1110# ch0  -> 3#"
   "                | startsWith11110# ch0 -> 4#"
   "                | otherwise            -> 1#"))
+
+(haskell-indentation-tests--test-treesitter
+ :modes (haskell-hsc-mode)
+ :name haskell-indentation-tests--test-multi-way-if-1b
+ :contents
+ (tests-utils--multiline
+  "{-# INLINE utf8SizeChar## #-}"
+  "utf8SizeChar## :: Addr## -> Int##"
+  "utf8SizeChar## a## ="
+  "  case word8ToWord## (indexWord8OffAddr## a## 0##) of"
+  "    0#### -> 0##"
+  "    !x## ->"
+  "      let !ch0 = word2Int## x## in"
+  "      if  | startsWith0## ch0     -> 1##"
+  "                _|_| startsWith110## ch0   -> 2##"
+  "                | startsWith1110## ch0  -> 3##"
+  "                | startsWith11110## ch0 -> 4##"
+  "                | otherwise            -> 1##")
+ :expected-value
+ (tests-utils--multiline
+  "{-# INLINE utf8SizeChar## #-}"
+  "utf8SizeChar## :: Addr## -> Int##"
+  "utf8SizeChar## a## ="
+  "  case word8ToWord## (indexWord8OffAddr## a## 0##) of"
+  "    0#### -> 0##"
+  "    !x## ->"
+  "      let !ch0 = word2Int## x## in"
+  "      if  | startsWith0## ch0     -> 1##"
+  "          _|_| startsWith110## ch0   -> 2##"
+  "                | startsWith1110## ch0  -> 3##"
+  "                | startsWith11110## ch0 -> 4##"
+  "                | otherwise            -> 1##"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-multi-way-if-2aa
