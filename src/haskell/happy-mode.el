@@ -65,6 +65,7 @@
     (modify-syntax-entry ?\\ "\\  " tbl)
     (modify-syntax-entry ?\' "."    tbl)
     (modify-syntax-entry ?\" "\""   tbl)
+    (modify-syntax-entry ?\\ "\\"   tbl)
     (modify-syntax-entry ?\: "."    tbl)
     (modify-syntax-entry ?\; "."    tbl)
     (modify-syntax-entry ?-  ". 12" tbl)
