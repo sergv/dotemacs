@@ -258,7 +258,7 @@ typedef struct {
   const char *marked_by;
 } Debug;
 
-Debug debug_new(TSLexer *l) {
+static Debug debug_new(TSLexer *l) {
   return (Debug) {
     .marked = -1,
     .marked_line = 0,
@@ -586,8 +586,6 @@ typedef Array(int32_t) Lookahead;
  * Although 'Lookahead' is always reset when starting a new run, storing it in the state avoids having to allocate and
  * free the array repeatedly.
  * Instead we just reset the `len` attribute to 0 and reuse the previous memory.
- *
- * REVIEW: Can tree-sitter run the scanner concurrently on multiple nodes in the same file in some situations?
  */
 typedef struct {
   Array(Context) contexts;
@@ -1232,7 +1230,7 @@ static void debug_contexts(Env *env) {
   }
 }
 
-void debug_newline(Env *env) {
+static void debug_newline(Env *env) {
   switch (env->state->newline.state) {
     case NInactive:
       dbg("no");
@@ -1272,9 +1270,22 @@ static void debug_valid(Env *env, const bool *syms) {
   }
 }
 
+static void sgr(const char *restrict code) {
+  dbg("\x1b[%sm", code);
+}
+
+static void color(unsigned c) {
+  char code[3];
+  sprintf(code, "3%d", c);
+  sgr(code);
+}
+
 static bool debug_init(Env *env) {
   setlocale(LC_ALL, "C.UTF-8");
   dbg("\n");
+  color(6);
+  dbg("> scanner start\n");
+  sgr("");
   dbg("state:\n  syms = ");
   debug_valid(env, env->symbols);
   dbg("\n  contexts = ");
@@ -1285,17 +1296,7 @@ static bool debug_init(Env *env) {
   return false;
 }
 
-void sgr(const char *restrict code) {
-  dbg("\x1b[%sm", code);
-}
-
-void color(unsigned c) {
-  char code[3];
-  sprintf(code, "3%d", c);
-  sgr(code);
-}
-
-void palette() {
+static void palette() {
   color(4);
   dbg("before");
   color(2);
@@ -1331,7 +1332,7 @@ static void dump_parse_metadata(Env *env) {
  * - `fwprintf` counts wide characters, but can't be interleaved with `fprintf`, so we'd have to use that function, and
  *   therefore wide literals, everywhere, which is tedious
  */
-void debug_parse(Env *env) {
+static void debug_parse(Env *env) {
   Debug *debug = &env->debug;
   ParseLines *buffer = &env->state->parse;
   uint32_t lines = buffer->size;
@@ -1347,17 +1348,17 @@ void debug_parse(Env *env) {
       uint32_t pos = 0;
 
       if (debug->start_line == lines - 1 - i) {
-        while (pos < debug->start_col) { dbg("%lc", buf[pos]); pos++; }
+        while (pos < debug->start_col && pos < line->size) { dbg("%lc", buf[pos]); pos++; }
         color(2);
       }
 
       if (debug->marked >= 0 && debug->marked_line == lines - 1 - i) {
-        while ((int) pos < debug->marked) { dbg("%lc", buf[pos]); pos++; }
+        while ((int) pos < debug->marked && pos < line->size) { dbg("%lc", buf[pos]); pos++; }
         color(3);
       }
 
       if (i == lines - 1) {
-        while (pos < debug->end_col) { dbg("%lc", buf[pos]); pos++; }
+        while (pos < debug->end_col && pos < line->size) { dbg("%lc", buf[pos]); pos++; }
         color(5);
       }
 
@@ -1407,15 +1408,20 @@ static void deserialize_parse_lines(const char *cursor, ParseLines *parse, uint3
   parse->size = len;
 }
 
-void debug_finish(Env *env, Symbol result) {
-  dbg("result: ");
-  if (result) dbg("%s, ", sym_names[result]);
-  else dbg("<skipped>, ");
+static void debug_finish(Env *env, Symbol result) {
+  dbg("\n");
+  fill_parse_buffer(env);
+  debug_parse(env);
+  color(6);
+  dbg("\n> scanner result: ");
+  color(1);
+  if (result) dbg("%s", sym_names[result]);
+  else dbg("<skipped>");
+  sgr("");
+  dbg(", ");
   if (env->debug.marked == -1) dbg("%d", column(env));
   else dbg("%s@%d", env->debug.marked_by, env->debug.marked);
   dbg("\n\n");
-  fill_parse_buffer(env);
-  debug_parse(env);
   env->state->parse.size -= env->debug.marked_line;
 }
 
@@ -1513,7 +1519,7 @@ typedef enum {
  * Alternate between skipping space and newlines, and return which was seen last.
  * This does not use the lookahead buffer, but directly accesses the lexer.
  * Only to be used when it is certain that no whitespace has been copied to the buffer by previous steps, and that no
- * previous characters should be included in the range of non-zero-width symbol.
+ * previous characters should be included in the range of non-zero-width symbols.
  */
 static Space skip_whitespace(Env *env) {
   Space space = NoSpace;
@@ -2440,7 +2446,9 @@ static Lexed lex_extras(Env *env, bool bol) {
   return LNothing;
 }
 
+#ifdef HSC_EXT
 static Lexed lex_hsc_hash(Env *env);
+#endif
 
 /**
  * The main lexing entry point, branching on the first character, then advancing as far as necessary to identify all
@@ -2793,7 +2801,7 @@ static Symbol semicolon(Env *env) {
  *
  * This is called by `newline_post` before marking, so the actions must not fail after advancing.
  */
-static Symbol process_token_safe(Env *env, Lexed next) {
+static Symbol process_token_safe(Env *env, Lexed next, bool allow_pragma) {
   switch (next) {
     case LWhere:
       return end_layout_where(env);
@@ -2808,7 +2816,7 @@ static Symbol process_token_safe(Env *env, Lexed next) {
       if (!valid(env, BAR)) return end_layout(env, "bar");
       break;
     case LPragma:
-      return pragma(env);
+      return allow_pragma ? pragma(env) : false;
     case LBlockComment:
       return block_comment(env);
     case LLineComment:
@@ -2924,7 +2932,7 @@ static Symbol process_token_interior(Env *env, Lexed next) {
     default:
       break;
   }
-  SEQ(process_token_safe(env, next));
+  SEQ(process_token_safe(env, next, true));
   return start_layout_interior(env, next);
 }
 
@@ -2959,7 +2967,7 @@ static Symbol newline_extras(Env *env, Space space) {
   bool bol = space == BOL || (space == NoSpace && newline_init(env));
   Lexed next = lex_extras(env, bol);
   dbg("newline extras token: %s\n", token_names[next]);
-  return process_token_safe(env, next);
+  return process_token_safe(env, next, true);
 }
 
 // Don't finish newline processing before pragmas – they are indicators of layout indent, but since they are extras,
@@ -2972,7 +2980,7 @@ static Symbol newline_process(Env *env) {
   uint32_t indent = env->state->newline.indent;
   Lexed end = env->state->newline.end;
   SEQ(end_layout_indent(env));
-  SEQ(process_token_safe(env, end));
+  SEQ(process_token_safe(env, end, false));
   Space space = skip_whitespace(env);
   MARK("newline_post");
   if (env->state->newline.unsafe) SEQ(newline_extras(env, space));
@@ -3429,7 +3437,9 @@ static Symbol interior(Env *env, bool whitespace) {
 // Initial actions
 // --------------------------------------------------------------------------------------------------------
 
+#ifdef HSC_EXT
 static Symbol hsc_args(Env *env, Symbol sym, bool directive_ends_with_newline);
+#endif
 
 /**
  * These are conditioned only on symbols and don't advance, except for `qq_body`, which cannot fail.
@@ -3514,7 +3524,7 @@ typedef struct {
  * This function allocates the persistent state of the parser that is passed into the other API functions.
  */
 void *tree_sitter_haskell_external_scanner_create() {
-  State *state = ts_calloc(sizeof(State), 1);
+  State *state = ts_calloc(1, sizeof(State));
   array_reserve(&state->contexts, 8);
   array_reserve(&state->lookahead, 8);
 #if DEBUG
