@@ -433,7 +433,7 @@ not checked."
 
 (fontification-tests--test-ts-fontification
  :name
- haskell-ts-mode/fontification-9a
+ haskell-ts-mode/fontification-9
  :modes (haskell-ts-mode)
  :contents
  (tests-utils--multiline
@@ -473,6 +473,24 @@ not checked."
   ("IO"                      haskell-ts-type-face)
   ("Ptr"                     haskell-ts-type-face)
   ("Regex"                   haskell-ts-type-face))
+ :fresh-buffer t)
+
+(fontification-tests--test-ts-fontification
+ :name
+ haskell-ts-mode/fontification-10
+ :modes (haskell-ts-mode)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo 1 = 34#Word8 `bar` (-1, -1#)"
+  "")
+ :fontification
+ (("foo"        nil)
+  ("1"          haskell-ts-constant-face)
+  ("="          haskell-ts-operator-face)
+  ("34#Word8"   haskell-ts-constant-face)
+  ("-1"         haskell-ts-constant-face)
+  ("-1#"        haskell-ts-constant-face))
  :fresh-buffer t)
 
 (provide 'fontification-tests)
