@@ -1169,6 +1169,7 @@
                     (setq n (treesit-node-prev-sibling n)))
                   n))
               haskell-indent-offset)
+             ((n-p-gp "where" "header" nil) parent 0)
              ((node-is "where") parent haskell-indent-offset)
 
              ((n-p-gp "field_update" "record" nil)
