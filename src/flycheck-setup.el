@@ -138,7 +138,7 @@ scheme and it’s view of current buffer is malformed."
           (lsp-debounce-full-sync-notifications nil))
       (lsp-on-change 0 n n)))
 
-  (flycheck-buffer))
+  (call-interactively #'flycheck-buffer))
 
 ;;;###autoload (autoload 'vim:flycheck-run "flycheck-setup" nil t)
 ;;;###autoload (autoload 'vim:flycheck-run:interactive "flycheck-setup" nil t)
