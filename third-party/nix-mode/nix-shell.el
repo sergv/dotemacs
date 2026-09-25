@@ -198,7 +198,7 @@ The DRV file to use."
 		       (format "-I%s" include)))))
 
       (when (bound-and-true-p flycheck-mode)
-	(flycheck-buffer)))))
+	(call-interactively #'flycheck-buffer)))))
 
 (defun nix-shell-with-packages (packages &optional pkgs-file)
   "Create a nix shell environment from the listed package.
