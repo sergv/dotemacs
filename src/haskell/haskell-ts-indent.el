@@ -94,7 +94,29 @@
                    (when-let* ((prev-node (treesit-node-prev-sibling node))
                                (next-node (treesit-node-next-sibling node)))
                      (and (string= (treesit-node-type prev-node) prev)
-                          (string= (treesit-node-type next-node) next)))))))
+                          (string= (treesit-node-type next-node) next))))))
+
+         (cons 'prev-non-comment-sibling-is
+               (lambda (sibling-type)
+                 (lambda (node _ _)
+                   (let* ((n (treesit-node-prev-sibling node))
+                          (typ nil))
+                     (while (and n
+                                 (treesit-haskell--is-comment-node-type? (setf typ (treesit-node-type n))))
+                       (setq n (treesit-node-prev-sibling n)))
+                     (when n
+                       (string= typ sibling-type))))))
+
+         (cons 'next-non-comment-sibling-is
+               (lambda (sibling-type)
+                 (lambda (node _ _)
+                   (let* ((n (treesit-node-next-sibling node))
+                          (typ nil))
+                     (while (and n
+                                 (treesit-haskell--is-comment-node-type? (setf typ (treesit-node-type n))))
+                       (setq n (treesit-node-next-sibling n)))
+                     (when n
+                       (string= typ sibling-type)))))))
 
    (--map (assq it treesit-simple-indent-presets)
           '(no-node
@@ -1338,6 +1360,16 @@
              ((n-p-gp ")" "unit" nil)
               parent
               0)
+
+             ((n-p-gp "of" "case" nil)
+              parent
+              0)
+
+             ((and (parent-is "case")
+                   (prev-non-comment-sibling-is "case")
+                   (next-non-comment-sibling-is "of"))
+              parent
+              haskell-indent-offset)
 
              ;; No backup - we would like to default to something else.
              ;; ;; Backup
