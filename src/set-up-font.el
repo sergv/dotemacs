@@ -102,6 +102,7 @@ use that, otherwise either use past specified value or a reasonable default."
          (or new-scaling
              current-font-scaling
              (get-default-font-scaling))))
+    (cl-assert (fixnump effective-scaling))
     (setf current-font-scaling effective-scaling)
     (dolist (frame (frame-list))
       (set-face-attribute 'default frame :height effective-scaling))))
