@@ -8143,6 +8143,48 @@ have different input states."
   "  ) where"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-module-header-4a
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( foo"
+  "  , bar"
+  "  )"
+  "             _|_where"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( foo"
+  "  , bar"
+  "  )"
+  "_|_where"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-module-header-4b
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( foo"
+  "  , bar"
+  "          _|_)"
+  "where"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( foo"
+  "  , bar"
+  "  _|_)"
+  "where"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :modes (haskell-ts-mode)
  :name haskell-indentation-tests--test-multi-way-if-1a
  :contents
