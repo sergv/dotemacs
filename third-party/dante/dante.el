@@ -530,15 +530,15 @@ Consider setting this variable as a directory variable."
               (when (or (null pred)
                         (funcall pred (current-buffer)))
                 (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
-                       (proj-root (awhen proj
-                                    (f-full (eproj-project/root it)))))
+                       (eproj-root (awhen proj
+                                     (abbreviate-file-name (eproj-project/root it)))))
                   (when-let* ((proj-root (if-let* ((find-root-pred (dante-method/find-root-pred method)))
                                              (locate-dominating-file default-directory
                                                                      (lambda (dir)
-                                                                       (and (if proj-root
+                                                                       (and (if eproj-root
                                                                                 ;; If there’s a project then don’t ascend past it.
-                                                                                (string-prefix-p proj-root
-                                                                                                 (f-full dir))
+                                                                                (string-prefix-p eproj-root
+                                                                                                 (abbreviate-file-name dir))
                                                                               t)
                                                                             (funcall find-root-pred dir))))
                                            default-directory)))
