@@ -56,7 +56,9 @@ do check that ‘overlay-buffer’ is non-nil before use.")
         flycheck-check-syntax-automatically '(save mode-enabled)
         ;; Display all errors & warnings from all relevant files.
         flycheck-relevant-error-other-file-minimum-level nil
-        flycheck-display-errors-function #'flycheck-display-error-messages)
+        flycheck-display-errors-function #'flycheck-display-error-messages
+        ;; Interrupt any checks right away without any delay.
+        flycheck-interrupt-running-checks t)
 
   ;; Need same ‘flycheck-add-overlay’ but with storing overlays in a variables for
   ;; ease of access.

@@ -944,6 +944,9 @@ process."
   :start #'dante-check
   :predicate (lambda () dante-mode)
   :modes '(haskell-mode haskell-ts-mode haskell-hsc-mode haskell-literate-mode)
+  :interrupt
+  (lambda (_checker _ctx)
+    (dante-interrupt))
   :working-directory (lambda (_checker)
                        (dante-config/project-root (dante-get-config))))
 
@@ -1332,6 +1335,14 @@ This applies to paths of the form x:\\foo\\bar"
       (kill-process process)
       (delete-process process))
     (kill-buffer ghci-buf)))
+
+(defun dante-interrupt ()
+  "Send SIGINT to GHCi."
+  (interactive)
+  (when-let* ((ghci-buf (dante-buffer-p))
+              (proc (get-buffer-process ghci-buf)))
+    (interrupt-process proc)
+    (dante--set-checker-state! 'interrupted ghci-buf)))
 
 (defun dante-restart ()
   "Restart GHCi with the same configuration (root, command line, …) as before."
