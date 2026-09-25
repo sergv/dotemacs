@@ -474,7 +474,7 @@
   (let ((prev (treesit-node-prev-sibling node)))
     (unless (string= (treesit-node-type prev)
                      "signature")
-      (error "Node to this haddock node (%s) must be a signature but it’s %s"
+      (error "Sibling of haddock node (%s) must be a signature but it’s %s"
              node
              prev))
     (catch 'term
