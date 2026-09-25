@@ -86,7 +86,7 @@
   (vim:flycheck-clear:wrapper)
   (dante-destroy)
   (lcr-spawn (lcr-call dante-start))
-  (flycheck-buffer))
+  (call-interactively #'flycheck-buffer))
 
 (vim-defcmd vim:haskell-dante-configure (nonrepeatable)
   (haskell-misc-configure-dante))
