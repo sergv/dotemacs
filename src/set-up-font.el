@@ -118,6 +118,20 @@ use that, otherwise either use past specified value or a reasonable default."
     (update-font-scaling new-scaling)
     (message "New scaling is %s" current-font-scaling)))
 
+(defun pinch-font-scaling (event)
+  (interactive "e")
+  (when (not (eq (event-basic-type event) 'pinch))
+    (error "not a pinch event: %s" event))
+  (let* ((raw-scale (nth 4 event))
+         (scaling (+ current-font-scaling
+                     (round (* 5
+                               (if (< 1 raw-scale)
+                                   (+ 1 (sqrt (- raw-scale 1)))
+                                 (- 1 (sqrt (abs (- 1 raw-scale)))))))))
+         (new-scaling (- scaling (mod scaling 5))))
+    (update-font-scaling (min (max new-scaling 80) 300))
+    (message "New scaling is %s" current-font-scaling)))
+
 ;; Texture healing disabled for now as it doesn’t bring any noticeable benefits.
 ;; (when (pretty-ligatures-supported?)
 ;;   ;; Does not have any effect, left for future reference in case it’s needed.
