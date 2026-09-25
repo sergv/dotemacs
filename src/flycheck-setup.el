@@ -120,6 +120,8 @@ do check that ‘overlay-buffer’ is non-nil before use.")
 Useful if the server got confused with incremental updating
 scheme and it’s view of current buffer is malformed."
   (interactive)
+  ;; Don’t change modification time when checking with dante to not make it’s cabal
+  ;; preprocessing rerun unnecessarily.
   (unless (eq flycheck-checker 'haskell-dante)
     (let ((time (current-time))
           (buf (resolve-to-base-buffer (current-buffer))))
