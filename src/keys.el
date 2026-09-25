@@ -105,6 +105,7 @@
 
   (("C-<wheel-up>" "C-<wheel-down>") mouse-wheel-font-scaling)
   (("M-<wheel-up>" "M-<wheel-down>") mouse-wheel-text-scale)
+  ("<pinch>"                         pinch-font-scaling)
 
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("ESC ESC ESC" :remove))
