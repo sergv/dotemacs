@@ -11739,6 +11739,119 @@ have different input states."
   "  _|_"
   ""))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-case-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "    x"
+  "        _|_of"
+  "    _ -> ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "    x"
+  "  _|_of"
+  "    _ -> ()"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-case-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "             _|_x"
+  "  of"
+  "    _ -> ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "    _|_x"
+  "  of"
+  "    _ -> ()"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-case-1c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "      -- pippo"
+  "             _|_x"
+  "  of"
+  "    _ -> ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "      -- pippo"
+  "    _|_x"
+  "  of"
+  "    _ -> ()"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-case-1d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "             _|_x"
+  "      -- pippo"
+  "  of"
+  "    _ -> ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "    _|_x"
+  "      -- pippo"
+  "  of"
+  "    _ -> ()"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-case-1e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "         -- decombobulate"
+  "             _|_x"
+  "      -- pippo"
+  "  of"
+  "    _ -> ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  case"
+  "         -- decombobulate"
+  "    _|_x"
+  "      -- pippo"
+  "  of"
+  "    _ -> ()"
+  ""))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
