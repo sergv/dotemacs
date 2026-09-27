@@ -777,7 +777,7 @@ indented block will be their bounds without any extra processing."
 
 (defun haskell-ts-import-node-covering (pos)
   "Return ‘import’ node that contains POS or nil."
-  (cl-assert (numberp pos))
+  (cl-assert (fixnump pos))
   (treesit-utils-find-topmost-parent
    (treesit-node-at pos)
    (lambda (x) (string= "import" (treesit-node-type x)))))

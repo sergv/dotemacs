@@ -820,7 +820,7 @@ the offset and the new position."
              (goto-char (vim-ex-position-point position))
              (vim-ex--translate-address (cdr address))))))
       (t
-       (cl-assert (numberp offset))
+       (cl-assert (fixnump offset))
        (let ((position
               ;; NB car-safe is essential here to ignore non-lists
               (pcase (or (car-safe base) base)

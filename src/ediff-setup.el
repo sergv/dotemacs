@@ -324,7 +324,7 @@ window configuration on end of ediff session."
 (el-patch-defun ediff-make-diff2-buffer (diff-buffer file1 file2)
   (let ((file1-size (ediff-file-size file1))
 	(file2-size (ediff-file-size file2)))
-    (cond ((not (numberp file1-size))
+    (cond ((not (fixnump file1-size))
            (el-patch-remove
 	     (message "Can't find file: %s"
 		      (ediff-abbreviate-file-name file1)))
@@ -335,7 +335,7 @@ window configuration on end of ediff session."
 		    (ediff-abbreviate-file-name file1)))
 	   ;; 1 is an error exit code
 	   1)
-	  ((not (numberp file2-size))
+	  ((not (fixnump file2-size))
            (el-patch-remove
 	     (message "Can't find file: %s"
 		      (ediff-abbreviate-file-name file2)))

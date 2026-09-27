@@ -1552,7 +1552,7 @@ NEW-PROPS will be ignored."
 (defun replace-match-insert-before-markers (newtext group)
   "Like ‘replace-match’ but inserts NEWTEXT before markers, instead of after."
   (cl-assert (stringp newtext))
-  (cl-assert (numberp group))
+  (cl-assert (fixnump group))
   (let ((end (match-end group)))
     (goto-char end)
     (delete-region (match-beginning group) end)
