@@ -352,8 +352,8 @@ as accepted by `bounds-of-thing-at-point'.")
                                         (and (string= file-x file-y)
                                              (let ((line-x (fourth-sure x))
                                                    (line-y (fourth-sure y)))
-                                               (cl-assert (numberp line-x))
-                                               (cl-assert (numberp line-y))
+                                               (cl-assert (fixnump line-x))
+                                               (cl-assert (fixnump line-y))
                                                (< line-x line-y)))))))))))))
          (augmented-tag->string
           (if current-proj

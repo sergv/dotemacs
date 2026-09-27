@@ -136,7 +136,7 @@ as string node."
               (cond
                 ((functionp ,offset-var)
                  (funcall ,offset-var ,anchor-var))
-                ((numberp ,offset-var)
+                ((fixnump ,offset-var)
                  ,offset-var)
                 (t
                  (error "Unexpected offset: ‘%s’" ,offset-var)))))

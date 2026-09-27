@@ -550,7 +550,7 @@ be used only for vim-visual-mode of the vim-mode package."
     (when (comment-format-nested-ok? fmt)
       (when-let* ((state (syntax-ppss)))
         ;; Check that we’re really inside nested comment by testing depth.
-        (when (numberp (parse-partial-sexp--inside-comment? state))
+        (when (fixnump (parse-partial-sexp--inside-comment? state))
           (goto-char (parse-partial-sexp--comment-or-string-start state))
           (setf begin-pos (point))
           (forward-comment 1)
