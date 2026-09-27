@@ -138,7 +138,7 @@
                    (stderr-contents (with-temp-buffer
                                       (insert-file-contents stderr nil nil nil t)
                                       (buffer-substring-no-properties (point-min) (point-max)))))
-              (when (or (not (numberp exit-status))
+              (when (or (not (fixnump exit-status))
                         (not (= 0 exit-status)))
                 (error "Call to ctags failed.\nMode: %s\nExtension regexp: %s\nExit status: %s\nOutput: %s\nStderr: %s\nCommand: %s"
                        lang-mode

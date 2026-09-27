@@ -716,7 +716,7 @@ entries."
                     (sessions/call-symbol-function mode)))
                 (sessions/report-and-ignore-asserts
                     (format "while restoring point of buffer '%s'" (buffer-name))
-                  (sessions/assert-with-args (numberp point)
+                  (sessions/assert-with-args (fixnump point)
                                              "Invalid point: %s"
                                              point)
                   (goto-char point))
@@ -730,7 +730,7 @@ entries."
         "while restoring extracting version"
       (sessions/assert-with-args
        (or (null version)
-           (numberp version))
+           (fixnump version))
        "Invalid version: %s"
        version))
     (aif (assq 'buffers session-entries)

@@ -53,8 +53,8 @@ to the line where it was located before the formatting."
 
 (defun haskell-format--format-region-by-toplevel-chunks-with-treesitter! (start end)
   "Format the region begin START and END positions line by line using treesitter rules."
-  (cl-assert (numberp start))
-  (cl-assert (numberp end))
+  (cl-assert (fixnump start))
+  (cl-assert (fixnump end))
   (cl-assert (<= start end))
   (goto-char start)
   (skip-whitespace-forward)
