@@ -172,7 +172,7 @@ can allows value to be decoded back fully.)"
         (pos (cl-third encoded-data))
         (insertion-type (cl-fourth encoded-data)))
     (cl-assert (stringp buf-name))
-    (cl-assert (numberp pos))
+    (cl-assert (fixnump pos))
     (set-marker m pos (get-buffer buf-name))
     (set-marker-insertion-type m insertion-type)
     m))

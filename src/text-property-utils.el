@@ -26,8 +26,8 @@
   (make-text-property-ranges :ranges nil))
 
 (defun text-property-utils--position-ranges--add-range! (start end position-ranges)
-  (cl-assert (and (numberp start)
-                  (numberp end)
+  (cl-assert (and (fixnump start)
+                  (fixnump end)
                   (< start end)))
   (let* ((ranges (text-property-ranges/ranges position-ranges))
          (merged-ranges
@@ -35,7 +35,7 @@
               (let ((first-range (car ranges)))
                 (cl-assert (consp first-range))
                 (let ((range-end (cdr first-range)))
-                  (cl-assert (numberp range-end))
+                  (cl-assert (fixnump range-end))
                   (cl-assert (<= range-end start)
                              nil
                              "Must add positions in increasing order only. range-end = %s, start = %s"
@@ -101,7 +101,7 @@
                                    "Invalid property name: %s"
                                    prop-name)
         (dolist (pos prop-positions)
-          (sessions/assert-with-args (or (numberp pos)
+          (sessions/assert-with-args (or (fixnump pos)
                                          (consp pos))
                                      "Invalid property range: %s"
                                      pos)

@@ -94,7 +94,7 @@ If <bool> is ‘t’ then <name> is a string, otherwise it’s an integer obtain
                    (cl-assert (stringp (cdr entry)))
                    (cdr entry))
                (progn
-                 (cl-assert (numberp (cdr entry)))
+                 (cl-assert (fixnump (cdr entry)))
                  (let* ((real-name (cdr entry))
                         (user-name (if (= n 0)
                                        "latest"
@@ -116,7 +116,7 @@ argument was *explicitly* provided."
   (unless vim--defined-macro-names
     (error "Nothing to execute: no macros defined"))
   (let ((count (cond
-                 ((numberp current-prefix-arg)
+                 ((fixnump current-prefix-arg)
                   current-prefix-arg)
                  (t
                   1))))

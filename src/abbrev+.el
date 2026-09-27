@@ -328,7 +328,7 @@ recognition."
         (count (cadr x))
         (limit (caddr x)))
     (cl-assert (stringp name))
-    (cl-assert (or (null count) (numberp count)))
+    (cl-assert (or (null count) (fixnump count)))
     (if count
         (let* ((prefix (substring name 0 count))
                (res nil))

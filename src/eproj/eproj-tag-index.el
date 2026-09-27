@@ -40,7 +40,7 @@
   (cl-assert (or (null props) (consp props)))
   (cl-assert (or (stringp type)
                  (null type)
-                 (and (numberp type)
+                 (and (fixnump type)
                       (<= 0 type)
                       (< type 256))))
   (cond

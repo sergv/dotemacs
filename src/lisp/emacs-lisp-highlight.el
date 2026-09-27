@@ -180,7 +180,7 @@ with exclamation mark"
            (highlight-entryp
             (lambda (form)
               (and (listp form)
-                   (numberp (car form))
+                   (fixnump (car form))
                    (<= 2 (length form))))))
 
     (funcall check-font-lock-keywords +emacs-lisp-basic-keywords+)))

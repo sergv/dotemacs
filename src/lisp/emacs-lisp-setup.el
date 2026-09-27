@@ -41,7 +41,7 @@
   (and (listp x)
        (--every (and (consp it)
                      (symbolp (car it))
-                     (numberp (cdr it)))
+                     (fixnump (cdr it)))
                 x)))
 
 ;;;###autoload
