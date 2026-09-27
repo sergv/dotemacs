@@ -1314,6 +1314,15 @@ Error is given as MSG and reported between POS and END."
            (cons #'cadr #'equal))
      '((("GHC.Generics" "Generically" ?t) . t)))))
 
+(defun attrap--should-import-nade-with-wildcards? (mod-name identifier tag-type)
+  (pcase (list mod-name identifier tag-type)
+    (`("GHC.Generics" "Generically" ?t)
+     t)
+    (`(,_ "PPGeneric" ?t)
+     t)
+    (_
+     nil)))
+
 (defconst attrap--module-name-fixes
   (eval-when-compile
     (alist->hash-table-with
@@ -1627,9 +1636,7 @@ then all non-authoritative results from that collection should be ignored."
                                   import-from-current-project?
                                   parent
                                   (unless parent
-                                    (nested-hash-tables/gethash
-                                     (list mod-name identifier (eproj-tag/type tag))
-                                     attrap--haskell-names-to-import-with-wildcards)))
+                                    (attrap--should-import-nade-with-wildcards? mod-name identifier (eproj-tag/type tag))))
     (notify "Added import of ‘%s’" mod-name)))
 
 (defun attrap-add-operator-parens (name)
