@@ -811,7 +811,7 @@ block motions."
 (defconst vim:cmd-inc-dec-at-point--signs "+\\-")
 
 (defun vim-cmd--plus-region (delta start end)
-  (cl-assert (numberp delta))
+  (cl-assert (fixnump delta))
   (cl-assert (< start end))
   (let* ((sign-char (char-after start))
          (sign-flag (pcase sign-char

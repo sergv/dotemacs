@@ -17,8 +17,8 @@
   (end   nil :read-only t))
 
 (defun make-buffer-span (start end)
-  (cl-assert (numberp start))
-  (cl-assert (numberp end))
+  (cl-assert (fixnump start))
+  (cl-assert (fixnump end))
   (cl-assert (<= start end))
   (make-buffer-span--impl :start start :end end))
 

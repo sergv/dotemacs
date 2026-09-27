@@ -1006,7 +1006,7 @@
               (lambda (_ _ _)
                 (lambda (matched-anchor)
                   (cond
-                    ((numberp matched-anchor)
+                    ((fixnump matched-anchor)
                      0)
                     ((and (treesit-computed-indent-p matched-anchor)
                           (member-str (treesit-matched-anchor-node-type matched-anchor) "string" "literal"))

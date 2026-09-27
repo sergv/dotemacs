@@ -462,7 +462,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                               ',(mapcar (lambda (x)
                                           (let ((def (aref x 0)))
                                             (if (or (symbolp def)
-                                                    (numberp def))
+                                                    (fixnump def))
                                                 def
                                               (error "Unexpected key definition: ‘%s’, please investigate further" def))))
                                         expanded-keys)))
