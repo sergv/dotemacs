@@ -8086,6 +8086,123 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-4aaa
+ :contents
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  "_|_"
+  ""
+  "data Foo = Foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  "  _|_"
+  ""
+  "data Foo = Foo"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-4aab
+ :contents
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  ""
+  "_|_"
+  ""
+  "data Foo = Foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  ""
+  "_|_"
+  ""
+  "data Foo = Foo"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-4ab
+ :contents
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  "  "
+  "_|_"
+  ""
+  "data Foo = Foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  "  "
+  "_|_"
+  ""
+  "data Foo = Foo"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-4ba
+ :contents
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  "  pure foo"
+  ""
+  "_|_"
+  ""
+  "data Foo = Foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  "  pure foo"
+  ""
+  "_|_"
+  ""
+  "data Foo = Foo"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-4bb
+ :contents
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  "  pure foo"
+  "  "
+  "_|_"
+  ""
+  "data Foo = Foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "pippo = do"
+  "  foo <- bar"
+  "  pure foo"
+  "  "
+  "_|_"
+  ""
+  "data Foo = Foo"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-module-header-1a
  :contents
  (tests-utils--multiline
