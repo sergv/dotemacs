@@ -135,7 +135,7 @@ that next 2 characters are AFTER1 and AFTER2."
   (interactive "*P")
   (cond
     (literal-insertion?
-     (typography-smart-insert-double-quote))
+     (typography-insert-vanilla-quotation-mark nil nil))
     ((eq (following-char) ?\")
      (forward-char))
     (t
