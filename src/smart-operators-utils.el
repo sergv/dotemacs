@@ -132,7 +132,7 @@ that next 2 characters are AFTER1 and AFTER2."
 
 ;;;###autoload
 (defun smart-operators-double-quote (literal-insertion?)
-  (interactive "P")
+  (interactive "*P")
   (cond
     (literal-insertion?
      (typography-smart-insert-double-quote))
@@ -151,7 +151,7 @@ that next 2 characters are AFTER1 and AFTER2."
 
 ;;;###autoload
 (defun smart-operators-open-paren ()
-  (interactive)
+  (interactive "*")
   (smart-operators--insert-pair ?\(
                                 ?\)
                                 (lambda (before)
@@ -164,7 +164,7 @@ that next 2 characters are AFTER1 and AFTER2."
 
 ;;;###autoload
 (defun smart-operators-open-bracket ()
-  (interactive)
+  (interactive "*")
   (smart-operators--insert-pair ?\[
                                 ?\]
                                 (lambda (before)
@@ -177,7 +177,7 @@ that next 2 characters are AFTER1 and AFTER2."
 
 ;;;###autoload
 (defun smart-operators-close-paren (literal-insertion?)
-  (interactive "P")
+  (interactive "*P")
   (if (and (not literal-insertion?)
            (eq (following-char) ?\)))
       (forward-char 1)
@@ -185,7 +185,7 @@ that next 2 characters are AFTER1 and AFTER2."
 
 ;;;###autoload
 (defun smart-operators-close-bracket (literal-insertion?)
-  (interactive "P")
+  (interactive "*P")
   (if (and (not literal-insertion?)
            (eq (following-char) ?\]))
       (forward-char 1)
@@ -193,7 +193,7 @@ that next 2 characters are AFTER1 and AFTER2."
 
 ;;;###autoload
 (defun smart-operators-close-brace (literal-insertion?)
-  (interactive "P")
+  (interactive "*P")
   (if (and (not literal-insertion?)
            (eq (following-char) ?\}))
       (forward-char 1)
