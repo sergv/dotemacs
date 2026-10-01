@@ -448,9 +448,11 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
               search-ignore-syntax-text-properties t)
 
   (def-keys-for-map vim-insert-mode-local-keymap
-    ("'"  haskell-smart-operators-quote)
+    ("'"    haskell-smart-operators-single-quote)
+    ("\""   haskell-smart-operators-double-quote)
+    ("C-'"  haskell-smart-operators-single-quote-typographic)
+    ("C-\"" haskell-smart-operators-double-quote-typographic)
 
-    ("\"" smart-operators-double-quote)
     ("\(" haskell-smart-operators-open-paren)
     ("\[" haskell-smart-operators-open-bracket)
     ("\{" haskell-smart-operators-open-brace))
@@ -478,8 +480,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
   (turn-on-font-lock)
 
-  (when (platform-use? 'home)
-    (typography-setup))
+  (setq-local typography-setup-enable-typographic-quotes? (platform-use? 'home))
 
   (setq-local flycheck-enhancements--get-project-root-for-current-buffer
               #'haskell-misc-get-project-root

@@ -6151,7 +6151,7 @@ _|_bar")
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
- vim-tests/haskell-insert-quote-1
+ vim-tests/haskell-insert-single-quote-1
  :action
  (execute-kbd-macro (kbd "i '"))
  :contents
@@ -6171,7 +6171,7 @@ _|_bar")
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
- vim-tests/haskell-insert-quote-2
+ vim-tests/haskell-insert-single-quote-2
  :action
  (execute-kbd-macro (kbd "i '"))
  :contents
@@ -6191,7 +6191,7 @@ _|_bar")
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
- vim-tests/haskell-insert-quote-3
+ vim-tests/haskell-insert-single-quote-3a
  :action
  (execute-kbd-macro (kbd "i '"))
  :contents
@@ -6204,6 +6204,37 @@ _|_bar")
  (tests-utils--multiline
   ""
   "foo x = do"
+  "  bar (x + 1) y \"’_|_\""
+  ""))
+
+(vim-tests--default-test-buffer-contents-many-inputs-and-actions*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :inputs
+ ((:name
+   vim-tests/haskell-insert-single-quote-3b
+   :action
+   (execute-kbd-macro (kbd "i C-'"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo x = do"
+    "  bar (x + 1) y \"_|_\""
+    ""))
+  (:name
+   vim-tests/haskell-insert-single-quote-3c
+   :action
+   (execute-kbd-macro (kbd "i C-u '"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo x = do"
+    "  bar (x + 1) y \"_|_\""
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
   "  bar (x + 1) y \"'_|_\""
   ""))
 
@@ -6211,7 +6242,7 @@ _|_bar")
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
- vim-tests/haskell-insert-quote-4
+ vim-tests/haskell-insert-single-quote-4a
  :action
  (execute-kbd-macro (kbd "i '"))
  :contents
@@ -6236,11 +6267,52 @@ _|_bar")
     "  bar (x + 1) y \"foo\""
     "")))
 
+(vim-tests--default-test-buffer-contents-many-inputs-and-actions*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :inputs
+ ((:name
+   vim-tests/haskell-insert-single-quote-4b
+   :action
+   (execute-kbd-macro (kbd "i C-'"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "-- _|_"
+    "foo x = do"
+    "  bar (x + 1) y \"foo\""
+    ""))
+  (:name
+   vim-tests/haskell-insert-single-quote-4c
+   :action
+   (execute-kbd-macro (kbd "i C-u '"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "-- _|_"
+    "foo x = do"
+    "  bar (x + 1) y \"foo\""
+    "")))
+ :expected-value
+ (if (platform-use? 'home)
+     (tests-utils--multiline
+      ""
+      "-- '_|_"
+      "foo x = do"
+      "  bar (x + 1) y \"foo\""
+      "")
+   (tests-utils--multiline
+    ""
+    "-- ‘_|_"
+    "foo x = do"
+    "  bar (x + 1) y \"foo\""
+    "")))
+
 (vim-tests--default-test-buffer-contents*
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
- vim-tests/haskell-insert-quote-5
+ vim-tests/haskell-insert-single-quote-in-comment-5a
  :action
  (execute-kbd-macro (kbd "i ' f o o ' SPC b a r <escape>"))
  :contents
@@ -6263,6 +6335,180 @@ _|_bar")
     "-- 'foo' ba_|_r"
     "foo x = do"
     "  bar (x + 1) y \"foo\""
+    "")))
+
+(vim-tests--default-test-buffer-contents-many-inputs-and-actions*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :inputs
+ ((:name
+   vim-tests/haskell-insert-single-quote-in-comment-5b
+   :action
+   (execute-kbd-macro (kbd "i C-' f o o C-' SPC b a r <escape>"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "-- _|_"
+    "foo x = do"
+    "  bar (x + 1) y \"foo\""
+    ""))
+  (:name
+   vim-tests/haskell-insert-single-quote-in-comment-5c
+   :action
+   (execute-kbd-macro (kbd "i C-u ' f o o C-u ' SPC b a r <escape>"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "-- _|_"
+    "foo x = do"
+    "  bar (x + 1) y \"foo\""
+    "")))
+ :expected-value
+ (if (platform-use? 'home)
+     (tests-utils--multiline
+      ""
+      "-- 'foo' ba_|_r"
+      "foo x = do"
+      "  bar (x + 1) y \"foo\""
+      "")
+   (tests-utils--multiline
+    ""
+    "-- ‘foo’ ba_|_r"
+    "foo x = do"
+    "  bar (x + 1) y \"foo\""
+    "")))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-single-quote-in-string-6a
+ :action
+ (execute-kbd-macro (kbd "i ' f o o ' SPC b a r <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "xxx = \"foo _|_ bar\""
+  "")
+ :expected-value
+ (if (platform-use? 'home)
+     (tests-utils--multiline
+      ""
+      "xxx = \"foo ‘foo’ ba_|_r bar\""
+      "")
+   (tests-utils--multiline
+    ""
+    "xxx = \"foo 'foo' ba_|_r bar\""
+    "")))
+
+(vim-tests--default-test-buffer-contents-many-inputs-and-actions*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :inputs
+ ((:name
+   vim-tests/haskell-insert-single-quote-in-string-6b
+   :action
+   (execute-kbd-macro (kbd "i C-' f o o C-' SPC b a r <escape>"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "xxx = \"foo _|_ bar\""
+    ""))
+  (:name
+   vim-tests/haskell-insert-single-quote-in-string-6c
+   :action
+   (execute-kbd-macro (kbd "i C-u ' f o o C-u ' SPC b a r <escape>"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "xxx = \"foo _|_ bar\""
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "xxx = \"foo 'foo' ba_|_r bar\""
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-double-quote-1a
+ :action
+ (execute-kbd-macro (kbd "i \" f o o \" SPC b a r <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "xxx = \"foo _|_ bar\""
+  "")
+ :expected-value
+ (if (platform-use? 'home)
+     (tests-utils--multiline
+      ""
+      "xxx = \"foo “foo” ba_|_r bar\""
+      "")
+   (tests-utils--multiline
+    ""
+    "xxx = \"foo \\\"foo\\\" ba_|_r bar\""
+    "")))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-double-quote-1b
+ :action
+ (execute-kbd-macro (kbd "i C-\" f o o C-\" SPC b a r <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+    "xxx = \"foo _|_ bar\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "xxx = \"foo \\\"foo\\\" ba_|_r bar\""
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-double-quote-1c
+ :action
+ (execute-kbd-macro (kbd "i C-u \" f o o C-u \" SPC b a r <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "xxx = \"foo _|_ bar\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "xxx = \"foo \"foo\" ba_|_r bar\""
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-insert-double-quote-1d
+ :action
+ (execute-kbd-macro (kbd "i C-u C-\" f o o C-u C-\" SPC b a r <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "xxx = \"foo _|_ bar\""
+  "")
+ :expected-value
+ (if (platform-use? 'home)
+     (tests-utils--multiline
+      ""
+      "xxx = \"foo “foo” ba_|_r bar\""
+      "")
+   (tests-utils--multiline
+    ""
+    "xxx = \"foo \\\"foo\\\" ba_|_r bar\""
     "")))
 
 (vim-tests--default-test-buffer-contents*
