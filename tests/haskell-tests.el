@@ -12486,7 +12486,7 @@ Entries should be a list of of elements of the form
  haskell-tests/haskell-smart-operators--single-quote-context-1a
  :action
  (progn
-   (haskell-smart-operators-quote)
+   (haskell-smart-operators-single-quote)
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?:))
  :contents
  (tests-utils--multiline
@@ -12571,7 +12571,7 @@ Entries should be a list of of elements of the form
  :name
  haskell-tests/haskell-smart-operators--single-quote-context-1e
  :action
- (haskell-smart-operators-quote)
+ (haskell-smart-operators-single-quote)
  :contents
  (tests-utils--multiline
   ""

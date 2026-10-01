@@ -27,35 +27,42 @@
       electric-quote-context-sensitive t)
 
 (defun typography-insert-vanilla-dash (&optional n)
-  (interactive "P")
+  (interactive "*P")
   (insert-char ?- n))
 
-(defun typography-insert-vanilla-quotation-mark (&optional n)
-  (interactive "P")
-  (insert-char ?\" n))
+(defun typography-insert-vanilla-quotation-mark (&optional n quoted?)
+  (interactive "*p")
+  (if quoted?
+      (dotimes (_ (or n 1))
+        (insert-char ?\\)
+        (insert-char ?\"))
+    (insert-char ?\" n)))
 
 (defun typography-insert-vanilla-single-quotation-mark (&optional n)
-  (interactive "P")
+  (interactive "*p")
   (insert-char ?\' n))
 
-(defun typography-smart-insert-double-quote (&optional n)
-  (interactive "P")
-  (if typopunct-mode
-      (typopunct-insert-quotation-mark)
-    (typography-insert-vanilla-quotation-mark n)))
+(defvar-local typography-setup-enable-typographic-quotes? t)
+
+(defun typography-smart-insert-double-quote (&optional n quoted?)
+  (interactive "*p")
+  (if typography-setup-enable-typographic-quotes?
+      (typopunct-insert-quotation-mark nil)
+    (typography-insert-vanilla-quotation-mark n quoted?)))
 
 (defun typography-smart-insert-single-quote (&optional n)
-  (interactive "P")
-  (if typopunct-mode
+  (interactive "*p")
+  (if typography-setup-enable-typographic-quotes?
       (typopunct-insert-single-quotation-mark)
     (typography-insert-vanilla-single-quotation-mark n)))
 
 ;;;###autoload
-(defun typography-setup ()
+(cl-defun typography-setup (&key (bind-keys t))
   (typopunct-mode 1)
   (electric-quote-local-mode 1)
 
-  (when vim-mode
+  (when (and vim-mode
+             bind-keys)
     (def-keys-for-map vim-insert-mode-local-keymap
       ("C--"  typography-insert-vanilla-dash)
       ("C-\"" typography-insert-vanilla-quotation-mark)

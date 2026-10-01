@@ -16,6 +16,8 @@
   (require 'macro-util)
   (require 'nanothunk))
 
+(defvar typography-setup-enable-typographic-quotes?)
+
 (declare-function haskell-abbrev+--insert-pragma "haskell-abbrev+")
 
 (require 'haskell-ext-tracking)
@@ -688,33 +690,112 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
           (goto-char m))))))
 
 ;;;###autoload
-(defun haskell-smart-operators-quote ()
-  (interactive "*")
+(defun haskell-smart-operators-single-quote (&optional literal-insertion?)
+  "Insert ' or ‘ or ’ depending on context.
+
+Insert ASCII quotes in Haskell program and typographic ones in comments and strings."
+  (interactive "*P")
+  (haskell-smart-operators-single-quote--impl literal-insertion? nil))
+
+;;;###autoload
+(defun haskell-smart-operators-single-quote-typographic (&optional literal-insertion?)
+  "Like ‘haskell-smart-operators-quote’ but with ASCII and typographic quotes roles reversed.
+
+I.e. insert typographic quotes in Haskell program if ‘typopunct-mode’ is
+enabled and ASCII ones in comments and strings."
+  (interactive "*P")
+  (haskell-smart-operators-single-quote--impl literal-insertion? t))
+
+;;;###autoload
+(defun haskell-smart-operators-double-quote (&optional literal-insertion?)
+  "Insert \" or \\\" “ or ” depending on context.
+
+Insert ASCII quotes in Haskell program and typographic ones in comments and strings."
+  (interactive "*P")
+  (haskell-smart-operators-double-quote--impl literal-insertion? nil))
+
+;;;###autoload
+(defun haskell-smart-operators-double-quote-typographic (&optional literal-insertion?)
+  "Like ‘haskell-smart-operators-double-quote’ but with ASCII and typographic quotes roles reversed.
+
+I.e. insert typographic quotes in Haskell program if ‘typopunct-mode’ is
+enabled and quoted ASCII ones in comments and strings."
+  (interactive "*P")
+  (haskell-smart-operators-double-quote--impl literal-insertion? t))
+
+(defun haskell-smart-operators-single-quote--impl (literal-insertion? typographic-first?)
   (cond
+    (literal-insertion?
+     (let ((typography-setup-enable-typographic-quotes? typographic-first?))
+       (typography-smart-insert-single-quote)))
+    (t
+     (haskell-smart-operators-quote--generic-impl
+      typographic-first?
+      (lambda (_in-string?)
+        (typography-insert-vanilla-single-quotation-mark nil))
+      (lambda (_in-string?)
+        (typography-smart-insert-single-quote))
+      (lambda ()
+        (let ((prev-char (preceding-char)))
+          (insert-char ?\')
+          (when (or (not prev-char)
+                    (let ((syn (char-syntax prev-char)))
+                      (not (or (eq syn ?w)
+                               (eq syn ?_)))))
+            (insert-char ?\')
+            (forward-char -1))))))))
+
+(defun haskell-smart-operators-double-quote--impl (literal-insertion? typographic-first?)
+  (let ((c (following-char)))
+    (cond
+      (literal-insertion?
+       (let ((typography-setup-enable-typographic-quotes? typographic-first?))
+         (typography-smart-insert-double-quote)))
+      ((if typographic-first?
+           (or (eq c ?\”)
+               (eq c ?\“))
+         (eq c ?\"))
+       (forward-char))
+      (t
+       (haskell-smart-operators-quote--generic-impl
+        typographic-first?
+        (lambda (in-string?)
+          (typography-insert-vanilla-quotation-mark nil in-string?))
+        (lambda (in-string?)
+          (typography-smart-insert-double-quote nil in-string?))
+        (lambda ()
+          (smart-operators-double-quote nil)))))))
+
+(defun haskell-smart-operators-quote--generic-impl (typographic-first? insert-regular-quote insert-typographic-quote fallback)
+  (cond
+    ;; In pragma - same as in comment.
     ((and (derived-mode-p 'haskell-ts-base-mode)
           (let ((p (point)))
             (when-let* ((node (treesit-node-at p)))
               (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
                    (treesit-utils-is-inside-node? p node)))))
-     (insert-char ?\'))
-    ((or
-      ;; Only string
-      (haskell-smart-operators--literal-insertion? t)
-      (and (derived-mode-p 'haskell-ts-base-mode)
-           (haskell-smart-operators--in-single-quote-context? (treesit-node-at (point)))))
-     (insert-char ?\'))
-    ;; Either string or comment
-    ((haskell-smart-operators--literal-insertion?)
-     (typography-smart-insert-single-quote))
+     (if typographic-first?
+         (funcall insert-typographic-quote nil)
+       (funcall insert-regular-quote nil)))
+    ((and (derived-mode-p 'haskell-ts-base-mode)
+          (haskell-smart-operators--in-single-quote-context? (treesit-node-at (point))))
+     (funcall insert-regular-quote t))
+    ;; In string.
+    ((haskell-smart-operators--literal-insertion?
+      ;; Only string.
+      t)
+     (if typographic-first?
+         (funcall insert-regular-quote t)
+       (funcall insert-typographic-quote t)))
+    ;; Comment
+    (
+     ;; Either string or comment, only comments left at this point.
+     (haskell-smart-operators--literal-insertion?)
+     (if typographic-first?
+         (funcall insert-regular-quote nil)
+       (funcall insert-typographic-quote nil)))
     (t
-     (let ((prev-char (preceding-char)))
-       (insert-char ?\')
-       (when (or (not prev-char)
-                 (let ((syn (char-syntax prev-char)))
-                   (not (or (eq syn ?w)
-                            (eq syn ?_)))))
-         (insert-char ?\')
-         (forward-char -1))))))
+     (funcall fallback))))
 
 (defvar haskell-smart-operators-mode-map
   (let ((keymap (make-sparse-keymap)))
