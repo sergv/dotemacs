@@ -164,9 +164,7 @@
              (looking-at adaptive-fill-regexp)
              ;; If previous line is an empty line, don't
              ;; indent.
-             (not (haskell-on-blank-line?)
-                  ;; (haskell-on-blank-line-from-any-column?)
-                  )
+             (not (haskell-on-blank-line-from-any-column?))
              ;; Return the anchor.  If the indenting line
              ;; has a prefix and the previous line also
              ;; has a prefix, indent to the beginning of
@@ -1072,7 +1070,8 @@
                      ;; If we’re on toplevel
                      ((string= typ "declarations")
                       (let ((pos (haskell-ts-indent--prev-adaptive-prefix node parent bol-pos)))
-                        (if-let* ((prev-node (treesit-node-at pos))
+                        (if-let* ((_ pos)
+                                  (prev-node (treesit-node-at pos))
                                   (typ (treesit-node-type prev-node)))
                             (cond
                               ((string= typ "data")
