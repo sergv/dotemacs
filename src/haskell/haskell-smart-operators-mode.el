@@ -710,8 +710,9 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
      (let ((prev-char (preceding-char)))
        (insert-char ?\')
        (when (or (not prev-char)
-                 (not (or (eq (char-syntax prev-char) ?w)
-                          (eq (char-syntax prev-char) ?_))))
+                 (let ((syn (char-syntax prev-char)))
+                   (not (or (eq syn ?w)
+                            (eq syn ?_)))))
          (insert-char ?\')
          (forward-char -1))))))
 
