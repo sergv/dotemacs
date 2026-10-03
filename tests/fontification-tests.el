@@ -493,6 +493,32 @@ not checked."
   ("-1#"        haskell-ts-constant-face))
  :fresh-buffer t)
 
+(fontification-tests--test-ts-fontification
+ :name
+ bash-ts-mode/fontification-1
+ :modes (bash-ts-mode)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo <<EOF"
+  "bar"
+  "baz \"$EMACS_TEST_EXTRA_SO_DIR\""
+  "quux"
+  "EOF"
+  "")
+ :fontification
+ (("foo"                     font-lock-function-call-face)
+  ("<<"                      font-lock-operator-face)
+  ("EOF"                     sh-heredoc)
+  ("bar"                     sh-heredoc)
+  ("baz"                     sh-heredoc)
+  ("\""                      sh-heredoc)
+  ("EMACS_TEST_EXTRA_SO_DIR" font-lock-variable-use-face)
+  ("\""                      sh-heredoc)
+  ("quux"                    sh-heredoc)
+  ("EOF"                     nil))
+ :fresh-buffer t)
+
 (provide 'fontification-tests)
 
 ;; Local Variables:

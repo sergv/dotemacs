@@ -9,6 +9,7 @@
 ;; set up shell scripting files and shell interaction mode
 
 (eval-when-compile
+  (require 'el-patch)
   (require 'set-up-platform)
   (require 'vim-macs))
 
@@ -23,6 +24,7 @@
 (require 'common)
 (require 'comint-setup)
 (require 'dirtrack)
+(require 'el-patch)
 (require 'folding-setup)
 (require 'shell-script-abbrev+)
 (require 'xterm-color)
@@ -64,6 +66,127 @@
    (treesit-node-at pos)
    #'treesit-bash--is-string-node-type?))
 
+(with-eval-after-load 'sh-script
+  (setf sh-mode--treesit-settings
+        (append
+         (--remove (eq (nth 2 it) 'string-interpolation)
+                   sh-mode--treesit-settings)
+         (list
+          (--find (eq (nth 2 it) 'string-interpolation)
+                  sh-mode--treesit-settings)))))
+
+;;;###autoload
+(add-to-list 'el-patch-features 'sh-script)
+
+(with-eval-after-load 'sh-script
+  (el-patch-defvar sh-mode--treesit-settings
+    (treesit-font-lock-rules
+     :feature 'comment
+     :language 'bash
+     '((comment) @font-lock-comment-face)
+
+     :feature 'function
+     :language 'bash
+     '((function_definition name: (word) @font-lock-function-name-face))
+
+     :feature 'string
+     :language 'bash
+     '([(string) (raw_string)] @font-lock-string-face)
+
+     (el-patch-add
+       :feature 'heredoc
+       :language 'bash
+       '([(heredoc_start) (heredoc_body)] @sh-heredoc))
+
+     :feature 'string-interpolation
+     :language 'bash
+     :override t
+     '((command_substitution (command) @sh-quoted-exec)
+       (expansion (variable_name) @font-lock-variable-use-face)
+       (expansion ["${" "}"] @font-lock-bracket-face)
+       (simple_expansion
+        "$" @font-lock-bracket-face
+        (variable_name) @font-lock-variable-use-face))
+
+     (el-patch-remove
+       :feature 'heredoc
+       :language 'bash
+       '([(heredoc_start) (heredoc_body)] @sh-heredoc))
+
+     :feature 'variable
+     :language 'bash
+     '((variable_name) @font-lock-variable-name-face)
+
+     :feature 'keyword
+     :language 'bash
+     `(;; keywords
+       [ ,@sh-mode--treesit-keywords ] @font-lock-keyword-face
+       ;; reserved words
+       (command_name
+        ((word) @font-lock-keyword-face
+         (:match
+          ,(rx-to-string
+            `(seq bol
+                  (or ,@(sh-mode--treesit-other-keywords))
+                  eol))
+          @font-lock-keyword-face))))
+
+     :feature 'command
+     :language 'bash
+     `(;; function/non-builtin command calls
+       (command_name (word) @font-lock-function-call-face)
+       ;; builtin commands
+       (command_name
+        ((word) @font-lock-builtin-face
+         (:match ,(let ((builtins
+                         (sh-feature sh-builtins)))
+                    (rx-to-string
+                     `(seq bol
+                           (or ,@builtins)
+                           eol)))
+                 @font-lock-builtin-face))))
+
+     :feature 'declaration-command
+     :language 'bash
+     `([,@sh-mode--treesit-declaration-commands] @font-lock-keyword-face)
+
+     :feature 'constant
+     :language 'bash
+     '((case_item value: (word) @font-lock-constant-face)
+       (file_descriptor) @font-lock-constant-face)
+
+     :feature 'operator
+     :language 'bash
+     `([,@sh-mode--treesit-operators] @font-lock-operator-face)
+
+     :feature 'builtin-variable
+     :language 'bash
+     `(((special_variable_name) @font-lock-builtin-face
+        (:match ,(let ((builtin-vars (sh-feature sh-variables)))
+                   (rx-to-string
+                    `(seq bol
+                          (or ,@builtin-vars)
+                          eol)))
+                @font-lock-builtin-face)))
+
+     :feature 'number
+     :language 'bash
+     `(((word) @font-lock-number-face
+        (:match "\\`[0-9]+\\'" @font-lock-number-face)))
+
+     :feature 'bracket
+     :language 'bash
+     '((["(" ")" "((" "))" "[" "]" "[[" "]]" "{" "}"]) @font-lock-bracket-face)
+
+     :feature 'delimiter
+     :language 'bash
+     '(([";" ";;"]) @font-lock-delimiter-face)
+
+     :feature 'misc-punctuation
+     :language 'bash
+     '((["$"]) @font-lock-misc-punctuation-face))
+    "Tree-sitter font-lock settings for `sh-mode'."))
+
 ;;;###autoload
 (defun shell-script-setup ()
   (init-common :use-yasnippet t
@@ -72,7 +195,14 @@
   (setup-folding t '(:header-symbol "#" :length-min 4))
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
-  (setq-local yas-indent-line 'fixed)
+  ;; (treesit-font-lock-recompute-features nil '(string-interpolation))
+
+  (setq-local yas-indent-line 'fixed
+              ;; Important to disable long lines optimizations because they make font locking
+              ;; operate in narrowed buffer which could make treesitter miss things.
+              long-line-optimizations-region-size 0
+              ;; Fast font lock mode is too imprecise and can also make treesitter miss things.
+              treesit--font-lock-fast-mode nil)
 
   (when (eq major-mode 'bash-ts-mode)
     (setq-local semnav-bounds-of-string-at-override #'semnav-bounds-of-string-at--ts-bash))
