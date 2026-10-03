@@ -45,8 +45,6 @@ else
     test_prelude_setup_flag2=""
 fi
 
-cd "$(dirname "$0")"
-
 declare -a to_load
 to_load=()
 
@@ -57,12 +55,16 @@ declare -a tests
 if [[ "$#" -gt 0 ]]; then
     for x in "${@}"; do
         if [[ -f "$x" ]]; then
+            to_load+=( "-l" "$(basename "$x")" )
+        elif [[ -f "tests/$x" ]]; then
             to_load+=( "-l" "$x" )
         else
             matcher="$x"
         fi
     done
 fi
+
+cd "$(dirname "$0")"
 
 if [[ "${#to_load[@]}" == 0 ]]; then
     for x in "$emacs_tests_dir"/*.el; do
