@@ -99,7 +99,7 @@ stick it to the previous operator on line."
          (in-single-quote-context?
           (nanothunk-delay
            (haskell-smart-operators--in-single-quote-context?
-            (treesit-node-at pt))))
+            (treesit-haskell--node-at pt))))
 
          (pt-preceded-by-two-dashes? nil)
          (handling-haddock-comment?
@@ -500,7 +500,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 
               (gethash (following-char) haskell-smart-operators--operator-chars)))
 
-           (p-node (nanothunk-delay (treesit-node-at p)))
+           (p-node (nanothunk-delay (treesit-haskell--node-at p)))
 
            (ts-field-node-children
             (when (and (derived-mode-p 'haskell-ts-base-mode)
@@ -771,14 +771,14 @@ enabled and quoted ASCII ones in comments and strings."
     ;; In pragma - same as in comment.
     ((and (derived-mode-p 'haskell-ts-base-mode)
           (let ((p (point)))
-            (when-let* ((node (treesit-node-at p)))
+            (when-let* ((node (treesit-haskell--node-at p)))
               (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
                    (treesit-utils-is-inside-node? p node)))))
      (if typographic-first?
          (funcall insert-typographic-quote nil)
        (funcall insert-regular-quote nil)))
     ((and (derived-mode-p 'haskell-ts-base-mode)
-          (haskell-smart-operators--in-single-quote-context? (treesit-node-at (point))))
+          (haskell-smart-operators--in-single-quote-context? (treesit-haskell--node-at (point))))
      (funcall insert-regular-quote t))
     ;; In string.
     ((haskell-smart-operators--literal-insertion?
@@ -860,7 +860,7 @@ enabled and quoted ASCII ones in comments and strings."
                                              (when (derived-mode-p 'haskell-ts-base-mode)
                                                (and (eq before ?!)
                                                     (treesit-utils-find-topmost-parent
-                                                     (treesit-node-at p)
+                                                     (treesit-haskell--node-at p)
                                                      (lambda (x)
                                                        (let ((typ (treesit-node-type x)))
                                                          (and (member-str typ "data_constructor" "gadt_constructor")
