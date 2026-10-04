@@ -69,11 +69,11 @@
     "emacs-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1788912206,
-        "narHash": "sha256-Bw+Po2AU7M48r/lEInQUYtRyNzjR/QfDqTyOuoCGFzg=",
+        "lastModified": 1791150243,
+        "narHash": "sha256-A8qj5Z+f+4BVYhO4rN3J/W8TlXgh6dI8rXGxi8feLlc=",
         "owner": "sergv",
         "repo": "emacs",
-        "rev": "132d9eeba439816fef920c79e08011d1527d9fce",
+        "rev": "fe7375688603f126430af0cbc46b53ef90f1b1fe",
         "type": "github"
       },
       "original": {
