@@ -14595,6 +14595,91 @@ optional-packages: ./vendored/*/*.cabal
 
 _|_")
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--linear-lollipop-1a
+ :action
+ (haskell-smart-operators-1)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Foo %_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Foo %1_|_"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--linear-lollipop-1b
+ :action
+ (haskell-smart-operators-1)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Foo %_|_            "
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Foo %1_|_            "
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--linear-lollipop-1c
+ :action
+ (haskell-smart-operators-1)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Foo %                    _|_            "
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Foo %1_|_            "
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--linear-lollipop-1d
+ :action
+ (haskell-smart-operators-1)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Foo %                    _|_            -> Baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Foo %1_|_            -> Baz"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--linear-lollipop-1e
+ :action
+ (haskell-smart-operators-1)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: (Foo %                    _|_            -> Baz) -> Pippo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: (Foo %1_|_            -> Baz) -> Pippo"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
