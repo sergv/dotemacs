@@ -252,6 +252,31 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-indent--get-match-guard-arrow-or-eq-opt (node)
+  (cl-assert (string= "match" (treesit-node-type node)))
+  (let ((result (and (treesit-node-child-by-field-name node "guards")
+                     (treesit-node-child node 2))))
+    (cl-assert (or (null result)
+                   (member-str (treesit-node-type result) "->" "="))
+               nil
+               "Not an arrow or equals: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-match-guards-opt (node)
+  (cl-assert (string= "match" (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "guards")))
+    (cl-assert (or (null result)
+                   (string= "guards" (treesit-node-type result)))
+               nil
+               "Not a ‘guards’ node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (defun haskell-ts-indent--get-match-equals-or-guard-pipe-or-arrow (node)
   (cl-assert (string= "match" (treesit-node-type node)))
   (let ((result (treesit-node-child node 0)))
