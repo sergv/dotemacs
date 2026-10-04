@@ -299,10 +299,13 @@
                                                                            prev1
                                                                          curr))))
               ((and (string= "match" curr-type)
-                    (treesit-node-child-by-field-name curr "guards"))
+                    (setf tmp (haskell-ts-indent--get-match-guards-opt curr)))
                (throw 'term
                       (haskell-ts-indent--make-trivial-computed-indent
-                       (haskell-ts-indent--get-match-guard-pipe-opt curr))))
+                       (if-let* ((arrow-or-eq (haskell-ts-indent--get-match-guard-arrow-or-eq-opt curr))
+                                 (_ (treesit-utils-is-standalone-node? arrow-or-eq)))
+                           arrow-or-eq
+                         tmp))))
               ((and (string= "bind" curr-type)
                     (setf tmp (treesit-node-child-by-field-name curr "arrow"))
                     (treesit-utils-is-standalone-node? tmp))
@@ -358,10 +361,24 @@
 
 (defun haskell-ts-indent--match-parent-anchor (node parent bol)
   (cl-assert (string= "match" (treesit-node-type parent)))
-  (if-let* ((match-first-node (haskell-ts-indent--get-match-equals-or-guard-pipe-or-arrow parent))
-            (_ (treesit-utils-is-standalone-node? match-first-node)))
-      match-first-node
-    (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent node parent bol)))
+  (let* ((arrow-or-eq (haskell-ts-indent--get-match-guard-arrow-or-eq-opt parent))
+         (default-anchor
+          (if-let* ((match-first-node (haskell-ts-indent--get-match-equals-or-guard-pipe-or-arrow parent))
+                    (_ (treesit-utils-is-standalone-node? (or arrow-or-eq
+                                                              match-first-node))))
+              match-first-node
+            (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-no-list-or-tuple-parent
+             node
+             parent
+             bol))))
+    (if (or (null arrow-or-eq)
+            (treesit-utils-is-standalone-node? arrow-or-eq)
+            (< (treesit-node-start node)
+               (treesit-node-start arrow-or-eq)))
+        default-anchor
+      (or (haskell-ts-indent--make-trivial-computed-indent
+           (haskell-ts-indent--get-match-guards-opt parent))
+          default-anchor))))
 
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t nil))
