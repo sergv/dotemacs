@@ -47,7 +47,7 @@
      action
      contents
      expected-value
-     (modes '(haskell-mode haskell-ts-mode))
+     (modes '(haskell-mode haskell-ts-mode haskell-hsc-mode))
      ;; If supplied then disable caching and make buffer visit fresh
      ;; temporary directory. This is to facilitate testing with
      ;; ephemeral eproj projects.
@@ -389,7 +389,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/delete-import-5c
  :error-message
  (tests-utils--multiline
@@ -412,7 +412,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/delete-import-5d
  :error-message
  (tests-utils--multiline
@@ -486,7 +486,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-7a
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
@@ -516,7 +516,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-7b
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
@@ -546,7 +546,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-7c
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
@@ -576,7 +576,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-8a
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-61689]"
@@ -598,7 +598,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-8b
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-61689]"
@@ -625,7 +625,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-8c
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-61689]"
@@ -648,7 +648,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-8da
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-61689]"
@@ -670,7 +670,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-8db
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-61689]"
@@ -692,7 +692,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-import-8e
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-61689]"
@@ -2266,7 +2266,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/explicit-type-wildcard-1
+ :name attrap/haskell-dante/replace-wild-card-with-use-suggested-type-1
  :error-message
  (tests-utils--multiline
   "error: [GHC-88464]"
@@ -2274,7 +2274,7 @@
   "      To use the inferred type, enable PartialTypeSignatures"
   "    • In the type signature: tests :: _")
  :action
- (let ((attrap-select-predefined-option "explicit type wildcard"))
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
    (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
@@ -2290,7 +2290,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/explicit-type-wildcard-2
+ :name attrap/haskell-dante/replace-wild-card-with-use-suggested-type-2
  :error-message
  (tests-utils--multiline
   "error: [GHC-88464]"
@@ -2298,7 +2298,7 @@
   "      To use the inferred type, enable PartialTypeSignatures"
   "    • In the type signature: tests :: _")
  :action
- (let ((attrap-select-predefined-option "explicit type wildcard"))
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
    (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
@@ -2314,7 +2314,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/explicit-type-wildcard-3
+ :name attrap/haskell-dante/replace-wild-card-with-use-suggested-type-3
  :error-message
  (tests-utils--multiline
   "error: [GHC-88464]"
@@ -2322,7 +2322,7 @@
   "      To use the inferred type, enable PartialTypeSignatures"
   "    • In the type signature: tests :: _")
  :action
- (let ((attrap-select-predefined-option "explicit type wildcard"))
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
    (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
@@ -2338,7 +2338,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/explicit-type-wildcard-4
+ :name attrap/haskell-dante/replace-wild-card-with-use-suggested-type-4
  :error-message
  (tests-utils--multiline
   "error: [GHC-88464]"
@@ -2346,7 +2346,7 @@
   "      To use the inferred type, enable PartialTypeSignatures"
   "    • In the type signature: tests :: _")
  :action
- (let ((attrap-select-predefined-option "explicit type wildcard"))
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
    (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
@@ -2370,7 +2370,7 @@
   "        ‘basicLength’, ‘basicUnsafeSlice’, ‘basicOverlaps’, ‘basicUnsafeNew’, ‘basicInitialize’, ‘basicUnsafeRead’, and ‘basicUnsafeWrite’"
   "    • In the instance declaration for ‘MVector MVector ActiveFinalMatchesEmptyEntry’")
  :action
- (let ((attrap-select-predefined-option "explicit type wildcard"))
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
    (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
@@ -2399,7 +2399,7 @@
   "        ‘basicLength’, ‘basicUnsafeSlice’, ‘basicOverlaps’, ‘basicUnsafeNew’, ‘basicInitialize’, ‘basicUnsafeRead’, and ‘basicUnsafeWrite’"
   "    • In the instance declaration for ‘MVector MVector ActiveFinalMatchesEmptyEntry’")
  :action
- (let ((attrap-select-predefined-option "explicit type wildcard"))
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
    (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
@@ -2428,7 +2428,7 @@
   "        ‘basicLength’, ‘basicUnsafeSlice’, ‘basicOverlaps’, ‘basicUnsafeNew’, ‘basicInitialize’, ‘basicUnsafeRead’, and ‘basicUnsafeWrite’"
   "    • In the instance declaration for ‘MVector MVector ActiveFinalMatchesEmptyEntry’")
  :action
- (let ((attrap-select-predefined-option "explicit type wildcard"))
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
    (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
@@ -2457,7 +2457,7 @@
   "        ‘basicLength’, ‘basicUnsafeSlice’, ‘basicOverlaps’, ‘basicUnsafeNew’, ‘basicInitialize’, ‘basicUnsafeRead’, and ‘basicUnsafeWrite’"
   "    • In the instance declaration for ‘MVector MVector ActiveFinalMatchesEmptyEntry’")
  :action
- (let ((attrap-select-predefined-option "explicit type wildcard"))
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
    (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
@@ -2503,7 +2503,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1aa
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2527,7 +2527,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1aba
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2551,7 +2551,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1abb
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2575,7 +2575,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1ac
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2600,7 +2600,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1ad
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2625,7 +2625,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1ae
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2649,7 +2649,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1b
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2673,7 +2673,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1c
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2697,7 +2697,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1d
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2721,7 +2721,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1e
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2745,7 +2745,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1f
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2769,7 +2769,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1g
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2793,7 +2793,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1h
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2817,7 +2817,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1i
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2841,7 +2841,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-1j
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2865,7 +2865,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-2
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2891,7 +2891,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-3
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2917,7 +2917,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-4a
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2945,7 +2945,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-4b
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -2973,7 +2973,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-4c
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3001,7 +3001,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-4d
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3041,7 +3041,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-4e
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3079,7 +3079,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-5a
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3121,7 +3121,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-5b
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3163,7 +3163,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-function-5c
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3205,7 +3205,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-instance-1a
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3234,7 +3234,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-instance-1b
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3269,7 +3269,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-instance-1c
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3304,7 +3304,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-instance-1d
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-30606] [-Wredundant-constraints]"
@@ -3508,7 +3508,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/unused-source-pragma-2
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-88907] [-Wunused-imports]"
@@ -3531,7 +3531,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/strict-pattern-1
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-21030] [-Wunbanged-strict-patterns]"
@@ -3558,7 +3558,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/enable-magic-hash-1
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-76037]"
@@ -3592,7 +3592,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/enable-magic-hash-2
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-40798] [-Woperator-whitespace]"
@@ -3619,7 +3619,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/enable-unboxed-tuples-1
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "  error: [GHC-72516] Parse error in pattern: #x"
@@ -3650,7 +3650,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/enable-unboxed-tuples-2
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-19590]"
@@ -3686,7 +3686,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/remove-bang-1
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "warning: [GHC-38520] [-Wredundant-bang-patterns]"
@@ -3721,7 +3721,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/export-is-a-data-constructor-1a
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-35373]"
@@ -3750,7 +3750,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/export-is-a-data-constructor-1b
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-35373]"
@@ -3779,7 +3779,7 @@
 
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/enable-extended-literals-1
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message
  (tests-utils--multiline
   "error: [GHC-01928]"
@@ -3911,7 +3911,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/overloaded-strings-1
  :error-message
  (tests-utils--multiline
@@ -3959,7 +3959,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/overloaded-strings-2a
  :error-message
  (tests-utils--multiline
@@ -4000,7 +4000,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/overloaded-strings-2b
  :error-message
  (tests-utils--multiline
@@ -4033,7 +4033,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1aa
  :error-message
  (tests-utils--multiline
@@ -4071,7 +4071,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1ab
  :error-message
  (tests-utils--multiline
@@ -4113,7 +4113,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1ac
  :error-message
  (tests-utils--multiline
@@ -4147,7 +4147,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1ad
  :error-message
  (tests-utils--multiline
@@ -4190,7 +4190,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1ba
  :error-message
  (tests-utils--multiline
@@ -4228,7 +4228,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1bb
  :error-message
  (tests-utils--multiline
@@ -4266,7 +4266,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1c
  :error-message
  (tests-utils--multiline
@@ -4304,7 +4304,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1d
  :error-message
  (tests-utils--multiline
@@ -4361,7 +4361,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1ea
  :error-message
  (tests-utils--multiline
@@ -4415,7 +4415,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-1eb
  :error-message
  (tests-utils--multiline
@@ -4469,7 +4469,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-function-2
  :error-message
  (tests-utils--multiline
@@ -4786,7 +4786,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-instance-1a
  :error-message
  (tests-utils--multiline
@@ -4825,7 +4825,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-instance-1b
  :error-message
  (tests-utils--multiline
@@ -4864,7 +4864,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :modes (haskell-ts-mode)
+ :modes (haskell-ts-mode haskell-hsc-mode)
  :name attrap/haskell-dante/add-constraint-to-instance-1c
  :error-message
  (tests-utils--multiline

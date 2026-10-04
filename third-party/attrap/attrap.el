@@ -857,7 +857,7 @@ Error is given as MSG and reported between POS and END."
          (when (string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
            (let ((wildcard  (match-string-no-properties 1 msg))
                  (type-expr (match-string-no-properties 2 msg)))
-             (attrap-one-option "explicit type wildcard"
+             (attrap-one-option "replace wild card with use suggested type"
                (save-excursion
                  (goto-char pos)
                  (search-forward wildcard)
