@@ -395,6 +395,8 @@
        ns-use-thin-smoothing t
        mac-command-modifier 'control))
 
+(remove-hook 'post-self-insert-hook #'blink-paren-post-self-insert-function)
+
 ;;;; Epilogue
 
 (provide 'emacs-general-conf)
