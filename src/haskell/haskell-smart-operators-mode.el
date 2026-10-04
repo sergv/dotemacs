@@ -339,7 +339,7 @@ stick it to the previous operator on line."
 
 ;;;###autoload
 (defun haskell-smart-operators-$ ()
-  "Swap parens with a dollar."
+  "Smart insertion of ‘$’ that takes parens into account."
   (interactive "*")
   (let ((start (point))
         (strip-next-parens?
