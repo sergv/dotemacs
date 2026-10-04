@@ -22,6 +22,7 @@
 
 (require 'haskell-ext-tracking)
 (require 'haskell-mode)
+(require 'haskell-regexen)
 (require 'haskell-smart-operators-utils)
 (require 'haskell-syntax-table)
 (require 'nanothunk)
@@ -871,32 +872,89 @@ enabled and quoted ASCII ones in comments and strings."
                                              (eq after ?\])
                                              (eq after ?,)))))))
 
+(defun haskell-smart-operators-open-brace--skip-back-constructor-name ()
+  (let ((case-fold-search nil))
+    (skip-chars-backward "[:alnum:]'_#")
+    (looking-at-p "\\(?:\\b\\|'+\\)[[:upper:]]")))
+
+(defconst haskell-smart-operators-open-brace--expr-query
+  (haskell-ts-query-compile
+   '((expression) @expr)))
+
 ;;;###autoload
 (defun haskell-smart-operators-open-brace ()
   (interactive)
   (let ((literal-insertion? (haskell-smart-operators--literal-insertion?))
         (is-hsc? (derived-mode-p 'haskell-hsc-mode))
-        (p (point)))
+        (deleted-spaces? nil)
+        (is-after-constructor? nil))
+
     (when is-hsc?
       (save-excursion
-        (when (and (not (zerop (skip-chars-backward " \t")))
-                   (eq (preceding-char) ?#))
-          (delete-region (point) p))))
-    (smart-operators--insert-pair ?\{
-                                  ?\}
-                                  (lambda (before)
-                                    (not (or literal-insertion?
-                                             (eq before ?\()
-                                             (eq before ?\[)
-                                             (eq before ?\\)
-                                             (if is-hsc?
-                                                 (eq before ?#)
-                                               nil))))
-                                  (lambda (after)
-                                    (not (or literal-insertion?
-                                             (eq after ?\))
-                                             (eq after ?\])
-                                             (eq after ?,)))))))
+        (let ((p (point)))
+          (when (and (not (zerop (skip-chars-backward " \t")))
+                     (eq (preceding-char) ?#))
+            (delete-region (point) p)
+            (setf deleted-spaces? t)))))
+
+    (save-excursion
+      (let ((p (point)))
+        (when-let* ((_ (or (skip-chars-backward " \t") t))
+                    (end-of-node-before-point (point))
+                    (_ (setf is-after-constructor?
+                             (haskell-smart-operators-open-brace--skip-back-constructor-name))))
+          (delete-region end-of-node-before-point p)
+          (setf deleted-spaces? (or deleted-spaces?
+                                    (not (eq end-of-node-before-point p)))))))
+
+    (smart-operators--insert-pair
+     ?\{
+     ?\}
+     (lambda (before)
+       (or (not (or literal-insertion?
+                    (eq before 40 ;; (
+                        )
+                    (eq before 91 ;; [
+                        )
+                    (eq before ?\\)
+                    (if is-hsc?
+                        (eq before ?#)
+                      nil)
+                    is-after-constructor?))
+           (let ((start-node (treesit-node-at (- (point) 1))))
+             (and (let ((expr-node
+                         (treesit-utils-find-closest-parent-until
+                          start-node
+                          (lambda (x)
+                            (let ((exprs
+                                   (treesit-query-capture
+                                    x
+                                    (haskell-ts-query-resolve haskell-smart-operators-open-brace--expr-query)
+                                    (line-beginning-position)
+                                    (line-end-position)
+                                    t)))
+                              (--any? (equal start-node it) exprs)))
+                          (lambda (x)
+                            (and x
+                                 (member-str (treesit-node-type x)
+                                             "haskell"
+                                             "declarations"))))))
+                    (and expr-node
+                         (not (and (string= "boolean" (treesit-node-type expr-node))
+                                   (string= "guards" (treesit-node-type (treesit-node-parent expr-node)))
+                                   (string= "guard" (treesit-node-field-name expr-node))))))
+                  (not
+                   (treesit-utils-find-closest-parent
+                    start-node
+                    (lambda (x)
+                      (member-str (treesit-node-type x) "top_splice" ""))))))))
+     (lambda (after)
+       (not (or literal-insertion?
+                (eq after 41 ;; )
+                    )
+                (eq after 93 ;; ]
+                    )
+                (eq after ?,)))))))
 
 ;;;###autoload
 (define-minor-mode haskell-smart-operators-mode

@@ -602,7 +602,8 @@
    (lambda (x)
      (string= (treesit-node-type x) "forall"))
    (lambda (x)
-     (string= (treesit-node-type x) "signature"))))
+     (and x
+          (string= (treesit-node-type x) "signature")))))
 
 (defun haskell-ts-indent--type-function-context-or-fist-arg-anchor (node parent bol consider-context?)
   (if-let* ((arrow
