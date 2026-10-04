@@ -370,6 +370,47 @@ stick it to the previous operator on line."
     (haskell-smart-operators--insert-char-surrounding-with-spaces ?\$)))
 
 ;;;###autoload
+(defun haskell-smart-operators-1 (&optional arg)
+  "Smart insertion of ‘1’ that sticks to % in type signatures to easily
+produce linear lollipops like
+
+Foo %1 -> Bar."
+  (interactive "*P")
+  ;; So that subsequent self-insert-command will amalgamate with this one
+  (when (eq this-command 'haskell-smart-operators-1)
+    (setq this-command #'self-insert-command))
+  (with-undo-amalgamate
+    (undo-auto-amalgamate)
+    (when (derived-mode-p 'haskell-ts-base-mode)
+      (save-excursion
+        (let ((start (point)))
+          (when (not (zerop (skip-chars-backward " \t")))
+            (let ((preceding-point (- (point) 1)))
+              (when (and (eq (preceding-char) ?%)
+                         (not (haskell-smart-operators-is-operator-char?
+                               (char-before preceding-point))))
+                (when (or (treesit-utils-find-closest-parent
+                           (treesit-haskell--node-at preceding-point)
+                           (lambda (x)
+                             (string= "signature" (treesit-node-type x))))
+                          ;; Handle this case
+                          ;; foo :: Foo %_|_
+                          (when-let* ((error-above
+                                       (treesit-utils-find-closest-parent
+                                        (treesit-haskell--node-at preceding-point)
+                                        (lambda (x)
+                                          (string= "ERROR" (treesit-node-type x)))))
+                                      (prev (treesit-node-prev-sibling error-above)))
+                            (string= "signature" (treesit-node-type prev))))
+
+                  ;; Now it’s established that we’re in a signature
+                  ;; after % that’s not part of larger operator so
+                  ;; there’s good chance that we’re introducing linear
+                  ;; lollipop.
+                  (delete-region (point) start))))))))
+    (insert-char ?1)))
+
+;;;###autoload
 (defun haskell-smart-operators-hyphen ()
   "Insert hyphen surrounding with spaces. No surrounding within
 strings or comments. Expand into {- _|_ -} if inside { *}."
@@ -811,7 +852,8 @@ enabled and quoted ASCII ones in comments and strings."
       ("#" haskell-smart-operators-hash)
       ("," haskell-smart-operators-comma)
       ("." haskell-smart-operators-dot)
-      ("$" haskell-smart-operators-$))
+      ("$" haskell-smart-operators-$)
+      ("1" haskell-smart-operators-1))
     keymap))
 
 ;;;###autoload

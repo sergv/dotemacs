@@ -1040,6 +1040,28 @@ Entries should be a list of of elements of the form
    "fizz"
    "frobnicate"))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-undo-redo-2
+    ;; Enable undo tracking.
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "d d C-v h h h I 3 1 2 <escape> k K")))
+  (tests-utils--multiline
+   ""
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   ""
+   "312foo"
+   "_|_312bar"
+   "312baz"
+   "312quux"
+   "fizz"
+   "frobnicate"))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (rust-ts-mode haskell-ts-mode haskell-hsc-mode)
     vim-tests/block-insert-newline-1
