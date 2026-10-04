@@ -43,6 +43,9 @@
     tbl)
   "Characters that may constitute operators.")
 
+(defun haskell-smart-operators-is-operator-char? (c)
+  (gethash c haskell-smart-operators--operator-chars))
+
 (defun haskell-smart-operators--on-a-line-with-guard? ()
   ;; Same as but should be leaner without regexen.
   ;; (save-excursion
@@ -154,7 +157,7 @@ stick it to the previous operator on line."
                                       (and (eq char ?|)
                                            (eq after ?\]))
 
-                                      (gethash after haskell-smart-operators--operator-chars)))
+                                      (haskell-smart-operators-is-operator-char? after)))
                              (cond
                                ;; Don’t insert space after "!" if it’s preceded by a space,
                                ;; "foo !x !y = ...".
@@ -165,7 +168,7 @@ stick it to the previous operator on line."
                                ;; Special case for @ since it's part of as-patterns.
                                ((eq char ?@)
                                 (or whitespace-deleted?
-                                    (gethash before haskell-smart-operators--operator-chars)))
+                                    (haskell-smart-operators-is-operator-char? before)))
                                ((eq after ?\))
                                 (let ((c (save-excursion
                                            (goto-char before-pt)
@@ -201,7 +204,7 @@ stick it to the previous operator on line."
          (funcall insert-trailing-space nil nil before-pt before (following-char))))
       ((or disable-smart-operators?
            (haskell-smart-operators--literal-insertion?)
-           (not (gethash char haskell-smart-operators--operator-chars)))
+           (not (haskell-smart-operators-is-operator-char? char)))
        (insert-char char))
       (t
        (let ((whitespace-deleted? nil)
@@ -256,7 +259,7 @@ stick it to the previous operator on line."
                                ;; a thing.
                                nil
                              t)
-                           (not (gethash prev-char haskell-smart-operators--operator-chars)))))
+                           (not (haskell-smart-operators-is-operator-char? prev-char)))))
              (progn
                (setq before-pt (point)
                      before (preceding-char)
@@ -301,7 +304,7 @@ stick it to the previous operator on line."
                            (if (eq char ?!)
                                (not (eq char-before-spaces ?\\))
                              t)
-                           (or (gethash char-before-spaces haskell-smart-operators--operator-chars)
+                           (or (haskell-smart-operators-is-operator-char? char-before-spaces)
                                (eq char-before-spaces ?\()
                                ;; If inserting # in MagicHash mode
                                ;; then make it stick to the previous
@@ -410,7 +413,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
       (save-excursion
         (skip-syntax-backward " ")
         (setf preceded-by-operator?
-              (gethash (preceding-char) haskell-smart-operators--operator-chars)
+              (haskell-smart-operators-is-operator-char? (preceding-char))
               pos-before-spaces (point)))
       (when preceded-by-operator?
         (delete-region pos-before-spaces (point)))
@@ -418,7 +421,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
       (when (and preceded-by-operator?
                  (let ((next-char (following-char)))
                    (and (not (memq next-char '(?\s ?\) ?\] ?\})))
-                        (not (gethash next-char haskell-smart-operators--operator-chars)))))
+                        (not (haskell-smart-operators-is-operator-char? next-char)))))
         (insert-char ?\s)))))
 
 ;;;###autoload
@@ -494,12 +497,12 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (preceded-by-operator?
             (save-excursion
               (goto-char p-before-ws)
-              (gethash (preceding-char) haskell-smart-operators--operator-chars)))
+              (haskell-smart-operators-is-operator-char? (preceding-char))))
            (followed-by-operator?
             (save-excursion
               (goto-char p-after-ws)
 
-              (gethash (following-char) haskell-smart-operators--operator-chars)))
+              (haskell-smart-operators-is-operator-char? (following-char))))
 
            (p-node (nanothunk-delay (treesit-haskell--node-at p)))
 
