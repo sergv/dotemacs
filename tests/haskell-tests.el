@@ -10000,7 +10000,7 @@ Entries should be a list of of elements of the form
  :expected-value
  (tests-utils--multiline
   ""
-  "foo _ = bar $ Bar {_|_}"
+  "foo _ = bar $ Bar{_|_}"
   ""))
 
 (haskell-tests--test-buffer-contents*
@@ -10017,7 +10017,7 @@ Entries should be a list of of elements of the form
  :expected-value
  (tests-utils--multiline
   ""
-  "foo _ = bar $ Bar {_|_} +|+ 100"
+  "foo _ = bar $ Bar{_|_} +|+ 100"
   ""))
 
 (haskell-tests--test-buffer-contents*
@@ -10034,7 +10034,7 @@ Entries should be a list of of elements of the form
  :expected-value
  (tests-utils--multiline
   ""
-  "foo _ = bar Bar {_|_}"
+  "foo _ = bar Bar{_|_}"
   ""))
 
 (haskell-tests--test-buffer-contents*
@@ -10051,7 +10051,7 @@ Entries should be a list of of elements of the form
  :expected-value
  (tests-utils--multiline
   ""
-  "foo _ = bar Bar {_|_} +|+ 100"
+  "foo _ = bar Bar{_|_} +|+ 100"
   ""))
 
 (haskell-tests--test-buffer-contents*
@@ -10569,6 +10569,51 @@ Entries should be a list of of elements of the form
   "foo Bar"
   "  | baz@Baz <- baz"
   "  , quux@Foo{_|_}"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-brace-16a
+   :contents
+   (tests-utils--multiline
+    ""
+    "findParser :: Parser FindConfig"
+    "findParser = do"
+    "  fcfgRoot                  <-"
+    "  fcfgGlobsToFind           <-"
+    "  fcfgIgnoredExtensionGlobs <-"
+    "  fcfgIgnores               <-"
+    "  fcfgIsRelativePaths       <-"
+    "  pure FindConfig_|_"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-brace-16b
+   :contents
+   (tests-utils--multiline
+    ""
+    "findParser :: Parser FindConfig"
+    "findParser = do"
+    "  fcfgRoot                  <-"
+    "  fcfgGlobsToFind           <-"
+    "  fcfgIgnoredExtensionGlobs <-"
+    "  fcfgIgnores               <-"
+    "  fcfgIsRelativePaths       <-"
+    "  pure FindConfig     _|_"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "findParser :: Parser FindConfig"
+  "findParser = do"
+  "  fcfgRoot                  <-"
+  "  fcfgGlobsToFind           <-"
+  "  fcfgIgnoredExtensionGlobs <-"
+  "  fcfgIgnores               <-"
+  "  fcfgIsRelativePaths       <-"
+  "  pure FindConfig{_|_}"
   ""))
 
 (defconst haskell-tests/cabal-test-data

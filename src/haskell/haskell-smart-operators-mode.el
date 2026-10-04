@@ -920,34 +920,7 @@ enabled and quoted ASCII ones in comments and strings."
                     (if is-hsc?
                         (eq before ?#)
                       nil)
-                    is-after-constructor?))
-           (let ((start-node (treesit-node-at (- (point) 1))))
-             (and (let ((expr-node
-                         (treesit-utils-find-closest-parent-until
-                          start-node
-                          (lambda (x)
-                            (let ((exprs
-                                   (treesit-query-capture
-                                    x
-                                    (haskell-ts-query-resolve haskell-smart-operators-open-brace--expr-query)
-                                    (line-beginning-position)
-                                    (line-end-position)
-                                    t)))
-                              (--any? (equal start-node it) exprs)))
-                          (lambda (x)
-                            (and x
-                                 (member-str (treesit-node-type x)
-                                             "haskell"
-                                             "declarations"))))))
-                    (and expr-node
-                         (not (and (string= "boolean" (treesit-node-type expr-node))
-                                   (string= "guards" (treesit-node-type (treesit-node-parent expr-node)))
-                                   (string= "guard" (treesit-node-field-name expr-node))))))
-                  (not
-                   (treesit-utils-find-closest-parent
-                    start-node
-                    (lambda (x)
-                      (member-str (treesit-node-type x) "top_splice" ""))))))))
+                    is-after-constructor?))))
      (lambda (after)
        (not (or literal-insertion?
                 (eq after 41 ;; )
