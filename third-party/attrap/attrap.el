@@ -862,7 +862,18 @@ Error is given as MSG and reported between POS and END."
                  (goto-char pos)
                  (search-forward wildcard)
                  (replace-match
-                  (if (string-contains? ?\s type-expr) (concat "(" type-expr ")") type-expr)
+                  (if (if-let* ((_ (derived-mode-p 'haskell-ts-base-mode))
+                                (underscore-node (treesit-haskell--node-at pos))
+                                (_ (string= "_" (treesit-node-type underscore-node)))
+                                (wildcard-node (treesit-node-parent underscore-node))
+                                (_ (string= "wildcard" (treesit-node-type wildcard-node)))
+                                (signature-node (treesit-node-parent wildcard-node))
+                                (_ (string= "signature" (treesit-node-type signature-node)))
+                                (_ (string= "type" (treesit-node-field-name wildcard-node))))
+                          nil
+                        (string-contains? ?\s type-expr))
+                      (concat "(" type-expr ")")
+                    type-expr)
                   t
                   t)))))
          (when (and (string-match-p "parse error on input ‘case’" msg) ; Obsolete with GHC 9, which appears to recognize Lambda case specially.

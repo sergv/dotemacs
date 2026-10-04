@@ -2362,6 +2362,54 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name attrap/haskell-dante/replace-wild-card-with-use-suggested-type-5
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-88464]"
+  "    • Found type wildcard ‘_’ standing for ‘Frobnicator Int’"
+  "      To use the inferred type, enable PartialTypeSignatures"
+  "    • In the type signature: tests :: _")
+ :action
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|__"
+  "foo = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: _|_Frobnicator Int"
+  "foo = bar"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name attrap/haskell-dante/replace-wild-card-with-use-suggested-type-6
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-88464]"
+  "    • Found type wildcard ‘_’ standing for ‘Frobnicator Int’"
+  "      To use the inferred type, enable PartialTypeSignatures"
+  "    • In the type signature: tests :: _")
+ :action
+ (let ((attrap-select-predefined-option "replace wild card with use suggested type"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = quux (bar x :: _|__) x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = quux (bar x :: _|_Frobnicator Int) x"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-missing-class-methods-1a
  :error-message
  (tests-utils--multiline
