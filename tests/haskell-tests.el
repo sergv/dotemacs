@@ -9781,29 +9781,795 @@ Entries should be a list of of elements of the form
   " Config :: ![_|_] -> Int -> Config")
  :modes (haskell-ts-mode haskell-hsc-mode))
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--open-brace-1
-    (haskell-smart-operators-open-brace)
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo (Median3or5 \"_|_\")"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo (Median3or5 \"{_|_}\")"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-1
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo (Median3or5 \"_|_\")"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo (Median3or5 \"{_|_}\")"
+  ""))
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--open-brace-2
-    (haskell-smart-operators-open-brace)
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo (Median3or5 \"foo_|_bar\")"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo (Median3or5 \"foo{_|_}bar\")"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-2
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo (Median3or5 \"foo_|_bar\")"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo (Median3or5 \"foo{_|_}bar\")"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-brace-3aa
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: a -> a"
+    "foo Bar_|_"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-brace-3ab
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: a -> a"
+    "foo Bar     _|_"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo Bar{_|_}"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-brace-3ba
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: Foo a -> Foo a"
+    "foo Foo = Foo"
+    "foo Bar_|_"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-brace-3bb
+   :contents
+   (tests-utils--multiline
+    ""
+    "foo :: Foo a -> Foo a"
+    "foo Foo = Foo"
+    "foo Bar     _|_"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Foo a -> Foo a"
+  "foo Foo = Foo"
+  "foo Bar{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-3c
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo Bar_|_ 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo Bar{_|_} 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-3d
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo [Bar_|_] 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: a -> a"
+  "foo [Bar{_|_}] 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-4aa
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo Bar_|_ = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo Bar{_|_} = 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-4ab
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo Foo.Bar_|_ = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo Foo.Bar{_|_} = 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-4ac
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar_|_ = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar {_|_} = 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-4b
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo Bar     _|_  = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo Bar{_|_}  = 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-4c
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo [Bar     _|_]  = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo [Bar{_|_}]  = 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-5a
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _ = bar $ Bar_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo _ = bar $ Bar {_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-5b
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _ = bar $ Bar_|_ +|+ 100"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo _ = bar $ Bar {_|_} +|+ 100"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-6a
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _ = bar Bar_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo _ = bar Bar {_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-6b
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _ = bar Bar_|_ +|+ 100"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo _ = bar Bar {_|_} +|+ 100"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-7a
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Bar_|_ -> 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Bar{_|_} -> 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-7b
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Bar     _|_  -> 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Bar{_|_}  -> 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-8a
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  Bar_|_ <- bar x"
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  Bar{_|_} <- bar x"
+  "  pure ()"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-8b
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  Bar   _|_   <- bar x"
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  Bar{_|_}   <- bar x"
+  "  pure ()"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-brace-9a
+   :contents
+   (tests-utils--multiline
+    ""
+    "quux x = x"
+    "  where"
+    "    foo :: a -> a"
+    "    foo Bar_|_"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-brace-9b
+   :action
+   (haskell-smart-operators-open-brace)
+   :contents
+   (tests-utils--multiline
+    ""
+    "quux x = x"
+    "  where"
+    "    foo :: a -> a"
+    "    foo Bar    _|_"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo :: a -> a"
+  "    foo Bar{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-9c
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo Bar    _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo Bar{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-9d
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo 2 Bar    _|_ 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo 2 Bar{_|_} 1"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-9e
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo [Bar    _|_]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo [Bar{_|_}]"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-9f
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo Foo [Bar    _|_]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo Foo [Bar{_|_}]"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-brace-10a
+   :contents
+   (tests-utils--multiline
+    ""
+    "quux x = x"
+    "  where"
+    "    foo Bar_|_"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-brace-10b
+   :contents
+   (tests-utils--multiline
+    ""
+    "quux x = x"
+    "  where"
+    "    foo Bar    _|_"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux x = x"
+  "  where"
+  "    foo Bar{_|_}"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-brace-11a
+   :contents
+   (tests-utils--multiline
+    ""
+    "quux x ="
+    "  let"
+    "    foo :: a -> a"
+    "    foo Bar_|_"
+    "  in"
+    "  x"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-brace-11b
+   :contents
+   (tests-utils--multiline
+    ""
+    "quux x ="
+    "  let"
+    "    foo :: a -> a"
+    "    foo Bar               _|_"
+    "  in"
+    "  x"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux x ="
+  "  let"
+  "    foo :: a -> a"
+  "    foo Bar{_|_}"
+  "  in"
+  "  x"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-brace-12a
+   :contents
+   (tests-utils--multiline
+    ""
+    "quux x ="
+    "  let"
+    "    foo Bar_|_"
+    "  in"
+    "  x"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-brace-12b
+   :contents
+   (tests-utils--multiline
+    ""
+    "quux x ="
+    "  let"
+    "    foo Bar               _|_"
+    "  in"
+    "  x"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux x ="
+  "  let"
+  "    foo Bar{_|_}"
+  "  in"
+  "  x"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-13a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Bar_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Bar{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-13b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Bar             _|_  "
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Bar{_|_}  "
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-13c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Foo -> undefined"
+  "  Bar_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Foo -> undefined"
+  "  Bar{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-13d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Foo -> undefined"
+  "  Bar             _|_  "
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case x of"
+  "  Foo -> undefined"
+  "  Bar{_|_}  "
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :action
+ (haskell-smart-operators-open-brace)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-14a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = \\Bar_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \\Bar{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-14b
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = \\Bar             _|_  "
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \\Bar{_|_}  "
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-14c
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = \\    Bar _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \\    Bar{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-14d
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = \\    Bar _|_ -> undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = \\    Bar{_|_} -> undefined"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-15a
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo Bar"
+  "  | Baz_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo Bar"
+  "  | Baz{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-15b
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo Bar"
+  "  | Baz  _|_ <- baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo Bar"
+  "  | Baz{_|_} <- baz"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-15c
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo Bar"
+  "  | Baz <- baz"
+  "  , Foo  _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo Bar"
+  "  | Baz <- baz"
+  "  , Foo{_|_}"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :name
+ haskell-tests/haskell-smart-operators--open-brace-15d
+ :action
+ (haskell-smart-operators-open-brace)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo Bar"
+  "  | baz@Baz <- baz"
+  "  , quux@Foo  _|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo Bar"
+  "  | baz@Baz <- baz"
+  "  , quux@Foo{_|_}"
+  ""))
 
 (defconst haskell-tests/cabal-test-data
   (concat +test-utils--test-root+ "/test-data/cabal"))

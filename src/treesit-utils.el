@@ -185,13 +185,13 @@ All parents of the returned node don’t satisfy PRED (if they exist)."
   "Find first parent of NODE that satisfies single-argument predicate PRED stopping once STOP-PRED
 returns non-nil on the node to be processed."
   (cl-assert (or (treesit-node-p node) (null node)))
-  (let ((result nil)
-        (p node)
-        (continue? t))
+  (let* ((result nil)
+         (p node)
+         (continue? (not (funcall stop-pred p))))
     (while (and continue? p)
       (if (funcall pred p)
-        (setf result p
-              continue? nil)
+          (setf result p
+                continue? nil)
         (setf p (treesit-node-parent p)
               continue? (not (funcall stop-pred p)))))
     result))
