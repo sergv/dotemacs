@@ -272,6 +272,8 @@ Regexp match data 0 specifies the characters to be composed."
           ("squareUnionBig"        #xe156 2) ;; 
           ("squareIntersection"    #xe157 2) ;; 
           ("squareIntersectionBig" #xe158 2) ;; 
+
+          ("o-"      #xe159 2) ;; left linear lollipop, o-, 
           ))))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
