@@ -1203,6 +1203,27 @@
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent
               haskell-indent-offset)
 
+             ((n-p-gp "patterns" "function" nil)
+              parent
+              ,(lambda (_ _ _)
+                 (lambda (_)
+                   haskell-indent-offset)))
+             ((n-p-gp nil "patterns" "function")
+              ,(lambda (node parent _)
+                 (let ((sib (treesit-node-prev-sibling node)))
+                   (if (treesit-utils-is-standalone-node? sib)
+                       (haskell-ts-indent--make-trivial-computed-indent sib)
+                     (let ((grandparent (treesit-node-parent parent)))
+                       (cl-assert (string= "function" (treesit-node-type grandparent)))
+                       (make-treesit-computed-indent
+                        :anchor-node grandparent
+                        :flags '(indent-once))))))
+              ,(lambda (_ _ _)
+                 (lambda (matched-anchor)
+                   (if (memq 'indent-once (treesit-computed-indent-flags matched-anchor))
+                       haskell-indent-offset
+                     0))))
+
              ((n-p-gp "match" '("bind" "multi_way_if" "function" "alternative") nil)
               haskell-ts-indent--first-guard-or-parent
               ,(lambda (_ _ _)

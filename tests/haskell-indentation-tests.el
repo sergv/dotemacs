@@ -12123,6 +12123,59 @@ have different input states."
   "    _ -> ()"
   ""))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-function-patterns-1
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "               _|_pippo"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  _|_pippo"
+  "  = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-function-patterns-2
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "    pippo"
+  "             _|_pippo2"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "    pippo"
+  "    _|_pippo2"
+  "  = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-function-patterns-3
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo    pippo"
+  "             _|_pippo2"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo    pippo"
+  "  _|_pippo2"
+  "  = undefined"
+  ""))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
