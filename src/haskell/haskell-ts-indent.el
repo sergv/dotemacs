@@ -882,7 +882,8 @@
               0
               ;; haskell-indent-offset
               )
-             ((n-p-gp "field" "fields" nil)
+             ((or (n-p-gp "field" "fields" nil)
+                  (n-p-gp "field_pattern" "record" nil))
               haskell-ts-indent--standalone-record-start
               haskell-indent-offset)
 
