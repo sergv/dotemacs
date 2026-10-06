@@ -2317,6 +2317,168 @@ have different input states."
   "  }"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-10a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "               _|_Bar"
+  "    {"
+  "      baz"
+  "      ,"
+  "      quux"
+  "    }"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  _|_Bar"
+  "    {"
+  "      baz"
+  "      ,"
+  "      quux"
+  "    }"
+  "  = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-10b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "                   _|_{"
+  "      baz"
+  "      ,"
+  "      quux"
+  "    }"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    _|_{"
+  "      baz"
+  "      ,"
+  "      quux"
+  "    }"
+  "  = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-10c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    {"
+  "                       _|_baz"
+  "      ,"
+  "      quux"
+  "    }"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    {"
+  "      _|_baz"
+  "      ,"
+  "      quux"
+  "    }"
+  "  = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-10d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    {"
+  "      baz"
+  "                   _|_,"
+  "      quux"
+  "    }"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    {"
+  "      baz"
+  "    _|_,"
+  "      quux"
+  "    }"
+  "  = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-10e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    {"
+  "      baz"
+  "    ,"
+  "                      _|_quux"
+  "    }"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    {"
+  "      baz"
+  "    ,"
+  "      _|_quux"
+  "    }"
+  "  = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-10f
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    {"
+  "      baz"
+  "    ,"
+  "      quux"
+  "                      _|_}"
+  "  = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  Bar"
+  "    {"
+  "      baz"
+  "    ,"
+  "      quux"
+  "    _|_}"
+  "  = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-field-update-1a
  :contents
  (tests-utils--multiline
