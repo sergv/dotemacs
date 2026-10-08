@@ -8993,6 +8993,26 @@ _|_bar")
  :modes
  (haskell-mode haskell-ts-mode haskell-hsc-mode)
  :name
+ vim-tests/haskell--search-for-haskell-symbol-at-point-12
+ :action
+ (execute-kbd-macro (kbd "*"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: XXX -> Int"
+  "foo _|_foo' = foo'' + foo'"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: XXX -> Int"
+  "foo foo' = foo'' + foo'_|_"
+  ""))
+
+(vim-tests--default-test-buffer-contents*
+ :modes
+ (haskell-mode haskell-ts-mode haskell-hsc-mode)
+ :name
  vim-tests/haskell--change-symbol-at-point-1
  :action
  (execute-kbd-macro (kbd "c s foo <escape>"))

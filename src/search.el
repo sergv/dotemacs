@@ -663,7 +663,7 @@ is assumed to be identifier at point.")
 
 ;; NB syntax table is provided via ‘search-syntax-table’ by mode-specific setup.
 (defsubst search-for-haskell-symbol-at-point-regex-end-func (pat)
-  (if (string-match-p "[a-zA-Z0-9]$" pat)
+  (if (string-match-p "[a-zA-Z0-9']$" pat)
       "\\_>"
     ""))
 
