@@ -1261,7 +1261,7 @@ are CHAR1 and CHAR2 repsectively."
 
 (defun notify (&rest args)
   "Like `message' but is quiet in noninteractive mode."
-  (unless noninteractive
+  (when (not noninteractive)
     (apply #'message args)))
 
 (defun extended-max (a b)
