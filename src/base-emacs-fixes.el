@@ -1444,6 +1444,21 @@ If FRAME is omitted or nil, use the selected frame."
 
 (advice-add 'make-temp-file :before #'make-temp-file--ensure-temp-dir-exists)
 
+(with-eval-after-load 'tooltip
+  (el-patch-defun tooltip-hide (&optional _ignored-arg)
+    "Hide a tooltip, if one is displayed.
+Value is non-nil if tooltip was open."
+    (tooltip-cancel-delayed-tip)
+    (if (display-graphic-p)
+        (when (x-hide-tip)
+          (setq tooltip-hide-time (float-time)))
+      (let ((msg (current-message)))
+        (el-patch-wrap 2 0
+          (when (not noninteractive)
+            (message "")))
+        (when (not (or (null msg) (equal msg "")))
+          (setq tooltip-hide-time (float-time)))))))
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
