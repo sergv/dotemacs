@@ -12885,6 +12885,66 @@ _|_bar")
   "line9"
   "line10"))
 
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/typographic-single-quotes-1a
+ :action
+ (execute-kbd-macro (kbd "i ' <escape>"))
+ :contents
+ (tests-utils--multiline
+  "foo_|_bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo_|_’bar"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/typographic-single-quotes-1b
+ :action
+ (execute-kbd-macro (kbd "i C-' <escape>"))
+ :contents
+ (tests-utils--multiline
+  "foo_|_bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo_|_'bar"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/typographic-double-quotes-1a
+ :action
+ (execute-kbd-macro (kbd "i \" <escape>"))
+ :contents
+ (tests-utils--multiline
+  "foo_|_bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo_|_\"\"bar"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/typographic-double-quotes-1b
+ :action
+ (execute-kbd-macro (kbd "i ' ' <escape>"))
+ :contents
+ (tests-utils--multiline
+  "foo_|_bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo_|_”bar"))
+
+(vim-tests--default-test-buffer-contents*
+ :modes (text-mode)
+ :name vim-tests/typographic-double-quotes-1c
+ :action
+ (execute-kbd-macro (kbd "i C-\" <escape>"))
+ :contents
+ (tests-utils--multiline
+  "foo_|_bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo_|_\"bar"))
+
 (provide 'vim-tests)
 
 ;; Local Variables:

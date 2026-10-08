@@ -56,6 +56,20 @@
       (typopunct-insert-single-quotation-mark)
     (typography-insert-vanilla-single-quotation-mark n)))
 
+(defun typography-smart-insert-double-quote-inverted (&optional n quoted?)
+  (interactive "*p")
+  (if (or typopunct-mode
+          electric-quote-mode)
+      (typography-insert-vanilla-quotation-mark n quoted?)
+    (typopunct-insert-quotation-mark nil)))
+
+(defun typography-smart-insert-single-quote-inverted (&optional n)
+  (interactive "*p")
+  (if (or typopunct-mode
+          electric-quote-mode)
+      (typography-insert-vanilla-single-quotation-mark n)
+    (typopunct-insert-single-quotation-mark)))
+
 ;;;###autoload
 (cl-defun typography-setup (&key (bind-keys t))
   (typopunct-mode 1)
