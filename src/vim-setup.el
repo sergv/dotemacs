@@ -441,7 +441,8 @@ _<right>_: move tab to the right"
 
 (def-keys-for-map (vim-insert-mode-keymap
                    vim-ex-keymap)
-  ("C-'"           typopunct-insert-single-quotation-mark))
+  ("C-'"           typography-smart-insert-single-quote-inverted)
+  ("C-\""          typography-smart-insert-double-quote-inverted))
 
 ;;; ex bindings and commands
 
