@@ -1101,7 +1101,7 @@ value section should have if it is to be properly indented."
                                             (next-single-char-property-change prop-start 'haskell-imported-name)
                                             added-props-to-remove)
                     (vim-save-position))
-                (error "Cannot locate the import we just added, fixme"))
+                (error "Cannot locate the import we just added, is it exported from the %s module?" mod-name))
             (if (text-property-search-forward 'haskell-imported-module mod-name t t)
                 (let ((prop-start (point)))
                   ;; Jump to end
