@@ -107,16 +107,15 @@ Valid values are:
      'executable)
     (t
      'elisp))
-  "Control implementation of `find-rec*'. Valid values: 'native,
-  'executable and 'elisp.")
+  "Control implementation of `find-rec*'. Valid values: 'native, 'executable and 'elisp.")
 
 ;;;###autoload
 (cl-defun find-rec* (&key
                      root
                      globs-to-find
                      ignored-extensions-globs
-                     ignored-files-globs
-                     ignored-absolute-dirs
+                     ignored-absolute-files-globs
+                     ignored-absolute-dirs-globs
                      ignored-directories
                      ignored-directory-prefixes
                      relative-paths)
@@ -144,8 +143,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
            root
            globs-to-find
            ignored-extensions-globs
-           ignored-files-globs
-           ignored-absolute-dirs
+           ignored-absolute-files-globs
+           ignored-absolute-dirs-globs
            ignored-directories
            ignored-directory-prefixes
            relative-paths))
@@ -153,27 +152,28 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
 (defun find-rec--haskell-native-impl (root
                                       globs-to-find
                                       ignored-extensions-globs
-                                      ignored-files-globs
-                                      ignored-absolute-dirs
+                                      ignored-absolute-files-globs
+                                      ignored-absolute-dirs-globs
                                       ignored-directories
                                       ignored-directory-prefixes
                                       relative-paths?)
   "A version of `find-rec' that uses ffi to do the search."
   (declare (pure nil) (side-effect-free nil))
   (cl-assert (file-name-absolute-p root))
-  (let ((ignored-files
-         (append
-          ignored-extensions-globs
-          ignored-files-globs)))
+  (let ((ignored-files-basename-globs ignored-extensions-globs)
+        (ignored-files-abs-globs ignored-absolute-files-globs)
+        (ignored-dirs-basename-globs (append ignored-directories
+                                             (--map (concat it "*") ignored-directory-prefixes)))
+        (ignored-dirs-abs-globs ignored-absolute-dirs-globs))
     (cl-assert (featurep 'haskell-native-emacs-extensions))
     (cl-assert (fboundp #'haskell-native-find-rec))
     (haskell-native-find-rec
      (list root)
      globs-to-find
-     ignored-files
-     ignored-directories
-     ignored-directory-prefixes
-     ignored-absolute-dirs
+     ignored-files-basename-globs
+     ignored-files-abs-globs
+     ignored-dirs-basename-globs
+     ignored-dirs-abs-globs
      relative-paths?)))
 
 ;;;###autoload
@@ -181,10 +181,12 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                            roots
                            globs-to-find
                            ignored-extensions-globs
-                           ignored-files-globs
-                           ignored-absolute-dirs
+                           ignored-absolute-files-globs
+                           ignored-absolute-dirs-globs
                            ignored-directories
                            ignored-directory-prefixes)
+  "Alternative to ‘find-rec*’ that searches in multiple roots simultaneously.
+Always returns absolute paths."
   (declare (pure nil) (side-effect-free nil))
   (when (null globs-to-find)
     (error "No globs to search for under %s" roots))
@@ -201,8 +203,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
            roots
            globs-to-find
            ignored-extensions-globs
-           ignored-files-globs
-           ignored-absolute-dirs
+           ignored-absolute-files-globs
+           ignored-absolute-dirs-globs
            ignored-directories
            ignored-directory-prefixes))
 
@@ -210,32 +212,34 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
     (roots
      globs-to-find
      ignored-extensions-globs
-     ignored-files-globs
-     ignored-absolute-dirs
+     ignored-absolute-files-globs
+     ignored-absolute-dirs-globs
      ignored-directories
      ignored-directory-prefixes)
-  "A version of `find-rec-multi' that uses ffi to do the search."
+  "Backend of ‘find-rec-multi*’ that uses ffi to do the search."
   (declare (pure nil) (side-effect-free nil))
-  (let ((ignored-files
-         (append
-          ignored-extensions-globs
-          ignored-files-globs)))
+  (let ((ignored-files-basename-globs ignored-extensions-globs)
+        (ignored-files-abs-globs ignored-absolute-files-globs)
+        (ignored-dirs-basename-globs (append ignored-directories
+                                             (--map (concat it "*") ignored-directory-prefixes)))
+        (ignored-dirs-abs-globs ignored-absolute-dirs-globs))
     (cl-assert (featurep 'haskell-native-emacs-extensions))
     (cl-assert (fboundp #'haskell-native-find-rec))
     (haskell-native-find-rec
      roots
      globs-to-find
-     ignored-files
-     ignored-directories
-     ignored-directory-prefixes
-     ignored-absolute-dirs
+     ignored-files-basename-globs
+     ignored-files-abs-globs
+     ignored-dirs-basename-globs
+     ignored-dirs-abs-globs
+     ;; Always produce absolute paths.
      nil)))
 
 (defun find-rec--find-executable-impl (root
                                        globs-to-find
                                        ignored-extensions-globs
-                                       ignored-files-globs
-                                       ignored-absolute-dirs
+                                       ignored-absolute-files-globs
+                                       ignored-absolute-dirs-globs
                                        ignored-directories
                                        ignored-directory-prefixes
                                        relative-paths?)
@@ -250,7 +254,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                  (--map (concat "*/" it "*")
                         ignored-directory-prefixes)
                  (--map (strip-trailing-slash it)
-                        ignored-absolute-dirs)))
+                        ignored-absolute-dirs-globs)))
          (ignored-dirs
           (-map (lambda (dir-glob)
                   (list "-path" dir-glob))
@@ -263,7 +267,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
            (pcase find-prog-type
              ((or `find `cygwin-find `busybox)
               (--map (list (fold-platform-os-type "-path" "-ipath") it)
-                     ignored-files-globs))
+                     ignored-absolute-files-globs))
              (invalid
               (error "find-files/find-program-type has invalid value: %s"
                      invalid)))))
@@ -329,8 +333,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
 (defun find-rec--elisp-impl (root
                              globs-to-find
                              ignored-extensions-globs
-                             ignored-files-globs
-                             ignored-absolute-dirs
+                             ignored-absolute-files-globs
+                             ignored-absolute-dirs-globs
                              ignored-directories
                              ignored-directory-prefixes
                              relative-paths?)
@@ -342,15 +346,15 @@ as a fallback if those are not available."
     (error "No globs to search for under %s" root))
   (let* ((re-to-find (globs-to-regexp globs-to-find))
          (ignored-files-re (globs-to-regexp ignored-extensions-globs))
-         (ignored-files-abs-re (globs-to-regexp ignored-files-globs))
+         (ignored-files-abs-re (globs-to-regexp ignored-absolute-files-globs))
          (ignored-dirs-re
           (globs-to-regexp
            (append (-map #'strip-trailing-slash ignored-directories)
                    (--map (concat it "*") ignored-directory-prefixes))))
          (ignored-absolute-dirs-re
-          (when ignored-absolute-dirs
+          (when ignored-absolute-dirs-globs
             (concat "\\`\\(?:"
-                    (mk-regexp-from-alts ignored-absolute-dirs)
+                    (globs-to-regexp (-map #'strip-trailing-slash ignored-absolute-dirs-globs))
                     "\\)\\(?:/\\)?\\'"))))
     (let ((results
            (find-rec root

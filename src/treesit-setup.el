@@ -461,7 +461,7 @@ to the offending pattern and highlight the pattern."
 ;; Parse with elisp
 ;; (let* ((files (find-rec* :root "/home/sergey/projects/haskell/projects/"
 ;;                          :globs-to-find '("*.hs" "*.lhs")
-;;                          :ignored-absolute-dirs
+;;                          :ignored-absolute-dirs-globs
 ;;                          '("/home/sergey/projects/haskell/projects/compilers/ghc/testsuite/"
 ;;                            "/home/sergey/projects/haskell/projects/compilers/ghc.old/testsuite/")
 ;;                          :ignored-directories '("*test*" "*testsuite*")))
