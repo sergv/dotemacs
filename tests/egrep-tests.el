@@ -67,7 +67,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") nil egrep-tests/project-dir nil nil))
+                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir nil nil nil nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   (vconcat egrep-tests--bar-matches egrep-tests--foo-matches)))))
@@ -77,7 +77,7 @@
     "hello"
     "hello"
   (should-error
-   (egrep--find-matches regexp '("*.c") '("*.c") egrep-tests/project-dir nil nil)))
+   (egrep--find-matches regexp '("*.c") egrep-tests/project-dir nil '("*.c") nil nil)))
 
 (grep-tests--define-tests "egrep-tests-ignore-file-globs-work/%s"
     regexp
@@ -86,7 +86,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") '("*src/*") egrep-tests/project-dir t nil))
+                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir t nil '("*src/*") nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   egrep-tests--bar-matches))))
@@ -98,7 +98,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") nil egrep-tests/project-dir t nil))
+                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir t nil nil nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   (vconcat egrep-tests--bar-matches egrep-tests--foo-matches)))))
@@ -110,7 +110,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c.gz") nil egrep-tests/project-dir nil nil))
+                  (egrep--find-matches regexp '("*.c.gz") egrep-tests/project-dir nil nil nil nil))
           (cl-map 'vector
                   (lambda (x)
                     (egrep-tests--normalise-egrep-match x))
@@ -121,7 +121,7 @@
     "hello"
     "hello"
   (should-error
-   (egrep--find-matches regexp '("*.decombobulate") nil egrep-tests/project-dir nil nil)))
+   (egrep--find-matches regexp '("*.decombobulate") egrep-tests/project-dir nil nil nil nil)))
 
 (provide 'egrep-tests)
 
