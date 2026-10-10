@@ -417,8 +417,9 @@ builderFromChar = BS.Builder.char8
 
 hPutBuilder :: Handle -> Builder -> IO ()
 hPutBuilder = BS.Builder.hPutBuilder
+#endif
 
-#else
+#if !defined(bytestring_10_0_or_later)
 type Builder = Endo CL8.ByteString
 
 builderFromByteString :: C8.ByteString -> Builder
