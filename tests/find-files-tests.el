@@ -40,7 +40,7 @@
   (concat +test-utils--test-root+ "/test-data/egrep"))
 
 (find-files-tests--define-tests
-    find-files-tests-1
+    find-files-tests-1-default-use
   (should
    (equal (sort (-map #'test-utils--normalise-file-name
                       (find-rec* :root find-file-tests-tests/project-dir
@@ -53,7 +53,7 @@
                    "src/foo.c")))))
 
 (find-files-tests--define-tests
-    find-files-tests-2
+    find-files-tests-2-relative-paths
   (should
    (equal (sort (-map #'test-utils--normalise-file-name
                       (find-rec* :root find-file-tests-tests/project-dir
@@ -65,6 +65,97 @@
                    "bar.c"
                    "bar.c.gz"
                    "src/foo.c")))))
+
+(find-files-tests--define-tests
+    find-files-tests-3-ignored-extensions-globs
+  (should
+   (equal (sort (-map #'test-utils--normalise-file-name
+                      (find-rec* :root find-file-tests-tests/project-dir
+                                 :globs-to-find '("*")
+                                 :ignored-extensions-globs '("*.c")
+                                 :relative-paths t))
+                :lessp #'string<)
+          (--map (test-utils--normalise-file-name it)
+                 '("README.md"
+                   "bar.c.gz")))))
+
+(find-files-tests--define-tests
+    find-files-tests-4-ignored-absolute-files-globs
+  (should
+   (equal (sort (-map #'test-utils--normalise-file-name
+                      (find-rec* :root find-file-tests-tests/project-dir
+                                 :globs-to-find '("*")
+                                 :ignored-absolute-files-globs
+                                 (list
+                                  (concat find-file-tests-tests/project-dir
+                                          "/bar*"))
+                                 :relative-paths t))
+                :lessp #'string<)
+          (--map (test-utils--normalise-file-name it)
+                 '("README.md"
+                   "src/foo.c")))))
+
+(find-files-tests--define-tests
+    find-files-tests-5a-ignored-absolute-dirs-globs
+  (should
+   (equal (sort (-map #'test-utils--normalise-file-name
+                      (find-rec* :root find-file-tests-tests/project-dir
+                                 :globs-to-find '("*")
+                                 :ignored-absolute-dirs-globs
+                                 (list
+                                  (concat find-file-tests-tests/project-dir
+                                          "/*/"))
+                                 :relative-paths t))
+                :lessp #'string<)
+          (--map (test-utils--normalise-file-name it)
+                 '("README.md"
+                   "bar.c"
+                   "bar.c.gz")))))
+
+(find-files-tests--define-tests
+    find-files-tests-5b-ignored-absolute-dirs-globs
+  (should
+   (equal (sort (-map #'test-utils--normalise-file-name
+                      (find-rec* :root find-file-tests-tests/project-dir
+                                 :globs-to-find '("*")
+                                 :ignored-absolute-dirs-globs
+                                 (list
+                                  (concat find-file-tests-tests/project-dir
+                                          "/sr*"))
+                                 :relative-paths t))
+                :lessp #'string<)
+          (--map (test-utils--normalise-file-name it)
+                 '("README.md"
+                   "bar.c"
+                   "bar.c.gz")))))
+
+(find-files-tests--define-tests
+    find-files-tests-6-ignored-directories
+  (should
+   (equal (sort (-map #'test-utils--normalise-file-name
+                      (find-rec* :root find-file-tests-tests/project-dir
+                                 :globs-to-find '("*")
+                                 :ignored-directories '("src")
+                                 :relative-paths t))
+                :lessp #'string<)
+          (--map (test-utils--normalise-file-name it)
+                 '("README.md"
+                   "bar.c"
+                   "bar.c.gz")))))
+
+(find-files-tests--define-tests
+    find-files-tests-6-ignored-directory-prefixes
+  (should
+   (equal (sort (-map #'test-utils--normalise-file-name
+                      (find-rec* :root find-file-tests-tests/project-dir
+                                 :globs-to-find '("*")
+                                 :ignored-directory-prefixes '("s")
+                                 :relative-paths t))
+                :lessp #'string<)
+          (--map (test-utils--normalise-file-name it)
+                 '("README.md"
+                   "bar.c"
+                   "bar.c.gz")))))
 
 (provide 'find-files-tests)
 
