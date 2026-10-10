@@ -6,53 +6,55 @@
 -- Maintainer  :  serg.foo@gmail.com
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE DerivingVia #-}
-
 module Data.Filesystem.Find
-  ( FollowSymlinks(..)
+  ( RelativePaths(..)
+  , fastFileSearch
   , findRec
-  , AbsDir(..)
-  , RelDir(..)
-  , AbsFile(..)
-  , RelFile(..)
   ) where
 
+import Control.Monad.Base
+import Control.Monad.Catch (MonadThrow)
 import Data.Coerce
-import Prettyprinter.Show
+import Data.Filesystem.Find.Types
+import Data.Ignores
+import Data.Regex
+import Data.Text (Text)
 import System.Directory.OsPath.Streaming as Streaming
 import System.Directory.OsPath.Types
 import System.OsPath
 
 import Emacs.Module.Assert
 
-data FollowSymlinks a
-  = -- | Recurse into symlinked directories
-    FollowSymlinks
-  | -- | Do not recurse into symlinked directories, but possibly report them.
-    -- Function receives absolute directory name and its basename part.
-    ReportSymlinks (OsPath -> Basename OsPath -> IO (Maybe a))
+data RelativePaths = ProduceRelativePaths | ProduceAbsolutePaths
 
-newtype AbsDir  = AbsDir  { unAbsDir  :: OsPath }
-  deriving (Eq, Show)
-  deriving Pretty via PPShow AbsDir
-
-newtype RelDir  = RelDir  { unRelDir  :: OsPath }
-  deriving (Eq, Show)
-  deriving Pretty via PPShow RelDir
-
-newtype AbsFile = AbsFile { unAbsFile :: OsPath }
-  deriving (Eq, Show)
-  deriving Pretty via PPShow AbsFile
-
-newtype RelFile = RelFile { unRelFile :: OsPath }
-  deriving (Eq, Show)
-  deriving Pretty via PPShow RelFile
+fastFileSearch
+  :: (WithCallStack, Foldable f, Functor f, Coercible a Text, MonadThrow m, MonadBase IO m)
+  => RelativePaths
+  -> FullIgnores
+  -> f a
+  -> [AbsDir]
+  -> m [OsPath]
+fastFileSearch resultPathType ignores globsToFind roots = do
+  globsToFindRE <- fileGlobsToRegex globsToFind
+  let
+    shouldCollect :: AbsFile -> Relative OsPath -> Basename OsPath -> Maybe OsPath
+    shouldCollect absPath (Relative relPath) basename@(Basename basePath)
+      | isIgnoredFile ignores basename absPath    = Nothing
+      | reSetMatchesOsPath globsToFindRE basePath = Just $
+          case resultPathType of
+            ProduceRelativePaths -> relPath
+            ProduceAbsolutePaths -> unAbsFile absPath
+      | otherwise                                 = Nothing
+  liftBase $ findRec FollowSymlinks
+    (\absDir basename -> not $ isIgnoredDir ignores basename absDir)
+    (\_root y z w     -> pure $ shouldCollect y z w)
+    roots
 
 {-# INLINE findRec #-}
 findRec
   :: forall a f. (WithCallStack, Foldable f, Functor f)
   => FollowSymlinks a
-  -> (OsPath -> Basename OsPath -> Bool) -- ^ Whether to visit a directory.
+  -> (AbsDir -> Basename OsPath -> Bool) -- ^ Whether to visit a directory.
   -> (AbsDir -> AbsFile -> Relative OsPath -> Basename OsPath -> IO (Maybe a))
                                          -- ^ What to do with a file. Receives original directory it was located in.
   -> f AbsDir                            -- ^ Where to start search.
@@ -61,19 +63,22 @@ findRec followSymlinks dirPred filePred roots =
   Streaming.listContentsRecFold
     Nothing
     (\absDir _ _ baseDir sym cons descendSubdir rest ->
-      if dirPred absDir baseDir
-      then
-        case sym of
-          Regular -> descendSubdir rest
-          Symlink -> case followSymlinks of
-            FollowSymlinks        -> descendSubdir rest
-            ReportSymlinks report -> do
-              res <- report absDir baseDir
-              case res of
-                Nothing -> rest
-                Just x  -> cons x rest
-      else
-        rest)
+      let absDir' = AbsDir absDir
+      in
+        if dirPred absDir' baseDir
+        then
+          case sym of
+            Regular -> descendSubdir rest
+            Symlink ->
+              case followSymlinks of
+                FollowSymlinks        -> descendSubdir rest
+                ReportSymlinks report -> do
+                  res <- report absDir' baseDir
+                  case res of
+                    Nothing -> rest
+                    Just x  -> cons x rest
+        else
+          rest)
     (\absFile root rel baseFile ft ->
       case ft of
         Other _     -> pure Nothing
