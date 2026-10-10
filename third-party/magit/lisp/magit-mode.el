@@ -737,7 +737,9 @@ and `magit-post-display-buffer-hook'."
                                 magit-stash-mode
                                 magit-status-mode))))
               '(display-buffer-same-window)
-            nil))) ; display in another window
+            `(nil
+              ;; display in another window unless windows already shows this buffer.
+              (inhibit-same-window . ,(not (eq buffer (window-buffer))))))))
 
 (defun magit-display-buffer-same-window-except-diff-v1 (buffer)
   "Display BUFFER in the selected window except for some modes.
