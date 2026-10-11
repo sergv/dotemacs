@@ -76,7 +76,7 @@
     (while (<= (point) end)
       (forward-sexp 1)
       (backward-sexp 1)
-      (hs-hide-block t)        ;; hide and reposition at the end
+      (hs-hide-block) ;; hide and reposition at the end
       (skip-syntax-forward ")" ;; skip close delimiters
                            )))
   ;; turn visual mode off
@@ -110,7 +110,7 @@
              (skip-chars-forward "^{" end)
              (and (eq (following-char) ?\{)
                   (<= (point) end)))
-      (hs-hide-block t)        ;; hide and reposition at the end
+      (hs-hide-block) ;; hide and reposition at the end
       (skip-chars-forward "}") ;; close delimiters
       ))
   ;; turn visual mode off
