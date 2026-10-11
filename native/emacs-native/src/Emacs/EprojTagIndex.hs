@@ -8,7 +8,7 @@
 
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Emacs.EprojTagIndex (initialise) where
 
@@ -29,18 +29,25 @@ import Data.Eproj qualified as Eproj
 import Data.Emacs.Module.Args
 import Data.Emacs.Module.Doc qualified as Doc
 import Data.Emacs.Module.SymbolName
+import Data.Emacs.Module.SymbolName.Predefined qualified as Sym
+import Data.Emacs.Module.SymbolName.TH
 import Data.Regex
 import Emacs.Module
 import Emacs.Module.Assert
 import Emacs.Module.Errors
 import Emacs.Module.Monad qualified as Emacs
 
+cacheSym "haskell-native--eproj-tag-index" "eprojTagIndexSymTH"
+
+eprojTagIndexSym :: SymbolName
+eprojTagIndexSym = eprojTagIndexSymTH
+
 initialise
   :: WithCallStack
   => Emacs.EmacsM s ()
 initialise = do
   bindFunction "haskell-native--eproj-tag-index-p" =<<
-    makeFunction emacsEprojTagIndex emacsIsEprojTagIndexDoc
+    makeFunction emacsEprojTagIndexPredicate emacsIsEprojTagIndexDoc
   bindFunction "haskell-native--eproj-tag-index-empty" =<<
     makeFunction emacsEmptyEprojTagIndex emacsEmptyEprojTagIndexDoc
   bindFunction "haskell-native--eproj-tag-index-size" =<<
@@ -63,14 +70,14 @@ initialise = do
 eprojTagIndexType
   :: forall m v s. (WithCallStack, MonadEmacs m v)
   => m s (v s)
-eprojTagIndexType = intern "haskell-native--eproj-tag-index"
+eprojTagIndexType = intern eprojTagIndexSym
 
 isEprojTagIndex
   :: forall m v s. (WithCallStack, MonadEmacs m v)
   => v s -> m s Bool
 isEprojTagIndex x = do
   typ    <- typeOf x
-  isCons <- eq typ =<< intern "cons"
+  isCons <- eq typ =<< intern Sym.cons
   if isCons
     then do
       typ' <- car x
@@ -100,12 +107,12 @@ unpackEprojTagIndex =
 newtype EmacsEprojTagIndex = EmacsEprojTagIndex
   { unEmacsEprojTagIndex :: IORef EprojTagIndex }
 
-emacsEprojTagIndex
+emacsEprojTagIndexPredicate
   :: forall m v s. (WithCallStack, MonadEmacs m v)
   => EmacsFunction ('S 'Z) 'Z 'False m v s
-emacsEprojTagIndex (R x Stop) = do
+emacsEprojTagIndexPredicate (R x Stop) = do
   isIndex <- isEprojTagIndex x
-  if isIndex then intern "t" else nil
+  if isIndex then intern Sym.t else nil
 
 emacsIsEprojTagIndexDoc :: Doc.Doc
 emacsIsEprojTagIndexDoc =
@@ -116,10 +123,10 @@ emacsEmptyEprojTagIndex
   => EmacsFunction 'Z 'Z 'False m v s
 emacsEmptyEprojTagIndex Stop = do
   typ <- eprojTagIndexType
-  (radixTreePtr :: StablePtr EmacsEprojTagIndex) <- liftIO $ do
+  (ptr :: StablePtr EmacsEprojTagIndex) <- liftIO $ do
     index <- newIORef Eproj.empty
     newStablePtr $ EmacsEprojTagIndex index
-  payload <- makeUserPtrFromStablePtr radixTreePtr
+  payload <- makeUserPtrFromStablePtr ptr
   cons typ payload
 
 emacsEmptyEprojTagIndexDoc :: Doc.Doc
