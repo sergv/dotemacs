@@ -31,8 +31,7 @@
           action
           contents
           expected-value
-          (modes '(haskell-mode haskell-ts-mode))
-          fresh-buffer)
+          (modes '(haskell-mode haskell-ts-mode)))
   `(progn
      ,@(cl-loop
         for mode in modes
@@ -44,8 +43,8 @@
             :expected-value ,expected-value
             :initialisation (,mode)
             :collect-actual-contents
-            (progn
-              ;; We already have cursor inserted
+            (with-marker (p (point-marker))
+              ;; Cursor has not been inserted yet.
               (goto-char (point-min))
               (let ((invis-start nil)
                     (invis-end nil)
@@ -62,13 +61,16 @@
                   (forward-char))
                 (when invis-start
                   (push (cons invis-start invis-end) invis-chunks))
+
                 ;; Delete from end to start so that no adjustments will be needed.
                 ;;
                 ;; Increment range end by 1 to definitely get the last character.
                 ;; Emacs more or less behavies like 1 was added so do that
                 ;; in order to reduceit confusion.
                 (dolist (chunk invis-chunks)
-                  (delete-region (car chunk) (+ 1 (cdr chunk)))))
+                  (delete-region (car chunk) (+ 1 (cdr chunk))))
+                (goto-char p)
+                (insert "_|_"))
               (buffer-substring-no-properties (point-min) (point-max)))
             ;; Use fresh buffers.
             :buffer-id nil)))))
@@ -242,6 +244,51 @@
  (tests-utils--multiline
   ""
   "foo _|_= Foo"
+  ""))
+
+(folding-tests--haskell--test-buffer-contents*
+ :modes (text-mode emacs-lisp-mode)
+ :name folding-tests/generic-text-hideshow-1
+ :action
+ (hs-hide-block)
+ :contents
+ (tests-utils--multiline
+  ""
+  "(foo (bar 1_|_"
+  "          2"
+  "          3)"
+  "     4"
+  "     5)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "(foo (bar 1_|_)"
+  "     4"
+  "     5)"
+  ""))
+
+(folding-tests--haskell--test-buffer-contents*
+ :name folding-tests/generic-text-hideshow-2
+ :action
+ (hs-hide-block)
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux ="
+  "  (foo (bar 1_|_"
+  "            2"
+  "            3)"
+  "       4"
+  "       5)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux ="
+  "  (foo (bar 1_|_)"
+  "       4"
+  "       5)"
   ""))
 
 (provide 'folding-tests)

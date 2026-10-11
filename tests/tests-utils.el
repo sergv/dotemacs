@@ -125,7 +125,9 @@ Ensures a final newline is inserted."
     :action
     (progn
       ,action
-      (unless ,suppress-cursor
+      (when ,(if collect-actual-contents
+                 nil
+               (not suppress-cursor))
         (insert "_|_"))
       (let ((actual-contents
              ,(if collect-actual-contents

@@ -39,8 +39,11 @@
 ;;;###autoload
 (add-to-list 'el-patch-features 'hideshow)
 
+(setf hs-hide-block-behavior 'after-point)
+
 ;;;###autoload
-(eval-after-load "hideshow" '(require 'folding-setup))
+(with-eval-after-load "hideshow"
+  (require 'folding-setup))
 
 (defun byte-compile-file--file-hideshow-off (old-byte-compile-file &rest args)
   (let ((hs-minor-mode-hook nil))
