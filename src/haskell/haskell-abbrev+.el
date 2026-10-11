@@ -697,7 +697,7 @@ then Bar would be the result."
                          :action-type 'literal-string
                          :action-data "hPutStr"))
 
-                  (cons (make-abbrev+-prefixes "import" 1)
+                  (cons (make-abbrev+-prefixes "import" 1 5)
                         (make-abbrev+-abbreviation
                          :action-type 'literal-string
                          :action-data "import"

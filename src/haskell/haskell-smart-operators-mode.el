@@ -213,53 +213,57 @@ stick it to the previous operator on line."
              (before nil)
              (after (following-char)))
          ;; Decide whether to insert space before the operator.
-         (if (and (not (smart-operators--on-empty-line?))
-                  ;; If inserting hash then we should not add a space
-                  ;; if MagicHash is enabled.
-                  (if magic-hash?
-                      (not (eq char ?#)) ;; Stop considering whether to insert space.
-                    t)
-                  (or at-beginning-of-buffer?
-                      ;; After | that is a potential guard.
-                      (when (eq prev-char ?|)
-                        (awhen (haskell-smart-operators--on-a-line-with-guard?)
-                          (eq it (- pt 1))))
-                      ;; Insert space between us and previous # if the char before # is
-                      ;; not a space itself, which means that # ends identifier name.
-                      (when (eq prev-char ?#)
-                        (not (or prev-prev-is-whitespace?
-                                 (null prev-prev-char)
-                                 (eq prev-prev-char ?\n))))
-                      (and (eq char ?!)
-                           (eq prev-char ?\\))
-                      (and (not (eq prev-char ?\s))
-                           (not (eq prev-char ?\())
-                           ;; Do not insert spaces before @ since it's mostly used
-                           ;; as as-patterns.
-                           (not (eq char ?@))
-                           (and (not (eq prev-char ?\`))
-                                (or (null after)
-                                    (not (eq after ?\`))))
-                           (not (and (eq char ?|)
-                                     (or
-                                      ;; Do not split '[|' token when we're inserting the '['.
-                                      (eq prev-char ?\[)
-                                      ;; Do not split '[foo|' quasiquoter
-                                      ;; when we're inserting the '['.
-                                      (save-excursion
-                                        (with-syntax-table haskell-quasiquoter-name-syntax-table
-                                          (skip-syntax-backward "w" (line-beginning-position))
-                                          (let ((before-far (preceding-char)))
-                                            (eq before-far ?\[)))))))
-                           (if (and (eq prev-char ?')
-                                    prev-prev-is-whitespace?
-                                    (nanothunk-force in-single-quote-context?))
-                               ;; Don’t insert space between ' and operator in type families,
-                               ;; type signatures and other contexts where single quote is
-                               ;; a thing.
-                               nil
-                             t)
-                           (not (haskell-smart-operators-is-operator-char? prev-char)))))
+         (if (or
+              (and magic-hash?
+                   (text-before-matches? "import"))
+              (and (not (smart-operators--on-empty-line?))
+                   ;; If inserting hash then we should not add a space
+                   ;; if MagicHash is enabled.
+                   (if magic-hash?
+                       ;; Stop considering whether to insert space.
+                       (not (eq char ?#))
+                     t)
+                   (or at-beginning-of-buffer?
+                       ;; After | that is a potential guard.
+                       (when (eq prev-char ?|)
+                         (awhen (haskell-smart-operators--on-a-line-with-guard?)
+                           (eq it (- pt 1))))
+                       ;; Insert space between us and previous # if the char before # is
+                       ;; not a space itself, which means that # ends identifier name.
+                       (when (eq prev-char ?#)
+                         (not (or prev-prev-is-whitespace?
+                                  (null prev-prev-char)
+                                  (eq prev-prev-char ?\n))))
+                       (and (eq char ?!)
+                            (eq prev-char ?\\))
+                       (and (not (eq prev-char ?\s))
+                            (not (eq prev-char ?\())
+                            ;; Do not insert spaces before @ since it's mostly used
+                            ;; as as-patterns.
+                            (not (eq char ?@))
+                            (and (not (eq prev-char ?\`))
+                                 (or (null after)
+                                     (not (eq after ?\`))))
+                            (not (and (eq char ?|)
+                                      (or
+                                       ;; Do not split '[|' token when we're inserting the '['.
+                                       (eq prev-char ?\[)
+                                       ;; Do not split '[foo|' quasiquoter
+                                       ;; when we're inserting the '['.
+                                       (save-excursion
+                                         (with-syntax-table haskell-quasiquoter-name-syntax-table
+                                           (skip-syntax-backward "w" (line-beginning-position))
+                                           (let ((before-far (preceding-char)))
+                                             (eq before-far ?\[)))))))
+                            (if (and (eq prev-char ?')
+                                     prev-prev-is-whitespace?
+                                     (nanothunk-force in-single-quote-context?))
+                                ;; Don’t insert space between ' and operator in type families,
+                                ;; type signatures and other contexts where single quote is
+                                ;; a thing.
+                                nil
+                              t)
+                            (not (haskell-smart-operators-is-operator-char? prev-char))))))
              (progn
                (setq before-pt (point)
                      before (preceding-char)
@@ -310,7 +314,8 @@ stick it to the previous operator on line."
                                ;; then make it stick to the previous
                                ;; word as well as to operators.
                                (and magic-hash?
-                                    (haskell-smart-operators--is-valid-to-preceed-magic-hash? char-before-spaces))
+                                    (haskell-smart-operators--is-valid-to-preceed-magic-hash? char-before-spaces)
+                                    (not (text-before-pos-matches? pt-before-ws "import")))
                                (and (eq char-before-spaces ?')
                                     (haskell-smart-operators--is-whitespace-char? char-before-char-before-spaces)
                                     (nanothunk-force in-single-quote-context?)))
