@@ -97,6 +97,9 @@
                 }
               );
 
+          emacs-native-helper =
+            haskell-pkgs-with-emacs-native.emacs-native + "/bin/emacs-native-helper";
+
           libemacs-native-so =
             haskell-pkgs-with-emacs-native.emacs-native + "/lib/ghc-${haskell-pkgs-with-emacs-native.ghc.version}/lib/libemacs-native${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}";
 
@@ -229,6 +232,7 @@
 
                 ln -s "${emacs.deriv}/bin/${emacs.exe-name}" "$dest/bin/emacs"
 
+                ln -s "${emacs-native-helper}" "$dest/bin/"
                 ln -s "${libemacs-native-so}" "$dest/lib/"
                 ${builtins.concatStringsSep "\n"
                   (builtins.map (x: ''ln -s "${x.deriv}/lib/${x.output-so}" "$dest/lib/"'') treesitter-derivs)}
