@@ -169,7 +169,7 @@ end."
            ,(cl-third entry)))))
 
 (cl-defmacro haskell-tests--make-multiple-input-test-buffer-contents*
-    (&key action entries expected-value modes fresh-buffer)
+    (&key action entries expected-value modes fresh-buffer initialise-after-content)
   "Define a set of tests that share final buffer state but
 have different input states.
 
@@ -192,7 +192,8 @@ Entries should be a list of of elements of the form
             :contents ,contents
             :expected-value ,expected-value
             ,@(when modes `(:modes ,modes))
-            :fresh-buffer ,fresh-buffer)))))
+            :fresh-buffer ,fresh-buffer
+            :initialise-after-content ,initialise-after-content)))))
 
 (cl-defmacro haskell-tests--make-multiple-output-test-buffer-contents*
     (&key entries contents modes fresh-buffer)
@@ -10706,11 +10707,6 @@ Entries should be a list of of elements of the form
    "foo x xs = foo _|_"
    ""))
 
-;; (ert "haskell-tests/.*")
-
-;; (setf haskell-tests/tests
-;;       '(haskell-tests/abbrev+-extract-module-name))
-
 (ert-deftest haskell-tests/haskell-dante--strip-instances-from-ghci-info-1 ()
   (let ((str
          (tests-utils--multiline
@@ -14679,6 +14675,102 @@ _|_")
   "foo :: (Foo %1_|_            -> Baz) -> Pippo"
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-space-abbrev+)
+ :entries
+ ((:name
+   haskell-tests/haskell-abbrev+--import-abbreviation-1a
+   :contents
+   (tests-utils--multiline
+    ""
+    "imp_|_"
+    ""))
+  (:name
+   haskell-tests/haskell-abbrev+--import-abbreviation-1b
+   :contents
+   (tests-utils--multiline
+    ""
+    "import_|_"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import _|_"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-abbrev+--import-abbreviation-1c
+ :action
+ (haskell-space-abbrev+)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import_|_ Foo.Bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import _|_ Foo.Bar"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-hash)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators-hash-1a
+   :contents
+   (tests-utils--multiline
+    ""
+    "import _|_ Foo.Bar"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators-hash-1b
+   :contents
+   (tests-utils--multiline
+    ""
+    "import_|_ Foo.Bar"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import #_|_ Foo.Bar"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-hash)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators-hash-2a
+   :contents
+   (tests-utils--multiline
+    ""
+    "{-# LANGUAGE MagicHash #-}"
+    ""
+    "import _|_ Foo.Bar"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators-hash-2b
+   :contents
+   (tests-utils--multiline
+    ""
+    "{-# LANGUAGE MagicHash #-}"
+    ""
+    "import_|_ Foo.Bar"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "import #_|_ Foo.Bar"
+  "")
+ :fresh-buffer t
+ :initialise-after-content t)
 
 (provide 'haskell-tests)
 
