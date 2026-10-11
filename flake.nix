@@ -66,13 +66,14 @@
                else haskell-tools.haskell-package-sets.host.default-pie);
 
           haskell-pkgs-for-so =
-            if debug
-            then hutils.enable-hpkgs-debugging haskell-pkgs-base-for-emacs-native
-            else haskell-pkgs-base-for-emacs-native;
+            hutils.enable-hpkgs-PIC
+              (if debug
+               then hutils.enable-hpkgs-debugging haskell-pkgs-base-for-emacs-native
+               else haskell-pkgs-base-for-emacs-native);
 
           haskell-pkgs-with-emacs-native =
             hutils.fixedExtend
-              (hutils.enable-hpkgs-PIC haskell-pkgs-for-so)
+              haskell-pkgs-for-so
               (
                 new:
                 old:
