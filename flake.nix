@@ -89,8 +89,8 @@
                       (old.callHackageDirect
                         {
                           pkg    = "emacs-module";
-                          ver    = "0.3";
-                          sha256 = "sha256-kBDM3guLbfllhUBo4v/vqaM8MYS8Z5e1pPbkdXoO8kU="; #pkgs.lib.fakeSha256;
+                          ver    = "0.4";
+                          sha256 = "sha256-dvsovzF91VWgQ3ti06IrI6HXC76GWOcs270tT3A9/Q8="; #pkgs.lib.fakeSha256;
                         }
                         {});
                 }
