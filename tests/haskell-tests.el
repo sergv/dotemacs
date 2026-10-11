@@ -250,6 +250,13 @@ Entries should be a list of of elements of the form
                                 :contents ,contents
                                 :modes ,modes))
 
+(cl-defmacro haskell-tests--test-result* (&key name action expected-value contents modes)
+  (declare (indent nil))
+  `(haskell-tests--test-results ,name
+                                :actions-and-values ,(list (list action expected-value))
+                                :contents ,contents
+                                :modes ,modes))
+
 (cl-defmacro haskell-tests--test-results (name &key actions-and-values contents modes)
   (declare (indent 1))
   `(progn
@@ -1533,6 +1540,22 @@ Entries should be a list of of elements of the form
   :contents
   "foo = _|_' f'7"
   :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-result*
+ :name
+ haskell-tests/bounds-of-haskell-symbol-15
+ :action
+ (substring-no-properties (thing-at-point 'haskell-symbol))
+ :expected-value
+ "defined"
+ :contents
+ (tests-utils--multiline
+  ""
+  "#if define_|_d(FOO)"
+  "foo = 1"
+  "#endif"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-ghc-core-symbol-1

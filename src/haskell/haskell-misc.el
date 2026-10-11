@@ -496,7 +496,8 @@ extensions as a list of strings. Leaves point at the end of pragma"
                (if curr-node
                    (let ((typ (treesit-node-type curr-node)))
                      (not (or (treesit-haskell--is-comment-node-type? typ)
-                              (treesit-haskell--is-string-node-type? typ))))
+                              (treesit-haskell--is-string-node-type? typ)
+                              (treesit-haskell--is-preprocessor-node-type? typ))))
                  ;; Continue with treesitter implementation.
                  t)))
         ;; New shiny treesitter-based implementation, preferred default going forward.

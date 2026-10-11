@@ -63,6 +63,11 @@
   (cl-assert (stringp typ))
   (member-str typ "string" "quasiquote_body"))
 
+(defun treesit-haskell--is-preprocessor-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (member-str typ "cpp"))
+
 (defun treesit-haskell--is-inside-string-node? (p node)
   (declare (pure t) (side-effect-free t))
   (treesit-utils-is-inside-string-node?
