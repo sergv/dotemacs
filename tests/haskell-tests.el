@@ -1557,6 +1557,22 @@ Entries should be a list of of elements of the form
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
 
+(haskell-tests--test-result*
+ :name
+ haskell-tests/bounds-of-haskell-symbol-16
+ :action
+ (substring-no-properties (thing-at-point 'haskell-symbol))
+ :expected-value
+ "else"
+ :contents
+ (tests-utils--multiline
+  ""
+  "#if defined(mingw32_HOST_OS)"
+  "foo = 1"
+  "#els_|_e"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
 (haskell-tests--test-result
     haskell-tests/bounds-of-ghc-core-symbol-1
   :action

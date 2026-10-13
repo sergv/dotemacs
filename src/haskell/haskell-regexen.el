@@ -131,11 +131,18 @@
 (defconst haskell-regexen/number
   "[+-]?[0-9]+\\(?:\\.[0-9]+\\)?\\(?:[eE][+-]?[0-9]+\\)?")
 
-(defconst haskell-regexen/opt-q/varid-or-conid-or-operator-or-number
+(defconst haskell-regexen/opt-q/varid-or-conid-or-operator-or-number-or-overloaded-label
   (concat "\\(?:" "'*" haskell-regexen/modid-raw "\\.\\)?"
+          "\\(?:"
           "\\(?1:"
           "'*"
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid-raw "\\|" haskell-regexen/operator "\\|" haskell-regexen/number "\\)"
+          "\\)"
+          "\\|"
+          "#"
+          "\\(?1:"
+          "[[:alnum:]'_][[:alnum:]'_#]*"
+          "\\)"
           "\\)"
           ))
 
