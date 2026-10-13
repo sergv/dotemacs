@@ -15,7 +15,7 @@ fibo n = if n < 2 then toInteger n else fibo (n - 1) + fibo (n - 2)
 main :: IO ()
 main = do
   let baselineName = "fibo 7"
-  defaultMain
+  Test.Tasty.Bench.defaultMain
     [ bgroup "fibonacci numbers"
       [ bcompare "tenth"  $ bench "fifth"     $ nf fibo  5
       ,                     bench "tenth"     $ nf fibo 10
