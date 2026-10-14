@@ -84,6 +84,26 @@ rgrep invocation should be case-insensetive.")
             (while (re-search-forward re end t)
               (replace-match "."))))))))
 
+(defun grep-read-files--default--strip-indirect ()
+  (let ((str (grep-read-files--default)))
+    (and str
+         (strip-string-suffix ":indirect" str))))
+
+(defun grep-read-files--default ()
+  ;; Instead of a `grep-read-files-function' variable, we used to lookup
+  ;; mode-specific functions in the major mode's symbol properties, so preserve
+  ;; this behavior for backward compatibility.
+  (let ((old-function (get major-mode #'grep-read-files))) ;Obsolete since 28.1
+    (if old-function
+	(funcall old-function)
+      (let ((file-name-at-point
+	     (run-hook-with-args-until-success 'file-name-at-point-functions)))
+	(or (if (and (stringp file-name-at-point)
+		     (not (file-directory-p file-name-at-point)))
+		file-name-at-point)
+	    (buffer-file-name)
+	    (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name)))))))
+
 (defun grep-init-after-load ()
   (def-keys-for-map grep-mode-map
     +vi-keys+
@@ -110,7 +130,9 @@ rgrep invocation should be case-insensetive.")
 
   (setf grep-expand-keywords
         (cons '("<E>" . (if (funcall fixed-string? regexp) "-F" "-E"))
-              grep-expand-keywords))
+              grep-expand-keywords)
+
+        grep-read-files-function #'grep-read-files--default--strip-indirect)
 
   (advice-add 'grep-filter :before #'grep-filter-make-relative-filename-advice))
 

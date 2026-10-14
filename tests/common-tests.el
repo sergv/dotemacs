@@ -748,6 +748,14 @@
   (should (string= (strip-directory-and-separator-prefix "/foo" "/foobar") "/foobar"))
   (should (string= (strip-directory-and-separator-prefix "/foo" "/foo/bar") "bar")))
 
+(ert-deftest common-tests/strip-string-suffix ()
+  (should (string= (strip-string-suffix "" "") ""))
+  (should (string= (strip-string-suffix "" "bar") "bar"))
+  (should (string= (strip-string-suffix "foo" "") ""))
+  (should (string= (strip-string-suffix "foo" "bar") "bar"))
+  (should (string= (strip-string-suffix "foo" "foobar") "foobar"))
+  (should (string= (strip-string-suffix "bar" "foobar") "foo")))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
