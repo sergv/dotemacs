@@ -289,7 +289,13 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
       ;; Sanity check that changes can be applied - old content didn’t change after we gathered it.
       (maphash
        (lambda (file-name entries)
-         (for-buffer-with-file file-name
+         ;; Use open file literally so that offsets reported by Haskell backend will
+         ;; correctly resolve in files with DOS endings.
+         ;;
+         ;; ‘filepos-to-bufferpos’ cannot handle the case when offset
+         ;; from egrep is greater than (point-max) of the opened
+         ;; buffer and that aborts replacement job.
+         (for-buffer-with-literal-file file-name
            (with-no-narrowing
              (dolist (entry entries)
                (let ((match-entry (car entry))
@@ -312,9 +318,9 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
       (maphash
        (lambda (file-name entries)
          (with-temp-buffer
-           (insert-file-contents file-name
-                                 t ;; make current buffer visit inserted file
-                                 )
+           (insert-file-contents-literally file-name
+                                           t ;; make current buffer visit inserted file
+                                           )
            (dolist (entry entries)
              (let ((match-entry (car entry))
                    (orig-str (cadr entry))

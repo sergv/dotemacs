@@ -741,6 +741,21 @@ buffer if no such buffer exists."
                                  )
            (funcall ,exec-func))))))
 
+(defmacro for-buffer-with-literal-file (filename &rest body)
+  "Execute BODY in buffer with contents of FILENAME. If FILENAME is already
+opened in some buffer, then reuse it, and insert its contents in temporary
+buffer if no such buffer exists."
+  (declare (indent 1))
+  (let ((buf-var '#:buf)
+        (fname-var '#:fname)
+        (buf-modified-var '#:buf-modified?))
+    `(let ((,fname-var ,filename))
+       (with-temp-buffer
+         (insert-file-contents-literally ,filename
+                                         t ;; make current buffer visit inserted file
+                                         )
+         ,@body))))
+
 (defmacro with-first-matching-item (item-var pred-value-var pred items &rest body)
   "Execute BODY with ITEM-VAR and PRED-VALUE-VAR bound to first and second
 result of `find-first-matching' respectively, if such result is non-nil, and
