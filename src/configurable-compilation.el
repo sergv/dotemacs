@@ -170,7 +170,18 @@ same for a set of buffers rather than being different."
 
 ;;;###autoload
 (defun configurable-compilation--format-duration (start end)
-  (format "%.2f seconds" (float-time (time-subtract end start))))
+  (let* ((diff (time-subtract end start))
+         (total-seconds (time-convert diff 'integer))
+         (h (/ total-seconds 3600))
+         (m (/ (mod total-seconds 3600) 60))
+         (s (mod total-seconds 60)))
+    (cond
+      ((< 0 h)
+       (format "%s hours, %s minutes, %s seconds" h m s))
+      ((< 0 m)
+       (format "%s minutes, %s seconds" m s))
+      (t
+       (format "%s seconds" s)))))
 
 (defvar-local configurable-compilation--proj-root nil)
 
