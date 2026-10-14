@@ -415,6 +415,13 @@ main table and value in aux table."
       (substring str (length prefix))
     str))
 
+(defun strip-string-suffix (suffix str)
+  "Remove (length SUFFIX) characters from end of STR if they’re equal to SUFFIX"
+  (declare (pure t) (side-effect-free t))
+  (if (string-suffix-p suffix str)
+      (substring str 0 (- (length str) (length suffix)))
+    str))
+
 (defun strip-directory-and-separator-prefix (prefix str)
   (declare (pure t) (side-effect-free t))
   (let ((prefix-len (length prefix)))
