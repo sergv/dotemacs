@@ -662,7 +662,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
               (= (length ts-field-node-children) 3)
               (string= (treesit-node-type (car ts-field-node-children)) "field_name")
               (setf ts-field-colon-node (cadr ts-field-node-children))
-              (string= (treesit-node-type ts-field-colon-node) "::")
+              (treesit-haskell--is-double-colon-node-type? (treesit-node-type ts-field-colon-node))
               (setf ts-field-type-node (caddr ts-field-node-children))
               ;; Check for when inserting ! in:
               ;;

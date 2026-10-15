@@ -219,8 +219,11 @@
             "="
             "|"
             "::"
+            "∷"
             "=>"
             "->"
+            "→"
+            "⊸"
             "<-"
             "\\"
             "@"
@@ -1244,7 +1247,7 @@ In effect, normalize contraints."
         (if (string= "function" (treesit-node-type type-node))
             (dotimes (i (treesit-node-child-count type-node))
               (let ((child (treesit-node-child type-node i)))
-                (setf acc (if (string= "->" (treesit-node-type child))
+                (setf acc (if (treesit-haskell--is-arrow-node-type? (treesit-node-type child))
                               (funcall on-arrow (haskell-ts-indent--get-function-arrow type-node) acc)
                             (haskell-ts--fold-type-arrows child on-arrow acc)))))
           (dotimes (i (treesit-node-child-count type-node))
@@ -1362,7 +1365,7 @@ In effect, normalize contraints."
                 (haskell-ts--fold-type-arrows
                  type-node
                  (lambda (arrow-node old-arrow)
-                   (cl-assert (string= "->" (treesit-node-type arrow-node)))
+                   (cl-assert (treesit-haskell--is-arrow-node-type? (treesit-node-type arrow-node)))
                    (let ((new-arrow
                           (treesit-node-text-with-surrounding-whitespace-no-properties-unsafe arrow-node)))
                      (if (< (apply #'+ (mapcar #'length old-arrow))
