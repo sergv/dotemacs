@@ -695,6 +695,7 @@ a single entity."
                    "do"
                    "="
                    "->"
+                   "→"
                    "<-"
                    "\\case")))))
       nil)
@@ -905,7 +906,7 @@ a single entity."
                    (when-let* ((node (treesit-node-at
                                       (advance-pos-over-space-characters (point))))
                                (parent (treesit-node-parent node)))
-                     (or (string= "::" (treesit-node-type node))
+                     (or (treesit-haskell--is-double-colon-node-type? (treesit-node-type node))
                          (let* ((argument-parethesized? (member (treesit-node-type node) '("(" "[" "{")))
                                 (arg-node (if argument-parethesized?
                                               (let ((parent-type (treesit-node-type parent)))
