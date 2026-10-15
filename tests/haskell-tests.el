@@ -9680,6 +9680,112 @@ Entries should be a list of of elements of the form
    "  Map f '(_|_)"
    ""))
 
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-smart-operators-open-paren)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-paren-7a
+   :contents
+   (tests-utils--multiline
+    ""
+    "#if defined_|_"
+    "foo = 1"
+    "#endif"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-paren-7b
+   :contents
+   (tests-utils--multiline
+    ""
+    "#if defined  _|_"
+    "foo = 1"
+    "#endif"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "#if defined(_|_)"
+  "foo = 1"
+  "#endif"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-smart-operators-open-paren)
+ :name
+ haskell-tests/haskell-smart-operators--open-paren-7c
+ :contents
+ (tests-utils--multiline
+  ""
+  "#if defined  _|_ && defined(QUUX)"
+  "foo = 1"
+  "#endif"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "#if defined(_|_) && defined(QUUX)"
+  "foo = 1"
+  "#endif"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-smart-operators-open-paren)
+ :name
+ haskell-tests/haskell-smart-operators--open-paren-7d
+ :contents
+ (tests-utils--multiline
+  ""
+  "#if defined(QUUX) \\"
+  "  defined _|_"
+  "foo = 1"
+  "#endif"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "#if defined(QUUX) \\"
+  "  defined(_|_)"
+  "foo = 1"
+  "#endif"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-smart-operators-open-paren)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-paren-8a
+   :contents
+   (tests-utils--multiline
+    ""
+    "#if (defined(QUUX) && defined(BAR)) ||_|_"
+    "foo = 1"
+    "#endif"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-paren-8b
+   :contents
+   (tests-utils--multiline
+    ""
+    "#if (defined(QUUX) && defined(BAR)) || _|_"
+    "foo = 1"
+    "#endif"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "#if (defined(QUUX) && defined(BAR)) || (_|_)"
+  "foo = 1"
+  "#endif"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--open-bracket-1
     (haskell-smart-operators-open-bracket)

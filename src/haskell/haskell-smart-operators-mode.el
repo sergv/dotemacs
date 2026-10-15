@@ -864,9 +864,25 @@ enabled and quoted ASCII ones in comments and strings."
 ;;;###autoload
 (defun haskell-smart-operators-open-paren ()
   (interactive)
-  (let ((literal-insertion? (haskell-smart-operators--literal-insertion?))
-        (checked-import-or-export-list? nil)
-        (inside-import-or-export-list? nil))
+  (let* ((literal-insertion? (haskell-smart-operators--literal-insertion?))
+         (checked-import-or-export-list? nil)
+         (inside-import-or-export-list? nil)
+         (p (point))
+         (inside-cpp?
+          (when (derived-mode-p 'haskell-ts-base-mode)
+            (treesit-utils-find-topmost-parent
+             (treesit-haskell--node-at p)
+             (lambda (x)
+               (let ((typ (treesit-node-type x)))
+                 (and (member-str typ "cpp")
+                      (treesit-utils-is-inside-node? p x)))))))
+         (no-space-before? nil))
+    (when inside-cpp?
+      (save-excursion
+        (skip-chars-backward " \t")
+        (when (text-before-matches? "defined")
+          (delete-region (point) p)
+          (setf no-space-before? t))))
     (smart-operators--insert-pair ?\(
                                   ?\)
                                   (lambda (before)
@@ -881,7 +897,8 @@ enabled and quoted ASCII ones in comments and strings."
                                                (setf checked-import-or-export-list? t
                                                      inside-import-or-export-list?
                                                      (or (haskell-smart-operators--in-import-list?)
-                                                         (haskell-smart-operators--in-export-list?)))))))
+                                                         (haskell-smart-operators--in-export-list?))))
+                                             no-space-before?)))
                                   (lambda (after)
                                     (not (or literal-insertion?
                                              (eq after ?\))
