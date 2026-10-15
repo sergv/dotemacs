@@ -1216,7 +1216,7 @@ You can replace this form with `gv-define-setter'.
 
 (defmacro member-str (x &rest cases)
   "Like ‘member’ but for strings."
-  (cl-assert (cl-every #'stringp cases))
+  (cl-assert (cl-every #'stringp cases) nil "Invalid member-str cases: %s" cases)
   (if (< (length cases) 6)
       `(let ((x-val ,x))
          (cl-assert (stringp x-val))

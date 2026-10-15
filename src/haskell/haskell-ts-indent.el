@@ -550,7 +550,7 @@
 
 (defun haskell-ts-indent--function-arrow-indent (_node _parent _bol)
   (lambda (matched-anchor)
-    (if (string= "::" (treesit-node-type matched-anchor))
+    (if (treesit-haskell--is-double-colon-node-type? (treesit-node-type matched-anchor))
         0
       (if-let* ((anchor-paren-context
                  (when-let* ((p (when-let* ((pp (treesit-node-parent matched-anchor)))
@@ -718,7 +718,8 @@
          (parent-typ (awhen parent
                        (treesit-matched-anchor-node-type it))))
     (cond
-      ((member-str typ "::" "=>" "forall")
+      ((or (treesit-haskell--is-double-colon-node-type? typ)
+           (member-str typ "=>" "forall"))
        0)
       ((and (member-str parent-typ "parens" "tuple")
             ;; Check that there’s enough space to put ‘->’ back like this
@@ -1234,9 +1235,11 @@
                      haskell-indent-offset))))
 
              (,(lambda (n p _)
-                 (and (member-str (treesit-node-type n) "=" "->")
-                      (string= "match" (treesit-node-type p))
-                      (treesit-node-child-by-field-name p "guards")))
+                 (let ((typ (treesit-node-type n)))
+                   (and (or (member-str typ "=")
+                            (treesit-haskell--is-arrow-node-type? typ))
+                        (string= "match" (treesit-node-type p))
+                        (treesit-node-child-by-field-name p "guards"))))
               ,(lambda (_ p _)
                  (haskell-ts-indent--get-match-guard-pipe p))
               0)
@@ -1275,7 +1278,7 @@
 
              ((node-is "deriving") parent haskell-indent-offset)
 
-             ((or (n-p-gp "->" "function" nil)
+             ((or (n-p-gp '("->" "→" "⊸") "function" nil)
                   (n-p-gp "=>" "context" nil))
               haskell-ts-indent--function-arrow-anchor
               haskell-ts-indent--function-arrow-indent)
@@ -1289,11 +1292,11 @@
                  (haskell-ts-indent--forall-anchor parent))
               ,(lambda (_ _ _)
                  (lambda (matched-anchor)
-                   (if (string= "::" (treesit-node-type matched-anchor))
+                   (if (treesit-haskell--is-double-colon-node-type? (treesit-node-type matched-anchor))
                        (+ haskell-indent-offset 1)
                      haskell-indent-offset))))
 
-             ((n-p-gp "::" '("signature" "gadt_constructor") nil)
+             ((n-p-gp '("::" "∷") '("signature" "gadt_constructor") nil)
               parent
               haskell-indent-offset)
 
@@ -1303,9 +1306,11 @@
               haskell-ts-indent--gadt-type-function-in-context-first-arg-anchor
               ,(lambda (_ _ _)
                  (lambda (matched-anchor)
-                   (if (member-str (treesit-node-type matched-anchor) "=>" "::")
-                       (+ haskell-indent-offset 1)
-                     haskell-indent-offset))))
+                   (let ((typ (treesit-node-type matched-anchor)))
+                     (if (or (member-str typ "=>")
+                             (treesit-haskell--is-double-colon-node-type? typ))
+                         (+ haskell-indent-offset 1)
+                       haskell-indent-offset)))))
 
              ((and (n-p-gp nil "function" "context")
                    (field-is "parameter"))
@@ -1329,7 +1334,7 @@
                        ((and (string= typ "parens")
                              ctx-arrow-standalone?)
                         (+ haskell-indent-offset 1))
-                       ((or (string= typ "::")
+                       ((or (treesit-haskell--is-double-colon-node-type? typ)
                             ctx-arrow-standalone?)
                         (+ haskell-indent-offset 1))
                        (t
@@ -1365,7 +1370,7 @@
               haskell-ts-indent--type-function-second-or-later-arg-anchor
               ,(lambda (_ _ _)
                  (lambda (matched-anchor)
-                   (if (string= (treesit-node-type matched-anchor) "->")
+                   (if (treesit-haskell--is-arrow-node-type? (treesit-node-type matched-anchor))
                        (+ haskell-indent-offset 1)
                      haskell-indent-offset))))
 
@@ -1380,7 +1385,7 @@
               haskell-ts-indent--type-function-result-anchor
               ,(lambda (_ _ _)
                  (lambda (matched-anchor)
-                   (if (string= (treesit-node-type matched-anchor) "->")
+                   (if (treesit-haskell--is-arrow-node-type? (treesit-node-type matched-anchor))
                        3
                      2))))
 

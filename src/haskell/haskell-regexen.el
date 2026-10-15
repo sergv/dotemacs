@@ -220,6 +220,7 @@ otherwise results will be incorrect.")
           "~"
           "=>"
           "→"
+          "⊸"
           "←"
           "⇒"
           "‥"

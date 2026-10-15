@@ -98,7 +98,7 @@
   (cl-assert (string= "signature" (treesit-node-type node)))
   (let ((result (treesit-node-child node 1)))
     (cl-assert (or (null result)
-                   (string= "::" (treesit-node-type result)))
+                   (treesit-haskell--is-double-colon-node-type? (treesit-node-type result)))
                nil
                "Not a double colon in signature: %s, node = %s, parent = %s"
                result
@@ -122,7 +122,7 @@
   (cl-assert (string= "gadt_constructor" (treesit-node-type node)))
   (let ((result (treesit-node-child node 1)))
     (cl-assert (or (null result)
-                   (string= "::" (treesit-node-type result)))
+                   (treesit-haskell--is-double-colon-node-type? (treesit-node-type result)))
                nil
                "Not a double colon in gadt_construcotr: %s, node = %s, parent = %s"
                result
@@ -257,7 +257,7 @@
   (let ((result (and (treesit-node-child-by-field-name node "guards")
                      (treesit-node-child node 2))))
     (cl-assert (or (null result)
-                   (member-str (treesit-node-type result) "->" "="))
+                   (member-str (treesit-node-type result) "->" "→" "="))
                nil
                "Not an arrow or equals: %s, node = %s, parent = %s"
                result
@@ -281,7 +281,7 @@
   (cl-assert (string= "match" (treesit-node-type node)))
   (let ((result (treesit-node-child node 0)))
     (cl-assert (or (null result)
-                   (member (treesit-node-type result) '("=" "|" "->")))
+                   (member-str (treesit-node-type result) "=" "|" "->" "→"))
                nil
                "Not an ‘=’, ‘|’, or ‘->’: %s, node = %s, parent = %s"
                result
@@ -294,7 +294,7 @@
   (cl-assert (string= "lambda" (treesit-node-type node)))
   (let ((result (treesit-node-child node 2)))
     (cl-assert (or (null result)
-                   (string= "->" (treesit-node-type result)))
+                   (member-str (treesit-node-type result) "->" "→"))
                nil
                "Not ‘->’: %s, node = %s, parent = %s"
                result
@@ -307,7 +307,7 @@
   (cl-assert (string= "function" (treesit-node-type node)))
   (let ((result (treesit-node-child-by-field-name node "arrow")))
     (cl-assert (or (null result)
-                   (string= "->" (treesit-node-type result)))
+                   (member-str (treesit-node-type result) "->" "→"))
                nil
                "Not ‘->’: %s, node = %s, parent = %s"
                result

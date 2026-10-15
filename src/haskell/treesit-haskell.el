@@ -68,6 +68,16 @@
   (cl-assert (stringp typ))
   (member-str typ "cpp"))
 
+(defun treesit-haskell--is-arrow-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (member-str typ "->" "→" "⊸"))
+
+(defun treesit-haskell--is-double-colon-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (member-str typ "::" "∷"))
+
 (defun treesit-haskell--is-inside-string-node? (p node)
   (declare (pure t) (side-effect-free t))
   (treesit-utils-is-inside-string-node?
