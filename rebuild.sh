@@ -25,10 +25,16 @@ if [[ -z "${TMPDIR:-}" ]]; then
     export TMPDIR="/tmp"
 fi
 
+compiled_dir="$EMACS_ROOT/compiled"
+
+if [[ ! -d "$compiled_dir" ]]; then
+    mkdir -p "$compiled_dir"
+fi
+
 which ghc >/dev/null && \
    ( rm -f compiled/get-cabal-configuration* compiled/*.o compiled/*.hi;
-     ghc -Wall -Werror -O2 -odir compiled/ -hidir compiled/ -o compiled/get-cabal-configuration "$EMACS_ROOT/third-party/flycheck-haskell/get-cabal-configuration.hs" && \
-         ( [[ -f compiled/get-cabal-configuration.exe ]] && strip compiled/get-cabal-configuration.exe || strip compiled/get-cabal-configuration )
+     ghc -Wall -Werror -O2 -odir "$compiled_dir" -hidir "$compiled_dir" -o "$compiled_dir/get-cabal-configuration" "$EMACS_ROOT/third-party/flycheck-haskell/get-cabal-configuration.hs" && \
+         ( [[ -f "$compiled_dir/get-cabal-configuration.exe" ]] && strip "$compiled_dir/get-cabal-configuration.exe" || strip "$compiled_dir/get-cabal-configuration" )
    )
 
 bash ./scripts/recompile.sh
