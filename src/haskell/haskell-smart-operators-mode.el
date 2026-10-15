@@ -513,6 +513,18 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                 ((= (point)
                     (line-beginning-position))
                  (insert-char ?\#))
+                ((when-let* ((_ (derived-mode-p 'haskell-ts-base-mode))
+                             (_ (haskell-abbrev+--within-data-type?))
+                             (node (treesit-haskell--node-at pt-before))
+                             (_ (let ((typ (treesit-node-type node)))
+                                  (or (treesit-haskell--is-double-colon-node-type? typ)
+                                      (treesit-haskell--is-arrow-node-type? typ)))))
+                   t)
+                 (delete-region pt-before (point))
+                 (insert-char ?\s)
+                 (insert-char ?#)
+                 (unless (haskell-smart-operators--is-whitespace-char? (following-char))
+                   (insert-char ?\s)))
                 (t
                  (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))))))))
 

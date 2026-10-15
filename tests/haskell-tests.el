@@ -1153,6 +1153,36 @@ Entries should be a list of of elements of the form
    "")
   :modes (haskell-ts-mode haskell-hsc-mode))
 
+(haskell-tests--test-result*
+ :name
+ haskell-tests/haskell-abbrev+--within-data-type?-4a
+ :action
+ (not (null (haskell-abbrev+--within-data-type?)))
+ :expected-value
+ t
+ :contents
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter ::_|_ Buffer %1 -> a -> BufferWithDelimiter a"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-result*
+ :name
+ haskell-tests/haskell-abbrev+--within-data-type?-4b
+ :action
+ (not (null (haskell-abbrev+--within-data-type?)))
+ :expected-value
+ t
+ :contents
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: Buffer %1 -> _|_a -> BufferWithDelimiter a"
+  "")
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
 (haskell-tests--test-result
     haskell-tests/forward-haskell-symbol-1
   :action
@@ -14916,6 +14946,146 @@ _|_")
   "")
  :fresh-buffer t
  :initialise-after-content t)
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (progn
+   (haskell-smart-operators-hash)
+   (haskell-smart-operators-hash))
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators-hash-3a
+   :contents
+   (tests-utils--multiline
+    ""
+    "data BufferWithDelimiter a where"
+    "  BufferWithDelimiter ::_|_ Buffer %1 -> a -> BufferWithDelimiter a"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators-hash-3b
+   :contents
+   (tests-utils--multiline
+    ""
+    "data BufferWithDelimiter a where"
+    "  BufferWithDelimiter ::   _|_ Buffer %1 -> a -> BufferWithDelimiter a"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: ##_|_ Buffer %1 -> a -> BufferWithDelimiter a"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-smart-operators-hash)
+ :name
+ haskell-tests/haskell-smart-operators-hash-3ca
+ :contents
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter ::   _|_Buffer %1 -> a -> BufferWithDelimiter a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: # _|_Buffer %1 -> a -> BufferWithDelimiter a"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (progn
+   (haskell-smart-operators-hash)
+   (haskell-smart-operators-hash))
+ :name
+ haskell-tests/haskell-smart-operators-hash-3cb
+ :contents
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter ::   _|_Buffer %1 -> a -> BufferWithDelimiter a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: ## _|_Buffer %1 -> a -> BufferWithDelimiter a"
+  ""))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (progn
+   (haskell-smart-operators-hash)
+   (haskell-smart-operators-hash))
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators-hash-4a
+   :contents
+   (tests-utils--multiline
+    ""
+    "data BufferWithDelimiter a where"
+    "  BufferWithDelimiter :: Buffer %1 ->_|_ a -> BufferWithDelimiter a"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators-hash-4b
+   :contents
+   (tests-utils--multiline
+    ""
+    "data BufferWithDelimiter a where"
+    "  BufferWithDelimiter :: Buffer %1 ->   _|_ a -> BufferWithDelimiter a"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: Buffer %1 -> ##_|_ a -> BufferWithDelimiter a"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-smart-operators-hash)
+ :name
+ haskell-tests/haskell-smart-operators-hash-4ca
+ :contents
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: Buffer %1 ->   _|_a -> BufferWithDelimiter a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: Buffer %1 -> # _|_a -> BufferWithDelimiter a"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (progn
+   (haskell-smart-operators-hash)
+   (haskell-smart-operators-hash))
+ :name
+ haskell-tests/haskell-smart-operators-hash-4cb
+ :contents
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: Buffer %1 ->   _|_a -> BufferWithDelimiter a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data BufferWithDelimiter a where"
+  "  BufferWithDelimiter :: Buffer %1 -> ## _|_a -> BufferWithDelimiter a"
+  ""))
 
 (provide 'haskell-tests)
 
