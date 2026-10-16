@@ -103,20 +103,14 @@ Usually either ~/.emacs.d or unique path under /nix/store.")
       (lambda (x) (directory-file-name (concat +emacs-config-path+ "/src" x)))
       (eval-when-compile
         (find-elisp-dirs
-         (concat (file-name-directory (or load-file-name
-                                          (when (boundp 'byte-compile-current-file)
-                                            byte-compile-current-file)
-                                          buffer-file-name))
+         (concat +emacs-config-path+
                  ;; +emacs-config-path+
                  "/src"))))
      (mapcar
       (lambda (x) (directory-file-name (concat +emacs-config-path+ "/third-party" x)))
       (eval-when-compile
         (find-elisp-dirs
-         (concat (file-name-directory (or load-file-name
-                                          (and (boundp 'byte-compile-current-file)
-                                               byte-compile-current-file)
-                                          buffer-file-name))
+         (concat +emacs-config-path+
                  ;; +emacs-config-path+
                  "/third-party")
          ;; Ignored third-party dirs.
