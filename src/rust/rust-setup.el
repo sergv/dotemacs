@@ -34,6 +34,7 @@
 (require 'rust-compile)
 (require 'rust-compilation-commands)
 (require 'rust-ts-mode)
+(require 'treesit-setup)
 
 (require 'rust-autoloads)
 
@@ -123,7 +124,11 @@ which is suitable for most programming languages such as C or Lisp."
   (vim:flycheck-clear:wrapper)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
-    (lsp-workspace-restart)))
+    (lsp-workspace-restart
+     (pcase (lsp-workspaces)
+       (`nil (user-error "There are no active servers in the current buffer"))
+       (`(,workspace) workspace)
+       (workspaces (lsp--read-workspace))))))
 
 (with-eval-after-load 'rust-ts-mode
   (add-hook 'flycheck-mode-hook #'rust-flycheck-configure))
@@ -375,8 +380,8 @@ foo {
 
   (bind-tab-keys #'indent-for-tab-command #'tab-to-tab-stop-backward)
 
-  (setf vim-shift-width rust-ts-mode-indent-offset
-        tab-width rust-ts-mode-indent-offset)
+  (setf vim-shift-width rust-ts-indent-offset
+        tab-width rust-ts-indent-offset)
 
   (let (;; NB may be nil.
         (proj (eproj-get-project-for-buf-lax (current-buffer))))

@@ -3812,6 +3812,7 @@ tool is not installed and is worth looking into."
 \\[flycheck-verify-setup] lists what there is"))
        major-mode))))
 
+;;;###autoload
 (defun flycheck-buffer ()
   "Start checking syntax in the current buffer.
 
@@ -8904,6 +8905,7 @@ thus it can be a string or a window.
 
 See `flycheck-clear-displayed-error-messages'.")
 
+;;;###autoload
 (defun flycheck-display-error-messages (errors)
   "Display the messages of ERRORS.
 

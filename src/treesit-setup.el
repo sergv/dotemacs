@@ -15,6 +15,8 @@
 (require 'set-up-volatile-paths)
 (require 'treesit-utils)
 
+(defvar treesit--explorer-highlight-overlay)
+(defvar treesit--explorer-source-buffer)
 (defvar treesit--indent-region-batch-size)
 (defvar treesit-extra-load-path)
 (defvar treesit-font-lock-level)

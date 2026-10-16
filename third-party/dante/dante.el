@@ -45,6 +45,7 @@
   (require 'haskell-regexen)
   (require 'macro-util)
   (require 'set-up-platform)
+  (require 'set-up-tmp-paths)
 
   (declare-function company-begin-backend "company")
   (declare-function find-rec* "find-files")
