@@ -94,7 +94,12 @@ function generate-autoloads() {
     done
     define emacs_cmd <<EOF
 ;;; -*- lexical-binding: t -*-
-(progn
+(defvar use-foreign-libraries?)
+;; Disable foreign libraries during loaddefs generation since they somehow
+;; fail to load but are not really needed anyway.
+(let ((use-foreign-libraries? nil))
+  (defconst +emacs-config-path+ "$emacs_dir")
+
   ;; Completely disable local variables because they cause much
   ;; trouble when files have invalid local variable entries.
   (defun hack-local-variables (&rest ignored) nil)
@@ -115,6 +120,8 @@ function generate-autoloads() {
     (strip-ext (strip-ext (file-name-nondirectory file) ".gz") ".el"))
 
   (advice-add 'loaddefs-generate--file-load-name :around #'loaddefs-generate--file-load-name--absolute-name)
+
+  (require 'jka-compr)
 
   (setf load-path (append '(${load_path[@]}) load-path))
 
