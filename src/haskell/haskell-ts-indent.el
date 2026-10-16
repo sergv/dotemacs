@@ -924,7 +924,7 @@
                      haskell-indent-offset))))
 
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
-             ((n-p-gp "operator" "infix" nil)
+             ((n-p-gp '("operator" "constructor_operator") "infix" nil)
               haskell-ts-indent--standalone-vertical-infix-operator-parent
               ,(lambda (_ parent _)
                  (lambda (matched-anchor)

@@ -114,6 +114,10 @@ have different input states."
         collect
         (let ((name (plist-get entry :name))
               (contents (plist-get entry :contents)))
+          (unless name
+            (error "No name"))
+          (unless contents
+            (error "No contents"))
           `(haskell-indentation-tests--test-treesitter
             :name ,name
             :contents ,contents
@@ -4012,6 +4016,49 @@ have different input states."
   "    _|_quux >>>"
   "                bar"
   "  ]"))
+
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-treesitter-infix-16a
+   :contents
+   (tests-utils--multiline
+    "_foo x z ="
+    "  x"
+    "           _|_:+ z"))
+  (:name
+   haskell-indentation-tests--test-treesitter-infix-16b
+   :contents
+   (tests-utils--multiline
+    "_foo x z ="
+    "  x"
+    " _|_:+ z"))
+  (:name
+   haskell-indentation-tests--test-treesitter-infix-16c
+   :contents
+   (tests-utils--multiline
+    "_foo x z ="
+    "  x"
+    "    _|_:+ z"))
+  (:name
+   haskell-indentation-tests--test-treesitter-infix-16d
+   :contents
+   (tests-utils--multiline
+    "_foo x z ="
+    "  x"
+    "_|_    :+ z"))
+  (:name
+   haskell-indentation-tests--test-treesitter-infix-16e
+   :contents
+   (tests-utils--multiline
+    "_foo x z ="
+    "  x"
+    "_|_           :+ z")))
+ :expected-value
+ (tests-utils--multiline
+  "_foo x z ="
+  "  x"
+  "    _|_:+ z"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-vertical-op-1
