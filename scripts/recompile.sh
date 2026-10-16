@@ -52,20 +52,32 @@ function fatal() {
 }
 
 function define() {
-    IFS='\n' read -r -d '' ${1} || true
+    cat >"$TMPDIR/$1.el"
+    eval "$1"="$TMPDIR/$1.el"
 }
+
+declare -a el_extensions
+el_extensions=( -name '*.el' -o -name '*.el.gz' )
+system_dependent_grep="zgrep"
+case "${OSTYPE}" in
+    "msys" | "cygwin" )
+        # zgrep is a shell script which is too slow on windows
+        system_dependent_grep="grep"
+        el_extensions=( -name '*.el' )
+        ;;
+esac
 
 function gen-el-files() {
     # Don’t compile auctex/style files but do gzip them so that they can
     # be located later.
     local print="$1"
-    find "$emacs_dir" \( -path '*/native' -o -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -path '*/auctex/style' -o -name 'scripts' -o -name 'resources' -o -name '.cask' -o -name '.git' \) -prune -o -type f \( \( -name '*.el' -o -name '*.el.gz' \) -a -not \( -name '*test.el' -o -name '*tests.el' -o -name '*test-utils*' -o -name '.dir-locals.el' \) \) "$print"
+    find "$emacs_dir" \( -path '*/native' -o -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -path '*/auctex/style' -o -name 'scripts' -o -name 'resources' -o -name '.cask' -o -name '.git' \) -prune -o -type f \( \( "${el_extensions[@]}" \) -a -not \( -name '*test.el' -o -name '*tests.el' -o -name '*test-utils*' -o -name '.dir-locals.el' \) \) "$print"
 }
 
 declare -a load_path
 
 while IFS= read -d $'\0' -r dir ; do
-    load_path+=("-L" "$dir")
+    load_path+=("\"$dir\"")
     # emacs  -Q --batch -L. -Lsrc -Lsrc/haskell -Lsrc/lisp
 done < <(gen-el-files "-print" | xargs dirname | sort -u | awk '!/(auctex\/style|targets|template|tests?)([\/]?|$)/' | sed -re 's,^\./,,' | tr '\n' '\0')
 
@@ -81,6 +93,7 @@ function generate-autoloads() {
         dirs+=("\"$dir\"")
     done
     define emacs_cmd <<EOF
+;;; -*- lexical-binding: t -*-
 (progn
   ;; Completely disable local variables because they cause much
   ;; trouble when files have invalid local variable entries.
@@ -103,9 +116,11 @@ function generate-autoloads() {
 
   (advice-add 'loaddefs-generate--file-load-name :around #'loaddefs-generate--file-load-name--absolute-name)
 
+  (setf load-path (append '(${load_path[@]}) load-path))
+
   (loaddefs-generate (list ${dirs[*]}) "$name" nil "(defvar el-patch-features nil)"))
 EOF
-    "$emacs" --batch "${load_path[@]}" --eval "$emacs_cmd" #>/dev/null 2>&1
+    "$emacs" --batch --load "$emacs_cmd" #>/dev/null 2>&1
 
     # Must not compress autoloads. Compressed autoloads break
     # subsequent recompilation because loading them involves
@@ -143,7 +158,7 @@ find -L "$compilation_dest" \( -name '*.elc' -o -name '*.eln' -o -name "$(basena
 inform "Generating $compilation_dest/local-autoloads.el"
 generate-autoloads \
     "$compilation_dest/local-autoloads.el" \
-    $(gen-el-files "-print0" | xargs -0 zgrep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
+    $(gen-el-files "-print0" | xargs -0 "$system_dependent_grep" -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
 
 inform "Recompiling"
 
@@ -169,9 +184,12 @@ fi
 # jobs="1"
 
 define eval_prelude <<EOF
+;;; -*- lexical-binding: t -*-
 (progn
   (defconst +emacs-config-path+ "$emacs_dir")
   (defconst +emacs-recompile-dest-path+ "$artifacts_dir")
+
+  (setf load-path (append '(${load_path[@]}) load-path))
 
   (setf treesit-extra-load-path '("$artifacts_dir/lib"))
 
@@ -206,6 +224,7 @@ define eval_prelude <<EOF
 EOF
 
 define byte_compile_regular_dest <<'EOF'
+;;; -*- lexical-binding: t -*-
 (progn
   (defun recompile-bytecode--dest-elc (path)
     (let* ((filename (strip-ext (strip-ext (file-name-nondirectory path) ".gz") ".el"))
@@ -218,6 +237,7 @@ define byte_compile_regular_dest <<'EOF'
 EOF
 
 define byte_compile_loop <<'EOF'
+;;; -*- lexical-binding: t -*-
 (dolist (file command-line-args-left)
 
   (let ((should-report-warnings? nil))
@@ -237,6 +257,7 @@ define byte_compile_loop <<'EOF'
 EOF
 
 define byte_compile_native_dest <<'EOF'
+;;; -*- lexical-binding: t -*-
 (progn
   (comp-ensure-native-compiler)
   (require 'comp)
@@ -258,6 +279,7 @@ define byte_compile_native_dest <<'EOF'
 EOF
 
 define native_compile_loop <<'EOF'
+;;; -*- lexical-binding: t -*-
 (dolist (file command-line-args-left)
 
   (setq byte-compile-warnings nil
@@ -295,10 +317,9 @@ if [[ "$native_comp" = "t" ]]; then
         xargs -0 -P "$jobs" -n 1 \
               "$emacs" -Q --batch \
               -L "$artifacts_dir/lib" \
-              "${load_path[@]}" \
-              --eval "$eval_prelude" \
-              -l "$compilation_dest/local-autoloads.el" \
-              --eval "$native_compile_loop"
+              --load "$eval_prelude" \
+              --load "$compilation_dest/local-autoloads.el" \
+              --load "$native_compile_loop"
 
     if [ $? -ne 0 ]; then
         echo "Native compilation failed" >&2
@@ -315,11 +336,10 @@ else
         xargs -0 -P "$jobs" -n 5 \
               "$emacs" -Q --batch \
               -L "$artifacts_dir/lib" \
-              "${load_path[@]}" \
-              --eval "$eval_prelude" \
-              -l "$compilation_dest/local-autoloads.el" \
-              --eval "$byte_compile_regular_dest" \
-              --eval "$byte_compile_loop"
+              --load "$eval_prelude" \
+              --load "$compilation_dest/local-autoloads.el" \
+              --load "$byte_compile_regular_dest" \
+              --load "$byte_compile_loop"
 
     if [ $? -ne 0 ]; then
         echo "Byte compilation failed" >&2
