@@ -17,6 +17,15 @@
 (declare-function cygwin-directory-name-to-emacs "windows-setup")
 (declare-function treesit-node-at "treesit")
 
+(autoload 'sh-feature "sh-script")
+(autoload 'sh-mode--treesit-other-keywords "sh-script")
+
+(defvar sh-builtins)
+(defvar sh-mode--treesit-declaration-commands)
+(defvar sh-mode--treesit-keywords)
+(defvar sh-mode--treesit-operators)
+(defvar sh-mode--treesit-settings)
+(defvar sh-variables)
 (defvar shell-mode-map)
 (defvar shell-mode-syntax-table)
 
@@ -26,6 +35,8 @@
 (require 'dirtrack)
 (require 'el-patch)
 (require 'folding-setup)
+(require 'treesit)
+(require 'treesit-utils)
 (require 'shell-script-abbrev+)
 (require 'xterm-color)
 

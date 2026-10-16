@@ -176,7 +176,7 @@
 (defface lsp-isar-font-background-bad
   '((((class color) (background dark)) :background "saddle brown")
     (((class color) (background light)) :background "#efea22")
-    (t :priority 5))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -208,7 +208,7 @@
 (defface lsp-isar-font-background-markdown-bullet1
   '((((class color) (background dark)) :foreground "#05c705")
     (((class color) (background light)) :foreground "#268bd2")
-    (t :priority 0 :inherit true))
+    (t :inherit true))
   ""
   :group 'lsp-isar-sem)
 
@@ -253,7 +253,7 @@
 (defface lsp-isar-font-dotted-writeln
   '((((class color) (background dark)) :underline "#c0c0c0")
     (((class color) (background light)) :underline "#c0c0c0")
-    (t :priority 2))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -261,7 +261,7 @@
 (defface lsp-isar-font-dotted-information
   '((((class color) (background dark)) :underline "#c1dfee")
     (((class color) (background light)) :underline "#c1dfee")
-    (t :priority 2))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -269,7 +269,7 @@
 (defface lsp-isar-font-dotted-warning
   '((((class color) (background dark)) :underline nil)
     (((class color) (background light)) :underline nil)
-    (t :priority 2))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
@@ -408,7 +408,7 @@ classes."
 (defface lsp-isar-font-text-inner_cartouche
   '((((class color) (background dark)) :foreground "#d16969")
     (((class color) (background light)) :foreground "#d16969")
-    (t :priority 0 :inherit default))
+    (t :inherit default))
   ""
   :group 'lsp-isar-sem)
 
@@ -448,35 +448,35 @@ classes."
 (defface lsp-isar-font-text-overview-unprocessed
   '((((class color) (background dark)) :background "#610061")
     (((class color) (background light)) :background "#0fff80")
-    (t :priority 5))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
 (defface lsp-isar-font-text-overview-running
   '((((class color) (background dark)))
     (((class color) (background light)))
-    (t :priority 5 :box t))
+    (t :box t))
   ""
   :group 'lsp-isar-sem)
 
 (defface lsp-isar-font-text-overview-error
   '((((class color) (background dark)) :background  "#b22222")
     (((class color) (background light)) :background "#fff222" )
-    (t :priority 5))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
 (defface lsp-isar-font-text-overview-warning
   '((((class color) (background dark)) :foreground "#ff8c00")
     (((class color) (background light)) :foreground "#ff8c00")
-    (t :priority 5))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 
 (defface lsp-isar-font-spell-checker
   '((((class color) (background dark)) :foreground "#569cd6")
     (((class color) (background light)) :foreground "#569cd6")
-    (t :priority 5))
+    (t ()))
   ""
   :group 'lsp-isar-sem)
 

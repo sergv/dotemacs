@@ -22,13 +22,14 @@
 (require 'common)
 (require 'common-small)
 (require 'semnav)
+(require 'sorted-set)
 
 (require 'treesit-utils)
 
 (defsubst treesit-haskell-current-node ()
-  (treesit-haskell--node-at (point)))
+  (treesit-haskell-node-at (point)))
 
-(defun treesit-haskell--node-at (pos)
+(defun treesit-haskell-node-at (pos)
   (when (derived-mode-p 'haskell-ts-base-mode)
     (treesit-node-at pos
                      ;; Hoping the parser will get reused, should be safe for
@@ -204,14 +205,21 @@
   (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
        (treesit-utils-is-inside-node? p node)))
 
+(defun treesit-haskell--is-toplevel-function-related-named-node-type? (typ)
+  (cl-assert (stringp typ))
+  (member-str typ "signature" "function" "bind"))
+
+(defun treesit-haskell--is-toplevel-function-related-node? (node)
+  (treesit-haskell--is-toplevel-function-related-named-node-type? (treesit-node-type node)))
+
 (defun treesit-haskell--find-signature-for-function-containing-node (node)
   (cl-assert (treesit-node-p node))
-  (unless (haskell-ts--is-toplevel-function-related-node? node)
+  (unless (treesit-haskell--is-toplevel-function-related-node? node)
     (let ((p nil))
       (while (and (setq p (treesit-node-parent node))
                   (not (string= (treesit-node-type p) "declarations")))
         (setf node p))))
-  (unless (haskell-ts--is-toplevel-function-related-node? node)
+  (unless (treesit-haskell--is-toplevel-function-related-node? node)
     (error "Unable to find signature for node %s" node))
   (let* ((func-names (haskell-ts--function-binding-names node))
          (signature-node-before
@@ -220,7 +228,7 @@
            nil
            ;; Keep spinning while function cases are named as we expect
            (lambda (x typ)
-             (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+             (and (treesit-haskell--is-toplevel-function-related-named-node-type? typ)
                   (not
                    (sorted-set/empty?
                     (sorted-set/intersection func-names

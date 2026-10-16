@@ -28,6 +28,7 @@
 (require 'haskell-ts-getters)
 (require 'treesit)
 (require 'treesit-haskell)
+(require 'treesit-utils)
 
 (defconst haskell-ts--treesit-simple-indent-presets
   (append

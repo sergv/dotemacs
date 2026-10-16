@@ -14,6 +14,7 @@
 
 (require 'el-patch)
 (require 'semnav)
+(require 'treesit-haskell)
 (require 'treesit-utils)
 
 (require 'common-font)
@@ -543,7 +544,7 @@ a pretty symbol."
 (defun pretty-ligatures--compose-dot ()
   (when (and (not (pretty-ligatures--disable-pretty-symbols? (match-beginning 0)))
              (if (derived-mode-p 'haskell-ts-base-mode)
-                 (if-let* ((node (treesit-haskell--node-at (match-beginning 1))))
+                 (if-let* ((node (treesit-haskell-node-at (match-beginning 1))))
                      (not (and (string= (treesit-node-type node) ".")
                                (when-let* ((p (treesit-node-parent node)))
                                  (string= (treesit-node-type p) "forall"))))

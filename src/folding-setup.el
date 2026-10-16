@@ -147,17 +147,6 @@
        (message "Showing all blocks ... done"))
      (run-hooks 'hs-show-hook))))
 
-(when-emacs-version (and (<= 29 it) (< it 31))
-  (el-patch-defun hs-forward-sexp (match-data arg)
-    "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' with ARG.
-Original match data is restored upon return."
-    (save-match-data
-      (set-match-data match-data)
-      (el-patch-wrap 2 0
-        (when hs-block-start-mdata-select
-          (goto-char (match-beginning hs-block-start-mdata-select))))
-      (funcall hs-forward-sexp-func arg))))
-
 (when-emacs-version (<= 31 it)
   (el-patch-defun hs-forward-sexp (match-data _arg)
     "Adjust point based on MATCH-DATA and call `hs-forward-sexp-function' with ARG.
@@ -270,7 +259,7 @@ Key bindings:
                                         (rx (syntax 41 ;; ?\)
                                                     )))
                 hs-c-start-regexp comment-start-regexp
-                hs-forward-sexp-func (or forward-sexp #'forward-sexp)
+                hs-forward-sexp-function (or forward-sexp #'forward-sexp)
                 hs-minor-mode-initialized? t
                 ;; Has good enough default
                 ;; hs-adjust-block-beginning-function #'identity
@@ -281,7 +270,7 @@ Key bindings:
   (cl-assert (integerp hs-block-start-mdata-select))
   (cl-assert (stringp hs-block-end-regexp))
   (cl-assert (stringp hs-c-start-regexp))
-  (cl-assert (functionp hs-forward-sexp-func))
+  (cl-assert (functionp hs-forward-sexp-function))
   (cl-assert (or (null hs-adjust-block-beginning-function)
                  (functionp hs-adjust-block-beginning-function))))
 

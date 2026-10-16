@@ -44,7 +44,7 @@
 ;;;###autoload
 (defun haskell-smart-operators--in-string-syntax? ()
   (let ((p (point)))
-    (haskell-smart-operators--in-string-syntax?-raw p (treesit-haskell--node-at p))))
+    (haskell-smart-operators--in-string-syntax?-raw p (treesit-haskell-node-at p))))
 
 ;;;###autoload
 (defun haskell-smart-operators--literal-insertion? (&optional disable-comment-check?)

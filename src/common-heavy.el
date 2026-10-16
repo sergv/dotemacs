@@ -306,7 +306,7 @@ number of spaces equal to `tab-width'."
               (aif buffer-file-name
                   (file-name-directory it)
                 default-directory))))
-    (cl-block 'found
+    (catch 'found
       (dolist (exec execs)
         (let ((exec-spec (gethash exec custom--known-executables)))
           (if exec-spec
@@ -322,13 +322,13 @@ number of spaces equal to `tab-width'."
                     (async-shell-command (mapconcat #'shell-quote-argument
                                                     (cons path (append args (list dir)))
                                                     " "))
-                    (cl-return-from 'found))))
+                    (throw 'found t))))
             (error "No specification found for exec-spec %s" exec))
           (when (cached-executable-find exec)
-            (cl-return-from found
-              (funcall (gethash (car execs)
-                                custom--known-executables)
-                       dir))))))))
+            (throw 'found
+                   (funcall (gethash (car execs)
+                                     custom--known-executables)
+                            dir))))))))
 
 ;;;###autoload
 (defun start-file-manager ()
@@ -453,7 +453,7 @@ If MODE is nil - fontify in current buffer."
                (seq (or "<<<<<<<"
                         ">>>>>>>")
                     " "
-                    (* any)))
+                    (* not-newline)))
            (? ?\r)
            ?\n)
       0 'warning t))))

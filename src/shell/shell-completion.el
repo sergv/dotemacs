@@ -1292,9 +1292,9 @@ under version-control directories."
    :select
    (eval-when-compile
      (rx ".project"
-         (* "." (+ any))
+         (* "." (+ not-newline))
          (? ".local")
-         (* "." (+ any))))))
+         (* "." (+ not-newline))))))
 
 ;;;###autoload (autoload 'pcomplete/runghc "shell-completion" nil t)
 (defpcmpl pcomplete/runghc
