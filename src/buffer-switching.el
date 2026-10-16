@@ -77,10 +77,10 @@
       ((string-match-p (rx bol
                            (? "*")
                            "sh"
-                           (or (seq "ell" (* any))
+                           (or (seq "ell" (* anychar))
                                (seq (? (seq (or "-"
                                                 (char (?0 . ?9)))
-                                            (* any)))))
+                                            (* anychar)))))
                            eol)
                        buffer-name)
        (when (file-remote-p default-directory)
@@ -91,10 +91,10 @@
       ((string-match-p (rx bol
                            (? "*")
                            "ssh"
-                           (or (seq "ell" (* any))
+                           (or (seq "ell" (* anychar))
                                (seq (? (seq (or "-"
                                                 (char (?0 . ?9)))
-                                            (* any)))))
+                                            (* anychar)))))
                            eol)
                        buffer-name)
        ;; This version depends on ordering of PATH entries which macos likes to mess up
@@ -117,10 +117,10 @@
       ((string-match-p (rx bol
                            (? "*")
                            "esh"
-                           (or (seq "ell" (* any))
+                           (or (seq "ell" (* anychar))
                                (seq (? (seq (or "-"
                                                 (char (?0 . ?9)))
-                                            (* any)))))
+                                            (* anychar)))))
                            eol)
                        buffer-name)
        (let* ((buf (get-buffer-create buffer-name))

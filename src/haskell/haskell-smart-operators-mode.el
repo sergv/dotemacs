@@ -103,7 +103,7 @@ stick it to the previous operator on line."
          (in-single-quote-context?
           (nanothunk-delay
            (haskell-smart-operators--in-single-quote-context?
-            (treesit-haskell--node-at pt))))
+            (treesit-haskell-node-at pt))))
 
          (pt-preceded-by-two-dashes? nil)
          (handling-haddock-comment?
@@ -395,14 +395,14 @@ Foo %1 -> Bar."
                          (not (haskell-smart-operators-is-operator-char?
                                (char-before preceding-point))))
                 (when (or (treesit-utils-find-closest-parent
-                           (treesit-haskell--node-at preceding-point)
+                           (treesit-haskell-node-at preceding-point)
                            (lambda (x)
                              (string= "signature" (treesit-node-type x))))
                           ;; Handle this case
                           ;; foo :: Foo %_|_
                           (when-let* ((error-above
                                        (treesit-utils-find-closest-parent
-                                        (treesit-haskell--node-at preceding-point)
+                                        (treesit-haskell-node-at preceding-point)
                                         (lambda (x)
                                           (string= "ERROR" (treesit-node-type x)))))
                                       (prev (treesit-node-prev-sibling error-above)))
@@ -515,7 +515,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                  (insert-char ?\#))
                 ((when-let* ((_ (derived-mode-p 'haskell-ts-base-mode))
                              (_ (haskell-abbrev+--within-data-type?))
-                             (node (treesit-haskell--node-at pt-before))
+                             (node (treesit-haskell-node-at pt-before))
                              (_ (let ((typ (treesit-node-type node)))
                                   (or (treesit-haskell--is-double-colon-node-type? typ)
                                       (treesit-haskell--is-arrow-node-type? typ)))))
@@ -562,7 +562,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 
               (haskell-smart-operators-is-operator-char? (following-char))))
 
-           (p-node (nanothunk-delay (treesit-haskell--node-at p)))
+           (p-node (nanothunk-delay (treesit-haskell-node-at p)))
 
            (ts-field-node-children
             (when (and (derived-mode-p 'haskell-ts-base-mode)
@@ -833,14 +833,14 @@ enabled and quoted ASCII ones in comments and strings."
     ;; In pragma - same as in comment.
     ((and (derived-mode-p 'haskell-ts-base-mode)
           (let ((p (point)))
-            (when-let* ((node (treesit-haskell--node-at p)))
+            (when-let* ((node (treesit-haskell-node-at p)))
               (and (treesit-haskell--is-pragma-node-type? (treesit-node-type node))
                    (treesit-utils-is-inside-node? p node)))))
      (if typographic-first?
          (funcall insert-typographic-quote nil)
        (funcall insert-regular-quote nil)))
     ((and (derived-mode-p 'haskell-ts-base-mode)
-          (haskell-smart-operators--in-single-quote-context? (treesit-haskell--node-at (point))))
+          (haskell-smart-operators--in-single-quote-context? (treesit-haskell-node-at (point))))
      (funcall insert-regular-quote t))
     ;; In string.
     ((haskell-smart-operators--literal-insertion?
@@ -883,7 +883,7 @@ enabled and quoted ASCII ones in comments and strings."
          (inside-cpp?
           (when (derived-mode-p 'haskell-ts-base-mode)
             (treesit-utils-find-topmost-parent
-             (treesit-haskell--node-at p)
+             (treesit-haskell-node-at p)
              (lambda (x)
                (let ((typ (treesit-node-type x)))
                  (and (member-str typ "cpp")
@@ -940,7 +940,7 @@ enabled and quoted ASCII ones in comments and strings."
                                              (when (derived-mode-p 'haskell-ts-base-mode)
                                                (and (eq before ?!)
                                                     (treesit-utils-find-topmost-parent
-                                                     (treesit-haskell--node-at p)
+                                                     (treesit-haskell-node-at p)
                                                      (lambda (x)
                                                        (let ((typ (treesit-node-type x)))
                                                          (and (member-str typ "data_constructor" "gadt_constructor")

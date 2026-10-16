@@ -469,7 +469,7 @@ string patterns."
                   dir
                   ignore-case
                   grep-find-ignored-files
-                  (eproj-project--get-absolute-ignored-files-globs proj)
+                  (eproj-project-get-absolute-ignored-files-globs proj)
                   eproj-abs-ignored-dirs-globs
                   (when eproj-abs-ignored-dirs-globs
                     (string-join (--map (concat "${EPROJ-ROOT}/" it)

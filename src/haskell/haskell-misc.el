@@ -802,7 +802,7 @@ a single entity."
         (goto-char start-pos)
         (let* ((syn nil)
                (p (point))
-               (node (treesit-haskell--node-at p))
+               (node (treesit-haskell-node-at p))
                (multiline-string-start
                 (when (and node
                            (treesit-haskell--is-multiline-string? node))

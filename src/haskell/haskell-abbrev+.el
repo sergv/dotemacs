@@ -454,7 +454,7 @@ then Bar would be the result."
             (lambda (x)
               (string= "data_type" (treesit-node-type x))))
            (treesit-utils-find-closest-parent
-            (treesit-haskell--node-at (line-beginning-position))
+            (treesit-haskell-node-at (line-beginning-position))
             (lambda (x)
               (string= "data_type" (treesit-node-type x)))))
        t))

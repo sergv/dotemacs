@@ -1,4 +1,4 @@
-;;; groovy-mode.el --- Major mode for Groovy source files
+;;; groovy-mode.el --- Major mode for Groovy source files -*- lexical-binding: t; -*-
 
 ;;  Copyright © 2006, 2009–2010, 2012–2016  Russel Winder
 

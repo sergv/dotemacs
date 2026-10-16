@@ -14,6 +14,7 @@
   (require 'el-patch)
   (require 'filenotify)
   (require 'hl-line)
+  (require 'help-fns)
   (require 'macro-util)
   (require 'man)
   (require 'set-up-platform)
