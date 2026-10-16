@@ -11705,14 +11705,14 @@ _|_bar")
  (tests-utils--multiline
   ""
   "  (lambda (node typ)"
-  "    (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)"
+  "    (and (treesit-haskell--is-toplevel-function-related-named-node-type? typ)"
   "         _|_(haskell-ts--is-toplevel-node? node)))"
   "")
  :expected-value
  (tests-utils--multiline
   ""
   "  (lambda (node typ)"
-  "    (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)"
+  "    (and (treesit-haskell--is-toplevel-function-related-named-node-type? typ)"
   "         ;_|_(haskell-ts--is-toplevel-node? node)"
   "         ))"
   "")

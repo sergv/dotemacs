@@ -1236,7 +1236,8 @@ Some files may be passed to function twice."
                       globs))))
     globs))
 
-(defun eproj-project--get-absolute-ignored-files-globs (proj)
+;;;###autoload
+(defun eproj-project-get-absolute-ignored-files-globs (proj)
   (let ((root (eproj-project/root proj)))
     (--map (concat root "/" it)
            (eproj-project/ignored-files-globs proj))))
@@ -1248,7 +1249,7 @@ doing `eproj-switch-to-file-or-buffer'."
           (find-rec*
            :root (eproj-project/root proj)
            :globs-to-find (eproj--navigation-globs proj)
-           :ignored-absolute-files-globs (eproj-project--get-absolute-ignored-files-globs proj)
+           :ignored-absolute-files-globs (eproj-project-get-absolute-ignored-files-globs proj)
            :ignored-absolute-dirs-globs (append (eproj-project/related-projects proj)
                                                 (eproj-get-absolute-ignored-dirs-globs proj))
            :ignored-directories +ignored-directories+
@@ -1378,7 +1379,7 @@ paths."
                                              (eproj-language/extensions it))
                                     (error "Unknown language: %s" lang)))
                                 (eproj-project/languages proj))
-         :ignored-absolute-files-globs (eproj-project--get-absolute-ignored-files-globs proj)
+         :ignored-absolute-files-globs (eproj-project-get-absolute-ignored-files-globs proj)
          :ignored-absolute-dirs-globs (append (eproj-project/related-projects proj)
                                               (eproj-get-absolute-ignored-dirs-globs proj))
          :ignored-directories +ignored-directories+
@@ -1414,7 +1415,7 @@ Returns nil if no relevant entry found in AUX-INFO."
                    (let ((raw-files (find-rec*
                                      :root root
                                      :globs-to-find globs
-                                     :ignored-absolute-files-globs (eproj-project--get-absolute-ignored-files-globs proj)
+                                     :ignored-absolute-files-globs (eproj-project-get-absolute-ignored-files-globs proj)
                                      :ignored-absolute-dirs-globs (eproj-project/related-projects proj)
                                      ;; Allow aux files to look into ignored paths if needed.
                                      :ignored-directories nil

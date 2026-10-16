@@ -464,15 +464,9 @@ but when paired then it’s like a string."
   (when-let* ((parent (treesit-node-parent node)))
     (string= (treesit-node-type parent) "declarations")))
 
-(defun haskell-ts--is-toplevel-function-related-named-node-type? (typ)
-  (cl-assert (stringp typ))
-  (member-str typ "signature" "function" "bind"))
-
-(defun haskell-ts--is-toplevel-function-related-node? (node)
-  (haskell-ts--is-toplevel-function-related-named-node-type? (treesit-node-type node)))
-
+;;;###autoload
 (defun haskell-ts--function-binding-names (node)
-  (cl-assert (haskell-ts--is-toplevel-function-related-node? node)
+  (cl-assert (treesit-haskell--is-toplevel-function-related-node? node)
              nil
              "Unexpected non-function treesit node: %s"
              node)
@@ -524,6 +518,7 @@ but when paired then it’s like a string."
         (list left right))
     (error "Infix node without both left and right children: %s" node)))
 
+;;;###autoload
 (defun haskell-ts--search-non-comment-nodes
     (start search-forward? is-matching-predicate continue-predicate)
   "Keep searching forward or backward from START node across its siblings while
@@ -583,7 +578,7 @@ indented block will be their bounds without any extra processing."
                                        current-node
                                        nil
                                        (lambda (_node typ)
-                                         (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                                         (and (treesit-haskell--is-toplevel-function-related-named-node-type? typ)
                                               ;; (haskell-ts--is-toplevel-node? node)
                                               ))
                                        ;; Stop at first match.
@@ -592,7 +587,7 @@ indented block will be their bounds without any extra processing."
                                        current-node
                                        t
                                        (lambda (_node typ)
-                                         (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                                         (and (treesit-haskell--is-toplevel-function-related-named-node-type? typ)
                                               ;; (haskell-ts--is-toplevel-node? node)
                                               ))
                                        ;; Stop at first match.
@@ -628,7 +623,7 @@ indented block will be their bounds without any extra processing."
         (while (and (setq p (treesit-node-parent node))
                     (not (string= (treesit-node-type p) "declarations")))
           (setf node p))
-        (if (haskell-ts--is-toplevel-function-related-node? node)
+        (if (treesit-haskell--is-toplevel-function-related-node? node)
             (let ((func-names (haskell-ts--function-binding-names node))
                   (first-node node)
                   (last-node node))
@@ -640,7 +635,7 @@ indented block will be their bounds without any extra processing."
                            first-node
                            nil
                            (lambda (x typ)
-                             (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                             (and (treesit-haskell--is-toplevel-function-related-named-node-type? typ)
                                   (not
                                    (sorted-set/empty?
                                     (sorted-set/intersection func-names
@@ -656,7 +651,7 @@ indented block will be their bounds without any extra processing."
                            last-node
                            t
                            (lambda (x typ)
-                             (and (haskell-ts--is-toplevel-function-related-named-node-type? typ)
+                             (and (treesit-haskell--is-toplevel-function-related-named-node-type? typ)
                                   (not
                                    (sorted-set/empty?
                                     (sorted-set/intersection func-names
@@ -1232,7 +1227,7 @@ In effect, normalize contraints."
 (defun semnav-bounds-of-string-at--ts-haskell (pos)
   (declare (pure nil) (side-effect-free t))
   (treesit-utils-semnav-bounds-of-string-at
-   (treesit-haskell--node-at pos)
+   (treesit-haskell-node-at pos)
    #'treesit-haskell--is-string-node-type?))
 
 (defun haskell-ts-add-constraints-to-instance-or-signature-node--format-new-constraints

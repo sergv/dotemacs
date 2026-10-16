@@ -44,18 +44,21 @@
 
 (defvar-local typography-setup-enable-typographic-quotes? t)
 
+;;;###autoload
 (defun typography-smart-insert-double-quote (&optional n quoted?)
   (interactive "*p")
   (if typography-setup-enable-typographic-quotes?
       (typopunct-insert-quotation-mark nil)
     (typography-insert-vanilla-quotation-mark n quoted?)))
 
+;;;###autoload
 (defun typography-smart-insert-single-quote (&optional n)
   (interactive "*p")
   (if typography-setup-enable-typographic-quotes?
       (typopunct-insert-single-quotation-mark)
     (typography-insert-vanilla-single-quotation-mark n)))
 
+;;;###autoload
 (defun typography-smart-insert-double-quote-inverted (&optional n quoted?)
   (interactive "*p")
   (if (or typopunct-mode
@@ -63,6 +66,7 @@
       (typography-insert-vanilla-quotation-mark n quoted?)
     (typopunct-insert-quotation-mark nil)))
 
+;;;###autoload
 (defun typography-smart-insert-single-quote-inverted (&optional n)
   (interactive "*p")
   (if (or typopunct-mode
