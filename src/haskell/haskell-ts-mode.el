@@ -1243,7 +1243,7 @@ In effect, normalize contraints."
             (dotimes (i (treesit-node-child-count type-node))
               (let ((child (treesit-node-child type-node i)))
                 (setf acc (if (treesit-haskell--is-arrow-node-type? (treesit-node-type child))
-                              (funcall on-arrow (haskell-ts-indent--get-function-arrow type-node) acc)
+                              (funcall on-arrow (haskell-ts-indent--get-any-function-arrow type-node) acc)
                             (haskell-ts--fold-type-arrows child on-arrow acc)))))
           (dotimes (i (treesit-node-child-count type-node))
             (let ((child (treesit-node-child type-node i)))
