@@ -74,10 +74,20 @@
   (cl-assert (stringp typ))
   (member-str typ "->" "→" "⊸"))
 
+(defun treesit-haskell--is-double-arrow-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (member-str typ "=>" "⇒"))
+
 (defun treesit-haskell--is-double-colon-node-type? (typ)
   (declare (pure t) (side-effect-free t))
   (cl-assert (stringp typ))
   (member-str typ "::" "∷"))
+
+(defun treesit-haskell--is-function-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (member-str typ "function" "linear_function"))
 
 (defun treesit-haskell--is-inside-string-node? (p node)
   (declare (pure t) (side-effect-free t))
@@ -207,7 +217,7 @@
 
 (defun treesit-haskell--is-toplevel-function-related-named-node-type? (typ)
   (cl-assert (stringp typ))
-  (member-str typ "signature" "function" "bind"))
+  (member-str typ "signature" "function" "linear_function" "bind"))
 
 (defun treesit-haskell--is-toplevel-function-related-node? (node)
   (treesit-haskell--is-toplevel-function-related-named-node-type? (treesit-node-type node)))

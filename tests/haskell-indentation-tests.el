@@ -32,30 +32,71 @@
           contents        ;; Buffer text before indent.
           expected-value  ;; Buffer text after indent.
           expected-result ;; Whether the test should fail or succeed.
-          (modes '(haskell-ts-mode haskell-hsc-mode)))
+          (modes '(haskell-ts-mode haskell-hsc-mode))
+          derive-linear)
   (cons
    'progn
    (cl-loop
-     for mode in modes
-     collect
-     `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
-        :expected-result ,(or expected-result :passed) ;;:failed
-        (tests-utils--test-buffer-contents
-         :action
-         (progn
-           ,(when (eq mode 'haskell-ts-mode)
-              `(let* ((treesit--indent-verbose nil)
-                      (fallback-indentations (haskell-indentation-find-indentations)))
-                 ;; Mostly test that it doesn’t throw an error. Should always
-                 ;; produce some entries because it would include treesitter
-                 ;; indentation which these tests are expected to always have.
-                 (should (not (null fallback-indentations)))))
-           (haskell-ts-indent-line))
-         :contents ,contents
-         :expected-value ,expected-value
-         :initialisation (,mode)
-         :buffer-id
-         ,(string->symbol (format "haskell-indentation-tests-%s" mode)))))))
+    for mode in modes
+    collect
+    `(let ((contents-cache ,contents)
+           (expected-value-cache ,expected-value))
+       ,@(when derive-linear
+           (list
+            `(ert-deftest ,(string->symbol (format "%s/%s-linear-ascii" name mode)) ()
+               :expected-result ,(or expected-result :passed) ;;:failed
+               (tests-utils--test-buffer-contents
+                :action
+                (progn
+                  ,(when (eq mode 'haskell-ts-mode)
+                     `(let* ((treesit--indent-verbose nil)
+                             (fallback-indentations (haskell-indentation-find-indentations)))
+                        ;; Mostly test that it doesn’t throw an error. Should always
+                        ;; produce some entries because it would include treesitter
+                        ;; indentation which these tests are expected to always have.
+                        (should (not (null fallback-indentations)))))
+                  (haskell-ts-indent-line))
+                :contents (replace-regexp-in-string "->" "%1 ->" contents-cache)
+                :expected-value (replace-regexp-in-string "->" "%1 ->" expected-value-cache)
+                :initialisation (,mode)
+                :buffer-id
+                ,(string->symbol (format "haskell-indentation-tests-%s" mode))))
+            `(ert-deftest ,(string->symbol (format "%s/%s-linear-unicode" name mode)) ()
+               :expected-result ,(or expected-result :passed) ;;:failed
+               (tests-utils--test-buffer-contents
+                :action
+                (progn
+                  ,(when (eq mode 'haskell-ts-mode)
+                     `(let* ((treesit--indent-verbose nil)
+                             (fallback-indentations (haskell-indentation-find-indentations)))
+                        ;; Mostly test that it doesn’t throw an error. Should always
+                        ;; produce some entries because it would include treesitter
+                        ;; indentation which these tests are expected to always have.
+                        (should (not (null fallback-indentations)))))
+                  (haskell-ts-indent-line))
+                :contents (replace-regexp-in-string "->" "⊸" contents-cache)
+                :expected-value (replace-regexp-in-string "->" "⊸" expected-value-cache)
+                :initialisation (,mode)
+                :buffer-id
+                ,(string->symbol (format "haskell-indentation-tests-%s" mode))))))
+       (ert-deftest ,(string->symbol (format "%s/%s%s" name mode (if derive-linear "-regular" ""))) ()
+         :expected-result ,(or expected-result :passed) ;;:failed
+         (tests-utils--test-buffer-contents
+          :action
+          (progn
+            ,(when (eq mode 'haskell-ts-mode)
+               `(let* ((treesit--indent-verbose nil)
+                       (fallback-indentations (haskell-indentation-find-indentations)))
+                  ;; Mostly test that it doesn’t throw an error. Should always
+                  ;; produce some entries because it would include treesitter
+                  ;; indentation which these tests are expected to always have.
+                  (should (not (null fallback-indentations)))))
+            (haskell-ts-indent-line))
+          :contents contents-cache
+          :expected-value expected-value-cache
+          :initialisation (,mode)
+          :buffer-id
+          ,(string->symbol (format "haskell-indentation-tests-%s" mode))))))))
 
 (cl-defmacro haskell-indentation-tests--test-treesitter-region
     (&key name
@@ -5315,6 +5356,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-1a
  :contents
  (tests-utils--multiline
@@ -5338,7 +5380,7 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-1b
+ :name haskell-indentation-tests--test-treesitter-type-1b-regular
  :contents
  (tests-utils--multiline
   "foo"
@@ -5361,6 +5403,53 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-1b-linear-ascii
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "        _|_Msg"
+  "          (Bar"
+  "            Quux)"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          _|_Msg"
+  "          (Bar"
+  "            Quux)"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-1b-linear-unicode
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "        _|_Msg"
+  "          (Bar"
+  "            Quux)"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      _|_Msg"
+  "          (Bar"
+  "            Quux)"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-2
  :contents
  (tests-utils--multiline
@@ -5388,7 +5477,7 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-3aaa
+ :name haskell-indentation-tests--test-treesitter-type-3aaa-regular
  :contents
  (tests-utils--multiline
   "foo"
@@ -5417,6 +5506,65 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3aaa-linear-ascii
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "             _|_%1 -> Bar"
+  "                    Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            _|_%1 -> Bar"
+  "                    Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3aaa-linear-unicode
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "               _|_⊸ Bar"
+  "                Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        _|_⊸ Bar"
+  "                Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-3aab
  :contents
  (tests-utils--multiline
@@ -5446,6 +5594,7 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-3aac
  :contents
  (tests-utils--multiline
@@ -5475,7 +5624,7 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-3ab
+ :name haskell-indentation-tests--test-treesitter-type-3ab-regular
  :contents
  (tests-utils--multiline
   "foo"
@@ -5502,6 +5651,61 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3ab-linear-ascii
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "             _|_%1 -> Bar"
+  "                    Quux"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            _|_%1 -> Bar"
+  "                    Quux"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3ab-linear-unicode
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (       [Int]"
+  "         _|_⊸ Bar"
+  "                Quux"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (       [Int]"
+  "            _|_⊸ Bar"
+  "                Quux"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-3ac
  :contents
  (tests-utils--multiline
@@ -5529,6 +5733,7 @@ have different input states."
   "foo = undefined"))
 
 ;; Not enough space to put ‘->’ before ‘[Int]’, so use the list type node as
+ :derive-linear t
 ;; the anchor for indenting the arrow.
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-type-3ad
@@ -5558,7 +5763,7 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-3ae
+ :name haskell-indentation-tests--test-treesitter-type-3ae-regular
  :contents
  (tests-utils--multiline
   "foo"
@@ -5585,7 +5790,117 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-3b
+ :name haskell-indentation-tests--test-treesitter-type-3ae-linear-ascii
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (        [Int]"
+  "          _|_%1 -> Bar"
+  "                 Quux"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (        [Int]"
+  "             _|_%1 -> Bar"
+  "                 Quux"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3ae-linear-unicode
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (  [Int]"
+  "      _|_⊸ Bar"
+  "             Quux"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (  [Int]"
+  "       _|_⊸ Bar"
+  "             Quux"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
+ :name haskell-indentation-tests--test-treesitter-type-3af
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ([Int]"
+  "       _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ([Int]"
+  "       _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
+ :name haskell-indentation-tests--test-treesitter-type-3ag
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ( [Int]"
+  "       _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ( [Int]"
+  "       _|_-> Bar"
+  "              Quux"
+  "       )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3b-regular
  :contents
  (tests-utils--multiline
   "foo"
@@ -5614,7 +5929,65 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-3c
+ :name haskell-indentation-tests--test-treesitter-type-3b-linear-ascii
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            %1 -> Bar"
+  "                   _|_Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            %1 -> Bar"
+  "                    _|_Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3b-linear-unicode
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (       [Int]"
+  "        ⊸ Bar"
+  "               _|_Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (       [Int]"
+  "        ⊸ Bar"
+  "            _|_Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3c-regular
  :contents
  (tests-utils--multiline
   "foo"
@@ -5643,7 +6016,214 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-3d
+ :name haskell-indentation-tests--test-treesitter-type-3c-linear-ascii-1
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "    _|_%1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            %1 -> Bar"
+  "                    Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  _|_%1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            %1 -> Bar"
+  "                    Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3c-linear-ascii-2
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  ::    P A B"
+  "    _|_%1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            %1 -> Bar"
+  "                    Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  ::    P A B"
+  "  _|_%1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            %1 -> Bar"
+  "                    Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3c-linear-ascii-3
+ :contents
+ (tests-utils--multiline
+  "foo"
+  ;; Malformed at first sight but the point is to test that we never
+  ;; indent beyond :: (i.e. never reach columns smaller than where :: sits).
+  "  ::P A B"
+  "    _|_%1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            %1 -> Bar"
+  "                    Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  ::P A B"
+  "  _|_%1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (       [Int]"
+  "            %1 -> Bar"
+  "                    Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3c-linear-unicode-1a
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "    _|_⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        ⊸ Bar"
+  "            Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "   _|_⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        ⊸ Bar"
+  "            Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3c-linear-unicode-1b
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  ∷ P A B"
+  "    _|_⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        ⊸ Bar"
+  "            Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  ∷ P A B"
+  "  _|_⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        ⊸ Bar"
+  "            Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3c-linear-unicode-2
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  ::    P A B"
+  "    _|_⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        ⊸ Bar"
+  "            Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  ::    P A B"
+  "      _|_⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        ⊸ Bar"
+  "            Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3c-linear-unicode-3
+ :contents
+ (tests-utils--multiline
+  "foo"
+  ;; Malformed at first sight but the point is to test that we never
+  ;; indent beyond :: (i.e. never reach columns smaller than where :: sits).
+  "  ::P A B"
+  "    _|_⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        ⊸ Bar"
+  "            Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  ::P A B"
+  "  _|_⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (   [Int]"
+  "        ⊸ Bar"
+  "            Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3d-regular
  :contents
  (tests-utils--multiline
   "foo"
@@ -5672,7 +6252,65 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-3e
+ :name haskell-indentation-tests--test-treesitter-type-3d-linear-ascii
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          ( [Int]"
+  "            %1 -> Bar"
+  "                   _|_Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          ( [Int]"
+  "            %1 -> Bar"
+  "                    _|_Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3d-linear-unicode
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      ( [Int]"
+  "        ⊸ Bar"
+  "               _|_Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      ( [Int]"
+  "        ⊸ Bar"
+  "            _|_Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3e-regular
  :contents
  (tests-utils--multiline
   "foo"
@@ -5698,6 +6336,64 @@ have different input states."
   "              _|_Quux"
   "       , Fizz"
   "       )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3e-linear-ascii
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (                              [Int]"
+  "            %1 -> Bar"
+  "                   _|_Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  %1 -> f (PB c d)"
+  "  %1 -> Either"
+  "          Msg"
+  "          (                              [Int]"
+  "            %1 -> Bar"
+  "                    _|_Quux"
+  "          , Fizz"
+  "          )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3e-linear-unicode
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (                              [Int]"
+  "        ⊸ Bar"
+  "               _|_Quux"
+  "      , Fizz"
+  "      )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  ⊸ f (PB c d)"
+  "  ⊸ Either"
+  "      Msg"
+  "      (                              [Int]"
+  "        ⊸ Bar"
+  "            _|_Quux"
+  "      , Fizz"
+  "      )"
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
@@ -5749,6 +6445,7 @@ have different input states."
   "  pure 0"))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-5aa
  :contents
  (tests-utils--multiline
@@ -5776,6 +6473,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-5ab
  :contents
  (tests-utils--multiline
@@ -5803,6 +6501,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-5ba
  :contents
  (tests-utils--multiline
@@ -5828,6 +6527,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-5bb
  :contents
  (tests-utils--multiline
@@ -5853,7 +6553,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-5caa
+ :name haskell-indentation-tests--test-treesitter-type-5caa-regular
  :contents
  (tests-utils--multiline
   ""
@@ -5877,8 +6577,58 @@ have different input states."
   "foo = undefined"
   ""))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-5caa-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "     => Bar a Int %1 -> Int"
+  "             _|_%1 -> ST s ())"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "     => Bar a Int %1 -> Int"
+  "                  _|_%1 -> ST s ())"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-5caa-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "     => Bar a Int ⊸ Int"
+  "             _|_⊸ ST s ())"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (forall a. Foo w Int"
+  "     => Bar a Int ⊸ Int"
+  "                  _|_⊸ ST s ())"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-5cb
  :contents
  (tests-utils--multiline
@@ -5906,6 +6656,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-5cba
  :contents
  (tests-utils--multiline
@@ -5931,6 +6682,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-5cbb
  :contents
  (tests-utils--multiline
@@ -5958,6 +6710,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-6aa
  :contents
  (tests-utils--multiline
@@ -5979,6 +6732,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-6ab
  :contents
  (tests-utils--multiline
@@ -6000,7 +6754,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-6ba
+ :name haskell-indentation-tests--test-treesitter-type-6ba-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6021,7 +6775,49 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-6bb
+ :name haskell-indentation-tests--test-treesitter-type-6ba-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w s. G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "    _|_%1 -> ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w s. G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "  _|_%1 -> ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6ba-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w s. G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "    _|_⊸ ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w s. G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "   _|_⊸ ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6bb-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6042,6 +6838,70 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6bb-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "    _|_%1 -> ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "  _|_%1 -> ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6bb-linear-unicode-a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "    _|_⊸ ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: G.Vector w (TestPair Int32 Int32)"
+  "  => G.Mutable w s (TestPair Int32 Int32)"
+  "   _|_⊸ ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-6bb-linear-unicode-b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ G.Vector w (TestPair Int32 Int32)"
+  "  ⇒ G.Mutable w s (TestPair Int32 Int32)"
+  "    _|_⊸ ST s ()"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ G.Vector w (TestPair Int32 Int32)"
+  "  ⇒ G.Mutable w s (TestPair Int32 Int32)"
+  "  _|_⊸ ST s ()"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-7a
  :contents
  (tests-utils--multiline
@@ -6065,6 +6925,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-7b
  :contents
  (tests-utils--multiline
@@ -6088,6 +6949,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-8a
  :contents
  (tests-utils--multiline
@@ -6121,7 +6983,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-8b
+ :name haskell-indentation-tests--test-treesitter-type-8b-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6154,7 +7016,73 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-9
+ :name haskell-indentation-tests--test-treesitter-type-8b-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall proxy w"
+  "  .  proxy w"
+  "  %1 -> ( forall s"
+  "            _|_.  Foo w Int"
+  "          => Bar w s Int"
+  "          %1 -> ST s ()"
+  "        )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall proxy w"
+  "  .  proxy w"
+  "  %1 -> ( forall s"
+  "        _|_.  Foo w Int"
+  "          => Bar w s Int"
+  "          %1 -> ST s ()"
+  "        )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-8b-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ forall proxy w"
+  "  . proxy w"
+  "  ⊸ ( forall s"
+  "        _|_.  Foo w Int"
+  "      ⇒ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ forall proxy w"
+  "  . proxy w"
+  "  ⊸ ( forall s"
+  "    _|_.  Foo w Int"
+  "      ⇒ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-9-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6183,6 +7111,94 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-9-linear-ascii-a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     (     forall s. Foo w Int"
+  "        => Bar w s Int"
+  "                 _|_%1 -> ST s ()"
+  "     )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     (     forall s. Foo w Int"
+  "        => Bar w s Int"
+  "     _|_%1 -> ST s ()"
+  "     )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-9-linear-ascii-b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     (     forall s. Foo w Int"
+  "               _|_=> Bar w s Int"
+  "     %1 -> ST s ()"
+  "     )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     (     forall s. Foo w Int"
+  "        _|_=> Bar w s Int"
+  "     %1 -> ST s ()"
+  "     )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-9-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ forall w."
+  "    ( forall s. Foo w Int"
+  "    ⇒ Bar w s Int"
+  "                _|_⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ forall w."
+  "    ( forall s. Foo w Int"
+  "    ⇒ Bar w s Int"
+  "    _|_⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-10a
  :contents
  (tests-utils--multiline
@@ -6215,6 +7231,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-10b
  :contents
  (tests-utils--multiline
@@ -6247,7 +7264,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-11aa
+ :name haskell-indentation-tests--test-treesitter-type-11aa-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6279,6 +7296,71 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-11aa-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     ( forall s."
+  "               _|_Foo w Int"
+  "       %1 -> Bar w s Int"
+  "       %1 -> ST s ()"
+  "     )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "     ( forall s."
+  "           _|_Foo w Int"
+  "       %1 -> Bar w s Int"
+  "       %1 -> ST s ()"
+  "     )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-11aa-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ forall w."
+  "    ( forall s."
+  "              _|_Foo w Int"
+  "      ⊸ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ forall w."
+  "    ( forall s."
+  "      _|_Foo w Int"
+  "      ⊸ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-11ab
  :contents
  (tests-utils--multiline
@@ -6313,7 +7395,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-11b
+ :name haskell-indentation-tests--test-treesitter-type-11b-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6345,6 +7427,71 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-11b-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "        ("
+  "                _|_Foo w Int"
+  "          %1 -> Bar w s Int"
+  "          %1 -> ST s ()"
+  "        )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "        ("
+  "              _|_Foo w Int"
+  "          %1 -> Bar w s Int"
+  "          %1 -> ST s ()"
+  "        )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-11b-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷"
+  "    ("
+  "            _|_Foo w Int"
+  "      ⊸ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ ;; Current line is indented to line up with -> when they get indented too.
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷"
+  "    ("
+  "      _|_Foo w Int"
+  "      ⊸ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-11c
  :contents
  (tests-utils--multiline
@@ -6376,6 +7523,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-11d
  :contents
  (tests-utils--multiline
@@ -6407,7 +7555,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-12a
+ :name haskell-indentation-tests--test-treesitter-type-12a-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6438,7 +7586,69 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-12ba
+ :name haskell-indentation-tests--test-treesitter-type-12a-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "          _|_( forall s."
+  "                Foo w Int"
+  "          %1 -> Bar w s Int"
+  "          %1 -> ST s ()"
+  "        )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall w."
+  "        _|_( forall s."
+  "                Foo w Int"
+  "          %1 -> Bar w s Int"
+  "          %1 -> ST s ()"
+  "        )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-12a-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷    forall w."
+  "      _|_( forall s."
+  "         Foo w Int"
+  "      ⊸ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷    forall w."
+  "    _|_( forall s."
+  "         Foo w Int"
+  "      ⊸ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-12ba-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6469,7 +7679,69 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-12bb
+ :name haskell-indentation-tests--test-treesitter-type-12ba-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "          _|_("
+  "             Foo w Int"
+  "          %1 -> Bar w s Int"
+  "          %1 -> ST s ()"
+  "        )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "        _|_("
+  "             Foo w Int"
+  "          %1 -> Bar w s Int"
+  "          %1 -> ST s ()"
+  "        )"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-12ba-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷"
+  "       _|_("
+  "         Foo w Int"
+  "      ⊸ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷"
+  "    _|_("
+  "         Foo w Int"
+  "      ⊸ Bar w s Int"
+  "      ⊸ ST s ()"
+  "    )"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-12bb-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6492,7 +7764,53 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-13a
+ :name haskell-indentation-tests--test-treesitter-type-12bb-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "                 _|_Int"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "        _|_Int"
+  "  %1 -> Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-12bb-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "       _|_Int"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "    _|_Int"
+  "  ⊸ Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-13a-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6513,7 +7831,49 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-13b
+ :name haskell-indentation-tests--test-treesitter-type-13a-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "           _|_Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::"
+  "        _|_Int"
+  "  %1 -> Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-13a-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷"
+  "           _|_Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷"
+  "    _|_Int"
+  "  ⊸ Int"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-13ba-regular
  :contents
  (tests-utils--multiline
   ""
@@ -6534,6 +7894,49 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-13ba-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall a."
+  "           _|_a"
+  "  %1 -> a"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall a."
+  "        _|_a"
+  "  %1 -> a"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-13ba-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ forall a."
+  "           _|_a"
+  "  ⊸ a"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ forall a."
+  "    _|_a"
+  "  ⊸ a"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-13c
  :contents
  (tests-utils--multiline
@@ -6555,6 +7958,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14aa
  :contents
  (tests-utils--multiline
@@ -6574,6 +7978,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14ab
  :contents
  (tests-utils--multiline
@@ -6593,6 +7998,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14ac
  :contents
  (tests-utils--multiline
@@ -6614,6 +8020,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14ba
  :contents
  (tests-utils--multiline
@@ -6635,6 +8042,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14bb
  :contents
  (tests-utils--multiline
@@ -6656,6 +8064,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14bc
  :contents
  (tests-utils--multiline
@@ -6679,6 +8088,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14ca
  :contents
  (tests-utils--multiline
@@ -6702,6 +8112,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14cb
  :contents
  (tests-utils--multiline
@@ -6725,6 +8136,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14cc
  :contents
  (tests-utils--multiline
@@ -6748,6 +8160,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14cd
  :contents
  (tests-utils--multiline
@@ -6773,6 +8186,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14da
  :contents
  (tests-utils--multiline
@@ -6815,6 +8229,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14ea
  :contents
  (tests-utils--multiline
@@ -6836,6 +8251,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14eb
  :contents
  (tests-utils--multiline
@@ -6857,6 +8273,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14ec
  :contents
  (tests-utils--multiline
@@ -6878,6 +8295,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-14ed
  :contents
  (tests-utils--multiline
@@ -6901,6 +8319,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-15a
  :contents
  (tests-utils--multiline
@@ -6924,6 +8343,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-15b
  :contents
  (tests-utils--multiline
@@ -6947,6 +8367,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-16
  :contents
  (tests-utils--multiline
@@ -6978,6 +8399,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-17
  :contents
  (tests-utils--multiline
@@ -7003,6 +8425,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-18aa
  :contents
  (tests-utils--multiline
@@ -7026,6 +8449,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-18ab
  :contents
  (tests-utils--multiline
@@ -7049,7 +8473,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-18b
+ :name haskell-indentation-tests--test-treesitter-type-18b-regular
  :contents
  (tests-utils--multiline
   ""
@@ -7072,7 +8496,53 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-type-19a
+ :name haskell-indentation-tests--test-treesitter-type-18b-linear-ascii
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (        a"
+  "                 _|_%1 -> c"
+  "     )"
+  "  %1 -> b"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: (        a"
+  "        _|_%1 -> c"
+  "     )"
+  "  %1 -> b"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-18b-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ (        a"
+  "                _|_⊸ c"
+  "    )"
+  "  ⊸ b"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ (        a"
+  "           _|_⊸ c"
+  "    )"
+  "  ⊸ b"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-19a-regular
  :contents
  (tests-utils--multiline
   ""
@@ -7097,6 +8567,82 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-19a-linear-ascii-a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::    ("
+  "           a"
+  "                    _|_%1 -> c"
+  "        )"
+  "  %1 -> b"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::    ("
+  "           a"
+  "        _|_%1 -> c"
+  "        )"
+  "  %1 -> b"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-19a-linear-ascii-b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::    ("
+  "                a"
+  "                    _|_%1 -> c"
+  "        )"
+  "  %1 -> b"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ::    ("
+  "                a"
+  "          _|_%1 -> c"
+  "        )"
+  "  %1 -> b"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-19a-linear-unicode
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ ("
+  "       a"
+  "                _|_⊸ c"
+  "    )"
+  "  ⊸ b"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  ∷ ("
+  "       a"
+  "     _|_⊸ c"
+  "    )"
+  "  ⊸ b"
+  "foo = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-19b
  :contents
  (tests-utils--multiline
@@ -7122,6 +8668,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-20
  :contents
  (tests-utils--multiline
@@ -7149,6 +8696,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-21
  :contents
  (tests-utils--multiline
@@ -7184,6 +8732,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-22a
  :contents
  (tests-utils--multiline
@@ -7207,6 +8756,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name haskell-indentation-tests--test-treesitter-type-22b
  :contents
  (tests-utils--multiline
@@ -7504,6 +9054,7 @@ have different input states."
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name
  haskell-indentation-tests--test-treesitter-type-31aa
  :contents
@@ -7518,6 +9069,7 @@ have different input states."
   "foo x = x"))
 
 (haskell-indentation-tests--test-treesitter
+ :derive-linear t
  :name
  haskell-indentation-tests--test-treesitter-type-31ab
  :contents
@@ -7667,6 +9219,173 @@ have different input states."
   "                                        => a"
   "foo x = x"))
 
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-32
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE textFoldLinear #-}"
+  "textFoldLinear"
+  "  :: forall (a :: UnliftedType)."
+  "     (Char -> a %1 -> a)"
+  "  -> a"
+  "  %1 -> Text"
+  "         _|_-> a"
+  "textFoldLinear f seed (TI.Text arr off len) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE textFoldLinear #-}"
+  "textFoldLinear"
+  "  :: forall (a :: UnliftedType)."
+  "     (Char -> a %1 -> a)"
+  "  -> a"
+  "  %1 -> Text"
+  "  _|_-> a"
+  "textFoldLinear f seed (TI.Text arr off len) = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-33a
+ :contents
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ Integral a"
+  "         _|_=> a"
+  "  → Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ Integral a"
+  "  _|_=> a"
+  "  → Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-33b
+ :contents
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ a"
+  "     _|_→ Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ a"
+  "  _|_→ Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-33c
+ :contents
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ a"
+  "     _|_-> a"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ a"
+  "  _|_-> a"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-33d
+ :contents
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ Integral a"
+  "         _|_⇒ a"
+  "  → Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ Integral a"
+  "  _|_⇒ a"
+  "  → Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-33e
+ :contents
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ Integral a"
+  "  ⇒ a"
+  "      _|_→ Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ Integral a"
+  "  ⇒ a"
+  "  _|_→ Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-33f
+ :contents
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ Integral a"
+  "  ⇒ a"
+  "      _|_-> Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "fromUnboundedDec"
+  "  ∷ Integral a"
+  "  ⇒ a"
+  "  _|_-> Builder"
+  "  -> b"
+  "fromUnboundedDec = undefined"
+  ""))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-guard-1a

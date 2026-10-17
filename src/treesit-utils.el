@@ -311,6 +311,15 @@ references to parsed treesitter modes shall remain."
 (defsubst treesit-utils--is-leaf-node? (node)
   (zerop (treesit-node-child-count node)))
 
+(defun treesit-utils-column-differente-between-positions (pos1 pos2)
+  "Return difference between column an POS1 and column at POS2."
+  (save-excursion
+    (goto-char pos1)
+    (let ((colon1 (current-column-fixed)))
+      (goto-char pos2)
+      (let ((colon2 (current-column-fixed)))
+        (- colon1 colon2)))))
+
 ;; (defun treesit-utils-node-texts-in-current-buffer= (x y)
 ;;   (cl-assert (treesit-node-p y))
 ;;   (cl-assert (eq (treesit-node-buffer y) (current-buffer)))

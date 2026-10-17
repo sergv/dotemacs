@@ -406,8 +406,6 @@ Regexp match data 0 specifies the characters to be composed."
               ("||"  . ?⋁)
               ("&&"  . ?⋀)
 
-              ("%1 ->" . "-o")
-
               ("<---" . "<---")
               ("--->" . "--->")
               ("<===" . "<===")
@@ -421,6 +419,8 @@ Regexp match data 0 specifies the characters to be composed."
               ("====>" . "====>")
               ("<--->" . "<--->")
               ("<===>" . "<===>")
+
+              ("%1 ->" . "-o")
 
               ;;("><" . ?⨝)
 
@@ -505,7 +505,11 @@ Regexp match data 0 specifies the characters to be composed."
 
                ("sum"       . ?∑)
                ("product"   . ?∏)
-               ("coproduct" . ?∐)))))
+               ("coproduct" . ?∐)
+
+               ;; Must reside here so that resulting glyph will have length of 5.
+               ;; ("%1 ->" . "-o")
+               ))))
 
       (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")

@@ -185,7 +185,7 @@
   (cl-assert (string= "context" (treesit-node-type node)))
   (let ((result (treesit-node-child-by-field-name node "arrow")))
     (cl-assert (or (null result)
-                   (string= "=>" (treesit-node-type result)))
+                   (treesit-haskell--is-double-arrow-node-type? (treesit-node-type result)))
                nil
                "Not ‘=>’: %s, node = %s, parent = %s"
                result
@@ -302,12 +302,25 @@
                (treesit-node-parent node))
     result))
 
-(defun haskell-ts-indent--get-function-arrow (node)
+(defun haskell-ts-indent--get-linear-function-multiplicity (node)
   "Get ‘->’ from a function NODE."
-  (cl-assert (string= "function" (treesit-node-type node)))
+  (cl-assert (string= "linear_function" (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "multiplicity")))
+    (cl-assert (or (null result)
+                   (member-str (treesit-node-type result) "modifier"))
+               nil
+               "Not multiplicity node: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-linear-function-arrow (node)
+  "Get ‘->’ from a function NODE."
+  (cl-assert (string= "linear_function" (treesit-node-type node)))
   (let ((result (treesit-node-child-by-field-name node "arrow")))
     (cl-assert (or (null result)
-                   (member-str (treesit-node-type result) "->" "→"))
+                   (member-str (treesit-node-type result) "->" "→" "⊸"))
                nil
                "Not ‘->’: %s, node = %s, parent = %s"
                result
@@ -315,9 +328,22 @@
                (treesit-node-parent node))
     result))
 
-(defun haskell-ts-indent--get-function-parameter (node)
+(defun haskell-ts-indent--get-any-function-arrow (node)
+  "Get ‘->’ from a function NODE."
+  (cl-assert (treesit-haskell--is-function-node-type? (treesit-node-type node)))
+  (let ((result (treesit-node-child-by-field-name node "arrow")))
+    (cl-assert (or (null result)
+                   (member-str (treesit-node-type result) "->" "→" "⊸"))
+               nil
+               "Not ‘->’: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-any-function-parameter (node)
   "Get ‘parameter’ field from a function NODE."
-  (cl-assert (string= "function" (treesit-node-type node)))
+  (cl-assert (treesit-haskell--is-function-node-type? (treesit-node-type node)))
   (let ((result (treesit-node-child-by-field-name node "parameter")))
     (cl-assert (not (null result))
                nil
