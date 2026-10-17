@@ -230,6 +230,8 @@
             ]
            @haskell-ts-operator-face)
 
+          (modifier "%" @haskell-ts-operator-face)
+
           (forall "." @haskell-ts-keyword-face)
 
           ;; (unboxed_tuple "(#" @haskell-ts-keyword-face)
