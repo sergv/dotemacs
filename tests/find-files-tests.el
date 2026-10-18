@@ -16,35 +16,55 @@
 (require 'find-files)
 (require 'tests-utils)
 
+(cl-defmacro find-files-tests--define-tests*
+    (&key (backends '(elisp executable native emacs-native-helper))
+          name
+          body)
+  (declare (indent nil))
+  (let ((test-name-elisp
+         (string->symbol (concat (symbol->string name) "//elisp-file-search")))
+        (test-name-executable
+         (string->symbol (concat (symbol->string name) "//executable-file-search")))
+        (test-name-foreign
+         (string->symbol (concat (symbol->string name) "//foreign-file-search")))
+        (test-name-native-helper
+         (string->symbol (concat (symbol->string name) "//emacs-native-helper"))))
+    `(progn
+       ,@(when (memq 'elisp backends)
+           (list
+            `(ert-deftest ,test-name-elisp ()
+               (let ((find-rec-backend 'elisp))
+                 ,body))))
+       ,@(when (memq 'executable backends)
+           (list
+            `(ert-deftest ,test-name-executable ()
+               (let ((find-rec-backend 'executable))
+                 ,body))))
+       ,@(when (memq 'native backends)
+           (list
+            `(when use-foreign-libraries?
+               (ert-deftest ,test-name-foreign ()
+                 (let ((find-rec-backend 'native))
+                   ,body)))))
+       ,@(when (memq 'emacs-native-helper backends)
+           (list
+            `(ert-deftest ,test-name-native-helper ()
+               (when (null (foregin-setup-resolve-emacs-native-helper-path))
+                 (ert-skip "emacs-native-helper not available"))
+               (let ((find-rec-backend 'emacs-native-helper))
+                 ,body)))))))
+
 (defmacro find-files-tests--define-tests (test-name-template &rest body)
   (declare (indent 1))
-  (let ((test-name-elisp
-         (string->symbol (concat (symbol->string test-name-template) "//elisp-file-search")))
-        (test-name-executable
-         (string->symbol (concat (symbol->string test-name-template) "//executable-file-search")))
-        (test-name-foreign
-         (string->symbol (concat (symbol->string test-name-template) "//foreign-file-search")))
-        (test-name-native-helper
-         (string->symbol (concat (symbol->string test-name-template) "//emacs-native-helper"))))
-    `(progn
-       (ert-deftest ,test-name-elisp ()
-         (let ((find-rec-backend 'elisp))
-           ,@body))
-       (ert-deftest ,test-name-executable ()
-         (let ((find-rec-backend 'executable))
-           ,@body))
-       (when use-foreign-libraries?
-         (ert-deftest ,test-name-foreign ()
-           (let ((find-rec-backend 'native))
-             ,@body)))
-       (ert-deftest ,test-name-native-helper ()
-         (when (null (foregin-setup-resolve-emacs-native-helper-path))
-           (ert-skip "emacs-native-helper not available"))
-         (let ((find-rec-backend 'emacs-native-helper))
-           ,@body)))))
+  `(find-files-tests--define-tests*
+    :name ,test-name-template
+    :body (progn ,@body)))
 
 (defconst find-file-tests-tests/project-dir
   (concat +test-utils--test-root+ "/test-data/egrep"))
+
+(defconst find-file-tests-tests/dante-test-data
+  (concat +test-utils--test-root+ "/test-data/dante"))
 
 (find-files-tests--define-tests
     find-files-tests-1-default-use
@@ -163,6 +183,27 @@
                  '("README.md"
                    "bar.c"
                    "bar.c.gz")))))
+
+(find-files-tests--define-tests*
+ :name
+ find-files-tests-7-find-rec-multi
+ :backends (native emacs-native-helper)
+ :body
+ (let ((proj1-root (concat find-file-tests-tests/dante-test-data "/simple-check-project"))
+       (proj2-root (concat find-file-tests-tests/dante-test-data "/simple-repl-project"))
+       (proj3-root (concat find-file-tests-tests/dante-test-data "/simple-repl-project-with-hsc")))
+   (should
+    (equal (sort (-map #'test-utils--normalise-file-name
+                       (find-rec-multi*
+                        :roots (list proj1-root proj2-root proj3-root)
+                        :globs-to-find '("*.cabal")))
+                 :lessp #'string<)
+           (sort
+            (-map #'test-utils--normalise-file-name
+                  (list (concat proj1-root "/emacs-dante-simple-check-test-project.cabal")
+                        (concat proj2-root "/emacs-dante-simple-repl-test-project.cabal")
+                        (concat proj3-root "/emacs-dante-simple-repl-test-project-with-hsc.cabal")))
+            :lessp #'string<)))))
 
 (provide 'find-files-tests)
 
