@@ -723,7 +723,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 ;;;###autoload
 (defun dante-repl-mode-setup ()
   (init-common :use-comment nil
-               :use-yasnippet nil
+               :use-yasnippet t ;; for abbrev+ expansion
                :use-whitespace nil
                :use-fci nil
                :smerge nil)
