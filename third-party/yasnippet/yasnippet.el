@@ -3938,7 +3938,10 @@ Move the overlays, or create them if they do not exit."
       (save-excursion
         (let ((yas--inhibit-overlay-hooks t))
           (goto-char (point-max))
-          (newline))))
+          ;; (insert-char ?\s)
+          ;; PROBLEM FOR REPL
+          ;; (newline)
+          )))
     ;; go on to normal overlay creation/moving
     ;;
     (cond ((and yas--field-protection-overlays

@@ -421,7 +421,9 @@ then Bar would be the result."
         ;; Expand only in 0th column, i.e. after a newline.
         (eq c ?\n)
         (eq c ?\r) ;; Old Mac newlines, anyone?
-        )))
+        (and (eq major-mode 'dante-repl-mode)
+             (or (eq (point) (line-beginning-position))
+                 (eq (point) (comint-line-beginning-position)))))))
 
 (defun haskell-abbrev+--only-whitespace-till-line-start? ()
   "Check that the point is at the start of the line."
