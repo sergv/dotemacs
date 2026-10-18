@@ -103,6 +103,8 @@ Valid values are:
   (cond
     (use-foreign-libraries?
      'native)
+    ((not (null (foregin-setup-resolve-emacs-native-helper-path)))
+     'emacs-native-helper)
     ((find-files/resolve-find-program-type)
      'executable)
     (t
@@ -134,6 +136,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
              ((or (file-remote-p root)
                   (eq find-rec-backend 'elisp))
               #'find-rec--elisp-impl)
+             ((eq find-rec-backend 'emacs-native-helper)
+              #'find-rec--emacs-native-helper-impl)
              ((eq find-rec-backend 'executable)
               #'find-rec--find-executable-impl)
              ((eq find-rec-backend 'native)
@@ -197,7 +201,11 @@ Always returns absolute paths."
   (cl-assert (-every? #'file-name-absolute-p roots))
   (funcall (pcase find-rec-backend
              (`native
-              #'find-rec-multi--haskell-native-impl)
+              (if (--any (file-remote-p it) roots)
+                  #'find-rec-multi--emacs-native-helper-impl
+                #'find-rec-multi--haskell-native-impl))
+             (`emacs-native-helper
+              #'find-rec-multi--emacs-native-helper-impl)
              (other
               (error "find-rec-multi doesn’t work with backend %s" other)))
            roots
@@ -234,6 +242,64 @@ Always returns absolute paths."
      ignored-dirs-abs-globs
      ;; Always produce absolute paths.
      nil)))
+
+(defun find-rec-multi--emacs-native-helper-impl
+    (roots
+     globs-to-find
+     ignored-extensions-globs
+     ignored-absolute-files-globs
+     ignored-absolute-dirs-globs
+     ignored-directories
+     ignored-directory-prefixes)
+  (find-rec--emacs-native-helper-impl
+   roots
+   globs-to-find
+   ignored-extensions-globs
+   ignored-absolute-files-globs
+   ignored-absolute-dirs-globs
+   ignored-directories
+   ignored-directory-prefixes
+   nil))
+
+(defun find-rec--emacs-native-helper-impl
+    (root
+     globs-to-find
+     ignored-extensions-globs
+     ignored-absolute-files-globs
+     ignored-absolute-dirs-globs
+     ignored-directories
+     ignored-directory-prefixes
+     relative-paths?)
+  "A version of `find-rec' that uses system's find executable to do the search."
+  (declare (pure nil) (side-effect-free nil))
+  (when (null globs-to-find)
+    (error "No globs to search for under %s" root))
+
+  (let* ((cmd (nconc (list "find")
+                     (when relative-paths?
+                       (list "--relative-paths"))
+                     (foregin-setup--format-globs-args-for-emacs-native-hepler
+                      globs-to-find
+                      ignored-extensions-globs
+                      ignored-absolute-files-globs
+                      ignored-absolute-dirs-globs
+                      ignored-directories
+                      ignored-directory-prefixes)
+                     (if (listp root)
+                         (cl-copy-list root)
+                       (list root)))))
+    (with-temp-buffer
+      (with-disabled-undo
+       (with-inhibited-modification-hooks
+        (apply #'call-process
+               (foregin-setup-resolve-emacs-native-helper-path)
+               nil
+               t
+               nil
+               cmd)
+        (split-into-lines
+         (buffer-substring-no-properties (point-min)
+                                         (point-max))))))))
 
 (defun find-rec--find-executable-impl (root
                                        globs-to-find
