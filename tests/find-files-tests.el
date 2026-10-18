@@ -23,7 +23,9 @@
         (test-name-executable
          (string->symbol (concat (symbol->string test-name-template) "//executable-file-search")))
         (test-name-foreign
-         (string->symbol (concat (symbol->string test-name-template) "//foreign-file-search"))))
+         (string->symbol (concat (symbol->string test-name-template) "//foreign-file-search")))
+        (test-name-native-helper
+         (string->symbol (concat (symbol->string test-name-template) "//emacs-native-helper"))))
     `(progn
        (ert-deftest ,test-name-elisp ()
          (let ((find-rec-backend 'elisp))
@@ -34,7 +36,12 @@
        (when use-foreign-libraries?
          (ert-deftest ,test-name-foreign ()
            (let ((find-rec-backend 'native))
-             ,@body))))))
+             ,@body)))
+       (ert-deftest ,test-name-native-helper ()
+         (when (null (foregin-setup-resolve-emacs-native-helper-path))
+           (ert-skip "emacs-native-helper not available"))
+         (let ((find-rec-backend 'emacs-native-helper))
+           ,@body)))))
 
 (defconst find-file-tests-tests/project-dir
   (concat +test-utils--test-root+ "/test-data/egrep"))
