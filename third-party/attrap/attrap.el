@@ -1439,6 +1439,9 @@ Error is given as MSG and reported between POS and END."
                     "mallocForeignPtrArray0"))
 
                   (("GHC.Internal.Base")
+                   "Control.Exception"
+                   ("assert"))
+                  (("GHC.Internal.Base")
                    "Control.Monad"
                    ("MonadPlus"
                     "mplus"
