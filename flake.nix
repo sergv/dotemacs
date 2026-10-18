@@ -94,6 +94,15 @@
                           sha256 = "sha256-dvsovzF91VWgQ3ti06IrI6HXC76GWOcs270tT3A9/Q8="; #pkgs.lib.fakeSha256;
                         }
                         {});
+
+                  ppad-base64 =
+                    old.callHackageDirect
+                      {
+                        pkg    = "ppad-base64";
+                        ver    = "0.1.1";
+                        sha256 = "sha256-fImq1OjxgoFajWkxyUsvAPER22z2vvaVD41HM66ZsYM="; #pkgs.lib.fakeSha256;
+                      }
+                      {};
                 }
               );
 
@@ -310,10 +319,10 @@
                 export REMOTE_TEMPORARY_FILE_DIRECTORY=1
 
                 echo "[Test dumped snapshot with compiled files]"
-                EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" bash "$src/tests/run-tests.sh" '"t"'
+                PATH="$dest_abs/bin:$PATH" EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_TEST_ROOT="$dest_abs" bash "$src/tests/run-tests.sh" '"t"'
 
                 echo "[Test vanilla .el with asserts]"
-                EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_DEBUG=1 EMACS_TEST_ROOT="$src" EMACS_SKIP_COMPILED=1 EMACS_FORCE_PRISTINE=1 EMACS_TEST_EXTRA_EL_DIR="$dest_abs/compiled" EMACS_TEST_EXTRA_SO_DIR="$dest_abs/lib" bash "$src/tests/run-tests.sh" '"t"'
+                PATH="$dest_abs/bin:$PATH" EMACS="$dest_abs/bin/emacs" TMPDIR="/tmp" EMACS_DEBUG=1 EMACS_TEST_ROOT="$src" EMACS_SKIP_COMPILED=1 EMACS_FORCE_PRISTINE=1 EMACS_TEST_EXTRA_EL_DIR="$dest_abs/compiled" EMACS_TEST_EXTRA_SO_DIR="$dest_abs/lib" bash "$src/tests/run-tests.sh" '"t"'
 
                 echo "[Misc sanity tests]"
 
