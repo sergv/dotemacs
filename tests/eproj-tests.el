@@ -58,7 +58,9 @@ under ROOT directory."
         (test-name-executable-file-search
          (string->symbol (format "%s//executable-file-search" test-name)))
         (test-name-foreign-file-search
-         (string->symbol (format "%s//foreign-file-search" test-name))))
+         (string->symbol (format "%s//foreign-file-search" test-name)))
+        (test-name-emacs-native-helper-file-search
+         (string->symbol (format "%s//emacs-native-helper" test-name))))
     `(progn
        (ert-deftest ,test-name-elisp-file-search ()
          (let ((eproj/default-projects (make-hash-table :test #'eq))
@@ -81,7 +83,16 @@ under ROOT directory."
                  (eproj-verbose-tag-loading nil)
                  (find-rec-backend 'native))
              (eproj-reset-projects)
-             ,@body))))))
+             ,@body)))
+       (ert-deftest ,test-name-emacs-native-helper-file-search ()
+         (when (null (foregin-setup-resolve-emacs-native-helper-path))
+           (ert-skip "emacs-native-helper not available"))
+         (let ((eproj/default-projects (make-hash-table :test #'eq))
+               ;; don't want verbose messages in the output
+               (eproj-verbose-tag-loading nil)
+               (find-rec-backend 'emacs-native-helper))
+           (eproj-reset-projects)
+           ,@body)))))
 
 (defconst eproj-tests/project-dir
   (concat +test-utils--test-root+ "/eproj-sample-projects"))
