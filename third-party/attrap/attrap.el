@@ -1476,6 +1476,9 @@ Error is given as MSG and reported between POS and END."
                   (("GHC.Internal.Types")
                    "Data.Kind"
                    ("Constraint"))
+                  (("GHC.Internal.Types")
+                   "GHC.Types"
+                   ("UnliftedType"))
                   (("GHC.IO" "GHC.Internal.IO")
                    "Control.Exception"
                    ("evaluate"))
@@ -1530,6 +1533,7 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Storable" . "GHC.Storable")
                          ("GHC.Internal.System.Exit" . "System.Exit")
                          ("GHC.Internal.Text.Read" . "Text.Read")
+                         ("GHC.Internal.Type" . "GHC.Type")
                          ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
                          ("GHC.Internal.Word" . "GHC.Word"))))))))))
 
