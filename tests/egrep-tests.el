@@ -20,7 +20,9 @@
   (let ((test-name-elisp
          (string->symbol (format test-name-template "elisp-engine")))
         (test-name-foreign
-         (string->symbol (format test-name-template "foreign-engine"))))
+         (string->symbol (format test-name-template "foreign-engine")))
+        (test-name-native-helper
+         (string->symbol (format test-name-template "emacs-native-helper"))))
     `(progn
        (ert-deftest ,test-name-elisp ()
          (let ((egrep-backend 'elisp)
@@ -30,7 +32,13 @@
          (ert-deftest ,test-name-foreign ()
            (let ((egrep-backend 'native)
                  (,regexp-var ,foreign-regexp))
-             ,@body))))))
+             ,@body)))
+       (ert-deftest ,test-name-native-helper ()
+         (when (null (foregin-setup-resolve-emacs-native-helper-path))
+           (ert-skip "emacs-native-helper not available"))
+         (let ((egrep-backend 'emacs-native-helper)
+               (,regexp-var ,foreign-regexp))
+           ,@body)))))
 
 (defun egrep-tests--normalise-egrep-match (entry)
   (make-egrep-match
@@ -86,7 +94,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir t nil '("*src/*") nil))
+                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir t nil '("**src/**") nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   egrep-tests--bar-matches))))

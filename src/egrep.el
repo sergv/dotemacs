@@ -35,6 +35,8 @@
       (cond
         (use-foreign-libraries?
          'native)
+        ((not (null (foregin-setup-resolve-emacs-native-helper-path)))
+         'emacs-native-helper)
         (t
          'elisp)))
 
@@ -139,6 +141,8 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
     ((or (eq egrep-backend 'elisp)
          (file-remote-p root))
      (egrep--find-matches--elisp regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs))
+    ((eq egrep-backend 'emacs-native-helper)
+     (egrep--find-matches--emacs-native-helper regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs))
     ((eq egrep-backend 'native)
      (egrep--find-matches--native regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs))
     (t
@@ -171,6 +175,67 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                  regexp
                  (string-join globs-to-find ", ")))
         matches))))
+
+(defun egrep--find-matches--emacs-native-helper
+    (regexp
+     globs-to-find
+     root
+     ignore-case
+     ignored-files-basename-globs
+     ignored-absolute-files-globs
+     ignored-absolute-dirs-globs)
+  (save-some-buffers)
+  (let* ((ignored-directories +ignored-directories+)
+         (ignored-directory-prefixes +ignored-directory-prefixes+)
+         (cmd
+          (nconc (list "grep"
+                       "--sexp-output")
+                 (when ignore-case
+                   (list "--ignore-case"))
+                 (foregin-setup--format-globs-args-for-emacs-native-hepler
+                  globs-to-find
+                  ignored-files-basename-globs
+                  ignored-absolute-files-globs
+                  ignored-absolute-dirs-globs
+                  ignored-directories
+                  ignored-directory-prefixes)
+                 (list regexp root)))
+         (matches
+          (with-temp-buffer
+            (with-disabled-undo
+             (with-inhibited-modification-hooks
+              (when (not
+                     (zerop
+                      (apply #'call-process
+                             (foregin-setup-resolve-emacs-native-helper-path)
+                             nil
+                             t
+                             nil
+                             cmd)))
+                (error "emacs-native-helper exited with non-zero exit code"))
+              (goto-char (point-min))
+              (read (current-buffer)))))))
+    (cl-assert (or (listp matches) (symbolp matches)))
+    (if (eq matches 'no-files-matched)
+        (error "No files matched glob patterns")
+      (progn
+        (when (or (null matches)
+                  (= (length matches) 0))
+          (error "No matches for regexp \"%s\" across files %s"
+                 regexp
+                 (string-join globs-to-find ", ")))
+        (mapcar
+         (lambda (match)
+           (let ((file            (plist-get match :absolute-path))
+                 (short-file-name (plist-get match :relative-path))
+                 (line            (plist-get match :line))
+                 (column          (plist-get match :column))
+                 (matched-prefix  (base64-decode-string (plist-get match :match-prefix)))
+                 (matched-text    (base64-decode-string (plist-get match :match-string)))
+                 (matched-suffix  (base64-decode-string (plist-get match :match-suffix)))
+                 (match-offset    (plist-get match :byte-offset)))
+             (make-egrep-match file short-file-name line column matched-prefix matched-text matched-suffix match-offset)))
+         matches)))))
 
 (defun egrep--find-matches--elisp (regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs)
   (save-match-data
