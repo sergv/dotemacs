@@ -16,10 +16,16 @@ emacs_tests_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 root="${EMACS_TEST_ROOT:-${EMACS_ROOT:-$(dirname "$emacs_tests_dir")}}"
 
-if [[ ! -v EMACS_DEBUG ]]; then
-   # Disable debugging by default, but still allow allow to override.
-   export EMACS_DEBUG=0
-fi
+case "${OSTYPE}" in
+    "msys" | "cygwin" )
+        ;;
+    * )
+        if [[ ! -v EMACS_DEBUG ]]; then
+           # Disable debugging by default, but still allow allow to override.
+           export EMACS_DEBUG=0
+        fi
+        ;;
+esac
 
 function define() {
     IFS='\n' read -r -d '' ${1} || true
@@ -130,7 +136,7 @@ else
     exit 1
 fi
 
-if [[ -z "$matcher" && "$OSTYPE" != "darwin"* ]]; then
+if [[ -z "$matcher" && "$OSTYPE" != "darwin"* && "$OSTYPE" != "msys" && "$OSTYPE" != "cygwin" ]]; then
 
     if [[ -z "${TMPDIR:-}" ]]; then
         export TMPDIR="/tmp"
