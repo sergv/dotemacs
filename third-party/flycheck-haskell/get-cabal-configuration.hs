@@ -733,13 +733,20 @@ getCabalConfiguration :: Input -> IO Sexp
 getCabalConfiguration configFile = do
   case configFile of
     CabalFile path -> do
-      genericDesc <- readGenericPkgDescr path
+      genericDesc <- readGenericPkgDescr path =<< readCabalFileContentsFromFile path
       case getConcretePackageDescription genericDesc of
         Left e        -> die' $ "Issue with package configuration\n" ++ e
-        Right pkgDesc -> pure $ serializePackageDescription pkgDesc projectDir
+        Right pkgDesc -> pure $ serializePackageDescription pkgDesc cabalDir
       where
-        projectDir :: FilePath
-        projectDir = dropTrailingPathSeparator $ dropFileName path
+        cabalDir :: FilePath
+        cabalDir = dropTrailingPathSeparator $ dropFileName path
+
+    CabalFileFromSTDIN cabalDir -> do
+      genericDesc <- readGenericPkgDescr "stdin" =<< readCabalFileContentsFromStdin
+      case getConcretePackageDescription genericDesc of
+        Left e        -> die' $ "Issue with package configuration\n" ++ e
+        Right pkgDesc -> pure $ serializePackageDescription pkgDesc cabalDir
+
     ScriptMetadataFromSTDIN -> do
 #if defined(HAVE_CABAL_SYNTAX)
       metadata <- BS.hGetContents stdin
@@ -784,12 +791,11 @@ parseScriptBlock str =
         pos = Position (P.sourceLine ppos) (P.sourceColumn ppos)
 #endif
 
-readGenericPkgDescr :: FilePath -> IO GenericPackageDescription
-readGenericPkgDescr path = do
-  contents <- readCabalFileContentsFromFile path
-  case parsePkgDescr path contents of
+readGenericPkgDescr :: String -> CabalFileContents -> IO GenericPackageDescription
+readGenericPkgDescr source contents = do
+  case parsePkgDescr source contents of
     Left msgs ->
-      die' $ "Failed to parse cabal '" ++ path ++ "':\n" ++
+      die' $ "Failed to parse cabal '" ++ source ++ "':\n" ++
         unlines msgs
     Right x   -> pure x
 
@@ -797,33 +803,45 @@ newtype CabalFileContents = CabalFileContents
   { unCabalFileContents ::
 #if defined(Cabal22OrLater)
       BS.ByteString
-#else
+#endif
+#if !defined(Cabal22OrLater)
       String
 #endif
   }
+
+readCabalFileContentsFromStdin :: IO CabalFileContents
+readCabalFileContentsFromStdin =
+  fmap CabalFileContents $
+#if defined(Cabal22OrLater)
+    BS.getContents
+#endif
+#if !defined(Cabal22OrLater)
+    getContents
+#endif
 
 readCabalFileContentsFromFile :: FilePath -> IO CabalFileContents
 readCabalFileContentsFromFile =
   fmap CabalFileContents .
 #if defined(Cabal22OrLater)
     BS.readFile
-#else
+#endif
+#if !defined(Cabal22OrLater)
     readFile
 #endif
 
-parsePkgDescr :: FilePath -> CabalFileContents -> Either [String] GenericPackageDescription
-parsePkgDescr _fileName cabalFileContents =
+parsePkgDescr :: String -> CabalFileContents -> Either [String] GenericPackageDescription
+parsePkgDescr _source cabalFileContents =
 #if defined(Cabal32OrLater)
   case runParseResult $ parseGenericPackageDescription $ unCabalFileContents cabalFileContents of
     (_warnings, res) ->
       case res of
-        Left (_version, errs) -> Left $ map (showPError _fileName) $ toList errs
+        Left (_version, errs) -> Left $ map (showPError _source) $ toList errs
         Right x -> pure x
 #elif defined(Cabal22OrLater)
   case runParseResult $ parseGenericPackageDescription $ unCabalFileContents cabalFileContents of
     (_warnings, res) ->
       case res of
-        Left (_version, errs) -> Left $ map (showPError _fileName) errs
+        Left (_version, errs) -> Left $ map (showPError _source) errs
         Right x -> pure x
 #elif defined(Cabal20OrLater)
   case parseGenericPackageDescription $ unCabalFileContents cabalFileContents of
@@ -1055,7 +1073,7 @@ instance Foldable Identity where
   foldMap f (Identity x) = f x
 #endif
 
-data Input = CabalFile FilePath | ScriptMetadataFromSTDIN
+data Input = CabalFile FilePath | CabalFileFromSTDIN FilePath | ScriptMetadataFromSTDIN
 
 data Config f = Config
   { cfgInput :: f Input
@@ -1077,6 +1095,11 @@ optionDescr =
       ["cabal-file"]
       (ReqArg (\path cfg -> cfg { cfgInput = Just (CabalFile path) }) "FILE")
       "Cabal file to process"
+  , Option
+      []
+      ["cabal-file-from-stdin"]
+      (ReqArg (\dir cfg -> cfg { cfgInput = Just (CabalFileFromSTDIN dir) }) "CABAL-FILE-DIR")
+      "Read cabal file contents passed on stdin. Must specify directory where cabal file resides"
   , Option
       []
       ["parse-script-metadata-from-stdin"]

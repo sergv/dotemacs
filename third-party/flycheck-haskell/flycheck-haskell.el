@@ -187,8 +187,18 @@ Take the base command from `flycheck-haskell-runghc-command'."
 
 (defun flycheck-haskell-read-cabal-configuration (cabal-file proj)
   "Read the Cabal configuration from CABAL-FILE."
-  (let ((args (list "--cabal-file" (expand-file-name cabal-file))))
-    (flycheck-haskell--read-configuration-with-helper args proj nil nil)))
+  (if (file-remote-p cabal-file)
+      (progn
+        (cl-assert (file-name-absolute-p cabal-file))
+        (with-temp-buffer
+          (insert-file-contents-literally cabal-file)
+          (flycheck-haskell--read-configuration-with-helper
+           (list "--cabal-file-from-stdin" (file-name-directory cabal-file))
+           proj
+           (point-min)
+           (point-max))))
+    (let ((args (list "--cabal-file" (expand-file-name cabal-file))))
+      (flycheck-haskell--read-configuration-with-helper args proj nil nil))))
 
 (defun flycheck-haskell-parse-script-configuration (buf proj)
   "Read the confiration of Haskell #! script stored inside {- cabal:...-}."
