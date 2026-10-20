@@ -17,7 +17,15 @@ function is_bin_in_path() {
 
 if [[ -z "${2:-}" ]]; then
     export EMACS_FORCE_PRISTINE=1
-    export EMACS_DEBUG=0
+
+    case "${OSTYPE}" in
+        "msys" | "cygwin" )
+            ;;
+        * )
+            export EMACS_DEBUG=0
+            ;;
+    esac
+
     emacs="${EMACS:-emacs}"
 
     if is_bin_in_path "$emacs"; then
