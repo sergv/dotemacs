@@ -1349,7 +1349,7 @@ are CHAR1 and CHAR2 repsectively."
 
 ;;
 
-(defun-caching cached-executable-find (exe) cached-executable-find--reset-cache exe
+(defun-caching cached-executable-find (exe) cached-executable-find--reset-cache (cons exe (file-remote-p default-directory))
   (executable-find exe))
 
 ;;
