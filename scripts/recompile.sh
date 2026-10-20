@@ -12,7 +12,15 @@ set -o pipefail
 set -e
 
 export EMACS_FORCE_PRISTINE=1
-export EMACS_DEBUG=0
+
+case "${OSTYPE}" in
+    "msys" | "cygwin" )
+        ;;
+    * )
+        export EMACS_DEBUG=0
+        ;;
+esac
+
 emacs="${EMACS:-emacs}"
 emacs_dir=${1:-"${EMACS_ROOT}"}
 
@@ -52,6 +60,17 @@ function fatal() {
 }
 
 function define() {
+    local tmp="$TMPDIR"
+    case "${OSTYPE}" in
+        "msys" | "cygwin" )
+            if command -v cygpath >/dev/null 2>&1; then
+                tmp="$(cygpath --mixed "$TMPDIR")"
+            else
+                echo "cannot normalize TMPDIR" >&2
+                exit 2
+            fi
+        ;;
+    esac
     cat >"$TMPDIR/$1.el"
     eval "$1"="$TMPDIR/$1.el"
 }
@@ -170,6 +189,7 @@ generate-autoloads \
 inform "Recompiling"
 
 jobs="1"
+bytecode_batching="5"
 if [[ -v NIX_BUILD_CORES ]]; then
     jobs="$NIX_BUILD_CORES"
 else
@@ -181,6 +201,12 @@ else
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         jobs="$cores"
         # jobs=$(sysctl machdep.cpu.core_count | cut -w -f2)
+    elif [[ "$OSTYPE" == "msys" ||  "$OSTYPE" == "tygwin" ]]; then
+        jobs="$(awk '/processor/' /proc/cpuinfo | wc -l)"
+        if [[ "$jobs" -gt 5 ]]; then
+            jobs="5"
+        fi
+        bytecode_batching=50
     elif [[ -e /proc/cpuinfo ]]; then
         jobs="$(awk '/processor/' /proc/cpuinfo | wc -l)"
     fi
@@ -260,7 +286,8 @@ define byte_compile_loop <<'EOF'
 
   (if (batch-byte-compile-file file)
       t
-    (error "Compilation errors in %s" file)))
+    (unless (eq system-type 'windows-nt)
+      (error "Compilation errors in %s" file))))
 EOF
 
 define byte_compile_native_dest <<'EOF'
@@ -340,7 +367,7 @@ else
     # Marginally more checking but three times slower.
     # xargs -0 -P "$jobs" -n 1
     gen-el-files "-print0" | \
-        xargs -0 -P "$jobs" -n 5 \
+        xargs -0 -P "$jobs" -n "$bytecode_batching" \
               "$emacs" -Q --batch \
               -L "$artifacts_dir/lib" \
               --load "$eval_prelude" \
