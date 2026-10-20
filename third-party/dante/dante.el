@@ -1154,7 +1154,8 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
                                   :name "dante-preprocessing"
                                   :buffer tmp-buf
                                   :command (cmdline-to-executable-command cmdline)
-                                  :noquery t))))
+                                  :noquery t
+                                  :file-handler t))))
         (unless (zerop exit-code)
           (let ((sep "\n--------------------------------\n"))
             (error "Preprocessing of current project failed with exit code %s:%s%s%s%s"
@@ -1195,19 +1196,17 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
       (let ((suffix (file-name-extension fname t)))
         (if (file-remote-p fname)
             (with-parsed-tramp-file-name (buffer-file-name buf) vec
-              (let ((prefix (concat
-                             (expand-file-name
-                              tramp-temp-name-prefix (tramp-get-remote-tmpdir vec))
-                             "dante"))
-                    result)
-                (while (not result)
-                  (setq result (concat (make-temp-name prefix) suffix))
-                  (if (file-exists-p result)
-                      (setq result nil)))
-                ;; This creates the file by side effect.
-                (set-file-times result)
-                (set-file-modes result #o700)
-                result))
+              (let (create-lockfiles)
+                (cl-letf (((symbol-function 'tramp-remote-acl-p) #'ignore)
+	                        ((symbol-function 'tramp-remote-selinux-p) #'ignore)
+	                        ((symbol-function 'tramp-smb-remote-acl-p) #'ignore)
+	                        ((symbol-function 'tramp-sudoedit-remote-acl-p) #'ignore)
+	                        ((symbol-function 'tramp-sudoedit-remote-selinux-p) #'ignore))
+                  (let ((prefix (concat
+                                 (expand-file-name
+                                  tramp-temp-name-prefix (tramp-get-remote-tmpdir vec))
+                                 "dante")))
+                    (make-temp-file prefix nil ".hs")))))
           fname))
     (make-temp-file "dante" nil ".hs")))
 
@@ -1399,6 +1398,7 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
   "Start a GHCi process and return its buffer."
   (let* ((ghci-buf (dante--create-ghci-interaction-buffer))
          (cfg (dante-get-config))
+         (remote-prefix (file-remote-p default-directory))
          (args (funcall (dante-method/make-check-command-line (dante-config/method cfg))
                         cfg))
          (arglist (cmdline-to-executable-command args))
@@ -1449,7 +1449,9 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
       (with-current-buffer ghci-buf
         (setf (dante-check-ghci-state/ghci-path dante--ghci-state)
               (fold-platform-os-type
-               dir
+               (if remote-prefix
+                   (concat remote-prefix dir)
+                 dir)
                (msys-or-cygwin-file-name-to-emacs dir)))))
     (dante--set-checker-state! 'started ghci-buf)
     (setf ghc-initialising? nil

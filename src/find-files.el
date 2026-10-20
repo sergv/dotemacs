@@ -285,13 +285,14 @@ Always returns absolute paths."
                       ignored-absolute-dirs-globs
                       ignored-directories
                       ignored-directory-prefixes)
-                     (if (listp root)
-                         (cl-copy-list root)
-                       (list root)))))
+                     (-map #'file-local-name
+                           (if (listp root)
+                               (cl-copy-list root)
+                             (list root))))))
     (with-temp-buffer
       (with-disabled-undo
        (with-inhibited-modification-hooks
-        (apply #'call-process
+        (apply #'process-file
                (foregin-setup-resolve-emacs-native-helper-path)
                nil
                t
