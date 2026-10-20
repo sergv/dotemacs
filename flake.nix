@@ -281,6 +281,10 @@
                 # capture source.
                 (cd "$dest_abs"; env -i PATH="${pkgs.lib.makeBinPath [pkgs.bash pkgs.gzip]}" bash "$src/scripts/dump.sh" "$dest_abs" "${emacs-raw}/bin/emacs" "${emacs.exe-name}.dmp")
 
+                # Copy company-mode icons
+                mkdir -p "$dest/third-party/company-mode"
+                cp -r "$src/third-party/company-mode/icons" "$dest/third-party/company-mode/"
+
                 # Very important to make config folder read-only after we built everything.
                 # Loading of .eln files likes to rename .eln file with tmp suffix before
                 # performing actual load (presumably to get fresh handle each time) which
