@@ -69,9 +69,10 @@ Return the root node of the syntax tree."
       (back-to-indentation)
       (point))))
 
-(add-to-list 'treesit-simple-indent-presets
-             (cons 'grand-parent-bol
-                   #'treesit-grand-parent-bol))
+(with-eval-after-load 'treesit
+  (add-to-list 'treesit-simple-indent-presets
+               (cons 'grand-parent-bol
+                     #'treesit-grand-parent-bol)))
 
 ;;;###autoload
 (when (and (fboundp 'treesit-available-p)
