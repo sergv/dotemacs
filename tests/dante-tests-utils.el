@@ -38,14 +38,15 @@
          (unwind-protect
              (with-current-buffer ,buf-var
                ,@body)
-           (when (buffer-live-p ,buf-var)
-             (awhen (get-buffer (dante-buffer-name (dante-get-config ,buf-var)))
-               (when (buffer-live-p it)
-                 (kill-buffer it)))
-             (awhen (get-buffer (dante-repl-buffer-name ,buf-var))
-               (when (buffer-live-p it)
-                 (kill-buffer it)))
-             (kill-buffer ,buf-var)))))))
+           (with-demoted-errors "Errors in dante-tests/with-file cleanup: %s"
+             (when (buffer-live-p ,buf-var)
+               (awhen (get-buffer (dante-buffer-name (dante-get-config ,buf-var)))
+                 (when (buffer-live-p it)
+                   (kill-buffer it)))
+               (awhen (get-buffer (dante-repl-buffer-name ,buf-var))
+                 (when (buffer-live-p it)
+                   (kill-buffer it)))
+               (kill-buffer ,buf-var))))))))
 
 (defmacro dante-tests/with-file-no-clean (path &rest body)
   (declare (indent 1))
