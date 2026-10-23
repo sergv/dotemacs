@@ -186,6 +186,37 @@ targets and components about current buffer’s ghci session."
       (cl-assert (not (null dante-config)))
       dante-config)))
 
+(cl-defstruct (dante-delayed
+               (:conc-name dante-delayed/)
+               (:constructor dante--make-delayed))
+  (has-error? nil :read-only t)
+  (contents nil :read-only t))
+
+(defun make-dante-delayed-success (x)
+  (dante--make-delayed
+   :has-error? nil
+   :contents x))
+
+(defun make-dante-delayed-error (err)
+  (cl-assert (stringp err))
+  (dante--make-delayed
+   :has-error? t
+   :contents err))
+
+(defun dante-delayed-success-satisfies? (pred x)
+  (if (dante-delayed/has-error? x)
+      ;; No success, only error <=> all successes satisfy
+      t
+    (funcall pred (dante-delayed/contents x))))
+
+(defun dante-resolve-delayed (x)
+  (let ((y (dante-delayed/contents x)))
+    (if (dante-delayed/has-error? x)
+        (progn
+          (cl-assert (stringp y))
+          (error y))
+      y)))
+
 ;; Already set up command lines for use in current buffer.
 ;; Will be typically populated twice, once for checking and
 ;; second time for the ‘dante-repl’.
@@ -204,15 +235,9 @@ targets and components about current buffer’s ghci session."
   ;; resides.
   (flake-root nil :read-only t)
 
-  ;; String or nil, e.g. "foo:lib:foo". Nil is for e.g. cabal script buffers with #!
-  (cabal-target nil :read-only t)
-
-  ;; Value of type ‘cabal-component’ struct or nil. Nil is for e.g. cabal script buffers with #!
-  (cabal-component nil :read-only t)
-
   ;; Cabal build directory for checking session.
   ;;
-  ;; String that together with ‘dante-config/build-package-subdir’ and
+  ;; String that together with ‘dante-config-resolve-build-package-subdir’ and
   ;; ‘cabal-component/build-dir’ produces build directory whene
   ;; component should reside.
   ;;
@@ -220,19 +245,16 @@ targets and components about current buffer’s ghci session."
   ;; /tmp/dist/dante/dante-16ca6f3ab925563e08232c0d57ad2b6dab717fa0/
   (build-dir nil :read-only t)
 
-  ;; Part under ‘dante-config/build-dir’ that specifies where cabal’s ‘build’ directory
-  ;; is to be found.
-  ;; E.g.
-  ;; build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-with-hsc-0.1
-  ;;
-  ;; May be nil, e.g. in #! buffers.
-  (build-package-subdir nil :read-only t)
-
   ;; Cabal build directory for the dante-repl session, e.g. /tmp/dist/dante/dante-repl-xxxxx
   (repl-dir nil :read-only t)
 
   ;; Value of type ‘dante-method’
-  (method nil :read-only t))
+  (method nil :read-only t)
+
+  ;; Nil or value of type ‘dante-configuration-result’ struct.
+  ;;
+  ;; Nil is for e.g. cabal script buffers with #!
+  (cabal-configuration-result nil :read-only t))
 
 ;; Describes how to make various command lines depending on found flakes,
 ;; presence of eproj project, etc.
@@ -365,7 +387,7 @@ targets and components about current buffer’s ghci session."
                                                    "--builddir"
                                                    (dante-config/build-dir cfg))
                                 :ghci-flags dante-ghci-check-static-options
-                                :target (dante-config/cabal-target cfg))))
+                                :dante-config cfg)))
                   (cl-assert (cmdline-p result)
                              nil
                              "Dante method command line must be of type ‘cmdline’, but it’s: %s"
@@ -381,7 +403,7 @@ targets and components about current buffer’s ghci session."
                                                    "--builddir"
                                                    (dante-config/repl-dir cfg))
                                 :ghci-flags dante-ghci-repl-options
-                                :target (dante-config/cabal-target cfg)))
+                                :dante-config cfg))
                       (load-no-mods
                        (funcall template
                                 :flake-root (dante-config/flake-root cfg)
@@ -391,7 +413,7 @@ targets and components about current buffer’s ghci session."
                                                    (dante-config/repl-dir cfg)
                                                    "--repl-no-load")
                                 :ghci-flags dante-ghci-repl-options
-                                :target (dante-config/cabal-target cfg))))
+                                :dante-config cfg)))
                   (cl-assert (cmdline-p load-all-mods))
                   (cl-assert (cmdline-p load-no-mods))
                   (make-dante-repl-cmdline
@@ -422,7 +444,7 @@ targets and components about current buffer’s ghci session."
                                                              "--repl-no-load"
                                                              "--with-repl=echo"))
                                   :ghci-flags dante-ghci-check-static-options
-                                  :target (dante-config/cabal-target cfg))))
+                                  :dante-config cfg)))
                     (cl-assert (cmdline-p result)
                                nil
                                "Dante method preprocess command line must be of type ‘cmdline’, but it’s: %s"
@@ -453,11 +475,11 @@ targets and components about current buffer’s ghci session."
                :repl-buf-name-func #'dante-buffer-name--default
                :template
                (cl-function
-                (lambda (&key flake-root cabal-flags ghci-flags target)
-                  (cl-assert (stringp target))
+                (lambda (&key flake-root cabal-flags ghci-flags dante-config)
+                  (cl-assert (dante-config-p dante-config))
                   (nix-call-via-flakes dante-cabal-executable
                                        `("repl"
-                                         ,target
+                                         ,(dante-config-resolve-cabal-target dante-config)
                                          ,@cabal-flags
                                          ,@(--mapcat (list "--repl-option" it) ghci-flags))
                                        flake-root))))
@@ -485,12 +507,12 @@ targets and components about current buffer’s ghci session."
                :repl-buf-name-func #'dante-buffer-name--default
                :template
                (cl-function
-                (lambda (&key cabal-flags ghci-flags target &allow-other-keys)
-                  (cl-assert (stringp target))
+                (lambda (&key cabal-flags ghci-flags dante-config &allow-other-keys)
+                  (cl-assert (dante-config-p dante-config))
                   (make-cmdline
                    :exe dante-cabal-executable
                    :args `("repl"
-                           ,target
+                           ,(dante-config-resolve-cabal-target dante-config)
                            ,@cabal-flags
                            ,@(--mapcat (list "--repl-option" it) ghci-flags))))))
 
@@ -518,7 +540,8 @@ Consider setting this variable as a directory variable."
   "Initialize the method used to run GHCi according to ‘dante-methods’."
   (let ((cabal-cfg (haskell-misc-configure-dante)))
     (when (and cabal-cfg
-               (not (stringp (dante-configuration-result/target cabal-cfg))))
+               (not (dante-delayed-success-satisfies? #'stringp
+                                                      (dante-configuration-result/target cabal-cfg))))
       (error "dante target not configured"))
     (let ((result nil)
           (ms dante-methods))
@@ -575,26 +598,36 @@ Consider setting this variable as a directory variable."
                       (cl-assert (dante-method-p method))
                       (cl-assert (or (null cabal-cfg)
                                      (dante-configuration-result-p cabal-cfg)))
-                      (cl-assert (or (null cabal-cfg)
-                                     (stringp (dante-configuration-result/cabal-build-root cabal-cfg))))
                       (setf result
                             (make-dante-config
                              :project-root proj-root
                              :eproj-root proj-root
                              :flake-root flake-root
-                             :cabal-target (and cabal-cfg
-                                                (dante-configuration-result/target cabal-cfg))
-                             :cabal-component (and cabal-cfg
-                                                   (dante-configuration-result/component cabal-cfg))
-                             :build-dir
-                             (funcall (dante-method/get-check-build-dir method) proj-root global-build-dir)
-                             :build-package-subdir (and cabal-cfg
-                                                        (dante-configuration-result/cabal-build-root cabal-cfg))
+                             :build-dir (funcall (dante-method/get-check-build-dir method) proj-root global-build-dir)
                              :repl-dir (funcall (dante-method/get-repl-build-dir method) proj-root global-build-dir)
-                             :method method))))))))))
+                             :method method
+                             :cabal-configuration-result cabal-cfg))))))))))
       (if result
           result
         (error "Dante not configured - no method applies")))))
+
+(defun dante-config-resolve-cabal-target (cfg)
+  (when-let* ((tmp (dante-config/cabal-configuration-result cfg)))
+    (dante-resolve-delayed (dante-configuration-result/target tmp))))
+
+(defun dante-config-resolve-cabal-target-lax (cfg)
+  (when-let* ((tmp (dante-config/cabal-configuration-result cfg))
+              (target (dante-configuration-result/target tmp)))
+    (when (not (dante-delayed/has-error? target))
+      (dante-delayed/contents target))))
+
+(defun dante-config-resolve-cabal-component (cfg)
+  (when-let* ((tmp (dante-config/cabal-configuration-result cfg)))
+    (dante-resolve-delayed (dante-configuration-result/component tmp))))
+
+(defun dante-config-resolve-build-package-subdir (cfg)
+  (when-let* ((tmp (dante-config/cabal-configuration-result cfg)))
+    (dante-configuration-result/cabal-build-root tmp)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Session-local variables. These are set *IN THE GHCi INTERACTION BUFFER*
@@ -1102,7 +1135,7 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
 (lcr-def dante--preprocess-project-if-needed (cfg is-repl?)
   (when (dante-method/make-preprocess-command-line (dante-config/method cfg))
     (let ((src-dirs (let* ((component
-                            (dante-config/cabal-component cfg))
+                            (dante-config-resolve-cabal-component cfg))
                            (cabal-file-dir
                             (strip-trailing-slash
                              (file-name-directory
@@ -1231,7 +1264,7 @@ E.g.
 /tmp/dist/dante/dante-233ed377513e0d49b904b94c75fa53a52976c9a3/build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-with-hsc-0.1/noopt
 "
   (cl-assert (dante-config-p cfg))
-  (let ((component (dante-config/cabal-component cfg)))
+  (let ((component (dante-config-resolve-cabal-component cfg)))
     (cl-assert (or (cabal-component-p component)
                    (null component)))
     (when component
@@ -1246,7 +1279,7 @@ E.g.
                       (concat (strip-trailing-slash it) "/")
                     "")
                   "dist-newstyle"))
-               (awhen (dante-config/build-package-subdir cfg)
+               (awhen (dante-config-resolve-build-package-subdir cfg)
                  (concat "/" it)))))
         ;; NB cannot rely on existence of returned directory here because we may get called
         ;; before directory is created.
@@ -1635,7 +1668,10 @@ This is a standard process sentinel function."
   "Default implementation for getting name of the GHCi interaction buffer.
 First, if needed, initialize the GHCi invokation method.  Then construct the
 appropriate buffer name on this basis."
-  (concat " *dante#" (dante-config/cabal-target cfg) "#" (dante-config/project-root cfg) "*"))
+  (let ((mid (aif (dante-config-resolve-cabal-target-lax cfg)
+                 (concat it "#")
+               "")))
+    (concat " *dante#" mid (dante-config/project-root cfg) "*")))
 
 (defun dante--create-ghci-interaction-buffer ()
   "Create the buffer for GHCi interaction."
