@@ -305,16 +305,29 @@ let
       };
 
   debug_wrapper =
-    [
-      "gdb"
-      "--quiet"
-      "--init-eval-command=set auto-load safe-path /"
-      # "--command=${emacs-src}/src/.gdbinit" "--directory=${emacs-src}/src/"
-      "--eval-command=set confirm on"
-      "--eval-command=run"
-      "--eval-command=quit"
-      "--args"
-    ];
+    if isDarwin
+    then
+      [
+        "lldb"
+        "-o"
+        "run"
+        "-o"
+        "bt"
+        "-o"
+        "quit"
+        "--"
+      ]
+    else
+      [
+        "gdb"
+        "--quiet"
+        "--init-eval-command=set auto-load safe-path /"
+        # "--command=${emacs-src}/src/.gdbinit" "--directory=${emacs-src}/src/"
+        "--eval-command=set confirm on"
+        "--eval-command=run"
+        "--eval-command=quit"
+        "--args"
+      ];
 
   emacs-raw-pkg =
     if assertions
@@ -384,4 +397,5 @@ in {
 
   raw = emacs-raw-pkg;
   wrapped = emacs-wrapped;
+  test-inputs = if isDarwin then [ pkgs.lldb ] else [];
 }

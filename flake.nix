@@ -309,7 +309,7 @@
                 # there’s no internet in nix sandboxes and cabal doesn’t work without it yet.
                 # trix.packages."${system}".trix
                 # haskell-tools.tools.cabal
-              ];
+              ] ++ emacs-pkg.test-inputs;
               checkPhase = ''
                 runHook preCheck
 
