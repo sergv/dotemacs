@@ -28,7 +28,7 @@
                        dir)))
          (command (nix-maybe-call-via-flakes-exe-args
                    dante-cabal-executable
-                   (list "build" "--builddir" build-dir (dante-config/cabal-target (dante-get-config)))
+                   (list "build" "--builddir" build-dir (dante-config-resolve-cabal-target (dante-get-config)))
                    proj-dir)))
     (flycheck-report-status 'running)
     (let ((buf (get-buffer-create (haskell-flycheck-cabal-build--buffer-name))))
@@ -114,7 +114,7 @@
 
 (defun haskell-flycheck-cabal-build--buffer-name ()
   (let ((cfg (dante-get-config)))
-    (concat " *flycheck#" (dante-config/cabal-target cfg) "#" (dante-config/project-root cfg) "*")))
+    (concat " *flycheck#" (dante-config-resolve-cabal-target cfg) "#" (dante-config/project-root cfg) "*")))
 
 (flycheck-define-generic-checker 'haskell-cabal-build
   "A syntax and type checker for Haskell using regular ‘cabal build’.

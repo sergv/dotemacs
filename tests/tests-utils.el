@@ -313,6 +313,28 @@ Ensures a final newline is inserted."
            ,@body)
        (delete-file ,created-tmp-file-var))))
 
+(defmacro test-utils--with-temp-dir (created-tmp-dir-var dir-prefix dir-suffix entries &rest body)
+  (declare (indent 4))
+  (cl-assert (symbolp created-tmp-dir-var))
+  (cl-assert (stringp dir-prefix))
+  (let ((tmp-var '#:tmp))
+    `(let ((,created-tmp-dir-var (make-temp-file ,dir-prefix t ,dir-suffix)))
+       (unwind-protect
+           (progn
+             ,@(cl-loop
+                for x in entries
+                collect
+                (cl-destructuring-bind (name contents) x
+                  (cl-assert (stringp name))
+                  (cl-assert (stringp contents))
+                  `(with-temp-buffer
+                     (insert ,contents)
+                     (let ((dest (concat ,created-tmp-dir-var "/" ,name)))
+                       (make-directory (file-name-directory dest) t)
+                       (write-region (point-min) (point-max) dest)))))
+             ,@body)
+         (delete-directory ,created-tmp-dir-var t)))))
+
 (provide 'tests-utils)
 
 ;; Local Variables:

@@ -42,7 +42,7 @@
         (should flycheck-mode)
         (should dante-mode)
 
-        (should (string= (dante-config/cabal-target (dante-get-config))
+        (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                          "emacs-dante-simple-check-test-project-with-hsc:lib:emacs-dante-simple-check-test-project-with-hsc"))
 
         (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
@@ -119,7 +119,7 @@
         (should flycheck-mode)
         (should dante-mode)
 
-        (should (string= (dante-config/cabal-target (dante-get-config))
+        (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                          "emacs-dante-simple-check-test-project-with-hsc:lib:emacs-dante-simple-check-test-project-with-hsc"))
 
         (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
@@ -178,7 +178,7 @@
     (should flycheck-mode)
     (should dante-mode)
 
-    (should (string= (dante-config/cabal-target (dante-get-config))
+    (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                      "emacs-dante-simple-repl-test-project-with-hsc:lib:emacs-dante-simple-repl-test-project-with-hsc"))
 
     (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
@@ -226,7 +226,7 @@
     (should flycheck-mode)
     (should dante-mode)
 
-    (should (string= (dante-config/cabal-target (dante-get-config))
+    (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                      "emacs-dante-simple-repl-test-project-with-hsc:lib:emacs-dante-simple-repl-test-project-with-hsc"))
 
     (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
@@ -280,7 +280,7 @@
         (should flycheck-mode)
         (should dante-mode)
 
-        (should (string= (dante-config/cabal-target (dante-get-config))
+        (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                          "emacs-dante-simple-check-test-project-with-hsc:lib:emacs-dante-simple-check-test-project-with-hsc"))
 
         (should (eq 'build (dante-method/name (dante-config/method (dante-get-config)))))
