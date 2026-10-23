@@ -71,7 +71,7 @@
     (should flycheck-mode)
     (should dante-mode)
 
-    (should (string= (dante-config/cabal-target (dante-get-config))
+    (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                      "emacs-dante-simple-check-test-project:lib:emacs-dante-simple-check-test-project"))
 
     (delete-directory (dante-config/build-dir (dante-get-config)) t)
@@ -120,7 +120,7 @@
         (should flycheck-mode)
         (should dante-mode)
 
-        (should (string= (dante-config/cabal-target (dante-get-config))
+        (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                          "emacs-dante-simple-check-test-project:lib:emacs-dante-simple-check-test-project"))
 
         (delete-directory (dante-config/build-dir (dante-get-config)) t)
@@ -183,7 +183,7 @@
     (should flycheck-mode)
     (should dante-mode)
 
-    (should (string= (dante-config/cabal-target (dante-get-config))
+    (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                      "emacs-dante-simple-check-test-project-name-shadowing-error:lib:emacs-dante-simple-check-test-project-name-shadowing-error"))
 
     (delete-directory (dante-config/build-dir (dante-get-config)) t)
@@ -241,7 +241,7 @@
         (should flycheck-mode)
         (should dante-mode)
 
-        (should (string= (dante-config/cabal-target (dante-get-config))
+        (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                          "emacs-dante-simple-check-test-project-error-with-rel-path-main:lib:emacs-dante-simple-check-test-project-error-with-rel-path-main"))
 
         (delete-directory (dante-config/build-dir (dante-get-config)) t)
@@ -317,7 +317,7 @@
    (should flycheck-mode)
    (should dante-mode)
 
-   (should (string= (dante-config/cabal-target (dante-get-config))
+   (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                     "test-project-with-ifdef:lib:test-project-with-ifdef"))
 
    (delete-directory (dante-config/build-dir (dante-get-config)) t)
@@ -338,7 +338,7 @@
     (should flycheck-mode)
     (should dante-mode)
 
-    (should (string= (dante-config/cabal-target (dante-get-config))
+    (should (string= (dante-config-resolve-cabal-target (dante-get-config))
                      "emacs-dante-simple-repl-test-project:lib:emacs-dante-simple-repl-test-project"))
 
     (delete-directory (dante-config/repl-dir (dante-get-config)) t)
@@ -383,7 +383,6 @@
       (comint-send-input)
       (dante-repl/wait-for-prompt repl-proc)
       (should (string= (dante-repl-get-last-output) "36\n")))))
-
 
 (ert-deftest z-dante-tests/simple-check-project-ghci-method-1 ()
   (unless (executable-find "ghc")
@@ -439,6 +438,82 @@ bar = foo
         (dante-tests/type-at-point-and-assert-when-done
             ty
           (should (string= ty "foo :: Int")))))))
+
+(ert-deftest z-dante-tests/simple-check-project-ghci-method-2-custom-method-not-fails-from-unresolved-cabal-component ()
+  (unless (executable-find "ghc")
+    (ert-skip "ghc not available"))
+  (unless (treesit-language-available-p 'haskell)
+    (ert-skip "haskell-ts-mode not available"))
+  (let ((flycheck-setup--force-enable-flycheck-for-tests t)
+        (dante-methods '(bare-ghci)))
+    (test-utils--with-temp-dir
+        root
+        "tmp"
+        nil
+        (("quux/Test.hs"
+          "\
+foo :: Int
+foo = 1
+
+bar :: String
+bar = foo
+")
+         ;; These are created to distract Emacs but are pretty loosely related to quux/Test.hs.
+         ;; Originally quux/Test.hs is actually mentioned in some other cabal file within a project
+         ;; and dante-test.cabal is just the cabal file at toplevel that’s found first. But full
+         ;; structure is not reproduced here since smaller test should suffice.
+         ("Lib.hs"
+          "\
+module Lib where
+
+baz :: Int
+baz = 1
+")
+         ("dante-test.cabal"
+          "\
+cabal-version: 3.4
+name: dante-test
+version: 0.1
+
+library
+  default-language: Haskell2010
+  exposed-modules:  Lib
+"))
+
+      (dante-tests/with-file (concat root "/quux/Test.hs")
+        (let ((cfg (dante-get-config)))
+          (should (not (null cfg)))
+          (should (eq 'bare-ghci (dante-method/name (dante-config/method cfg)))))
+
+        (should flycheck-mode)
+        (should dante-mode)
+
+        (dante-tests/check-buffer-and-assert-when-done
+         (should (not (null flycheck-current-errors)))
+
+         (should (not (null flycheck-current-errors)))
+         (should (= 1 (length flycheck-current-errors)))
+         (let ((err (car flycheck-current-errors)))
+           (should (dante-tests--paths= (flycheck-error-filename err)
+                                        (concat root "/quux/Test.hs")))
+           (should (= (flycheck-error-line err) 5))
+           (should (string-search "GHC-83865" (flycheck-error-message err)))
+           (let ((msg (flycheck-error-message err)))
+             (should (string-match-p
+                      (rx-let ((apostrophe (any ?\' ?\’))
+                               (quotes (x) (seq (any ?\` ?\‘) x (any ?\' ?\’) ))
+                               (ws (+ (any ?\s ?\t))))
+                        (rx "Couldn" apostrophe "t" ws
+                            "match" ws
+                            "type" ws (quotes "Int") ws "with" ws (quotes (or "[Char]" "String"))))
+                      msg)))))
+        (progn
+          (goto-line-dumb 1)
+          (move-to-column 1)
+
+          (dante-tests/type-at-point-and-assert-when-done
+           ty
+           (should (string= ty "foo :: Int"))))))))
 
 (provide 'dante-tests)
 

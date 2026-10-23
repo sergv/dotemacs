@@ -1372,15 +1372,23 @@ value section should have if it is to be properly indented."
        t))
 
 (cl-defstruct (dante-configuration-result
-            (:conc-name dante-configuration-result/))
-  ;; String
+               (:conc-name dante-configuration-result/))
+  ;; ‘dante-delayed-value’ of string string or nil, e.g. "foo:lib:bar".
   (target nil :read-only t)
   ;; String that together with ‘cabal-component/build-dir’ and global build root produces
   ;; build directory whene component should reside.
   ;; E.g.
   ;; build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-0.1
+  ;;
+  ;; Part under ‘dante-config/build-dir’ that specifies where cabal’s ‘build’ directory
+  ;; is to be found.
+  ;; E.g.
+  ;; build/x86_64-linux/ghc-9.12.2/emacs-dante-simple-check-test-project-with-hsc-0.1
+  ;;
+  ;; May be nil, e.g. in #! buffers.
   (cabal-build-root nil :read-only t)
   ;; nil or value of type ‘cabal-component’
+  ;; Value of type ‘deante-delayed-value’ of ‘cabal-component’ struct or nil.
   (component nil :read-only t))
 
 (defun haskell-misc-configure-dante ()
@@ -1404,7 +1412,6 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                     (let ((component nil)
                           (pkg-name nil)
                           (found-cabal-build-root nil))
-
                       (cl-loop
                        for cabal-file in cabal-files
                        while (not component)
@@ -1426,26 +1433,34 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                                (cl-assert (stringp pkg-name) nil
                                           "Expected package name to be a string but got %s" pkg-name))
                              (setf all-warnings (nconc warnings all-warnings))))))
-
-                      (if component
-                          (make-dante-configuration-result
-                           :target
-                           (concat pkg-name ":"
-                                   (cabal-component-get-cabal-target component))
-                           :cabal-build-root
-                           (car found-cabal-build-root)
-                           :component
-                           component)
-                        (error "Couldn’t determine cabal component for %s from cabal file%s%s"
-                               (file-name-nondirectory fname)
-                               (if (null (cdr cabal-files))
-                                   (concat " " (car cabal-files))
-                                 (concat "s "
-                                         (mapconcat #'file-name-nondirectory cabal-files ", ")))
-                               (if all-warnings
-                                   (format "\nFound problems:\n%s"
-                                           (mapconcat (lambda (x) (concat "- " x)) all-warnings "\n"))
-                                 ""))))
+                      (let ((cabal-build-root (car found-cabal-build-root)))
+                        (if component
+                            (make-dante-configuration-result
+                             :target
+                             (make-dante-delayed-success
+                              (concat pkg-name ":"
+                                      (cabal-component-get-cabal-target component)))
+                             :cabal-build-root
+                             cabal-build-root
+                             :component
+                             (make-dante-delayed-success
+                              component))
+                          (let ((err
+                                 (make-dante-delayed-error
+                                  (format "Couldn’t determine cabal component for %s from cabal file%s%s"
+                                          (file-name-nondirectory fname)
+                                          (if (null (cdr cabal-files))
+                                              (concat " " (car cabal-files))
+                                            (concat "s "
+                                                    (mapconcat #'file-name-nondirectory cabal-files ", ")))
+                                          (if all-warnings
+                                              (format "\nFound problems:\n%s"
+                                                      (mapconcat (lambda (x) (concat "- " x)) all-warnings "\n"))
+                                            "")))))
+                            (make-dante-configuration-result
+                             :target err
+                             :cabal-build-root cabal-build-root
+                             :component err)))))
                   nil)
               (error "Buffer’s directory doesn’t exist: %s" default-directory))
           (error "Buffer has no file: %s" buf))))))
