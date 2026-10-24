@@ -100,35 +100,45 @@
                               (column-b (egrep-match-column b)))
                           (< column-a column-b)))))))))
 
+(defun egrep--remove-string-text-property! (str prop)
+  (remove-text-properties 0 (length str) (list prop t) str)
+  str)
+
 (defun egrep--format-match-entry (match-entry)
   "Make text entry for current match that can be shown to the user.
 
 MATCH-START and MATCH-END are match bounds in the current buffer"
   (let ((header
-         (concat (propertize (egrep-match-short-file-name match-entry)
-                             'face 'eproj-symbnav-file-name)
-                 ":"
-                 (propertize (number->string (egrep-match-line match-entry))
-                             'face 'compilation-line-number)
-                 ":"
-                 (propertize (number->string (egrep-match-column match-entry))
-                             'face 'compilation-column-number)
-                 ":"))
+         (propertize
+          (concat (propertize (egrep-match-short-file-name match-entry)
+                              'face 'eproj-symbnav-file-name)
+                  ":"
+                  (propertize (number->string (egrep-match-line match-entry))
+                              'face 'compilation-line-number)
+                  ":"
+                  (propertize (number->string (egrep-match-column match-entry))
+                              'face 'compilation-column-number)
+                  ":")
+          'egrep--formatting t
+          'read-only t))
         (matched-text
-         (concat
-          (egrep-match-matched-prefix match-entry)
-          (propertize (egrep-match-matched-text match-entry)
-                      'face
-                      'lazy-highlight)
-          (egrep-match-matched-suffix match-entry))))
+         (egrep--remove-string-text-property!
+          (concat
+           (egrep-match-matched-prefix match-entry)
+           (propertize (egrep-match-matched-text match-entry)
+                       'face
+                       'lazy-highlight)
+           (egrep-match-matched-suffix match-entry))
+          'read-only)))
     (let ((header-space (make-string (length header) ?\s))
           (lines (split-into-lines matched-text t)))
       (cl-assert lines)
       (if lines
-          (concat (propertize (concat (car lines) "\n")
-                              'line-prefix header)
+          (concat header (car lines) "\n"
                   (if (cdr lines)
                       (mapconcat (lambda (line)
+                                   ;; Keep header-induced alignment space ephemeral
+                                   ;; so that we never try to search and replace in it.
                                    (propertize (concat line "\n")
                                                'line-prefix header-space))
                                  (cdr lines)
@@ -309,6 +319,17 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
             (redisplay t))
           matches)))))
 
+(defun egrep--extract-new-replacement-text (buffer-str)
+  (let ((formatting-spans (find-property-spans-in-string 'egrep--formatting buffer-str)))
+    (pcase formatting-spans
+      (`((t ,_ ,_) (nil ,contents-start ,contents-end))
+       (substring-no-properties buffer-str
+                                contents-start
+                                ;; Drop extra final newline
+                                (- contents-end 1)))
+      (_
+       (error "New buffer contents has modified formatting part: %s" formatting-spans)))))
+
 (defun egrep-commit-changed-entries ()
   (interactive)
   (let ((changed-entries nil))
@@ -321,9 +342,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                (substring-no-properties (egrep-match-matched-text match-entry))
                (substring-no-properties (egrep-match-matched-suffix match-entry))))
              ;; Current contents, commit it if it differs from what was shown.
-             (stripped-buffer-str (substring (substring-no-properties buffer-str)
-                                             0
-                                             -1)))
+             (stripped-buffer-str (egrep--extract-new-replacement-text buffer-str)))
          (when (not (string= orig-str stripped-buffer-str))
            (push (list match-entry orig-str stripped-buffer-str) changed-entries)))))
     (let ((changed-entries-hash-table
@@ -436,7 +455,6 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
      :buffer-name "*grep*"
      :enable-undo t
      :after-init (lambda ()
-                   (remove-text-properties (point-min) (point-max) '(read-only t))
                    (use-local-map (make-sparse-keymap))
                    (undo-tree-mode +1)
                    (setf vim-normal-mode-local-keymap kmap
