@@ -756,6 +756,43 @@
   (should (string= (strip-string-suffix "foo" "foobar") "foobar"))
   (should (string= (strip-string-suffix "bar" "foobar") "foo")))
 
+(ert-deftest common-tests/find-property-spans-in-string-1 ()
+  (let ((str
+         (concat
+          "x"
+          (propertize "abc" 'foo t)
+          "xyz"
+          (propertize "abc" 'foo t))))
+    (equal (find-property-spans-in-string 'foo str)
+           (list (list nil 0 1) (list t 1 4) (list nil 4 7) (list t 7 10)))))
+
+(ert-deftest common-tests/find-property-spans-in-string-2 ()
+  (let ((str
+         (concat
+          (propertize "abc" 'foo t)
+          "xyz"
+          (propertize "abc" 'foo t))))
+    (equal (find-property-spans-in-string 'foo str)
+           (list (list t 0 3) (list nil 3 6) (list t 6 9)))))
+
+(ert-deftest common-tests/find-property-spans-in-string-3 ()
+  (let ((str
+         (concat
+          (propertize "abc" 'foo t)
+          "xyz"
+          (propertize "abc" 'foo t)
+          "x")))
+    (equal (find-property-spans-in-string 'foo str)
+           (list (list t 0 3) (list nil 3 6) (list t 6 9) (list nil 9 10)))))
+
+(ert-deftest common-tests/find-property-spans-in-string-4 ()
+  (let ((str
+         (concat
+          (propertize "abc" 'foo t)
+          (propertize "abc" 'foo t))))
+    (equal (find-property-spans-in-string 'foo str)
+           (list (list t 0 6)))))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
