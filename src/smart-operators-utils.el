@@ -115,7 +115,7 @@ that next 2 characters are AFTER1 and AFTER2."
     (when (not (memq next-char '(?\s ?\t ?\')))
       (insert-char ?\s))))
 
-(defun smart-operators--insert-pair (open close insert-space-before? insert-space-after?)
+(defun smart-operators--insert-pair (open close insert-space-before? insert-space-after? insert-space-between?)
   (let ((before (preceding-char)))
     (when (and (funcall insert-space-before? before)
                (not (whitespace-char? before)))
@@ -128,7 +128,11 @@ that next 2 characters are AFTER1 and AFTER2."
           (forward-char -1)
         (progn
           (insert-char ?\s)
-          (forward-char -2))))))
+          (forward-char -2))))
+    (when insert-space-between?
+      (insert-char ?\s)
+      (insert-char ?\s)
+      (forward-char -1))))
 
 ;;;###autoload
 (defun smart-operators-double-quote (literal-insertion?)
@@ -139,41 +143,47 @@ that next 2 characters are AFTER1 and AFTER2."
     ((eq (following-char) ?\")
      (forward-char))
     (t
-     (smart-operators--insert-pair ?\"
-                                   ?\"
-                                   (lambda (before)
-                                     (not (or (eq before ?\()
-                                              (eq before ?\[)
-                                              (eq before ?\\))))
-                                   (lambda (after)
-                                     (not (or (eq after ?\))
-                                              (eq after ?\]))))))))
+     (smart-operators--insert-pair
+      ?\"
+      ?\"
+      (lambda (before)
+        (not (or (eq before ?\()
+                 (eq before ?\[)
+                 (eq before ?\\))))
+      (lambda (after)
+        (not (or (eq after ?\))
+                 (eq after ?\]))))
+      nil))))
 
 ;;;###autoload
 (defun smart-operators-open-paren ()
   (interactive "*")
-  (smart-operators--insert-pair ?\(
-                                ?\)
-                                (lambda (before)
-                                  (not (or (eq before ?\()
-                                           (eq before ?\[)
-                                           (eq before ?\\))))
-                                (lambda (after)
-                                  (not (or (eq after ?\))
-                                           (eq after ?\]))))))
+  (smart-operators--insert-pair
+   ?\(
+   ?\)
+   (lambda (before)
+     (not (or (eq before ?\()
+              (eq before ?\[)
+              (eq before ?\\))))
+   (lambda (after)
+     (not (or (eq after ?\))
+              (eq after ?\]))))
+   nil))
 
 ;;;###autoload
 (defun smart-operators-open-bracket ()
   (interactive "*")
-  (smart-operators--insert-pair ?\[
-                                ?\]
-                                (lambda (before)
-                                  (not (or (eq before ?\()
-                                           (eq before ?\[)
-                                           (eq before ?\\))))
-                                (lambda (after)
-                                  (not (or (eq after ?\))
-                                           (eq after ?\]))))))
+  (smart-operators--insert-pair
+   ?\[
+   ?\]
+   (lambda (before)
+     (not (or (eq before ?\()
+              (eq before ?\[)
+              (eq before ?\\))))
+   (lambda (after)
+     (not (or (eq after ?\))
+              (eq after ?\]))))
+   nil))
 
 ;;;###autoload
 (defun smart-operators-close-paren (literal-insertion?)

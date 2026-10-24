@@ -895,61 +895,65 @@ enabled and quoted ASCII ones in comments and strings."
         (when (text-before-matches? "defined")
           (delete-region (point) p)
           (setf no-space-before? t))))
-    (smart-operators--insert-pair ?\(
-                                  ?\)
-                                  (lambda (before)
-                                    (not (or literal-insertion?
-                                             (eq before ?\()
-                                             (eq before ?\[)
-                                             (eq before ?\\)
-                                             (eq before ?@)
-                                             (eq before ?')
-                                             (if checked-import-or-export-list?
-                                                 inside-import-or-export-list?
-                                               (setf checked-import-or-export-list? t
-                                                     inside-import-or-export-list?
-                                                     (or (haskell-smart-operators--in-import-list?)
-                                                         (haskell-smart-operators--in-export-list?))))
-                                             no-space-before?)))
-                                  (lambda (after)
-                                    (not (or literal-insertion?
-                                             (eq after ?\))
-                                             (eq after ?\])
-                                             (eq after ?,)
-                                             (if checked-import-or-export-list?
-                                                 inside-import-or-export-list?
-                                               (setf checked-import-or-export-list? t
-                                                     inside-import-or-export-list?
-                                                     (or (haskell-smart-operators--in-import-list?)
-                                                         (haskell-smart-operators--in-export-list?))))))))))
+    (smart-operators--insert-pair
+     ?\(
+     ?\)
+     (lambda (before)
+       (not (or literal-insertion?
+                (eq before ?\()
+                (eq before ?\[)
+                (eq before ?\\)
+                (eq before ?@)
+                (eq before ?')
+                (if checked-import-or-export-list?
+                    inside-import-or-export-list?
+                  (setf checked-import-or-export-list? t
+                        inside-import-or-export-list?
+                        (or (haskell-smart-operators--in-import-list?)
+                            (haskell-smart-operators--in-export-list?))))
+                no-space-before?)))
+     (lambda (after)
+       (not (or literal-insertion?
+                (eq after ?\))
+                (eq after ?\])
+                (eq after ?,)
+                (if checked-import-or-export-list?
+                    inside-import-or-export-list?
+                  (setf checked-import-or-export-list? t
+                        inside-import-or-export-list?
+                        (or (haskell-smart-operators--in-import-list?)
+                            (haskell-smart-operators--in-export-list?)))))))
+     nil)))
 
 ;;;###autoload
 (defun haskell-smart-operators-open-bracket ()
   (interactive)
   (let ((literal-insertion? (haskell-smart-operators--literal-insertion?))
         (p (point)))
-    (smart-operators--insert-pair ?\[
-                                  ?\]
-                                  (lambda (before)
-                                    (not (or literal-insertion?
-                                             (eq before ?\()
-                                             (eq before ?\[)
-                                             (eq before ?\\)
-                                             (eq before ?@)
-                                             (eq before ?')
-                                             (when (derived-mode-p 'haskell-ts-base-mode)
-                                               (and (eq before ?!)
-                                                    (treesit-utils-find-topmost-parent
-                                                     (treesit-haskell-node-at p)
-                                                     (lambda (x)
-                                                       (let ((typ (treesit-node-type x)))
-                                                         (and (member-str typ "data_constructor" "gadt_constructor")
-                                                              (treesit-utils-is-inside-node? p x))))))))))
-                                  (lambda (after)
-                                    (not (or literal-insertion?
-                                             (eq after ?\))
-                                             (eq after ?\])
-                                             (eq after ?,)))))))
+    (smart-operators--insert-pair
+     ?\[
+     ?\]
+     (lambda (before)
+       (not (or literal-insertion?
+                (eq before ?\()
+                (eq before ?\[)
+                (eq before ?\\)
+                (eq before ?@)
+                (eq before ?')
+                (when (derived-mode-p 'haskell-ts-base-mode)
+                  (and (eq before ?!)
+                       (treesit-utils-find-topmost-parent
+                        (treesit-haskell-node-at p)
+                        (lambda (x)
+                          (let ((typ (treesit-node-type x)))
+                            (and (member-str typ "data_constructor" "gadt_constructor")
+                                 (treesit-utils-is-inside-node? p x))))))))))
+     (lambda (after)
+       (not (or literal-insertion?
+                (eq after ?\))
+                (eq after ?\])
+                (eq after ?,))))
+     nil)))
 
 (defun haskell-smart-operators-open-brace--skip-back-constructor-name ()
   (let ((case-fold-search nil))
@@ -966,7 +970,10 @@ enabled and quoted ASCII ones in comments and strings."
   (let ((literal-insertion? (haskell-smart-operators--literal-insertion?))
         (is-hsc? (derived-mode-p 'haskell-hsc-mode))
         (deleted-spaces? nil)
-        (is-after-constructor? nil))
+        (is-after-constructor? nil)
+        (within-datatype?
+         (when (derived-mode-p 'haskell-ts-base-mode)
+           (treesit-haskell--within-data-type?))))
 
     (when is-hsc?
       (save-excursion
@@ -999,14 +1006,17 @@ enabled and quoted ASCII ones in comments and strings."
                     (if is-hsc?
                         (eq before ?#)
                       nil)
-                    is-after-constructor?))))
+                    (if is-after-constructor?
+                        (not within-datatype?)
+                      nil)))))
      (lambda (after)
        (not (or literal-insertion?
                 (eq after 41 ;; )
                     )
                 (eq after 93 ;; ]
                     )
-                (eq after ?,)))))))
+                (eq after ?,))))
+     within-datatype?)))
 
 ;;;###autoload
 (define-minor-mode haskell-smart-operators-mode

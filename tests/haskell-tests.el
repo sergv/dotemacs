@@ -10792,6 +10792,31 @@ Entries should be a list of of elements of the form
   "  pure FindConfig{_|_}"
   ""))
 
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-smart-operators-open-brace)
+ :entries
+ ((:name
+   haskell-tests/haskell-smart-operators--open-brace-17a
+   :contents
+   (tests-utils--multiline
+    ""
+    "data Foo = Foo_|_"
+    ""))
+  (:name
+   haskell-tests/haskell-smart-operators--open-brace-17b
+   :contents
+   (tests-utils--multiline
+    ""
+    "data Foo = Foo   _|_"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo = Foo { _|_ }"
+  ""))
+
 (defconst haskell-tests/cabal-test-data
   (concat +test-utils--test-root+ "/test-data/cabal"))
 
