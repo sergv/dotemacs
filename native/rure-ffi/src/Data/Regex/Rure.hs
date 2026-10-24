@@ -147,6 +147,7 @@ bytestringHasMatch !(Regex re) !haystack = unsafePerformIO $
       isTruthy <$> FFI.rureIsMatch rePtr (coerce haystackPtr) (fromIntegral haystackLen) 0
 
 newtype ReversedList a = ReversedList { unReversedList :: [a] }
+  deriving (Eq, Ord, Show, Generic)
 
 bytestringAllMatches :: Regex -> BS.ByteString -> ReversedList Match
 bytestringAllMatches re haystack = unsafePerformIO $
