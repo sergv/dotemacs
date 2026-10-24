@@ -131,6 +131,51 @@
   (should-error
    (egrep--find-matches regexp '("*.decombobulate") egrep-tests/project-dir nil nil nil nil)))
 
+(grep-tests--define-tests "egrep-tests-commit-changed-entries/%s"
+    regexp
+    "foo"
+    "foo"
+  (test-utils--with-temp-dir
+      root
+      "egrep-test"
+      ""
+      (("foo.txt"
+        "\
+foo
+bar")
+       ("bar.txt"
+        "\
+bar
+foo"))
+
+    (with-temp-buffer
+      (cd root)
+      (egrep regexp '("*.txt") root nil)
+
+      ;; egrep in batch mode doesn’t switch buffer automatically
+      (with-current-buffer (get-buffer "*grep*")
+        (should (string= "*grep*" (buffer-name (current-buffer))))
+        (should (eq major-mode 'select-mode))
+
+        (vim:cmd-substitute:wrapper
+         :argument "/foo/baz/"
+         :motion (vim-make-motion :has-begin t
+                                  :begin (point-min)
+                                  :end (point-max)
+                                  :type 'linewise))
+        (egrep-commit-changed-entries)))
+
+    (should (string= (read-file-contents-literally-as-string (concat root "/foo.txt"))
+                     "\
+baz
+bar"))
+
+    (should (string= (read-file-contents-literally-as-string (concat root "/bar.txt"))
+                     "\
+bar
+baz"))
+
+    ))
 (provide 'egrep-tests)
 
 ;; Local Variables:
