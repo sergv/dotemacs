@@ -451,7 +451,7 @@ pattern and replace matches with REPLACEMENT.
          (last-line (if motion
                         (vim-motion-last-line motion)
                       current-line))
-         (last-line-pos (if (= current-line last-line)
+         (last-line-pos (if (eq current-line last-line)
                             (line-end-position)
                           (save-excursion
                             (goto-line-dumb last-line)
@@ -459,7 +459,7 @@ pattern and replace matches with REPLACEMENT.
          (regex (vim-pattern-regex pattern))
          (last-point (point))
          (overlay (make-overlay (point) (point)))
-         (first-line-pos (if (= current-line first-line)
+         (first-line-pos (if (eq current-line first-line)
                              (line-beginning-position)
                            (save-excursion
                              (goto-line-dumb first-line)
@@ -551,7 +551,7 @@ pattern and replace matches with REPLACEMENT.
                        (beginning-of-line))))
 
                  (goto-char last-point)
-                 (if (= nreplaced 1)
+                 (if (eq nreplaced 1)
                      (vim-notify "Replaced 1 occurence")
                    (vim-notify "Replaced %d occurences" nreplaced)))))
 
@@ -631,7 +631,7 @@ regular expressions."
     ;; handle escaped chars
     (while (< idx n)
       (let ((char (aref replacement idx)))
-        (if (and (= char ?\\)
+        (if (and (eq char ?\\)
                  (< (1+ idx) n))
           (let ((next-char (aref replacement (1+ idx))))
             (cl-case next-char
