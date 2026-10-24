@@ -795,9 +795,12 @@ current project."
            (eproj-project/ignored-dirs-globs proj))))
 
 ;;;###autoload
-(defun eproj-get-relative-ignored-dirs-globs (proj)
-  "Like ‘eproj-get-absolute-ignored-dirs-globs’ but returns directories relative to project root."
-  (eproj-project/ignored-dirs-globs proj))
+(defun eproj-get-absolute-and-relative-ignored-dirs-globs (proj)
+  "Like ‘eproj-get-absolute-ignored-dirs-globs’ but returns pairs of absolute and relative paths.
+Relative paths are relative to the project root."
+  (let ((root (eproj-project/root proj)))
+    (--map (cons (concat root "/" it) it)
+           (eproj-project/ignored-dirs-globs proj))))
 
 ;;;; project creation
 
