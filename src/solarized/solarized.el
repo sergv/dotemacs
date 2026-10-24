@@ -246,7 +246,7 @@
       (cursor :background ,cyan)
       (ivy-posframe-cursor :foreground ,cyan :bold t)
       (escape-glyph-face :foreground ,red)
-      (fringe :foreground ,secondary-content :background ,background-highlights)
+      (fringe :foreground ,secondary-content)
       (help-key-binding :box (:line-width ,box-line-width :color ,emphasized-content))
       (highlight :background ,background-highlights)
       (menu :foreground ,primary-content :background ,background-highlights)
