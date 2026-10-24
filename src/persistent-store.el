@@ -63,15 +63,10 @@
      (cl-assert (symbolp key))
      (setf (gethash ,key persistent-store-content) ,value)))
 
-(defun persistent-store-load-file (filename)
-  (with-temp-buffer
-    (insert-file-contents-literally filename)
-    (buffer-substring-no-properties (point-min) (point-max))))
-
 (defun persistent-store-load-contents ()
   "Load database contents from file."
   (let* ((new-file-content (if (file-exists-p persistent-store-store-file)
-                               (persistent-store-load-file persistent-store-store-file)
+                               (read-file-contents-literally-as-string persistent-store-store-file)
                              "()"))
          (new-content
           (condition-case nil
@@ -187,7 +182,7 @@ performed for some field."
   "Flush db contents to file."
   (let ((new-content (--filter (symbolp (car it)) (hash-table->alist persistent-store-content)))
         (current-content-str
-         (persistent-store-load-file persistent-store-store-file))
+         (read-file-contents-literally-as-string persistent-store-store-file))
         (entries-sort-pred
          (lambda (x y)
            (string< (car x) (car y)))))
