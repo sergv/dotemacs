@@ -13,59 +13,65 @@
 
 (require 'nanothunk)
 
-(defvar focus--fringe-indicators-sans-continuation
+(defvar focus--padding-buffer-thunk
   (nanothunk-delay
-   (let ((tmp (copy-sequence fringe-indicator-alist)))
-     (setf (cdr (assoc 'continuation tmp))
-           (list nil nil))
-     tmp))
-  "Lazy-initialized")
+   (let ((buf (get-buffer-create " *focus-padding*")))
+     (with-current-buffer buf
+       (text-mode)
+       (setq-local cursor-type nil
+                   ;; No mode line
+                   mode-line-format nil
+                   ;; Dummy empty mode line
+                   ;; mode-line-format t
+                   )
+       (read-only-mode t))
+     buf)))
 
-(defun focus--centered-window-fringes (&optional window)
-  (let* ((window-width (window-pixel-width window))
-         (pixel (frame-char-width (window-frame window)))
-         (text-width (or display-fill-column-indicator-column
-                         (current-fill-column)))
-         (half-in-pixels (- (/ window-width 2) (/ (* pixel text-width) 2)))
-         (half-in-chars (- (/ (window-width window) 2) (/ text-width 2))))
-    (cons half-in-pixels half-in-chars)))
+(defvar focus-mode nil)
 
-(defun focus--center-text (&optional window)
-  (let* ((centered-fringes (focus--centered-window-fringes window))
-         (pixel-width (car centered-fringes))
-         (char-width (cdr centered-fringes)))
-    (set-window-fringes window
-                        pixel-width
-                        nil ;; pixel-width
-                        )
-    char-width))
-
-;;;###autoload
-(defun focus-mode-spacing ()
-  (let ((w (selected-window)))
-    (when (window-parameter w 'focus-mode)
-      (window-parameter w 'focus-mode-spacing))))
+(defvar focus-mode--saved-display-fill-column-indicator nil
+  "Value of ‘display-fill-column-indicator’ before ‘focus-mode’ was enabled.")
 
 ;;;###autoload
 (defun toggle-focus-mode ()
   "Center text in current buffer."
   (interactive)
-  (let* ((window (selected-window))
-         (fringes (window-fringes window)))
-    (if (and (eq (car fringes) 0)
-             (eq (cadr fringes) 0))
+  (let ((window (selected-window))
+        (single-window? (eq 1 (length (window-list))))
+        (left-padding-window nil)
+        (contents-window nil)
+        (right-padding-window nil)
+        (padding-buf (nanothunk-force focus--padding-buffer-thunk)))
+    (if (or single-window?
+            (not focus-mode))
         (progn
-          (setq-local fringe-indicator-alist
-                      (nanothunk-force focus--fringe-indicators-sans-continuation))
-          (let ((width (focus--center-text)))
-            (set-window-parameter window 'focus-mode t)
-            (set-window-parameter window 'focus-mode-spacing (make-string width ?\s))
-            (force-mode-line-update)))
+          (setq-local focus-mode t)
+          (unless single-window?
+            (delete-other-windows))
+          (let* ((total-width (window-width window))
+                 (padding-width (/ total-width 4)))
+            (setf left-padding-window window
+                  contents-window (split-window-right padding-width window)
+                  right-padding-window (split-window-right (- padding-width) contents-window))
+            (set-window-buffer left-padding-window padding-buf)
+            (set-window-buffer right-padding-window padding-buf)
+            (window-preserve-size left-padding-window t t)
+            (window-preserve-size right-padding-window t t)
+            (set-window-parameter left-padding-window 'focus-padding t)
+            (set-window-parameter right-padding-window 'focus-padding t)
+            (select-window contents-window)
+            (setq-local focus-mode--saved-display-fill-column-indicator display-fill-column-indicator
+                        display-fill-column-indicator nil)))
       (progn
-        (set-window-parameter window 'focus-mode nil)
-        (set-window-parameter window 'focus-mode-spacing nil)
-        (kill-local-variable 'fringe-indicator-alist)
-        (set-window-fringes window 0)))))
+        (setq-local focus-mode nil)
+        (let ((windows (window-list))
+              (padding-windows nil))
+          (dolist (w (window-list))
+            (when (and (eq (window-buffer w) padding-buf)
+                       (window-parameter w 'focus-padding))
+              (push w padding-windows)))
+          (mapc #'delete-window padding-windows)
+          (setq-local display-fill-column-indicator focus-mode--saved-display-fill-column-indicator))))))
 
 (provide 'focus)
 
