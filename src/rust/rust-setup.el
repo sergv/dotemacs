@@ -105,6 +105,10 @@ which is suitable for most programming languages such as C or Lisp."
       (not ?=))
   :require-one-or-more-spaces t)
 
+(defalign rust-align-on-right-arrows
+  (rx (any ?- ?=) ">")
+  :require-one-or-more-spaces t)
+
 (vim-defcmd vim:rust-flycheck-configure (nonrepeatable)
   (unless (rust-flycheck-configure)
     (error "Don’t know how to configure %s checker"
@@ -246,10 +250,15 @@ _t_ype of region"
       (find-file (lsp--uri-to-path (lsp:location-uri it)))
     (error "Failed to locate Cargo.toml")))
 
-(defhydra-ext hydra-rust-align (:exit t :foreign-keys nil :hint nil)
+(eval-and-compile
+  (defvar hydra-rust-align--empty-keymap (make-sparse-keymap)))
+
+(defhydra-ext hydra-rust-align (:exit t :foreign-keys nil :hint nil :base-map hydra-rust-align--empty-keymap)
   "
-_=_: on equals"
-  ("=" rust-align-on-equals))
+_=_:  on equals
+_->_: on all right arrows"
+  ("="  rust-align-on-equals)
+  ("->" rust-align-on-right-arrows))
 
 (defhydra-derive hydra-rust-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
