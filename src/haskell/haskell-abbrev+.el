@@ -449,7 +449,7 @@ then Bar would be the result."
        (trie-opt-recover-sharing!
         (trie-from-list (list (cons (s-reverse "import") t))))))))
 
-(defun haskell-abbrev+--within-data-type? ()
+(defun treesit-haskell--within-data-type? ()
   "Check that we’re within a \"data_type\" node."
   (and (or (treesit-utils-find-closest-parent
             (treesit-haskell-current-node)
@@ -471,7 +471,7 @@ then Bar would be the result."
 (defun haskell-abbrev+--should-insert-pragma? ()
   (let ((is-haskell-ts? (derived-mode-p 'haskell-ts-base-mode)))
     (or (when is-haskell-ts?
-          (and (haskell-abbrev+--within-data-type?)
+          (and (treesit-haskell--within-data-type?)
                (let ((char-before-abbrev (char-before)))
                  (whitespace-char? char-before-abbrev))
                'within-data))

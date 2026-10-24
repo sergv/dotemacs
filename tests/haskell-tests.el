@@ -948,9 +948,9 @@ Entries should be a list of of elements of the form
       (should (equal "Ide.Types" (match-string 3 sample-input))))))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-1a
+    haskell-tests/treesit-haskell--within-data-type?-1a
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -966,9 +966,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-1b
+    haskell-tests/treesit-haskell--within-data-type?-1b
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -984,9 +984,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-1c
+    haskell-tests/treesit-haskell--within-data-type?-1c
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1002,9 +1002,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-1d
+    haskell-tests/treesit-haskell--within-data-type?-1d
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1020,9 +1020,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-1e
+    haskell-tests/treesit-haskell--within-data-type?-1e
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1038,9 +1038,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-1f
+    haskell-tests/treesit-haskell--within-data-type?-1f
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1056,9 +1056,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-2
+    haskell-tests/treesit-haskell--within-data-type?-2
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1074,9 +1074,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-3a
+    haskell-tests/treesit-haskell--within-data-type?-3a
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1090,9 +1090,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-3b
+    haskell-tests/treesit-haskell--within-data-type?-3b
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1106,9 +1106,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-3c
+    haskell-tests/treesit-haskell--within-data-type?-3c
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1122,9 +1122,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-3d
+    haskell-tests/treesit-haskell--within-data-type?-3d
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1138,9 +1138,9 @@ Entries should be a list of of elements of the form
   :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-result
-    haskell-tests/haskell-abbrev+--within-data-type?-3e
+    haskell-tests/treesit-haskell--within-data-type?-3e
   :action
-  (not (null (haskell-abbrev+--within-data-type?)))
+  (not (null (treesit-haskell--within-data-type?)))
   :expected-value
   t
   :contents
@@ -1155,9 +1155,9 @@ Entries should be a list of of elements of the form
 
 (haskell-tests--test-result*
  :name
- haskell-tests/haskell-abbrev+--within-data-type?-4a
+ haskell-tests/treesit-haskell--within-data-type?-4a
  :action
- (not (null (haskell-abbrev+--within-data-type?)))
+ (not (null (treesit-haskell--within-data-type?)))
  :expected-value
  t
  :contents
@@ -1170,9 +1170,9 @@ Entries should be a list of of elements of the form
 
 (haskell-tests--test-result*
  :name
- haskell-tests/haskell-abbrev+--within-data-type?-4b
+ haskell-tests/treesit-haskell--within-data-type?-4b
  :action
- (not (null (haskell-abbrev+--within-data-type?)))
+ (not (null (treesit-haskell--within-data-type?)))
  :expected-value
  t
  :contents

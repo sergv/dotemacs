@@ -514,7 +514,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                     (line-beginning-position))
                  (insert-char ?\#))
                 ((when-let* ((_ (derived-mode-p 'haskell-ts-base-mode))
-                             (_ (haskell-abbrev+--within-data-type?))
+                             (_ (treesit-haskell--within-data-type?))
                              (node (treesit-haskell-node-at pt-before))
                              (_ (let ((typ (treesit-node-type node)))
                                   (or (treesit-haskell--is-double-colon-node-type? typ)
