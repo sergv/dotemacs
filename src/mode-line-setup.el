@@ -83,9 +83,17 @@
                 (:eval default-directory)))
           global-mode-string)))
 
+(defconst mode-line-eol-type-formats
+  ;; First one should be unix but it is most of the time so
+  ;; there's no reason to say obvious things.
+  ["" "(dos)" "(mac)"])
+
 ;;;###autoload
 (defun default-mode-line-format (&rest checkers-specs)
   `("%[%b%] "
+    (:eval
+     (when (string-prefix-p "/ssh:" default-directory)
+       "(remote)"))
     (:eval (cond
              (buffer-read-only
               "(RO) ")
@@ -98,12 +106,9 @@
     mode-name
     mode-line-process
     (:eval
-     (cl-case (coding-system-eol-type buffer-file-coding-system)
-       ;; here should be unix but it is most of the time so
-       ;; there's no reason to say obvious things
-       (0 "")
-       (1 "(dos)")
-       (2 "(mac)")))
+     (let ((typ (coding-system-eol-type buffer-file-coding-system)))
+       (when (fixnump typ)
+         (aref mode-line-eol-type-formats typ))))
     (:eval
      (when (buffer-narrowed-p)
        "(Narrowed)"))
