@@ -35,6 +35,7 @@
   ("<f6>"     revert-buffer)
 
   ("<f9>"     compile)
+  ("<f10>"    toggle-focus-mode)
   ("<f12>"    start-profiler-or-report)
 
   ("C-<prior>" scroll-down-command-fast)

@@ -90,7 +90,8 @@
 
 ;;;###autoload
 (defun default-mode-line-format (&rest checkers-specs)
-  `("%[%b%] "
+  `((:eval (focus-mode-spacing))
+    "%[%b%] "
     (:eval
      (when (string-prefix-p "/ssh:" default-directory)
        "(remote)"))
