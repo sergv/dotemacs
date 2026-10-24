@@ -4,7 +4,7 @@
   "result")
  (ignored-files
   "native/emacs_module_rs/target/*"
-  "prog-data/backup/*"
+  "prog-data/backup*.tar.*"
   "prog-data/tmp/*"
   "prog-data/python-tmp*")
  (aux-files
