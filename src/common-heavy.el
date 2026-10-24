@@ -417,7 +417,7 @@ not exist after command is finished."
 (defun transpose-windows ()
   "From http://www.emacswiki.org/emacs/ToggleWindowSplit."
   (interactive)
-  (if (= (count-windows) 2)
+  (if (eq (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
              (next-win-buffer (window-buffer (next-window)))
              (this-win-edges (window-edges (selected-window)))
