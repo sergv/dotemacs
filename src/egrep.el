@@ -544,19 +544,35 @@ string patterns."
   (cl-assert (listp exts-globs))
 
   (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
-         (eproj-abs-ignored-dirs-globs
+         (dir-normalized (strip-trailing-slash (file-truename dir)))
+         (eproj-abs-and-rel-ignored-dirs-globs
           (when proj
-            (eproj-get-absolute-ignored-dirs-globs proj))))
+            (eproj-get-absolute-and-relative-ignored-dirs-globs proj))))
+    (when-let* ((globs eproj-abs-and-rel-ignored-dirs-globs)
+                (regexps-ignoring-initial-root
+                 (--filter (let ((re (concat "\\`\\(?:"
+                                             (wildcard-to-regexp (strip-trailing-slash it))
+                                             "\\)\\(?:/\\)?\\'")))
+                             (or (string-match-p re dir)
+                                 (string-match-p re dir-normalized)))
+                           (mapcar #'car globs))))
+      (if (y-or-n-p (format "Initial directory %s is ignored by some eproj patterns: %s. Proceed without them?"
+                            dir
+                            regexps-ignoring-initial-root))
+          (setf eproj-abs-and-rel-ignored-dirs-globs
+                (--filter (not (member (car it) regexps-ignoring-initial-root))
+                          eproj-abs-and-rel-ignored-dirs-globs))
+        (error "Initial directory is ignored")))
     (egrep-search (s-extras-expand-escape-sequences regexp)
                   exts-globs
                   dir
                   ignore-case
                   grep-find-ignored-files
                   (eproj-project-get-absolute-ignored-files-globs proj)
-                  eproj-abs-ignored-dirs-globs
-                  (when eproj-abs-ignored-dirs-globs
+                  (mapcar #'car eproj-abs-and-rel-ignored-dirs-globs)
+                  (when eproj-abs-and-rel-ignored-dirs-globs
                     (string-join (--map (concat "${EPROJ-ROOT}/" it)
-                                        (eproj-get-relative-ignored-dirs-globs proj))
+                                        (mapcar #'cdr eproj-abs-and-rel-ignored-dirs-globs))
                                  ", ")))))
 
 ;;;###autoload
