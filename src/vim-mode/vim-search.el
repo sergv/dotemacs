@@ -17,6 +17,8 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(defvar query-replace-skip-read-only)
+
 (require 's-extras)
 (require 'vim-common)
 (require 'vim-macs)
@@ -437,6 +439,12 @@ Allowed flags are:
                               flags
                               confirm))))))
 
+(defun vim--replace-match-skip-read-only! (replacement fixedcase)
+  (let ((match-data (match-data)))
+    (unless (and query-replace-skip-read-only
+                 (text-property-any (nth 0 match-data) (nth 1 match-data) 'read-only t))
+      (replace-match replacement fixedcase))))
+
 (defun vim--do-substitute (motion pattern replacement _flags confirm)
   "Do the actual substitution in current buffer. Search for regexp
 pattern and replace matches with REPLACEMENT.
@@ -466,7 +474,8 @@ pattern and replace matches with REPLACEMENT.
                              (line-beginning-position)))))
 
     (let ((case-fold-search (eq 'insensitive (vim-pattern-case-fold pattern)))
-          (case-replace nil))
+          (case-replace nil)
+          (query-replace-skip-read-only t))
       (with-marker (last-line-pos-marker (copy-marker last-line-pos))
         (vim-save-position)
         (unwind-protect
@@ -498,10 +507,10 @@ pattern and replace matches with REPLACEMENT.
                              (progn
                                (forward-char 1))
                            (progn
-                             (replace-match replacement t nil)
+                             (vim--replace-match-skip-read-only! replacement t)
                              (setf last-end (point))))
                        (progn
-                         (replace-match replacement t nil)
+                         (vim--replace-match-skip-read-only! replacement t)
                          (setf last-end (point)))))
                    (when last-end
                      (goto-char last-end)))))
@@ -527,7 +536,7 @@ pattern and replace matches with REPLACEMENT.
                                                ": "))
                                      (lambda (x)
                                        (set-match-data x)
-                                       (replace-match replacement case-fold-search)
+                                       (vim--replace-match-skip-read-only! replacement case-fold-search)
                                        (cl-incf nreplaced)
                                        (setq last-point (point)))
                                      (lambda ()
@@ -545,7 +554,7 @@ pattern and replace matches with REPLACEMENT.
                      (while (and (<= (point) last-line-pos-marker)
                                  (re-search-forward regex last-line-pos-marker t nil))
                        (cl-incf nreplaced)
-                       (replace-match replacement t)
+                       (vim--replace-match-skip-read-only! replacement t)
                        (setq last-point (point))
                        (forward-line)
                        (beginning-of-line))))
