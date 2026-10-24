@@ -1251,6 +1251,26 @@ groups in the result is *not specified*."
 
 ;;
 
+(defun find-property-spans-in-string (prop str)
+  (cl-assert (symbolp prop))
+  (cl-assert (stringp str))
+  (let* ((pos 0)
+         (prev pos)
+         (continue? t)
+         (result (cons nil nil))
+         (tmp result))
+    (while continue?
+      (if (setf pos (next-single-property-change pos prop str))
+          (progn
+            (setf tmp (setf (cdr tmp) (cons (list (get-text-property prev prop str) prev pos) nil)))
+            (setf prev pos))
+        (progn
+          (setf tmp (setf (cdr tmp) (cons (list (get-text-property prev prop str) prev (length str)) nil)))
+          (setf continue? nil))))
+    (cdr result)))
+
+;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:
