@@ -89,6 +89,18 @@
   (cl-assert (stringp typ))
   (member-str typ "function" "linear_function"))
 
+(defun treesit-haskell--within-data-type? ()
+  "Check that we’re within a \"data_type\" node."
+  (and (or (treesit-utils-find-closest-parent
+            (treesit-haskell-current-node)
+            (lambda (x)
+              (string= "data_type" (treesit-node-type x))))
+           (treesit-utils-find-closest-parent
+            (treesit-haskell-node-at (line-beginning-position))
+            (lambda (x)
+              (string= "data_type" (treesit-node-type x)))))
+       t))
+
 (defun treesit-haskell--is-inside-string-node? (p node)
   (declare (pure t) (side-effect-free t))
   (treesit-utils-is-inside-string-node?
