@@ -175,7 +175,8 @@
       ;; To be able to show tall messages
       max-mini-window-height 0.5
 
-      eldoc-echo-area-display-truncation-message nil)
+      eldoc-echo-area-display-truncation-message nil
+      eldoc-message-function #'ignore)
 
 (when-emacs-version (<= 28 it)
   (when (boundp 'native-comp-deferred-compilation-deny-list)
