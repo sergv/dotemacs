@@ -541,6 +541,7 @@ string patterns."
                            nil default-directory t)
       (and current-prefix-arg
            (<= 4 (cl-first current-prefix-arg))))))
+  (cl-assert (stringp regexp))
   (cl-assert (listp exts-globs))
 
   (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
@@ -568,7 +569,8 @@ string patterns."
                   dir
                   ignore-case
                   grep-find-ignored-files
-                  (eproj-project-get-absolute-ignored-files-globs proj)
+                  (when proj
+                    (eproj-project-get-absolute-ignored-files-globs proj))
                   (mapcar #'car eproj-abs-and-rel-ignored-dirs-globs)
                   (when eproj-abs-and-rel-ignored-dirs-globs
                     (string-join (--map (concat "${EPROJ-ROOT}/" it)
