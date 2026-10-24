@@ -1669,6 +1669,13 @@ returned non-nil."
       y
     x))
 
+
+(defun read-file-contents-literally-as-string (filename)
+  (cl-assert (stringp filename))
+  (with-temp-buffer
+    (insert-file-contents-literally filename)
+    (buffer-substring-no-properties (point-min) (point-max))))
+
 ;; Local Variables:
 ;; End:
 
