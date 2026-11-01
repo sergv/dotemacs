@@ -22,7 +22,7 @@ main = do
   Test.Tasty.Bench.defaultMain
     [ testGroup "sanity checks"
         [ testCase "fibo 5" $
-            fibo 5 @?= 8
+            assertEqual "" (fibo 5) 8
         ]
     , bgroup "fibonacci numbers"
         [ bcompare "tenth"  $ bench "fifth"     $ nf fibo  5
