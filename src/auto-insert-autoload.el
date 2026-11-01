@@ -57,7 +57,7 @@
                 ("\\.clj\\'"        "insert.clj")
                 ("\\.el\\'"         "insert.el")
                 ("\\.scm\\'"        "insert.scm")
-                ("\\.\\(?:c?l\\|asdf?\\|li?sp\\|clisp\\)\\'"
+                ("\\.\\(?:c?l\\|asdf?\\|c?li?sp\\)\\'"
                  "insert.lisp"))))
 
 (provide 'auto-insert-autoload)
