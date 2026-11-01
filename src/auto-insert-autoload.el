@@ -6,7 +6,7 @@
 ;; Created: 16 August 2023
 ;; Description:
 
-(declare-function auto-insert-update "auto-insert-setup")
+(declare-function auto-insert--update "auto-insert-setup")
 
 (defvar auto-insert-directory)
 (defvar auto-insert)
@@ -21,7 +21,7 @@
                 (pcase spec
                   (`(,filename-regexp ,insert-template)
                    (cons filename-regexp
-                         (vector insert-template #'auto-insert-update)))))
+                         (vector insert-template #'auto-insert--update)))))
               '(("\\.eproj-info\\'" "insert.eproj-info")
                 ("\\.gitignore\\'"  "insert.gitignore")
                 ("LICENSE\\'"       "insert.license-apache-2.0")

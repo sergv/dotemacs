@@ -10,9 +10,10 @@
   (require 'cl-lib)
   (require 'macro-util))
 
+(require 'autoinsert)
 (require 'common)
 
-(defvar auto-insert-fields
+(defvar auto-insert--fields
   (list
    (list "license type" (lambda ()
                           "Apache-2.0"))
@@ -85,16 +86,16 @@
                              (file-name-sans-extension (expand-file-name buffer-file-name)))))
              (replace-regexp-in-string "/" "." raw-name))))
    (list "empty" (lambda () "")))
-  "Alist of form (string function), used by `util:auto-insert-update'.
+  "Alist of form (string function), used by `util:auto-insert--update'.
 When auto-insert file template contains entry of form ${HELLO} then
-`util:auto-insert-update' will replace it with return value
+`auto-insert--update' will replace it with return value
 function than has correspondence to HELLO in this alist.")
 
 ;;;###autoload
-(defun auto-insert-update ()
+(defun auto-insert--update ()
   "Function that substitutes actual data into auto-insert
 template files, data description may be found in
-`auto-insert-fields' alist."
+`auto-insert--fields' alist."
   (save-excursion
     (save-match-data
       (with-disabled-undo
@@ -106,10 +107,29 @@ template files, data description may be found in
                        (new-data (funcall (cl-second x))))
                    (while (re-search-forward pattern nil t)
                      (replace-match new-data t t))))
-               auto-insert-fields)))))))
+               auto-insert--fields)))))))
 
 ;;;###autoload
 (add-hook 'find-file-hook #'auto-insert)
+
+;;;###autoload
+(defun auto-insert--select (orig-auto-insert)
+  (interactive)
+  (if current-prefix-arg
+      (awhen (completing-read "Insert template: "
+                              (directory-files auto-insert-directory nil directory-files-no-dot-files-regexp)
+                              nil
+                              t)
+        (let ((template (concat auto-insert-directory "/" it)))
+          (unless (file-exists-p template)
+            (error "Template does not exist: %s" template))
+          (erase-buffer)
+          (insert-file-contents template)
+          (auto-insert--update)))
+    (funcall orig-auto-insert)))
+
+;;;###autoload
+(advice-add 'auto-insert :around #'auto-insert--select)
 
 (provide 'auto-insert-setup)
 
