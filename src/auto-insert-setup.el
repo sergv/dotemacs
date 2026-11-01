@@ -56,31 +56,33 @@
                                                  (file-name-nondirectory
                                                   (strip-trailing-slash dir))))
                             (-any-p (lambda (path)
-                                      (or (and (file-regular-p path)
-                                               (string-match-p
-                                                (rx (or (seq (+ not-newline)
-                                                             ".cabal")
-                                                        "Setup.hs"
-                                                        "Setup.lhs")
-                                                    eos)
-                                                path))
-                                          (and (file-directory-p path)
-                                               (or (string= "src" path)
-                                                   (member path
-                                                           +version-control-directories+)
-                                                   ;; this is somewhat vacuous
-                                                   ;; (not (string-match-p
-                                                   ;;       "[A-Z][a-zA-Z]*"
-                                                   ;;       path))
-                                                   ))))
+                                      (let ((basename (file-name-nondirectory path)))
+                                        (cond
+                                          ((file-regular-p path)
+                                           (string-match-p
+                                            (rx (or (seq (+ not-newline)
+                                                         ".cabal")
+                                                    "Setup.hs"
+                                                    "Setup.lhs")
+                                                eos)
+                                            basename))
+                                          ((file-directory-p path)
+                                           (or (member-str basename "src" "bench" "test" "tests")
+                                               (member basename
+                                                       +version-control-directories+)
+                                               ;; this is somewhat vacuous
+                                               ;; (not (string-match-p
+                                               ;;       "[A-Z][a-zA-Z]*"
+                                               ;;       basename))
+                                               ))
+                                          (t
+                                           nil))))
                                     (directory-files dir
                                                      t
                                                      directory-files-no-dot-files-regexp)))))))
-                  (raw-name (strip-directory-and-separator-prefix (strip-trailing-slash
-                                                                   (expand-file-name root))
-                                                                  (file-name-sans-extension
-                                                                   (expand-file-name
-                                                                    buffer-file-name)))))
+                  (raw-name (strip-directory-and-separator-prefix
+                             (strip-trailing-slash (expand-file-name root))
+                             (file-name-sans-extension (expand-file-name buffer-file-name)))))
              (replace-regexp-in-string "/" "." raw-name))))
    (list "empty" (lambda () "")))
   "Alist of form (string function), used by `util:auto-insert-update'.
