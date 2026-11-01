@@ -6,7 +6,11 @@
 
 module ${haskell path to module name} (main) where
 
+import Control.DeepSeq
+import Control.Exception
+import Test.Tasty
 import Test.Tasty.Bench
+import Test.Tasty.HUnit
 import Test.Tasty.Patterns.Printer (printAwkExpr)
 
 fibo :: Int -> Integer
@@ -16,16 +20,20 @@ main :: IO ()
 main = do
   let baselineName = "fibo 7"
   Test.Tasty.Bench.defaultMain
-    [ bgroup "fibonacci numbers"
-      [ bcompare "tenth"  $ bench "fifth"     $ nf fibo  5
-      ,                     bench "tenth"     $ nf fibo 10
-      , bcompare "tenth"  $ bench "twentieth" $ nf fibo 20
-      ]
+    [ testGroup "sanity checks"
+        [ testCase "fibo 5" $
+            fibo 5 @?= 8
+        ]
+    , bgroup "fibonacci numbers"
+        [ bcompare "tenth"  $ bench "fifth"     $ nf fibo  5
+        ,                     bench "tenth"     $ nf fibo 10
+        , bcompare "tenth"  $ bench "twentieth" $ nf fibo 20
+        ]
     , mapLeafBenchmarks (addCompare baselineName) $ bgroup "fibonacci #2"
-      [ bench baselineName $ nf fibo 7
-      , bench "fibo 8" $ nf fibo 8
-      , bench "fibo 9" $ nf fibo 9
-      ]
+        [ bench baselineName $ nf fibo 7
+        , bench "fibo 8" $ nf fibo 8
+        , bench "fibo 9" $ nf fibo 9
+        ]
     ]
 
 addCompare :: String -> [String] -> Benchmark -> Benchmark
