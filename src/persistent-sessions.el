@@ -488,7 +488,8 @@ entries."
 
 (defun persistent-sessions--frameset-filter-alist ()
   (cons (cons 'display :never)
-        frameset-filter-alist))
+        (cons (cons 'font-parameter :never)
+              frameset-filter-alist)))
 
 (defun sessions--is-polymode-indirect-buffer? (buf)
   (cl-assert (bufferp buf))
