@@ -847,6 +847,7 @@ a single entity."
              (delete-horizontal-space t)
              (insert-char ?\n)
              (insert-char ?\s function-name-column))
+            ;; Special handling inside let expressions.
             ([enclosing-bind-node
               (when is-ts-mode?
                 (when-let* ((curr-node (treesit-haskell-current-node)))
@@ -855,9 +856,8 @@ a single entity."
                       (treesit-utils-find-closest-parent-with-count
                        curr-node
                        (lambda (node)
-                         (member-str (treesit-node-type node) "let" "case" "lambda")))
-                    (when (and enclosing-let-node
-                               (string= (treesit-node-type enclosing-let-node) "let"))
+                         (member-str (treesit-node-type node) "let" "let_in")))
+                    (when enclosing-let-node
                       ;; Find match node that encloses us that’s still within
                       ;; enclosing let.
                       (let* ((bind-node
@@ -872,17 +872,25 @@ a single entity."
                                    ;; Don’t want to indent anything if point is before =
                                    (treesit-utils-is-inside-node? (point)
                                                                   match-child)
-                                   ;; Don’t want special indentation if we’re at
-                                   ;; the very end - then we’ll indent regularly
-                                   ;; for new let entry.
-                                   (not (save-excursion
-                                          (skip-syntax-backward " ")
-                                          (= (point) (treesit-node-end match-child)))))
+                                   (or
+                                    ;; Don’t want special indentation if we’re at
+                                    ;; the very end - then we’ll indent regularly
+                                    ;; for new let entry.
+                                    (not (save-excursion
+                                           (skip-syntax-backward " ")
+                                           (eq (point) (treesit-node-end match-child))))
+                                    ;; If it’s after token-increasing thing, like ‘case ... of_|_’
+                                    ;; then we’re likely to continue editing in current let binding
+                                    ;; instead of indenting regularly for new let entry.
+                                    after-indent-increasing-token?))
                           bind-node))))))]
-             (haskell--simple-indent-to
-              (+ (character-column-at-pos (treesit-node-start enclosing-bind-node))
-                 haskell-indent-offset))
-             (haskell-ts-indent-line))
+             (let* ((this-line-indent (indentation-size))
+                    (heuristic-indent (+ (character-column-at-pos (treesit-node-start enclosing-bind-node))
+                                         haskell-indent-offset)))
+               (haskell--simple-indent-to (max this-line-indent heuristic-indent))
+               (haskell-ts-indent-with-line-indent
+                   treesitter-indent
+                 (indent-to (max this-line-indent heuristic-indent treesitter-indent)))))
             ((and (save-excursion
                     (skip-to-indentation)
                     (looking-at-p "let\\_>"))
