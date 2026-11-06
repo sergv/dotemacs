@@ -398,8 +398,7 @@ Return the amount the indentation changed by."
     (beginning-of-line)
     (skip-chars-forward " \t")
     (delete-region (line-beginning-position) (point))
-    (dotimes (_ col)
-      (insert ?\s))))
+    (insert-char ?\s col)))
 
 ;;;;
 
