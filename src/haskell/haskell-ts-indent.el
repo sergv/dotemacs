@@ -1636,9 +1636,7 @@
                   (anchor-pos anchor)
                   (offset-num offset)
                 ;; Indent with treesitter
-                (let* ((target-indent (+ (save-excursion
-                                           (goto-char anchor-pos)
-                                           (current-column-fixed))
+                (let* ((target-indent (+ (character-column-at-pos anchor-pos)
                                          offset-num))
                        (is-on-empty-line?
                         (save-excursion
