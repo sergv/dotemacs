@@ -8008,6 +8008,52 @@ Entries should be a list of of elements of the form
   "    go y = y"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-19a
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let bar = case baz of_|_"
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = do"
+  "  let bar = case baz of"
+  "        _|_"
+  "  pure ()"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-19b
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  let bar = case baz of_|_"
+  "  in ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x ="
+  "  let bar = case baz of"
+  "        _|_"
+  "  in ()"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
