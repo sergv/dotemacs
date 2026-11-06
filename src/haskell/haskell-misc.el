@@ -509,8 +509,9 @@ extensions as a list of strings. Leaves point at the end of pragma"
                           (let ((typ (treesit-node-type node)))
                             (or (and include-quotes?
                                      (string= typ "promoted"))
-                                (member typ
-                                        '("literal" "variable" "name" "constructor" "qualified" "th_quoted_name")))))
+                                (member-str
+                                 typ
+                                 "literal" "variable" "name" "constructor" "qualified" "th_quoted_name"))))
                         5)
                        (and (treesit-utils--is-leaf-node? curr-node)
                             curr-node))))
@@ -771,7 +772,7 @@ a single entity."
                         (setf point-at-end-of-function-signature?
                               (or (and (derived-mode-p 'haskell-ts-base-mode)
                                        (let ((sig-node (treesit-node-parent (treesit-node-at (point)))))
-                                         (when (member (treesit-node-type sig-node) '("signature" "default_signature"))
+                                         (when (member-str (treesit-node-type sig-node) "signature" "default_signature")
                                            (setf indented-section-end (treesit-node-end sig-node))
                                            (= start-pos-no-ws (treesit-node-end sig-node)))))
                                   (progn
@@ -816,7 +817,7 @@ a single entity."
                               nil)
                              ((and (derived-mode-p 'haskell-mode)
                                    (when-let* ((prop (get-char-property p 'haskell-mode-quasiquote)))
-                                     (not (member prop '("" "t" "e" "d")))))
+                                     (not (member-str prop "" "t" "e" "d"))))
                               ;; Same reasoning as for [Non-Haskell-QQ].
                               nil)
                              (t
@@ -854,7 +855,7 @@ a single entity."
                       (treesit-utils-find-closest-parent-with-count
                        curr-node
                        (lambda (node)
-                         (member (treesit-node-type node) '("let" "case" "lambda"))))
+                         (member-str (treesit-node-type node) "let" "case" "lambda")))
                     (when (and enclosing-let-node
                                (string= (treesit-node-type enclosing-let-node) "let"))
                       ;; Find match node that encloses us that’s still within
@@ -907,14 +908,14 @@ a single entity."
                                       (advance-pos-over-space-characters (point))))
                                (parent (treesit-node-parent node)))
                      (or (treesit-haskell--is-double-colon-node-type? (treesit-node-type node))
-                         (let* ((argument-parethesized? (member (treesit-node-type node) '("(" "[" "{")))
+                         (let* ((argument-parethesized? (member-str (treesit-node-type node) "(" "[" "{"))
                                 (arg-node (if argument-parethesized?
                                               (let ((parent-type (treesit-node-type parent)))
                                                 (if (string= parent-type "(#")
                                                     (when-let* ((grandparent (treesit-node-parent parent)))
                                                       (when (string= (treesit-node-type grandparent) "unboxed_tuple")
                                                         grandparent))
-                                                  (and (member parent-type '("parens" "list" "tuple" "record"))
+                                                  (and (member-str parent-type "parens" "list" "tuple" "record")
                                                        parent)))
                                             node))
                                 (apply-node (and arg-node
