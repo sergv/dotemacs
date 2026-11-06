@@ -59,6 +59,11 @@ all hydras in my setup."
           :key #'car
           :test #'equal))))
 
+(defun hydra-toggle--read-only ()
+  "Change whether this buffer is read-only."
+  (interactive)
+  (setq buffer-read-only (not buffer-read-only)))
+
 (defhydra-ext hydra-toggle (:exit nil :foreign-keys nil :hint nil)
   "
 Toggle:
@@ -68,6 +73,7 @@ auto _F_ill          %(if auto-fill-function t nil)
 _f_ocus mode         %`focus-mode
 searh _h_ighlighting %(not (null (search-highlighting-is-enabled?)))
 debug on _q_uit      %`debug-on-quit
+_r_ead only          %`buffer-read-only
 _t_runate lines      %`truncate-lines
 _w_hitespace mode    %`whitespace-mode"
   ("c" solarized-toggle)
@@ -76,6 +82,7 @@ _w_hitespace mode    %`whitespace-mode"
   ("f" toggle-focus-mode)
   ("h" search-toggle-highlighting :exit t)
   ("q" toggle-debug-on-quit)
+  ("r" hydra-toggle--read-only)
   ("t" toggle-truncate-lines)
   ("w" whitespace-mode))
 
