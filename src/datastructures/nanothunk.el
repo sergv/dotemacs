@@ -32,8 +32,12 @@ The result is cached and will be returned on subsequent calls
 with the same DELAYED argument."
   (if (car thunk)
       (cdr thunk)
-    (setf (car thunk) t
-          (cdr thunk) (funcall (cdr thunk)))))
+    (prog1
+        (setf (cdr thunk) (funcall (cdr thunk)))
+      ;; Mark it as evaluated only after call to lambda finished. If call throws
+      ;; error we don’t want to consider thunk evaluated because its value won’t
+      ;; get updated.
+      (setf (car thunk) t))))
 
 (defsubst nanothunk-evaluated-p (thunk)
   "Check whether THUNK is evaluated."
