@@ -22,6 +22,20 @@ let
   mk-shell-flags = xs: pkgs.lib.concatStringsSep " " xs;
   mk-elisp-flags = wrap-dquotes-concat-with-space;
 
+  enableDebuggingFixed =
+    let
+      keepDebugInfoFixed =
+        pkgs.overrideMkDerivationArgs (args: {
+          dontStrip = true;
+          env = (args.env or { }) // {
+            NIX_CFLAGS_COMPILE = toString (args.env.NIX_CFLAGS_COMPILE or "") + " -ggdb";
+            # NIX_CFLAGS_COMPILE = toString (args.env.NIX_CFLAGS_COMPILE or "") + " -ggdb -Og";
+            NIX_RUSTFLAGS = toString (args.env.NIX_RUSTFLAGS or "") + " -g -C opt-level=0 -C strip=none";
+          };
+        });
+    in
+    pkg: pkg.override { stdenv = keepDebugInfoFixed pkg.stdenv; };
+
   mk-emacs-release-cfg = debug-flag: {
     cflags              =
       [
@@ -331,7 +345,7 @@ let
 
   emacs-raw-pkg =
     if assertions
-    then pkgs.enableDebugging (mk-emacs-base emacs-debug-cfg)
+    then enableDebuggingFixed (mk-emacs-base emacs-debug-cfg)
     else
       (if debug
        then
