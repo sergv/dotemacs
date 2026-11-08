@@ -69,9 +69,10 @@
   (declare (pure t) (side-effect-free t))
   (and (consp tag-struct)
        (stringp (car tag-struct))
-       (or (and (consp (cdr tag-struct))
-                (integerp (cadr tag-struct)))
-           (integerp (cdr tag-struct)))))
+       (let ((tmp (cdr tag-struct)))
+         (or (and (consp tmp)
+                  (integerp (car-sure tmp)))
+             (integerp tmp)))))
 
 (defsubst eproj-tag/file (tag-struct)
   "Get the file that current tag came from. Always absolute."
@@ -127,7 +128,7 @@
   (cl-assert (eproj-tag-p tag-struct))
   (let ((rest (cdr-sure tag-struct)))
     (if (consp rest)
-        (cdr rest)
+        (cdr-sure rest)
       nil)))
 
 (defsubst eproj-tag-index--create (tbl)
@@ -142,8 +143,8 @@
 (defun eproj-tag-index-p (index)
   (declare (pure t) (side-effect-free t))
   (and (consp index)
-       (eq 'eproj-tag-index (car index))
-       (hash-table-p (cdr index))))
+       (eq 'eproj-tag-index (car-sure index))
+       (hash-table-p (cdr-sure index))))
 
 (defsubst eproj-tag-index-size (index)
   (declare (pure t) (side-effect-free t))
