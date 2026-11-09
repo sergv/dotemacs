@@ -884,7 +884,10 @@ a single entity."
                                     ;; instead of indenting regularly for new let entry.
                                     after-indent-increasing-token?))
                           bind-node))))))]
-             (let* ((this-line-indent (indentation-size))
+             (let* ((this-line-indent (+ (indentation-size)
+                                         (if after-indent-increasing-token?
+                                             haskell-indent-offset
+                                           0)))
                     (heuristic-indent (+ (character-column-at-pos (treesit-node-start enclosing-bind-node))
                                          haskell-indent-offset)))
                (haskell--simple-indent-to (max this-line-indent heuristic-indent))
