@@ -1751,12 +1751,57 @@ Entries should be a list of of elements of the form
  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents*
- :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-9
+ :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-9a
  :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
  :contents
  "x = [foo| 1 + x|]_|_y"
  :expected-value
  "x = [foo| 1 + x|] + _|_y"
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-9b
+ :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+ :contents
+ "x = [foo| 1 + x|]_|_"
+ :expected-value
+ "x = [foo| 1 + x|] + _|_"
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-10a
+ :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+ :contents
+ "x = \"foo\"_|_y"
+ :expected-value
+ "x = \"foo\" + _|_y"
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-10b
+ :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+ :contents
+ "x = \"foo\"_|_"
+ :expected-value
+ "x = \"foo\" + _|_"
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-11a
+ :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+ :contents
+ "x = 'o'_|_y"
+ :expected-value
+ "x = 'o' + _|_y"
+ :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-11b
+ :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+ :contents
+ "x = 'o'_|_"
+ :expected-value
+ "x = 'o' + _|_"
  :modes (haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents
