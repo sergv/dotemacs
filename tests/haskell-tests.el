@@ -8168,6 +8168,99 @@ Entries should be a list of of elements of the form
   "    (fmap (coerce addTrailingPathSeparator) roots)"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-21a
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "findRec"
+  "  :: forall a f. (WithCallStack, Foldable f, Functor f)"
+  "  => FollowSymlinks a"
+  "  -> SkipUnreadableDirs"
+  "  -> (AbsDir -> Basename OsPath -> Bool) -- ^ Whether to visit a directory."
+  "  -> (AbsDir -> AbsFile -> Relative OsPath -> Basename OsPath -> IO (Maybe a))"
+  "                                         -- ^ What to do with a file. Receives original directory it was located in."
+  "  -> f AbsDir                            -- ^ Where to start search."
+  "  -> IO [a]"
+  "findRec followSymlinks skipUnreadable dirPred filePred roots ="
+  "  Streaming.listContentsRecFold"
+  "    Nothing"
+  "    (\\absDir _root _relDir baseDir sym cons descendSubdir rest ->"
+  "      let absDir' = AbsDir absDir"
+  "      in"
+  "        if dirPred absDir' baseDir"
+  "        then do"
+  "          let descendSubdir' dir ="
+  "                case skipUnreadable of"
+  "                  SkipUnreadable   -> do"
+  "                    isReadable <- haveReadPermission absDir"
+  "                    if isReadable"
+  "                    then descendSubdir dir"
+  "                    else dir"
+  "                  FailOnUnreadable -> _|_descendSubdir dir"
+  "          case sym of"
+  "            Regular -> descendSubdir' rest"
+  "            Symlink ->"
+  "              case followSymlinks of"
+  "                FollowSymlinks        -> descendSubdir' rest"
+  "                ReportSymlinks report -> do"
+  "                  res <- report absDir' baseDir"
+  "                  case res of"
+  "                    Nothing -> rest"
+  "                    Just x  -> cons x rest"
+  "        else"
+  "          rest)"
+  "    (fmap (coerce addTrailingPathSeparator) roots)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "findRec"
+  "  :: forall a f. (WithCallStack, Foldable f, Functor f)"
+  "  => FollowSymlinks a"
+  "  -> SkipUnreadableDirs"
+  "  -> (AbsDir -> Basename OsPath -> Bool) -- ^ Whether to visit a directory."
+  "  -> (AbsDir -> AbsFile -> Relative OsPath -> Basename OsPath -> IO (Maybe a))"
+  "                                         -- ^ What to do with a file. Receives original directory it was located in."
+  "  -> f AbsDir                            -- ^ Where to start search."
+  "  -> IO [a]"
+  "findRec followSymlinks skipUnreadable dirPred filePred roots ="
+  "  Streaming.listContentsRecFold"
+  "    Nothing"
+  "    (\\absDir _root _relDir baseDir sym cons descendSubdir rest ->"
+  "      let absDir' = AbsDir absDir"
+  "      in"
+  "        if dirPred absDir' baseDir"
+  "        then do"
+  "          let descendSubdir' dir ="
+  "                case skipUnreadable of"
+  "                  SkipUnreadable   -> do"
+  "                    isReadable <- haveReadPermission absDir"
+  "                    if isReadable"
+  "                    then descendSubdir dir"
+  "                    else dir"
+  "                  FailOnUnreadable ->"
+  "                    _|_descendSubdir dir"
+  "          case sym of"
+  "            Regular -> descendSubdir' rest"
+  "            Symlink ->"
+  "              case followSymlinks of"
+  "                FollowSymlinks        -> descendSubdir' rest"
+  "                ReportSymlinks report -> do"
+  "                  res <- report absDir' baseDir"
+  "                  case res of"
+  "                    Nothing -> rest"
+  "                    Just x  -> cons x rest"
+  "        else"
+  "          rest)"
+  "    (fmap (coerce addTrailingPathSeparator) roots)"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
