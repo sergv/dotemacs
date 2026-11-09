@@ -864,7 +864,7 @@ a single entity."
                               (treesit-utils-find-closest-parent-limited
                                curr-node
                                (lambda (node)
-                                 (string= (treesit-node-type node) "bind"))
+                                 (member-str (treesit-node-type node) "bind" "function"))
                                let-depth))
                              (match-child
                               (treesit-node-child-by-field-name bind-node "match")))
