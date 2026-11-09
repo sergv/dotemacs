@@ -1257,7 +1257,10 @@ doing `eproj-switch-to-file-or-buffer'."
                                                 (eproj-get-absolute-ignored-dirs-globs proj))
            :ignored-directories +ignored-directories+
            :ignored-directory-prefixes +ignored-directory-prefixes+
-           :relative-paths t)))
+           :relative-paths t
+           ;; Unreadable directories should be explicitly ignored unless our project
+           ;; has no corresponding .eproj-info, in which case we’ll help user out a bit.
+           :skip-unreadable-dirs? (eproj-project/is-self-contained? proj))))
     (eproj--filter-ignored-files-from-file-list proj files)))
 
 (defun eproj--parse-newline-separated-entries-in-current-buffer ()
@@ -1387,7 +1390,10 @@ paths."
                                               (eproj-get-absolute-ignored-dirs-globs proj))
          :ignored-directories +ignored-directories+
          :ignored-directory-prefixes +ignored-directory-prefixes+
-         :relative-paths t)))))
+         :relative-paths t
+         ;; Unreadable directories should be explicitly ignored unless our project
+         ;; has no corresponding .eproj-info, in which case we’ll help user out a bit.
+         :skip-unreadable-dirs? (eproj-project/is-self-contained? proj))))))
 
 (defun eproj--get-related-projects-from-info (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
@@ -1423,7 +1429,10 @@ Returns nil if no relevant entry found in AUX-INFO."
                                      ;; Allow aux files to look into ignored paths if needed.
                                      :ignored-directories nil
                                      :ignored-directory-prefixes nil
-                                     :relative-paths t)))
+                                     :relative-paths t
+                                     ;; Unreadable directories should be explicitly ignored unless our project
+                                     ;; has no corresponding .eproj-info, in which case we’ll help user out a bit.
+                                     :skip-unreadable-dirs? (eproj-project/is-self-contained? proj))))
                      (let ((orig-root (gethash root roots)))
                        (cl-assert (stringp orig-root))
                        (setf result
