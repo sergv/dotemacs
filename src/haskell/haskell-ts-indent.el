@@ -1541,7 +1541,7 @@
              )))
       (dolist (rule rules)
         (unless (and (listp rule)
-                     (= 3 (length rule)))
+                     (eq 3 (length rule)))
           (error "Malformed rule in haskell-ts-indent-rules: %s"
                  rule)))
       rules)))
@@ -1712,7 +1712,7 @@
                        (goto-char start)
                        (skip-chars-backward " \t")
                        (point))))
-                (when (not (= 2 (- start p)))
+                (when (not (eq 2 (- start p)))
                   (when-let* ((node-before (treesit-node-at p)))
                     (when (string= "if" (treesit-node-type node-before))
                       (delete-region p start)
