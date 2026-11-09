@@ -203,7 +203,8 @@ stick it to the previous operator on line."
          (insert-char char)
          (funcall insert-trailing-space nil nil before-pt before (following-char))))
       ((or disable-smart-operators?
-           (haskell-smart-operators--literal-insertion?)
+           (progn
+             (haskell-smart-operators--literal-insertion?))
            (not (haskell-smart-operators-is-operator-char? char)))
        (insert-char char))
       (t
