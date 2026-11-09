@@ -10641,6 +10641,55 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-vanilla-if-2a
+ :contents
+ (tests-utils--multiline
+  ""
+  "findRec :: Foo -> IO Bar"
+  "findRec foo ="
+  "  Streaming.listContentsRecFold"
+  "    Nothing"
+  "    (\\absDir _root _relDir baseDir sym cons descendSubdir rest ->"
+  "      let absDir' = AbsDir absDir"
+  "      in"
+  "        if dirPred absDir' baseDir"
+  "        then do"
+  "          isReadable <- PosixString.fileAccess (getOsString absDir) True False False x"
+  "          let descendSubdir' dir = if"
+  "                    _|_isReadable then descendSubdir dir else dir"
+  "          case sym of"
+  "            Foo -> descendSubdir' rest"
+  "            Bar -> pure ()"
+  "        else"
+  "          rest)"
+  "    (fmap (coerce addTrailingPathSeparator) roots)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "findRec :: Foo -> IO Bar"
+  "findRec foo ="
+  "  Streaming.listContentsRecFold"
+  "    Nothing"
+  "    (\\absDir _root _relDir baseDir sym cons descendSubdir rest ->"
+  "      let absDir' = AbsDir absDir"
+  "      in"
+  "        if dirPred absDir' baseDir"
+  "        then do"
+  "          isReadable <- PosixString.fileAccess (getOsString absDir) True False False x"
+  "          let descendSubdir' dir = if"
+  ;; The point of this test is not to get pretty result but to check that we handle this situation.
+  ;; Breaking if expressions like this is usually avoided so prettiness of the result is secondary.
+  "                                     _|_isReadable then descendSubdir dir else dir"
+  "          case sym of"
+  "            Foo -> descendSubdir' rest"
+  "            Bar -> pure ()"
+  "        else"
+  "          rest)"
+  "    (fmap (coerce addTrailingPathSeparator) roots)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-tuple-1a
  :contents
  (tests-utils--multiline
