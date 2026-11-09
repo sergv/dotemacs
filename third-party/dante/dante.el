@@ -1158,7 +1158,8 @@ which may be different from SRC-FNAME if e.g. preprocessing was performed."
                (sources (find-rec-multi* :roots src-dirs
                                          :globs-to-find (eval-when-compile
                                                           (--map (concat "*." it)
-                                                                 +haskell-preprocessing-extensions+)))))
+                                                                 +haskell-preprocessing-extensions+))
+                                         :skip-unreadable-dirs? nil)))
 
           (unless needs-preprocessing?
             (setf needs-preprocessing?

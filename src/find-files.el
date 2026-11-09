@@ -120,7 +120,8 @@ Valid values are:
                      ignored-absolute-dirs-globs
                      ignored-directories
                      ignored-directory-prefixes
-                     relative-paths)
+                     relative-paths
+                     skip-unreadable-dirs?)
   "Optimized `find-rec' that can use system's find executable to speed up
 search.
 
@@ -151,7 +152,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
            ignored-absolute-dirs-globs
            ignored-directories
            ignored-directory-prefixes
-           relative-paths))
+           relative-paths
+           skip-unreadable-dirs?))
 
 (defun find-rec--haskell-native-impl (root
                                       globs-to-find
@@ -160,7 +162,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                                       ignored-absolute-dirs-globs
                                       ignored-directories
                                       ignored-directory-prefixes
-                                      relative-paths?)
+                                      relative-paths?
+                                      skip-unreadable-dirs?)
   "A version of `find-rec' that uses ffi to do the search."
   (declare (pure nil) (side-effect-free nil))
   (cl-assert (file-name-absolute-p root))
@@ -178,7 +181,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
      ignored-files-abs-globs
      ignored-dirs-basename-globs
      ignored-dirs-abs-globs
-     relative-paths?)))
+     relative-paths?
+     skip-unreadable-dirs?)))
 
 ;;;###autoload
 (cl-defun find-rec-multi* (&key
@@ -188,7 +192,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                            ignored-absolute-files-globs
                            ignored-absolute-dirs-globs
                            ignored-directories
-                           ignored-directory-prefixes)
+                           ignored-directory-prefixes
+                           skip-unreadable-dirs?)
   "Alternative to ‘find-rec*’ that searches in multiple roots simultaneously.
 Always returns absolute paths."
   (declare (pure nil) (side-effect-free nil))
@@ -214,7 +219,8 @@ Always returns absolute paths."
            ignored-absolute-files-globs
            ignored-absolute-dirs-globs
            ignored-directories
-           ignored-directory-prefixes))
+           ignored-directory-prefixes
+           skip-unreadable-dirs?))
 
 (defun find-rec-multi--haskell-native-impl
     (roots
@@ -223,7 +229,8 @@ Always returns absolute paths."
      ignored-absolute-files-globs
      ignored-absolute-dirs-globs
      ignored-directories
-     ignored-directory-prefixes)
+     ignored-directory-prefixes
+     skip-unreadable-dirs?)
   "Backend of ‘find-rec-multi*’ that uses ffi to do the search."
   (declare (pure nil) (side-effect-free nil))
   (let ((ignored-files-basename-globs ignored-extensions-globs)
@@ -241,7 +248,8 @@ Always returns absolute paths."
      ignored-dirs-basename-globs
      ignored-dirs-abs-globs
      ;; Always produce absolute paths.
-     nil)))
+     nil
+     skip-unreadable-dirs?)))
 
 (defun find-rec-multi--emacs-native-helper-impl
     (roots
@@ -250,7 +258,8 @@ Always returns absolute paths."
      ignored-absolute-files-globs
      ignored-absolute-dirs-globs
      ignored-directories
-     ignored-directory-prefixes)
+     ignored-directory-prefixes
+     skip-unreadable-dirs?)
   (find-rec--emacs-native-helper-impl
    roots
    globs-to-find
@@ -259,7 +268,9 @@ Always returns absolute paths."
    ignored-absolute-dirs-globs
    ignored-directories
    ignored-directory-prefixes
-   nil))
+   ;; Always produce absolute paths.
+   nil
+   skip-unreadable-dirs?))
 
 (defun find-rec--emacs-native-helper-impl
     (root
@@ -269,7 +280,8 @@ Always returns absolute paths."
      ignored-absolute-dirs-globs
      ignored-directories
      ignored-directory-prefixes
-     relative-paths?)
+     relative-paths?
+     skip-unreadable-dirs?)
   "A version of `find-rec' that uses system's find executable to do the search."
   (declare (pure nil) (side-effect-free nil))
   (when (null globs-to-find)
@@ -278,6 +290,8 @@ Always returns absolute paths."
   (let* ((cmd (nconc (list "find")
                      (when relative-paths?
                        (list "--relative-paths"))
+                     (when skip-unreadable-dirs?
+                       (list "--skip-unreadable-dirs"))
                      (foregin-setup--format-globs-args-for-emacs-native-hepler
                       globs-to-find
                       ignored-extensions-globs
@@ -309,11 +323,14 @@ Always returns absolute paths."
                                        ignored-absolute-dirs-globs
                                        ignored-directories
                                        ignored-directory-prefixes
-                                       relative-paths?)
-  "A version of `find-rec' that uses system's find executable to do the search."
+                                       relative-paths?
+                                       _skip-unreadable-dirs?)
+  "A version of `find-rec' that uses system’s find executable to do the search."
   (declare (pure nil) (side-effect-free nil))
   (when (null globs-to-find)
     (error "No globs to search for under %s" root))
+  ;; NB skip-unreadable-dirs? is unused with system ‘find’ executable because it
+  ;; will ignore them anyway and we won’t look at its messages where it prints them.
   (let* ((find-prog-type (find-files/resolve-find-program-type))
          (ignored-dirs-globs
           (nconc (--map (concat root "/" (strip-trailing-slash it))
@@ -408,7 +425,8 @@ Always returns absolute paths."
                              ignored-absolute-dirs-globs
                              ignored-directories
                              ignored-directory-prefixes
-                             relative-paths?)
+                             relative-paths?
+                             skip-unreadable-dirs?)
   "An implementation of `find-rec' that does everything via elisp. Thus, it
 does not depend on external executables nor native extensions and is used
 as a fallback if those are not available."
@@ -460,27 +478,17 @@ as a fallback if those are not available."
                             (let ((case-fold-search t))
                               (string-match-p re-to-find fname))))))
                      :do-not-visitp
-                     (cond
-                       ((and ignored-absolute-dirs-re
-                             ignored-dirs-re)
-                        (lambda (path)
-                          (let ((case-fold-search nil))
-                            (or (string-match-p ignored-dirs-re
-                                                (file-name-nondirectory path))
-                                (string-match-p ignored-absolute-dirs-re
-                                                path)))))
-                       (ignored-absolute-dirs-re
-                        (lambda (path)
-                          (let ((case-fold-search nil))
-                            (string-match-p ignored-absolute-dirs-re
-                                            path))))
-                       (ignored-dirs-re
-                        (lambda (path)
-                          (let ((case-fold-search nil))
-                            (string-match-p ignored-dirs-re
-                                            (file-name-nondirectory path)))))
-                       (t
-                        #'ignore)))))
+                     (lambda (path)
+                       (let ((case-fold-search nil))
+                         (and (or (when ignored-dirs-re
+                                    (string-match-p ignored-dirs-re
+                                                    (file-name-nondirectory path)))
+                                  (when ignored-absolute-dirs-re
+                                    (string-match-p ignored-absolute-dirs-re
+                                                    path)))
+                              (if skip-unreadable-dirs?
+                                  (file-readable-p path)
+                                t)))))))
       (if relative-paths?
           (let ((root-with-slash (concat (strip-trailing-slash root) "/")))
             (--map (s-chop-prefix root-with-slash it)
