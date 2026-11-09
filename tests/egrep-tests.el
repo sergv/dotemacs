@@ -75,7 +75,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir nil nil nil nil))
+                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir nil nil nil nil nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   (vconcat egrep-tests--bar-matches egrep-tests--foo-matches)))))
@@ -85,7 +85,7 @@
     "hello"
     "hello"
   (should-error
-   (egrep--find-matches regexp '("*.c") egrep-tests/project-dir nil '("*.c") nil nil)))
+   (egrep--find-matches regexp '("*.c") egrep-tests/project-dir nil '("*.c") nil nil nil)))
 
 (grep-tests--define-tests "egrep-tests-ignore-file-globs-work/%s"
     regexp
@@ -94,7 +94,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir t nil '("**src/**") nil))
+                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir t nil '("**src/**") nil nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   egrep-tests--bar-matches))))
@@ -106,7 +106,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir t nil nil nil))
+                  (egrep--find-matches regexp '("*.c") egrep-tests/project-dir t nil nil nil nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   (vconcat egrep-tests--bar-matches egrep-tests--foo-matches)))))
@@ -118,7 +118,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c.gz") egrep-tests/project-dir nil nil nil nil))
+                  (egrep--find-matches regexp '("*.c.gz") egrep-tests/project-dir nil nil nil nil nil))
           (cl-map 'vector
                   (lambda (x)
                     (egrep-tests--normalise-egrep-match x))
@@ -129,7 +129,7 @@
     "hello"
     "hello"
   (should-error
-   (egrep--find-matches regexp '("*.decombobulate") egrep-tests/project-dir nil nil nil nil)))
+   (egrep--find-matches regexp '("*.decombobulate") egrep-tests/project-dir nil nil nil nil nil)))
 
 (grep-tests--define-tests "egrep-tests-commit-changed-entries/%s"
     regexp
@@ -173,9 +173,49 @@ bar"))
     (should (string= (read-file-contents-literally-as-string (concat root "/bar.txt"))
                      "\
 bar
-baz"))
+baz"))))
 
-    ))
+(grep-tests--define-tests "egrep-tests-unreadable-file/%s"
+    regexp
+    "foo"
+    "foo"
+  (test-utils--with-temp-dir
+      root
+      "egrep-test"
+      ""
+      (("foo.txt"
+        "\
+yy foo xx
+bar")
+       ("bar.txt"
+        "\
+bar
+xx foo yy")
+       ("baz-unreadable/baz.txt"
+        "\
+bar
+xx foo yy"))
+
+    (unwind-protect
+        (progn
+          ;; Make file completely not readable for test.
+          (set-file-modes (concat root "/bar.txt") #o222)
+          ;; Make directory completely not readable for test.
+          (set-file-modes (concat root "/baz-unreadable") #o333)
+
+          (should
+           (equal (cl-map 'vector
+                          #'egrep-tests--normalise-egrep-match
+                          (egrep--find-matches regexp '("*.txt") root nil nil nil nil t))
+                  (cl-map 'vector
+                          #'egrep-tests--normalise-egrep-match
+                          (vector
+                           (make-egrep-match (concat root "/foo.txt") "foo.txt" 1 3 "yy " "foo" " xx" 3))))))
+      (progn
+        (set-file-modes (concat root "/bar.txt") #o666)
+        ;; Make directory completely not readable for test.
+        (set-file-modes (concat root "/baz-unreadable") #o777)))))
+
 (provide 'egrep-tests)
 
 ;; Local Variables:
