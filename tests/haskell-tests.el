@@ -8054,6 +8054,120 @@ Entries should be a list of of elements of the form
   "  in ()"
   ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-20a
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "findRec :: Foo -> IO Bar"
+  "findRec foo ="
+  "  Streaming.listContentsRecFold"
+  "    Nothing"
+  "    (\\absDir _root _relDir baseDir sym cons descendSubdir rest ->"
+  "      let absDir' = AbsDir absDir"
+  "      in"
+  "        if dirPred absDir' baseDir"
+  "        then do"
+  "          isReadable <- PosixString.fileAccess (getOsString absDir) True False False"
+  "          let descendSubdir' dir = _|_if isReadable then descendSubdir dir else dir"
+  "          case sym of"
+  "            Foo -> descendSubdir' rest"
+  "            Bar -> pure ()"
+  "        else"
+  "          rest)"
+  "    (fmap (coerce addTrailingPathSeparator) roots)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "findRec :: Foo -> IO Bar"
+  "findRec foo ="
+  "  Streaming.listContentsRecFold"
+  "    Nothing"
+  "    (\\absDir _root _relDir baseDir sym cons descendSubdir rest ->"
+  "      let absDir' = AbsDir absDir"
+  "      in"
+  "        if dirPred absDir' baseDir"
+  "        then do"
+  "          isReadable <- PosixString.fileAccess (getOsString absDir) True False False"
+  "          let descendSubdir' dir ="
+  "                _|_if isReadable then descendSubdir dir else dir"
+  "          case sym of"
+  "            Foo -> descendSubdir' rest"
+  "            Bar -> pure ()"
+  "        else"
+  "          rest)"
+  "    (fmap (coerce addTrailingPathSeparator) roots)"
+  ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion-indent-20b
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "findRec :: Foo -> IO Bar"
+  "findRec foo ="
+  "  Streaming.listContentsRecFold"
+  "    Nothing"
+  "    (\\absDir _root _relDir baseDir sym cons descendSubdir rest ->"
+  "      let absDir' = AbsDir absDir"
+  "      in"
+  "        if dirPred absDir' baseDir"
+  "        then do"
+  "          isReadable <-"
+  "#ifdef WINDOWS"
+  "            pure True"
+  "#endif"
+  "#ifndef WINDOWS"
+  "            PosixString.fileAccess (getOsString absDir) True False False"
+  "#endif"
+  "          let descendSubdir' dir = _|_if isReadable then descendSubdir dir else dir"
+  "          case sym of"
+  "            Foo -> descendSubdir' rest"
+  "            Bar -> pure ()"
+  "        else"
+  "          rest)"
+  "    (fmap (coerce addTrailingPathSeparator) roots)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "findRec :: Foo -> IO Bar"
+  "findRec foo ="
+  "  Streaming.listContentsRecFold"
+  "    Nothing"
+  "    (\\absDir _root _relDir baseDir sym cons descendSubdir rest ->"
+  "      let absDir' = AbsDir absDir"
+  "      in"
+  "        if dirPred absDir' baseDir"
+  "        then do"
+  "          isReadable <-"
+  "#ifdef WINDOWS"
+  "            pure True"
+  "#endif"
+  "#ifndef WINDOWS"
+  "            PosixString.fileAccess (getOsString absDir) True False False"
+  "#endif"
+  "          let descendSubdir' dir ="
+  "                _|_if isReadable then descendSubdir dir else dir"
+  "          case sym of"
+  "            Foo -> descendSubdir' rest"
+  "            Bar -> pure ()"
+  "        else"
+  "          rest)"
+  "    (fmap (coerce addTrailingPathSeparator) roots)"
+  ""))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-start-1
     (haskell-move-to-topmost-start)
