@@ -982,6 +982,7 @@
 
              ;; If then else
              ((n-p-gp '("then" "else") "conditional" nil) parent 0)
+             ((n-p-gp nil "conditional" nil) parent haskell-indent-offset)
              ((field-is "then" "else") parent haskell-indent-offset)
 
              ;; list
