@@ -94,7 +94,7 @@ that next 2 characters are AFTER1 and AFTER2."
          (and (or (eq before ?\')
                   (eq before ?\\))
               (eq after ?\'))
-         ;; Test for positions: "_|_", \\_|_"
+         ;; Test for positions: "_|_", \\_|_", but not "..."_|_
          (and (or (eq before ?\")
                   (eq before ?\\))
               (eq after ?\"))))))

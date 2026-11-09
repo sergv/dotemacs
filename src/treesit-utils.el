@@ -25,12 +25,26 @@
   (and (<= (treesit-node-start node) p)
        (<= p (treesit-node-end node))))
 
-(defun treesit-utils--is-inside-node-ex-start? (p node)
+(defun treesit-utils-is-inside-node-ex-start? (p node)
   (declare (pure t) (side-effect-free t))
   (cl-assert (integerp p))
   (cl-assert (treesit-node-p node))
   (and (< (treesit-node-start node) p)
        (<= p (treesit-node-end node))))
+
+(defun treesit-utils-is-inside-node-ex-end? (p node)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (integerp p))
+  (cl-assert (treesit-node-p node))
+  (and (<= (treesit-node-start node) p)
+       (< p (treesit-node-end node))))
+
+(defun treesit-utils-is-inside-node-ex-start-ex-end? (p node)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (integerp p))
+  (cl-assert (treesit-node-p node))
+  (and (< (treesit-node-start node) p)
+       (< p (treesit-node-end node))))
 
 (defun treesit-utils--do-resolve (f pos node)
   "Turn predicate F on treesit nodes that may return booleans into function
@@ -56,20 +70,20 @@ Alternatively, RESOLVE-STRING may return t if passed node is the string node to 
 in which case the passed node will be used further."
   (declare (pure t) (side-effect-free t))
   (and-let* ((resolved (treesit-utils--do-resolve resolve-string p node)))
-    (treesit-utils--is-inside-node-ex-start? p resolved)))
+    (treesit-utils-is-inside-node-ex-start-ex-end? p resolved)))
 
 (defun treesit-utils-is-inside-comment-node? (p node resolve-comment)
   "See ‘treesit-utils-is-inside-string-node?’ for meaning of RESOLVE-COMMENT."
   (declare (pure t) (side-effect-free t))
   (and-let* ((resolved (treesit-utils--do-resolve resolve-comment p node)))
-    (treesit-utils--is-inside-node-ex-start? p resolved)))
+    (treesit-utils-is-inside-node-ex-start-ex-end? p resolved)))
 
 (defun treesit-utils-is-inside-string-or-comment-node? (p node resolve-string resolve-comment)
   "See ‘treesit-utils-is-inside-string-node?’ for meaning of RESOLVE-STRING and RESOLVE-COMMENT."
   (declare (pure t) (side-effect-free t))
   (and-let* ((resolved (or (treesit-utils--do-resolve resolve-string p node)
                            (treesit-utils--do-resolve resolve-comment p node))))
-    (treesit-utils--is-inside-node-ex-start? p resolved)))
+    (treesit-utils-is-inside-node-ex-start-ex-end? p resolved)))
 
 (defun treesit-utils-is-not-inside-string-or-comment-node? (p node resolve-string resolve-comment)
   "See ‘treesit-utils-is-inside-string-node?’ for meaning of RESOLVE-STRING and RESOLVE-COMMENT."
@@ -77,7 +91,7 @@ in which case the passed node will be used further."
   (not
    (and-let* ((resolved (or (treesit-utils--do-resolve resolve-string p node)
                             (treesit-utils--do-resolve resolve-comment p node))))
-     (treesit-utils--is-inside-node-ex-start? p resolved))))
+     (treesit-utils-is-inside-node-ex-start-ex-end? p resolved))))
 
 (defun treesit-utils-semnav-bounds-of-string-at (node is-string-node?)
   "IS-STRING-NODE? - function that takes a treesitter node and shold return non-nil if it’s
