@@ -74,6 +74,11 @@
   (cl-assert (stringp typ))
   (member-str typ "->" "→" "⊸"))
 
+(defun treesit-haskell--is-guard-arrow-node-type? (typ)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (stringp typ))
+  (member-str typ "->" "→"))
+
 (defun treesit-haskell--is-double-arrow-node-type? (typ)
   (declare (pure t) (side-effect-free t))
   (cl-assert (stringp typ))

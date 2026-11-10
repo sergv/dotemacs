@@ -9934,6 +9934,25 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-9
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case bar x of"
+  "  y | test1 x y"
+  "          _|_, test2 y x"
+  "    -> (x, y)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case bar x of"
+  "  y | test1 x y"
+  "    _|_, test2 y x"
+  "    -> (x, y)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-do-1a
  :contents
  (tests-utils--multiline
