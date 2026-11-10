@@ -939,6 +939,16 @@
         0
       haskell-indent-offset)))
 
+(defun haskell-ts-indent--intermediate-guard-anchor (node parent _bol)
+  (if-let* ((prev (treesit-node-prev-sibling node))
+            (_ (string= (treesit-node-type prev) ",")))
+      (if (treesit-utils-is-standalone-node? prev)
+          prev
+        (if-let* ((prev-prev (treesit-node-prev-sibling prev)))
+            prev-prev
+          parent))
+    parent))
+
 (defconst haskell-ts-indent-rules
   (eval-when-compile
     (let ((rules
@@ -1340,6 +1350,10 @@
               ,(lambda (_ p _)
                  (haskell-ts-indent--get-match-guard-pipe p))
               0)
+             ((and (n-p-gp nil "guards" "match")
+                   (field-is "guard"))
+              haskell-ts-indent--intermediate-guard-anchor
+              haskell-indent-offset)
 
              ((parent-is "match")
               haskell-ts-indent--match-parent-anchor
