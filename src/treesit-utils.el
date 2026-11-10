@@ -277,6 +277,7 @@ overhead if produced structures will only be compared once."
            (treesit-utils--get-ast-node-soup (treesit-node-child node i)))))))))
 
 (defun treesit-utils-is-standalone-node? (node)
+  "Check whether NODE is the first thing on the line it occupies."
   (save-excursion
     (let ((start (treesit-node-start node)))
       (goto-char start)
