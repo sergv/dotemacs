@@ -9934,7 +9934,7 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-guard-9
+ :name haskell-indentation-tests--test-treesitter-guard-9a
  :contents
  (tests-utils--multiline
   ""
@@ -9949,6 +9949,65 @@ have different input states."
   "foo x = case bar x of"
   "  y | test1 x y"
   "    _|_, test2 y x"
+  "    -> (x, y)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-9b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case bar x of"
+  "  y | test1 x y"
+  "          _|_,"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case bar x of"
+  "  y | test1 x y"
+  "    _|_,"
+  "")
+ ;; AST is too malformed to do anything meaningful.
+ :expected-result :failed)
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-10a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case bar x of"
+  "  y | test1 x y,"
+  "            _|_test2 y x"
+  "    -> (x, y)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case bar x of"
+  "  y | test1 x y,"
+  "        _|_test2 y x"
+  "    -> (x, y)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-10b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = case bar x of"
+  "  y | test1 x y,"
+  "        test2 y x,"
+  "               _|_test3 x x"
+  "    -> (x, y)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = case bar x of"
+  "  y | test1 x y,"
+  "        test2 y x,"
+  "          _|_test3 x x"
   "    -> (x, y)"
   ""))
 
