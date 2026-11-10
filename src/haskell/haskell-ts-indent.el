@@ -1327,10 +1327,14 @@
                        0
                      haskell-indent-offset))))
 
+             ((n-p-gp "," "guards" "match")
+              ,(lambda (_ p _)
+                 (haskell-ts-indent--get-match-guard-pipe (treesit-node-parent p)))
+              0)
              (,(lambda (n p _)
                  (let ((typ (treesit-node-type n)))
                    (and (or (member-str typ "=")
-                            (treesit-haskell--is-arrow-node-type? typ))
+                            (treesit-haskell--is-guard-arrow-node-type? typ))
                         (string= "match" (treesit-node-type p))
                         (treesit-node-child-by-field-name p "guards"))))
               ,(lambda (_ p _)
