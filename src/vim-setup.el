@@ -20,6 +20,7 @@
 (require 'common)
 (require 'completion-setup)
 (require 'current-column-fixed)
+(require 'focus)
 (require 'hydra-setup)
 (require 'keys-def)
 (require 'search)
@@ -176,6 +177,7 @@ M-_x_"
 _c_lose      _h_orizontal split  _b_alance
 _o_nly       _v_ertical split    _B_alance other windows
 _t_ranspose
+_f_ocus (%`focus-mode)
 
 _<left>_:    shrink horizontally
 _<right>_:   enlarge horizontally
@@ -192,6 +194,7 @@ _S-<up>_:    fast enlarge vertically
   ("t" transpose-windows)
   ("b" balance-windows)
   ("B" balance-other-windows)
+  ("f" toggle-focus-mode)
 
   ("h" split-window-vertically)
   ("v" split-window-horizontally)

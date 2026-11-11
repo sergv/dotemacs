@@ -11,8 +11,6 @@
 ;; (require 'posframe)
 (require 'simple)
 
-(require 'focus)
-
 ;; (setf hydra-hint-display-type (if (posframe-workable-p)
 ;;                                   'posframe
 ;;                                 'lv))
@@ -70,7 +68,6 @@ Toggle:
 _c_olour theme       %(identity *current-color-theme*)
 _d_ebug on error     %`debug-on-error
 auto _F_ill          %(if auto-fill-function t nil)
-_f_ocus mode         %`focus-mode
 searh _h_ighlighting %(not (null (search-highlighting-is-enabled?)))
 debug on _q_uit      %`debug-on-quit
 _r_ead only          %`buffer-read-only
@@ -79,7 +76,6 @@ _w_hitespace mode    %`whitespace-mode"
   ("c" solarized-toggle)
   ("d" toggle-debug-on-error)
   ("F" auto-fill-mode)
-  ("f" toggle-focus-mode)
   ("h" search-toggle-highlighting :exit t)
   ("q" toggle-debug-on-quit)
   ("r" hydra-toggle--read-only)
