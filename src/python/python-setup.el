@@ -450,14 +450,10 @@ _j_: send region to repl"
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
-    ("C-t"      comint-previous-prompt)
-    ("C-h"      comint-next-prompt)
-    ("C-<up>"   comint-previous-prompt)
-    ("C-<down>" comint-next-prompt)
-    ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt)
+    ("<tab>"    python-complete)
 
-    ("<tab>"    python-complete)))
+    (("C-t" "M-<up>"   "S-<up>")   comint-previous-prompt)
+    (("C-h" "M-<down>" "S-<down>") comint-next-prompt)))
 
 ;;;###autoload
 (add-hook 'inferior-python-mode-hook #'inferior-python-setup)

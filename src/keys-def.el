@@ -65,10 +65,10 @@
     ("S-<right>"  swap-buffers-forward)))
 
 (defconst +vim-character-navigation-keys+
-  '(("C-<down>"   forward-line)
-    ("C-<up>"     backward-line)
-    ("C-<right>"  forward-char)
-    ("C-<left>"   backward-char)))
+  '(("C-M-<down>"   forward-line)
+    ("C-M-<up>"     backward-line)
+    ("C-M-<right>"  forward-char)
+    ("C-M-<left>"   backward-char)))
 
 (defconst +vim-parens-keys+
   '(("C-("        vim:backward-slurp-sexp:interactive)

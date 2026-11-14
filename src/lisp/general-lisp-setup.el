@@ -700,10 +700,9 @@ _o_: show sexps in region"
 
     ("<up>"        comint-previous-input)
     ("<down>"      comint-next-input)
-    ("C-<up>"      comint-previous-prompt)
-    ("C-<down>"    comint-next-prompt)
-    ("S-<up>"      comint-previous-prompt)
-    ("S-<down>"    comint-next-prompt)))
+
+    (("M-<up>"   "S-<up>")   comint-previous-prompt)
+    (("M-<down>" "S-<down>") comint-next-prompt)))
 
 (provide 'general-lisp-setup)
 

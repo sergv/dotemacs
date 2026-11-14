@@ -291,8 +291,8 @@ Similarly for Soar, Scheme, etc."
   (def-keys-for-map comint-mode-map
     ("<up>"     comint-previous-input-or-bwd-paragraph)
     ("<down>"   comint-next-input-or-fwd-paragraph)
-    ("C-<up>"   comint-previous-prompt)
-    ("C-<down>" comint-next-prompt)
+    ("M-<up>"   comint-previous-prompt)
+    ("M-<down>" comint-next-prompt)
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)))
 

@@ -54,8 +54,8 @@
     ("M-h"        markdown-next-visible-heading)
     ("M-t"        markdown-previous-visible-heading)
     ("'"          markdown-up-heading)
-    ("C-<down>"   flyspell-goto-next-error)
-    ("C-<return>" ispell-word))
+    ("M-<down>"   flyspell-goto-next-error)
+    ("M-<return>" ispell-word))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("`"     vim-wrap-backticks)
     ("<tab>" markdown-indent-region)))

@@ -372,8 +372,8 @@ sexps and indentation levels."
     ("C-h"       comint-next-prompt)
     ("<up>"      comint-previous-input-or-bwd-paragraph)
     ("<down>"    comint-next-input-or-fwd-paragraph)
-    ("C-<up>"    comint-previous-prompt)
-    ("C-<down>"  comint-next-prompt)
+    ("M-<up>"    comint-previous-prompt)
+    ("M-<down>"  comint-next-prompt)
 
     ;; ("C-c C-k"   comint-kill-subjob)
     )

@@ -438,11 +438,6 @@ _C_: hide everything except current entry and its parents"
     (("C-m" "<f9>") vim:org-latex-export-to-pdf:interactive)
     ("S-<f9>"       open-buffer-as-pdf)
     ("C-SPC"        pcomplete-completions-at-point)
-    ("C-<return>"   org-meta-return)
-    ("C-<down>"     org-metadown)
-    ("C-<up>"       org-metaup)
-    ("C-<left>"     org-metaleft)
-    ("C-<right>"    org-metaright)
     ("C-="          input-unicode)
     ("<return>"     newline-and-indent))
 
@@ -454,7 +449,12 @@ _C_: hide everything except current entry and its parents"
     ("$" vim:org-end-of-line:interactive))
 
   (def-keys-for-map vim-insert-mode-local-keymap
-    ("SPC"  org-mode-space-abbrev+))
+    ("C-<return>"   org-meta-return)
+    ("C-<down>"     org-metadown)
+    ("C-<up>"       org-metaup)
+    ("C-<left>"     org-metaleft)
+    ("C-<right>"    org-metaright)
+    ("SPC"          org-mode-space-abbrev+))
 
   (def-keys-for-map org-mode-map
     ("C-k"   :remove)

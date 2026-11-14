@@ -118,9 +118,7 @@
     ("C-k"       :remove)
     ("<return>"  :remove)
     ("C-<left>"  :remove)
-    ("C-<right>" :remove)
-    ("M-<left>"  paredit-backward-slurp-sexp)
-    ("M-<right>" paredit-backward-barf-sexp)))
+    ("C-<right>" :remove)))
 
 (eval-after-load 'paredit '(paredit-init))
 
