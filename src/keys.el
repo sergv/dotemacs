@@ -35,7 +35,7 @@
   ("<f6>"     revert-buffer)
 
   ("<f9>"     compile)
-  ("<f10>"    toggle-focus-mode)
+  ("<f11>"    toggle-focus-mode)
   ("<f12>"    start-profiler-or-report)
 
   ("C-<prior>" scroll-down-command-fast)
@@ -108,18 +108,18 @@
   (("M-<wheel-up>" "M-<wheel-down>") mouse-wheel-text-scale)
   ("<pinch>"                         pinch-font-scaling)
 
+  ;; MacOS globe+<left>
+  (("<home>"   "C-<left>")   prev-tab-or-frame)
+  (("S-<home>" "C-S-<left>") tabbar-move-tab-to-the-left)
+  ;; MacOS globe+<right>
+  (("<end>"   "C-<right>")   next-tab-or-frame)
+  (("S-<end>" "C-S-<right>") tabbar-move-tab-to-the-right)
+
+  ("C-M-<left>"  :remove)
+  ("C-M-<right>" :remove)
+
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("ESC ESC ESC" :remove))
-
-(if-macos
-    (def-keys-for-map global-map
-      ;; aka globe+<left>
-      ("<home>" prev-tab-or-frame)
-      ;; aka globe+<right>
-      ("<end>"  next-tab-or-frame))
-  (def-keys-for-map global-map
-    ("<home>" next-tab-or-frame)
-    ("<end>"  prev-tab-or-frame)))
 
 (def-keys-for-map global-map
   ("C-<home>"   next-f)
