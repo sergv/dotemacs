@@ -398,6 +398,16 @@
 
 (remove-hook 'post-self-insert-hook #'blink-paren-post-self-insert-function)
 
+;;;;
+
+(defun scroll-up-command-half-screen ()
+  (interactive)
+  (scroll-up-command (/ (window-height) 2)))
+
+(defun scroll-down-command-half-screen ()
+  (interactive)
+  (scroll-down-command (/ (window-height) 2)))
+
 ;;;; Epilogue
 
 (provide 'emacs-general-conf)

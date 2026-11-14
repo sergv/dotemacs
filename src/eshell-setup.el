@@ -269,8 +269,8 @@
     ("<down>"           eshell-next-matching-input-from-input))
 
   (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap eshell-mode-map)
-    (("C-t" "C-<up>")   eshell-jump-to-prev-prompt)
-    (("C-h" "C-<down>") eshell-jump-to-next-prompt)
+    (("C-t" "M-<up>")   eshell-jump-to-prev-prompt)
+    (("C-h" "M-<down>") eshell-jump-to-next-prompt)
 
     ("C-w"              backward-delete-word)
     ("C-S-w"            backward-delete-word*)

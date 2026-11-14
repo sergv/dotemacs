@@ -462,23 +462,23 @@ Paredit behaves badly if parentheses are unbalanced, so exercise
                  "(frob |(let ((x 5) (y 3)) (zwonk) (wibblethwop)))"))
 
    "Barfage & Slurpage"
-   (("C-)" "C-<right>")
+   ("C-)"
                 paredit-forward-slurp-sexp
                 ("(foo (bar |baz) quux zot)"
                  "(foo (bar |baz quux) zot)")
                 ("(a b ((c| d)) e f)"
                  "(a b ((c| d) e) f)"))
-   (("C-}" "C-<left>")
+   ("C-}"
                 paredit-forward-barf-sexp
                 ("(foo (bar |baz quux) zot)"
                  "(foo (bar |baz) quux zot)"))
-   (("C-(" "C-M-<left>" "ESC C-<left>")
+   ("C-("
                 paredit-backward-slurp-sexp
                 ("(foo bar (baz| quux) zot)"
                  "(foo (bar baz| quux) zot)")
                 ("(a b ((c| d)) e f)"
                  "(a (b (c| d)) e f)"))
-   (("C-{" "C-M-<right>" "ESC C-<right>")
+   ("C-{"
                 paredit-backward-barf-sexp
                 ("(foo (bar baz |quux) zot)"
                  "(foo bar (baz |quux) zot)"))

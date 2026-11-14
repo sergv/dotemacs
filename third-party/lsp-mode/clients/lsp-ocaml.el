@@ -265,12 +265,12 @@ If TYPE is a single-line that represents a module type, reformat it."
 
 (defvar lsp-ocaml-type-enclosing-map
   (let ((keymap (make-sparse-keymap)))
-    (define-key keymap (kbd "C-<up>") #'lsp-ocaml-type-enclosing-go-up)
-    (define-key keymap (kbd "C-<down>") #'lsp-ocaml-type-enclosing-go-down)
+    ;; (define-key keymap (kbd "C-<up>") #'lsp-ocaml-type-enclosing-go-up)
+    ;; (define-key keymap (kbd "C-<down>") #'lsp-ocaml-type-enclosing-go-down)
     (define-key keymap (kbd "C-w") #'lsp-ocaml-type-enclosing-copy)
     (define-key keymap (kbd "C-t") #'lsp-ocaml-type-enclosing-increase-verbosity)
-    (define-key keymap (kbd "C-<right>") #'lsp-ocaml-type-enclosing-increase-verbosity)
-    (define-key keymap (kbd "C-<left>") #'lsp-ocaml-type-enclosing-decrease-verbosity)
+    ;; (define-key keymap (kbd "C-<right>") #'lsp-ocaml-type-enclosing-increase-verbosity)
+    ;; (define-key keymap (kbd "C-<left>") #'lsp-ocaml-type-enclosing-decrease-verbosity)
     keymap)
   "Keymap for OCaml-lsp type enclosing transient mode.")
 
