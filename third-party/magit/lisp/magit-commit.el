@@ -128,16 +128,12 @@ manpage for details.")
     ("c" "Commit"         magit-commit-create)]
    ["Edit HEAD"
     ("a" "Amend"          magit-commit-amend)
-    ("w" "Reword"         magit-commit-reword)
-    ("d" "Reshelve"       magit-commit-reshelve :level 0)]
+    ("w" "Reword"         magit-commit-reword)]
    ["Edit and rebase"
     ("F" "Instant fixup"  magit-commit-instant-fixup)
     ""
     ""
-    ("R" "Reword past"    magit-rebase-reword-commit :level 0)]
-   ["Spread across commits"
-    ("x" "Modified files"  magit-commit-autofixup :level 6)
-    ("X" "Updated modules" magit-commit-absorb-modules :level 6)]]
+    ("R" "Reword past"    magit-rebase-reword-commit :level 0)]]
   (interactive)
   (if-let ((buffer (magit-commit-message-buffer)))
       (switch-to-buffer buffer)
@@ -351,167 +347,6 @@ Like `magit-commit-fixup' but also run a \"--autofixup\" rebase."
          (magit-mode-bury-buffer))))
     (t
      (user-error "Nothing staged"))))
-
-;;;; Reshelve
-
-(defvar magit--reshelve-history nil)
-
-;;;###autoload
-(defun magit-commit-reshelve (date update-author &optional args)
-  "Change committer (and possibly author) date of the last commit.
-
-The current time is used as the initial minibuffer input and the
-original author or committer date is available as the previous
-history element.
-
-Both the author and the committer dates are changed, unless one
-of the following is true, in which case only the committer date
-is updated:
-- You are not the author of the commit that is being reshelved.
-- The command was invoked with a prefix argument.
-- Non-interactively if UPDATE-AUTHOR is nil."
-  (interactive
-    (let ((update-author (and (magit-rev-author-p "HEAD")
-                              (not current-prefix-arg))))
-      (push (magit-rev-format (if update-author "%ad" "%cd") "HEAD"
-                              (concat "--date=format:%F %T %z"))
-            magit--reshelve-history)
-      (list (read-string (if update-author
-                             "Change author and committer dates to: "
-                           "Change committer date to: ")
-                         (cons (format-time-string "%F %T %z") 17)
-                         'magit--reshelve-history)
-            update-author
-            (magit-commit-arguments))))
-  (with-environment-variables (("GIT_COMMITTER_DATE" date))
-    (magit-run-git "commit" "--amend" "--no-edit"
-                   (and update-author (concat "--date=" date))
-                   args)))
-
-;;;; Spread
-
-;;;###autoload
-(defun magit-commit-absorb-modules (phase commit)
-  "Spread modified modules across recent commits."
-  (interactive (list 'select (magit-get-upstream-branch)))
-  (let ((modules (magit-list-modified-modules)))
-    (unless modules
-      (user-error "There are no modified modules that could be absorbed"))
-    (when commit
-      (setq commit (magit-rebase-interactive-assert commit t)))
-    (cond ((and commit (eq phase 'run))
-           (dolist (module modules)
-             (when-let ((msg (magit-git-string
-                              "log" "-1" "--format=%s"
-                              (concat commit "..") "--" module)))
-               (magit-git "commit" "-m" (concat "fixup! " msg)
-                          "--only" "--" module)))
-           (magit-refresh)
-           t)
-          ((magit-log-select
-             (lambda (commit)
-               (magit-commit-absorb-modules 'run commit))
-             nil nil nil nil commit)))))
-
-;;;###autoload(autoload 'magit-commit-absorb "magit-commit" nil t)
-(transient-define-prefix magit-commit-absorb (phase commit args)
-  "Spread staged changes across recent commits.
-With a prefix argument use a transient command to select infix
-arguments.  This command requires git-absorb executable, which
-is available from https://github.com/tummychow/git-absorb.
-See `magit-commit-autofixup' for an alternative implementation."
-  :value '("-v")
-  ["Arguments"
-   ("-f" "Skip safety checks" ("-f" "--force"))
-   ("-v" "Increase verbosity" ("-v" "--verbose"))]
-  ["Actions"
-   ("x"  "Absorb" magit-commit-absorb)]
-  (interactive (if current-prefix-arg
-                   (list 'transient nil nil)
-                 (list 'select
-                       (and$ (magit-get-upstream-branch)
-                             (magit-merge-base $ "HEAD"))
-                       (transient-args 'magit-commit-absorb))))
-  (if (eq phase 'transient)
-      (transient-setup 'magit-commit-absorb)
-    (unless (magit-git-executable-find "git-absorb")
-      (user-error "This command requires the git-absorb executable, which %s"
-                  "is available from https://github.com/tummychow/git-absorb"))
-    (unless (magit-anything-staged-p)
-      (if (magit-anything-unstaged-p)
-          (if (y-or-n-p "Nothing staged.  Absorb all unstaged changes? ")
-              (magit-with-toplevel
-                (magit-run-git "add" "-u" "."))
-            (user-error "Abort"))
-        (user-error "There are no changes that could be absorbed")))
-    (when commit
-      (setq commit (magit-rebase-interactive-assert commit t)))
-    (if (and commit (eq phase 'run))
-        (prog1 t (magit-run-git-async "absorb" args "-b" commit))
-      (magit-log-select
-        (lambda (commit)
-          (with-no-warnings ; about non-interactive use
-            (magit-commit-absorb 'run commit args)))
-        nil nil nil nil commit))))
-
-(transient-augment-suffix magit-commit-absorb :transient 'transient--do-exit)
-
-;;;###autoload(autoload 'magit-commit-autofixup "magit-commit" nil t)
-(transient-define-prefix magit-commit-autofixup (phase commit args)
-  "Spread staged or unstaged changes across recent commits.
-
-If there are any staged then spread only those, otherwise spread all
-unstaged changes.  With a prefix argument use a transient command to
-select infix arguments.
-
-This command requires the git-autofixup script, which is available from
-https://github.com/torbiak/git-autofixup.  See `magit-commit-absorb' for
-an alternative implementation."
-  :value '("-vv")
-  ["Arguments"
-   (magit-autofixup:--context)
-   (magit-autofixup:--strict)
-   ("-v" "Increase verbosity" "-vv")]
-  ["Actions"
-   ("x"  "Absorb" magit-commit-autofixup)]
-  (interactive (if current-prefix-arg
-                   (list 'transient nil nil)
-                 (list 'select
-                       (and$ (magit-get-upstream-branch)
-                             (magit-merge-base $ "HEAD"))
-                       (transient-args 'magit-commit-autofixup))))
-  (if (eq phase 'transient)
-      (transient-setup 'magit-commit-autofixup)
-    (unless (magit-git-executable-find "git-autofixup")
-      (user-error "This command requires the git-autofixup script, which %s"
-                  "is available from https://github.com/torbiak/git-autofixup"))
-    (unless (magit-anything-modified-p)
-      (user-error "There are no changes that could be absorbed"))
-    (when commit
-      (setq commit (magit-rebase-interactive-assert commit t)))
-    (if (and commit (eq phase 'run))
-        (prog1 t (magit-run-git-async "autofixup" args commit))
-      (magit-log-select
-        (lambda (commit)
-          (with-no-warnings ; about non-interactive use
-            (magit-commit-autofixup 'run commit args)))
-        nil nil nil nil commit))))
-
-(transient-augment-suffix magit-commit-autofixup :transient 'transient--do-exit)
-
-(transient-define-argument magit-autofixup:--context ()
-  :description "Diff context lines"
-  :class 'transient-option
-  :shortarg "-c"
-  :argument "--context="
-  :reader #'transient-read-number-N0)
-
-(transient-define-argument magit-autofixup:--strict ()
-  :description "Strictness"
-  :class 'transient-option
-  :shortarg "-s"
-  :argument "--strict="
-  :reader #'transient-read-number-N0)
 
 ;;; Pending Diff
 
