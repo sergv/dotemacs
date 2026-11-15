@@ -723,6 +723,9 @@
       (magit-cherry-unmatched :foreground ,cyan)
       (magit-diff-added :inherit diff-added)
       (magit-diff-added-highlight :inherit (highlight magit-diff-added))
+      (magit-diff-added-indicator :inherit diff-indicator-added)
+      (magit-diff-base :inherit diff-changed)
+      (magit-diff-base-indicator :inherit diff-indicator-changed)
       (magit-diff-context :inherit default)
       (magit-diff-context-highlight :inherit highlight)
       (magit-diff-hunk-heading :inherit highlight)
@@ -730,6 +733,7 @@
       (magit-diff-hunk-heading-selection :inherit magit-diff-hunk-heading :underline t)
       (magit-diff-removed :inherit diff-removed)
       (magit-diff-removed-highlight :inherit (highlight magit-diff-removed))
+      (magit-diff-removed-indicator :inherit diff-indicator-removed)
       (magit-diffstat-added :inherit diff-added)
       (magit-diffstat-removed :inherit diff-removed)
       (magit-file-heading :inherit diff-file-header)
@@ -761,6 +765,11 @@
       (magit-signature-good :foreground ,green)
       (magit-signature-untrusted :foreground ,cyan)
       (magit-tag :foreground ,cyan :box t)
+
+      ;; Disable annoying magit faces
+      (magit-diff-our-heading :inherit highlight)
+      (magit-diff-base-heading :inherit highlight)
+      (magit-diff-their-heading :inherit highlight)
 
       (markdown-code-face :foreground ,cyan)
       (markdown-inline-code-face :inherit markdown-code-face)

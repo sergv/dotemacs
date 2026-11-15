@@ -38,7 +38,8 @@
 (setf magit-completing-read-function 'ivy-completing-read
       magit-branch-read-upstream-first 'fallback
       magit-enable-zero-context-diffs? t
-      magit-commit-ask-to-stage 'stage)
+      magit-commit-ask-to-stage 'stage
+      magit-diff-use-indicator-faces nil)
 
 ;; ;; don't show the diff by default in the commit buffer. Use `C-c C-d' to display it
 ;; (setq magit-commit-show-diff nil)

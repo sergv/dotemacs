@@ -3754,7 +3754,8 @@ actually a `diff' but a `diffstat' section."
            (setq line-face (if highlight
                                'magit-diff-context-highlight
                              'magit-diff-context))))
-        (put-text-property bol (1+ eol) 'font-lock-face line-face)
+        (when line-face
+          (put-text-property bol (1+ eol) 'font-lock-face line-face))
         (when (and sign-face magit-diff-use-indicator-faces)
           (magit--add-face-text-property
            bol (+ bol (if merging 2 1)) sign-face)))
