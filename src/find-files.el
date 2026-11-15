@@ -133,27 +133,39 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (cl-assert (listp ignored-directory-prefixes))
   (cl-assert (listp globs-to-find))
   (cl-assert (-every? #'stringp globs-to-find))
-  (funcall (cond
-             ((or (file-remote-p root)
-                  (eq find-rec-backend 'elisp))
-              #'find-rec--elisp-impl)
-             ((eq find-rec-backend 'emacs-native-helper)
-              #'find-rec--emacs-native-helper-impl)
-             ((eq find-rec-backend 'executable)
-              #'find-rec--find-executable-impl)
-             ((eq find-rec-backend 'native)
-              #'find-rec--haskell-native-impl)
-             (t
-              (error "Invalid find-rec-backend: %s" find-rec-backend)))
-           root
-           globs-to-find
-           ignored-extensions-globs
-           ignored-absolute-files-globs
-           ignored-absolute-dirs-globs
-           ignored-directories
-           ignored-directory-prefixes
-           relative-paths
-           skip-unreadable-dirs?))
+  (let ((tramp-remote-prefix nil)
+        (remote-emacs-native-helper-path nil))
+    (funcall (cond
+               ((and (setf tramp-remote-prefix (file-remote-p root))
+                     (tramp-utils--is-tramp-remote-file? root)
+                     (tramp-utils--is-tramp-connection-alive? root)
+                     (setf remote-emacs-native-helper-path
+                           (let ((default-directory root))
+                             (foregin-setup-resolve-emacs-native-helper-path))))
+                (lambda (&rest args)
+                  (let ((default-directory root))
+                    (apply #'find-rec--emacs-native-helper-impl remote-emacs-native-helper-path tramp-remote-prefix args))))
+               ((eq find-rec-backend 'emacs-native-helper)
+                (lambda (&rest args)
+                  (apply #'find-rec--emacs-native-helper-impl nil nil args)))
+               ((or (eq find-rec-backend 'elisp)
+                    (file-remote-p root))
+                #'find-rec--elisp-impl)
+               ((eq find-rec-backend 'executable)
+                #'find-rec--find-executable-impl)
+               ((eq find-rec-backend 'native)
+                #'find-rec--haskell-native-impl)
+               (t
+                (error "Invalid find-rec-backend: %s" find-rec-backend)))
+             root
+             globs-to-find
+             ignored-extensions-globs
+             ignored-absolute-files-globs
+             ignored-absolute-dirs-globs
+             ignored-directories
+             ignored-directory-prefixes
+             relative-paths
+             skip-unreadable-dirs?)))
 
 (defun find-rec--haskell-native-impl (root
                                       globs-to-find
@@ -261,6 +273,8 @@ Always returns absolute paths."
      ignored-directory-prefixes
      skip-unreadable-dirs?)
   (find-rec--emacs-native-helper-impl
+   nil
+   nil
    roots
    globs-to-find
    ignored-extensions-globs
@@ -273,7 +287,9 @@ Always returns absolute paths."
    skip-unreadable-dirs?))
 
 (defun find-rec--emacs-native-helper-impl
-    (root
+    (opt-exe
+     tramp-remote-prefix
+     roots
      globs-to-find
      ignored-extensions-globs
      ignored-absolute-files-globs
@@ -284,9 +300,10 @@ Always returns absolute paths."
      skip-unreadable-dirs?)
   "A version of `find-rec' that uses system's find executable to do the search."
   (declare (pure nil) (side-effect-free nil))
+  (cl-assert (or (null opt-exe) (stringp opt-exe)))
+  (cl-assert (or (null tramp-remote-prefix) (stringp tramp-remote-prefix)))
   (when (null globs-to-find)
-    (error "No globs to search for under %s" root))
-
+    (error "No globs to search for under %s" roots))
   (let* ((cmd (nconc (list "find")
                      (when relative-paths?
                        (list "--relative-paths"))
@@ -300,21 +317,27 @@ Always returns absolute paths."
                       ignored-directories
                       ignored-directory-prefixes)
                      (-map #'file-local-name
-                           (if (listp root)
-                               (cl-copy-list root)
-                             (list root))))))
+                           (if (listp roots)
+                               (cl-copy-list roots)
+                             (list roots)))))
+         (dir default-directory))
     (with-temp-buffer
       (with-disabled-undo
        (with-inhibited-modification-hooks
-        (apply #'process-file
-               (foregin-setup-resolve-emacs-native-helper-path)
-               nil
-               t
-               nil
-               cmd)
-        (split-into-lines
-         (buffer-substring-no-properties (point-min)
-                                         (point-max))))))))
+        (let ((default-directory dir))
+          (apply #'process-file
+                 (or opt-exe
+                     (foregin-setup-resolve-emacs-native-helper-path))
+                 nil
+                 t
+                 nil
+                 cmd)
+          (let ((lines (split-into-lines
+                        (buffer-substring-no-properties (point-min)
+                                                        (point-max)))))
+            (if relative-paths?
+                lines
+              (mapcar (lambda (x) (concat tramp-remote-prefix x)) lines)))))))))
 
 (defun find-rec--find-executable-impl (root
                                        globs-to-find
