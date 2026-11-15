@@ -226,6 +226,76 @@
 ;;   ;; (tramp-shell "ssh" host nil directory)
 ;;   )
 
+(defun tramp-sh-handle-process-file--format-bash-command-line-without-overflow
+    (dir env uenv program args input stderr)
+  (letrec (;; Keep lines short-ish because MacOS TTY limit is 1024.
+           ;; We’ll be hoping that no individual line will cause limit to be overflowed.
+           (line-limit 511)
+           (line-length 0)
+           (insert-unquoted!
+            (lambda (str)
+              (let* ((len (length str))
+                     (new-length (+ line-length len)))
+                (if (< new-length line-limit)
+                    (progn
+                      (insert str)
+                      (setf line-length new-length))
+                  (let* ((this-line-remaining-len (- line-limit line-length 1))
+                         (prefix (string-take-while
+                                  (lambda (c)
+                                    ;; Because bash will treat \\ as single slash instead of
+                                    ;; backslash + line continuation, it’s easier
+                                    ;; to put all backslashes on a new line here.
+                                    (not (eq c ?\\)))
+                                  (substring str 0 this-line-remaining-len))))
+                    (insert prefix)
+                    (insert-char ?\\)
+                    (insert-char ?\n)
+                    (setf line-length 0)
+                    (funcall insert-unquoted! (substring str (length prefix))))))))
+           (insert-space!
+            (lambda ()
+              (funcall insert-unquoted! " ")))
+           (insert!
+            (lambda (str)
+              (funcall insert-unquoted! (tramp-shell-quote-argument str)))))
+    (cl-macrolet
+        ((str! (s)
+           `(funcall insert-unquoted! ,s))
+         (quoted! (s)
+           `(funcall insert! ,s))
+         (space! ()
+           `(funcall insert-space!)))
+      (with-temp-buffer
+        (str! "cd ")
+        (quoted! dir)
+        (str! " &&")
+        (when env
+          (str! " env")
+          (dolist (x env)
+            (space!)
+            (quoted! x)))
+        (when uenv
+          (str! " unset")
+          (dolist (x env)
+            (space!)
+            (quoted! x)))
+        (space!)
+        (quoted! program)
+        (dolist (x args)
+          (space!)
+          (quoted! (if (and (not (zerop (length x)))
+                            (eq (aref x 0) ?/))
+                       (file-local-name x)
+                     x)))
+        (when input
+          (str! " <")
+          (str! input))
+        (when stderr
+          (str! " 2>")
+          (str! stderr))
+        (buffer-substring-no-properties (point-min) (point-max))))))
+
 (with-eval-after-load "tramp-sh"
   (when-emacs-version (<= 31 it)
     (el-patch-defun tramp-send-command (vec command &optional neveropen nooutput)
@@ -584,7 +654,90 @@ connection if a previous connection has died for some reason."
             ;; Cleanup, and propagate the signal.
             ((error quit)
              (tramp-cleanup-connection vec t)
-             (signal (car err) (cdr err)))))))))
+             (signal (car err) (cdr err)))))))
+
+    (el-patch-defun tramp-sh-handle-process-file
+      (program &optional infile destination display &rest args)
+      "Like `process-file' for Tramp files."
+      (tramp-skeleton-process-file program infile destination display args
+        (let (env uenv)
+          ;; Compute command.
+          (el-patch-remove
+            (setq command (mapconcat #'tramp-shell-quote-argument
+                                     (cons program args)
+                                     " ")))
+          ;; We use as environment the difference to toplevel `process-environment'.
+          (dolist (elt process-environment)
+            (or (tramp-local-environment-variable-p elt)
+                (if (string-search "=" elt)
+                    (setq env (append env `(,elt)))
+                  (setq uenv (cons elt uenv)))))
+          (when tramp-propagate-emacsclient-tramp
+            (setq env (setenv-internal
+                       env "EMACSCLIENT_TRAMP"
+                       (tramp-make-tramp-file-name v 'noloc) 'keep)))
+          (setq env (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
+          ;; Remove looong environment variables, for example from tramp-tests.el.
+          (setq env (seq-remove (lambda (x) (length> x 256)) env))
+          (el-patch-remove
+            (when env
+              (setq command
+                    (format
+                     "env %s %s"
+                     (mapconcat #'tramp-shell-quote-argument env " ") command)))
+            (when uenv
+              (setq command
+                    (format
+                     "unset %s && %s"
+                     (mapconcat #'tramp-shell-quote-argument uenv " ")
+                     command)))
+            (when input
+              (setq command (format "%s <%s" command input)))
+            (when stderr
+              (setq command (format "%s 2>%s" command stderr))))
+
+          ;; Send the command.  It might not return in time, so we protect
+          ;; it.  Call it in a subshell, in order to preserve working
+          ;; directory.
+          (condition-case nil
+              (unwind-protect
+                  (setq ret (tramp-send-command-and-check
+                             v
+                             (el-patch-swap
+                               (format
+                                "cd %s && %s"
+                                (tramp-shell-quote-argument localname) command)
+                               (tramp-sh-handle-process-file--format-bash-command-line-without-overflow
+                                localname
+                                env
+                                uenv
+                                program
+                                args
+                                input
+                                stderr))
+                             t t t))
+                (unless (natnump ret) (setq ret 1))
+                ;; We should add the output anyway.
+                (when outbuf
+                  (with-current-buffer outbuf
+                    (insert
+                     (tramp-get-buffer-string (tramp-get-connection-buffer v))))
+                  (when (and display (get-buffer-window outbuf t)) (redisplay))))
+
+            ;; When the user did interrupt, we should do it also.  We use
+            ;; return code -1 as marker.
+            (quit
+             (kill-buffer (tramp-get-connection-buffer v))
+             (setq ret -1))
+            ;; Handle errors.
+            (error
+             (kill-buffer (tramp-get-connection-buffer v))
+             (setq ret 1)))
+
+          ;; Handle signals.
+          (when (and process-file-return-signal-string
+                     (natnump ret) (>= ret 128))
+            (setq ret (nth (- ret 128) (tramp-sh-get-signal-strings v)))))))))
 
 (with-eval-after-load "tramp-message"
   (when-emacs-version (= 30 it)
