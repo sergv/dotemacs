@@ -2,7 +2,7 @@
 
 ;; Copyright (c) 2012-2013 Sebastian Wiesner
 ;; Copyright (C) 2013-2015 Rüdiger Sonderfeld
-;; Copyright (C) 2012-2025 The Magit Project Contributors
+;; Copyright (C) 2012-2026 The Magit Project Contributors
 
 ;; Author: Sebastian Wiesner <lunaryorn@gmail.com>
 ;;         Rüdiger Sonderfeld <ruediger@c-plusplus.net>
@@ -11,8 +11,10 @@
 ;; Homepage: https://github.com/magit/git-modes
 ;; Keywords: convenience vc git
 
-;; Package-Version: 1.4.6
-;; Package-Requires: ((emacs "26.1") (compat "30.1"))
+;; Package-Version: 1.5.1
+;; Package-Requires: (
+;;     (emacs  "28.1")
+;;     (compat "31.1"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
