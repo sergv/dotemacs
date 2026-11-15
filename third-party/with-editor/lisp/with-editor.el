@@ -6,8 +6,12 @@
 ;; Homepage: https://github.com/magit/with-editor
 ;; Keywords: processes terminals
 
-;; Package-Version: 3.4.9
-;; Package-Requires: ((emacs "26.1") (compat "30.1"))
+;; Package-Version: 3.6.0
+;; Package-Requires: (
+;;     (emacs   "28.1")
+;;     (compat  "31.1")
+;;     (cond-let "1.1")
+;;     (llama    "1.0"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -50,17 +54,19 @@
 ;; which always sets `$EDITOR' for all Emacs commands which ultimately
 ;; use `shell-command' to asynchronously run some shell command.
 
-;; The command `with-editor-export-editor' exports `$EDITOR' or
-;; another such environment variable in `shell-mode', `eshell-mode',
-;; `term-mode' and `vterm-mode' buffers.  Use this Emacs command
-;; before executing a shell command which needs the editor set, or
-;; always arrange for the current Emacs instance to be used as editor
+;; The command `with-editor-export-editor' exports `$EDITOR' or another
+;; such environment variable in `shell-mode', `eshell-mode', `term-mode',
+;; `vterm-mode', `eat-mode' and `ghostel-mode' buffers.  Use this Emacs
+;; command before executing a shell command which needs the editor set,
+;; or always arrange for the current Emacs instance to be used as editor
 ;; by adding it to the appropriate mode hooks:
 ;;
-;;   (add-hook 'shell-mode-hook  #'with-editor-export-editor)
-;;   (add-hook 'eshell-mode-hook #'with-editor-export-editor)
-;;   (add-hook 'term-exec-hook   #'with-editor-export-editor)
-;;   (add-hook 'vterm-mode-hook  #'with-editor-export-editor)
+;;   (add-hook 'shell-mode-hook        #'with-editor-export-editor)
+;;   (add-hook 'eshell-mode-hook       #'with-editor-export-editor)
+;;   (add-hook 'term-exec-hook         #'with-editor-export-editor)
+;;   (add-hook 'vterm-mode-hook        #'with-editor-export-editor)
+;;   (add-hook 'eat-exec-hook          #'with-editor-export-editor)
+;;   (add-hook 'ghostel-pre-spawn-hook #'with-editor-export-editor)
 
 ;; Some variants of this function exist, these two forms are
 ;; equivalent:
@@ -82,13 +88,23 @@
 
 (require 'cl-lib)
 (require 'compat)
+(require 'cond-let)
+(require 'llama)
 (require 'server)
 (require 'shell)
-(eval-when-compile (require 'subr-x))
 
 (declare-function dired-get-filename "dired"
                   (&optional localp no-error-if-not-filep))
+(declare-function eat-self-input "ext:eat" (n &optional e))
+(declare-function eat-term-parameter "ext:eat" (terminal parameter))
+(declare-function eat-term-send-string "ext:eat" (terminal string))
+(declare-function ghostel-send-key "ext:ghostel" (key-name &optional mods))
+(declare-function ghostel-send-string "ext:ghostel" (string))
 (declare-function term-emulate-terminal "term" (proc str))
+(declare-function vterm-send-return "ext:vterm" ())
+(declare-function vterm-send-string "ext:vterm" (string &optional paste-p))
+
+(defvar eat-terminal)
 (defvar eshell-preoutput-filter-functions)
 (defvar git-commit-post-finish-hook)
 (defvar vterm--process)
@@ -128,14 +144,14 @@ please see https://github.com/magit/magit/wiki/Emacsclient."))))
                ((bound-and-true-p emacsclient-program-name))
                ("emacsclient"))
          path
-         (mapcan (lambda (v) (cl-mapcar (lambda (e) (concat v e)) exec-suffixes))
+         (mapcan (lambda (suffix) (mapcar (##concat suffix %) exec-suffixes))
                  (nconc (and (boundp 'debian-emacs-flavor)
                              (list (format ".%s" debian-emacs-flavor)))
-                        (cl-mapcon (lambda (v)
-                                     (setq v (string-join (reverse v) "."))
-                                     (list v
-                                           (concat "-" v)
-                                           (concat ".emacs" v)))
+                        (cl-mapcon (lambda (ver)
+                                     (setq ver (string-join (reverse ver) "."))
+                                     (list ver
+                                           (concat "-" ver)
+                                           (concat ".emacs" ver)))
                                    (reverse version-lst))
                         (cons "" with-editor-emacsclient-program-suffixes)))
          (lambda (exec)
@@ -240,8 +256,9 @@ non-nil then that indicates that the user used a prefix argument
 to force finishing the session despite issues.  Functions should
 usually honor that and return non-nil."
   :group 'with-editor
+  :local 'permanent-only
   :type 'hook)
-(put 'with-editor-finish-query-functions 'permanent-local t)
+(put 'with-editor-finish-query-functions 'permanent-local t) ;< 31.1
 
 (defcustom with-editor-cancel-query-functions nil
   "List of functions called to query before canceling session.
@@ -254,8 +271,9 @@ non-nil then that indicates that the user used a prefix argument
 to force canceling the session despite issues.  Functions should
 usually honor that and return non-nil."
   :group 'with-editor
+  :local 'permanent-only
   :type 'hook)
-(put 'with-editor-cancel-query-functions 'permanent-local t)
+(put 'with-editor-cancel-query-functions 'permanent-local t) ;< 31.1
 
 (defcustom with-editor-mode-lighter " WE"
   "The mode-line lighter of the With-Editor mode."
@@ -386,10 +404,11 @@ And some tools that do not handle $EDITOR properly also break."
            (if clients
                (let ((buf (current-buffer)))
                  (dolist (client clients)
-                   (message "client %S" client)
-                   (ignore-errors
-                     (server-send-string client "-error Canceled by user"))
-                   (delete-process client))
+	           (when-let* ((terminal (process-get client 'terminal))
+                               (_(eq (terminal-live-p terminal) t)))
+	             (delete-terminal terminal))
+                   (server-send-string client "-error Canceled by user\n")
+                   (server-delete-client client))
                  (when (buffer-live-p buf)
                    (kill-buffer buf)))
              ;; Fallback for when emacs was used as $EDITOR
@@ -433,10 +452,7 @@ And some tools that do not handle $EDITOR properly also break."
   ;; Manually enabling the mode is dangerous because canceling the buffer
   ;; deletes the visited file.  The mode must not be disabled manually,
   ;; either `with-editor-finish' or `with-editor-cancel' must be used.
-  :interactive nil                    ; >= 28.1
-  (when (called-interactively-p 'any) ; <  28.1
-    (setq with-editor-mode (not with-editor-mode))
-    (user-error "With-Editor mode is not intended for interactive use"))
+  :interactive nil
   ;; The buffer must also not be killed using regular kill commands.
   (add-hook 'kill-buffer-query-functions
             #'with-editor-kill-buffer-noop nil t)
@@ -494,7 +510,7 @@ instead.
   `(let ((with-editor--envvar ,(if (stringp (car body))
                                    (pop body)
                                  '(or with-editor--envvar "EDITOR")))
-         (process-environment process-environment))
+         (process-environment (copy-sequence process-environment)))
      (with-editor--setup)
      ,@body))
 
@@ -507,15 +523,14 @@ at run-time.
 \n(fn ENVVAR BODY...)"
   (declare (indent defun) (debug (sexp body)))
   `(let ((with-editor--envvar ,envvar)
-         (process-environment process-environment))
+         (process-environment (copy-sequence process-environment)))
      (with-editor--setup)
      ,@body))
 
 (defun with-editor--setup ()
   (if (or (not with-editor-emacsclient-executable)
           (file-remote-p default-directory))
-      (push (concat with-editor--envvar "=" with-editor-sleeping-editor)
-            process-environment)
+      (setenv with-editor--envvar with-editor-sleeping-editor)
     ;; Make sure server-use-tcp's value is valid.
     (unless (featurep 'make-network-process '(:family local))
       (setq server-use-tcp t))
@@ -527,36 +542,36 @@ at run-time.
           (server-force-delete server-name)))
       (server-start))
     ;; Tell $EDITOR to use the Emacsclient.
-    (push (concat with-editor--envvar "="
-                  ;; Quoting is the right thing to do.  Applications that
-                  ;; fail because of that, are the ones that need fixing,
-                  ;; e.g., by using 'eval "$EDITOR" file'.  See #121.
-                  (shell-quote-argument
-                   ;; If users set the executable manually, they might
-                   ;; begin the path with "~", which would get quoted.
-                   (if (string-prefix-p "~" with-editor-emacsclient-executable)
-                       (concat (expand-file-name "~")
-                               (substring with-editor-emacsclient-executable 1))
-                     with-editor-emacsclient-executable))
-                  ;; Tell the process where the server file is.
-                  (and (not server-use-tcp)
-                       (concat " --socket-name="
-                               (shell-quote-argument
-                                (expand-file-name server-name
-                                                  server-socket-dir)))))
-          process-environment)
+    (setenv with-editor--envvar
+            (concat
+             ;; Quoting is the right thing to do.  Applications that
+             ;; fail because of that, are the ones that need fixing,
+             ;; e.g., by using 'eval "$EDITOR" file'.  See #121.
+             (shell-quote-argument
+              ;; If users set the executable manually, they might
+              ;; begin the path with "~", which would get quoted.
+              (if (string-prefix-p "~" with-editor-emacsclient-executable)
+                  (concat (expand-file-name "~")
+                          (substring with-editor-emacsclient-executable 1))
+                with-editor-emacsclient-executable))
+             ;; Tell the process where the server file is.
+             (and (not server-use-tcp)
+                  (concat " --socket-name="
+                          (shell-quote-argument
+                           (expand-file-name server-name
+                                             server-socket-dir))))))
     (when server-use-tcp
-      (push (concat "EMACS_SERVER_FILE="
-                    (expand-file-name server-name server-auth-dir))
-            process-environment))
+      (setenv "EMACS_SERVER_FILE"
+              (expand-file-name server-name server-auth-dir)))
     ;; As last resort fallback to the sleeping editor.
-    (push (concat "ALTERNATE_EDITOR=" with-editor-sleeping-editor)
-          process-environment)))
+    (setenv "ALTERNATE_EDITOR" with-editor-sleeping-editor)
+    ;; Work around bug in server.el of Emacs < 31.1.  #139
+    (when (member (getenv "TERM") '(nil ""))
+      (setenv "TERM" "dumb"))))
 
 (defun with-editor-server-window ()
   (or (and buffer-file-name
-           (cdr (cl-find-if (lambda (cons)
-                              (string-match-p (car cons) buffer-file-name))
+           (cdr (cl-find-if (##string-match-p (car %) buffer-file-name)
                             with-editor-server-window-alist)))
       server-window))
 
@@ -737,8 +752,7 @@ OPEN \\([^]+?\\)\
 Files matching a regexp in `with-editor-file-name-history-exclude'
 are prevented from being added to that list."
   (pcase-dolist (`(,file . ,_) files)
-    (when (cl-find-if (lambda (regexp)
-                        (string-match-p regexp file))
+    (when (cl-find-if (##string-match-p % file)
                       with-editor-file-name-history-exclude)
       (setq file-name-history
             (delete (abbreviate-file-name file) file-name-history)))))
@@ -746,72 +760,152 @@ are prevented from being added to that list."
 ;;; Augmentations
 
 ;;;###autoload
-(cl-defun with-editor-export-editor (&optional (envvar "EDITOR"))
+(cl-defun with-editor-export-editor
+    (&optional (envvar "EDITOR") process interactive)
   "Teach subsequent commands to use current Emacs instance as editor.
 
-Set and export the environment variable ENVVAR, by default
-\"EDITOR\".  The value is automatically generated to teach
-commands to use the current Emacs instance as \"the editor\".
+Set and export the environment variable ENVVAR, by default \"EDITOR\".
+The value is automatically generated to teach commands to use the
+current Emacs instance as \"the editor\".
 
-This works in `shell-mode', `term-mode', `eshell-mode' and
-`vterm'."
-  (interactive (list (with-editor-read-envvar)))
+PROCESS is only intended for use by `eat-exec-hook'.  When invoked
+interactively, INTERACTIVE is non-nil, which suppresses the call to
+\"clear\" (only relevant in `vterm-mode', `eat-mode' and `ghostel-mode').
+
+This command can be used in `shell-mode', `term-mode', `eshell-mode',
+`vterm-mode', `eat-mode' and `ghostel-mode'."
+  (interactive (list (with-editor-read-envvar) nil t))
   (cl-assert (or (stringp envvar) (listp envvar)))
+  (with-editor--export-editor envvar interactive process))
+
+(cl-defmethod with-editor--export-editor (_ _ _)
+  (user-error "with-editor-export-editor cannot be used in %s buffers"
+              major-mode))
+
+(cl-defmethod with-editor--export-editor ;comint-mode
+  (envvar _ _ &context (major-mode comint-mode))
+  (when-let ((process (get-buffer-process (current-buffer))))
+    (goto-char (process-mark process))
+    (process-send-string
+     process (with-editor--format-export envvar with-editor-sleeping-editor t))
+    (while (accept-process-output process 1 nil t))
+    (add-hook 'comint-output-filter-functions #'with-editor-output-filter nil t)))
+
+(cl-defmethod with-editor--export-editor ;term-mode
+  (envvar _ _ &context (major-mode term-mode))
+  (when-let ((process (get-buffer-process (current-buffer))))
+    (goto-char (process-mark process))
+    (process-send-string
+     process (with-editor--format-export envvar with-editor-sleeping-editor t))
+    (while (accept-process-output process 1 nil t))
+    (with-editor-set-process-filter process #'with-editor-emulate-terminal)))
+
+(cl-defmethod with-editor--export-editor ;eshell-mode
+  (envvar _ _ &context (major-mode eshell-mode))
+  (add-to-list 'eshell-preoutput-filter-functions #'with-editor-output-filter)
+  (setenv envvar with-editor-sleeping-editor))
+
+(cl-defmethod with-editor--export-editor ;vterm-mode
+  (envvar interactive _ &context (major-mode vterm-mode))
+  (let ((process-environment (copy-sequence process-environment))
+        (with-editor--envvar envvar))
+    (with-editor--setup)
+    (while (accept-process-output vterm--process 1 nil t))
+    (when (or (not with-editor-emacsclient-executable)
+              (file-remote-p default-directory))
+      (add-function :before (process-filter vterm--process)
+                    #'with-editor-sleeping-editor-filter))
+    (when$ (getenv envvar)
+      (vterm-send-string (with-editor--format-export envvar $))
+      (vterm-send-return))
+    (when$ (getenv "EMACS_SERVER_FILE")
+      (vterm-send-string (with-editor--format-export "EMACS_SERVER_FILE" $))
+      (vterm-send-return))
+    (unless interactive
+      (vterm-send-string " clear")
+      (vterm-send-return))))
+
+(cl-defmethod with-editor--export-editor ;eat-mode
+  (envvar interactive process &context (major-mode eat-mode))
+  (let* ((process-environment (copy-sequence process-environment))
+         ;; `eat-exec-hook' calls this function with one argument.  If
+         ;; (apply-partially #'with-editor-export-editor "SOMEEDITOR"))
+         ;; was added to that hook, we receive that as the PROCESS
+         ;; argument.  However, if this function is called via one of
+         ;; the commands below, then ENVVAR actually is an envvar, and
+         ;; the process has to be determined by other means.
+         (process (cond ((processp envvar)
+                         (prog1 envvar (setq envvar "EDITOR")))
+                        ((processp process) process)
+                        ((eat-term-parameter eat-terminal 'eat--process))))
+         (with-editor--envvar envvar))
+    (with-editor--setup)
+    (while (accept-process-output process 1 nil t))
+    (when (or (not with-editor-emacsclient-executable)
+              (file-remote-p default-directory))
+      (add-function :before (process-filter process)
+                    #'with-editor-sleeping-editor-filter))
+    (when$ (getenv envvar)
+      (eat-term-send-string
+       eat-terminal (with-editor--format-export envvar $))
+      (eat-self-input 1 'return))
+    (when$ (getenv "EMACS_SERVER_FILE")
+      (eat-term-send-string
+       eat-terminal (with-editor--format-export "EMACS_SERVER_FILE" $))
+      (eat-self-input 1 'return))
+    (unless interactive
+      (eat-term-send-string eat-terminal " clear")
+      (eat-self-input 1 'return))))
+
+(cl-defmethod with-editor--export-editor ;ghostel-mode
+  (envvar interactive _ &context (major-mode ghostel-mode))
   (cond
-    ((derived-mode-p 'comint-mode 'term-mode)
-     (when-let ((process (get-buffer-process (current-buffer))))
-       (goto-char (process-mark process))
-       (process-send-string
-        process
-        (let ((quoted-editor (shell-quote-argument with-editor-sleeping-editor)))
-          (if (listp envvar)
-              (concat " export "
-                      (mapconcat (lambda (x) (concat x "=" quoted-editor))
-                                 envvar
-                                 " ")
-                      "\n")
-            (format " export %s=%s\n" envvar quoted-editor))))
-       (while (accept-process-output process 0.1 nil t))
-       (if (derived-mode-p 'term-mode)
-           (with-editor-set-process-filter process #'with-editor-emulate-terminal)
-         (add-hook 'comint-output-filter-functions #'with-editor-output-filter
-                   nil t))))
-    ((derived-mode-p 'eshell-mode)
-     (add-to-list 'eshell-preoutput-filter-functions
-                  #'with-editor-output-filter)
-     (setenv envvar with-editor-sleeping-editor))
-    ((and (derived-mode-p 'vterm-mode)
-          (fboundp 'vterm-send-return)
-          (fboundp 'vterm-send-string))
-     (if with-editor-emacsclient-executable
-         (let ((with-editor--envvar envvar)
-               (process-environment process-environment))
-           (with-editor--setup)
-           (while (accept-process-output vterm--process 1 nil t))
-           (when-let ((v (getenv envvar)))
-             (vterm-send-string (format " export %s=%S" envvar v))
-             (vterm-send-return))
-           (when-let ((v (getenv "EMACS_SERVER_FILE")))
-             (vterm-send-string (format " export EMACS_SERVER_FILE=%S" v))
-             (vterm-send-return))
-           (vterm-send-string " clear")
-           (vterm-send-return))
-       (error "Cannot use sleeping editor in this buffer")))
-    (t
-     (error "Cannot export environment variables in this buffer")))
-  (message "Successfully exported %s" envvar))
+    ((file-remote-p default-directory)
+     (message "With-editor cannot be used in ghostel on remote systems"))
+    ((not with-editor-emacsclient-executable)
+     (message "With-editor cannot be used in ghostel with sleeping editor"))
+    (interactive
+     (let ((process-environment (copy-sequence process-environment))
+           (with-editor--envvar envvar))
+       (with-editor--setup)
+       (when$ (getenv envvar)
+         (ghostel-send-string (with-editor--format-export envvar $))
+         (ghostel-send-key "return"))
+       (when$ (getenv "EMACS_SERVER_FILE")
+         (ghostel-send-string (with-editor--format-export "EMACS_SERVER_FILE" $))
+         (ghostel-send-key "return"))))
+    ((let ((with-editor--envvar envvar))
+       (with-editor--setup)))))
+
+(defun with-editor--format-export (envvar val &optional lf)
+  (if (listp envvar)
+      (let ((quoted-val (shell-quote-argument val)))
+        (concat " export "
+                (mapconcat (lambda (x) (concat x "=" quoted-val))
+                           envvar
+                           " ")
+                (if lf "\n" "")))
+    (format " export %s=%s%s" envvar (shell-quote-argument val) (if lf "\n" ""))))
 
 ;;;###autoload
-(defun with-editor-export-git-editor ()
-  "Like `with-editor-export-editor' but always set `$GIT_EDITOR'."
-  (interactive)
-  (with-editor-export-editor "GIT_EDITOR"))
+(defun with-editor-export-git-editor (&optional process interactive)
+  "Like `with-editor-export-editor' but always set `$GIT_EDITOR'.
+
+PROCESS is only intended for use by `eat-exec-hook'.  When invoked
+interactively, INTERACTIVE is non-nil, which suppresses the call to
+\"clear\"."
+  (interactive (list nil t))
+  (with-editor-export-editor "GIT_EDITOR" process interactive))
 
 ;;;###autoload
-(defun with-editor-export-hg-editor ()
-  "Like `with-editor-export-editor' but always set `$HG_EDITOR'."
-  (interactive)
-  (with-editor-export-editor "HG_EDITOR"))
+(defun with-editor-export-hg-editor (&optional process interactive)
+  "Like `with-editor-export-editor' but always set `$HG_EDITOR'.
+
+PROCESS is only intended for use by `eat-exec-hook'.  When invoked
+interactively, INTERACTIVE is non-nil, which suppresses the call to
+\"clear\"."
+  (interactive (list nil t))
+  (with-editor-export-editor "HG_EDITOR" process interactive))
 
 (defun with-editor-output-filter (string)
   "Handle edit requests on behalf of `comint-mode' and `eshell-mode'."
@@ -928,14 +1022,13 @@ Also take care of that for `with-editor-[async-]shell-command'."
            (funcall fn command output-buffer error-buffer)
          (with-editor (funcall fn command output-buffer error-buffer)))
        ;; The comint filter was overridden with our filter.  Use both.
-       (and-let* ((process (get-buffer-process
-                            (or output-buffer
-                                (get-buffer "*Async Shell Command*")))))
+       (and-let ((process (get-buffer-process
+                           (or output-buffer
+                               (get-buffer "*Async Shell Command*")))))
          (prog1 process
-           (set-process-filter process
-                               (lambda (proc str)
-                                 (comint-output-filter proc str)
-                                 (with-editor-process-filter proc str t))))))
+           (add-function :after (process-filter process)
+                         (lambda (proc str)
+                           (with-editor-process-filter proc str t))))))
       ((funcall fn command output-buffer error-buffer)))))
 
 ;;; _
@@ -1008,5 +1101,19 @@ See info node `(with-editor)Debugging' for instructions."
 ;; byte-compile-warnings: (not docstrings-control-chars)
 ;; indent-tabs-mode: nil
 ;; lisp-indent-local-overrides: ((cond . 0) (interactive . 0))
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
 ;; End:
 ;;; with-editor.el ends here
