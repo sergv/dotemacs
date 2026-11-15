@@ -1,6 +1,6 @@
 ;;; magit-margin.el --- Margins in Magit buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -161,7 +161,7 @@ does not carry to other options."
     (with-selected-window window
       (set-window-margins
        nil
-       (if (characterp (car magit-section-visibility-indicator))
+       (if (characterp (car (magit-section-visibility-indicator)))
            1
          (car (window-margins)))
        (and (magit--right-margin-active)
@@ -176,7 +176,7 @@ line is affected."
   (save-excursion
     (forward-line (if (if sline previous-line (bolp)) -1 0))
     ;; Don't put the overlay on the complete line to work around #1880.
-    (let ((o (make-overlay (1+ (point)) (line-end-position) nil t)))
+    (let ((o (make-overlay (1+ (point)) (pos-eol) nil t)))
       (overlay-put o 'evaporate t)
       (overlay-put o 'before-string
                    (propertize "o" 'display
@@ -260,10 +260,15 @@ English.")
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

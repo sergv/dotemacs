@@ -1,6 +1,6 @@
 ;;; magit-tests.el --- Tests for Magit  -*- lexical-binding:t; coding:utf-8 -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -38,15 +38,17 @@
     `(let ((,dir (file-name-as-directory (make-temp-file "magit-" t)))
            (magit-git-global-arguments
             (nconc (list "-c" "protocol.file.allow=always")
+                   (list "-c" "tag.gpgsign=false")
                    (list "-c" "user.name=\"A U Thor\"")
                    (list "-c" "user.email=\"a.u.thor@example.com\"")
                    magit-git-global-arguments)))
-       (condition-case err
-           (cl-letf (((symbol-function #'message) (lambda (&rest _))))
-             (let ((default-directory (file-truename ,dir)))
-               ,@body))
-         (error (message "Keeping test directory:\n  %s" ,dir)
-                (signal (car err) (cdr err))))
+       (let ((default-directory (file-truename ,dir)))
+         ,@(static-if (fboundp 'handler-bind) ;Emacs >= 30.1
+               `((handler-bind
+                     ((error (lambda (_)
+                               (message "Keeping test directory:\n  %s" ,dir))))
+                   ,@body))
+             body))
        (delete-directory ,dir t))))
 
 (defmacro magit-with-test-repository (&rest body)
@@ -488,6 +490,29 @@ Recent commits\n[[:xdigit:]]\\{7,\\} master dummy\\'"
                "\\`Head:[[:space:]]+master dummy\n\nRecent commits\\'"
                (magit-test-visible-text))))))
 
+;;; Repository List
+
+(ert-deftest magit-repolist-column-version:no-commits ()
+  (magit-with-test-repository
+    (should-not (magit-repolist-column-version nil))))
+
+(ert-deftest magit-repolist-column-version:no-commits-staged ()
+  (magit-with-test-repository
+    (with-temp-file "file" (insert "content\n"))
+    (magit-git "add" "file")
+    (should-not (magit-repolist-column-version nil))))
+
+(ert-deftest magit-repolist-refresh:no-commits ()
+  (magit-with-test-repository
+    (let ((magit-repository-directories (list (cons default-directory 0))))
+      (with-temp-buffer
+        (magit-repolist-mode)
+        (magit-repolist-setup-1)
+        (magit-repolist-refresh)
+        (should (= (length tabulated-list-entries) 1))
+        (should (equal (caar tabulated-list-entries) default-directory))
+        (should (equal (aref (cadar tabulated-list-entries) 1) ""))))))
+
 ;;; Utils
 
 (ert-deftest magit-utils:add-face-text-property ()
@@ -535,11 +560,57 @@ Recent commits\n[[:xdigit:]]\\{7,\\} master dummy\\'"
     (cl-letf (((symbol-function 'char-displayable-p) (lambda (_) nil)))
       (should (equal (magit--ellipsis 'foo) (magit--ellipsis))))))
 
+;;; Tramp
+
+(defun magit--filter-envvars-like-tramp ()
+  ;; Like in tramp-handle-make-process:
+  (seq-filter (lambda (arg)
+                (and (string-search "=" arg)
+                     (not
+                      ;; Inline tramp-local-environment-variable-p:
+                      (or (ignore-error (void-variable void-function)
+                            (member arg (tramp-compat-funcall
+                                            'buffer-local-toplevel-value
+		                          'process-environment)))
+                          (member arg (default-toplevel-value
+                                       'process-environment))))))
+              process-environment))
+
+(ert-deftest magit--with-temp-process-buffer:already-buffer-local ()
+  :expected-result (if (>= emacs-major-version 31) :passed :failed)
+  (should (equal (with-temp-buffer
+                   ;; Emulate another package doing that:
+                   (make-local-variable 'process-environment)
+                   (setenv "SECRET" "12345")
+                   (with-environment-variables (("EXPORT" "value"))
+                     (magit--with-temp-process-buffer
+                       (magit--filter-envvars-like-tramp))))
+                 '("EXPORT=value"))))
+
+(ert-deftest magit--with-temp-process-buffer:not-buffer-local ()
+  (should (equal (with-temp-buffer
+                   (setenv "SECRET" "12345")
+                   (with-environment-variables (("EXPORT" "value"))
+                     (magit--with-temp-process-buffer
+                       (magit--filter-envvars-like-tramp))))
+                 '("EXPORT=value"))))
+
 ;;; _
 (provide 'magit-tests)
 ;; Local Variables:
 ;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
+;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
-;;   ("match-str" . "match-string-no-properties"))
+;;   ("match-str"    . "match-string-no-properties"))
 ;; End:
 ;;; magit-tests.el ends here

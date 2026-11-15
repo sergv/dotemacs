@@ -1,6 +1,6 @@
 ;;; magit-stash.el --- Stash support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -87,7 +87,7 @@ AUTHOR-WIDTH has to be an integer.  When the name of the author
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-stash "magit-stash" nil t)
+;;;###autoload(autoload 'magit-stash "magit-stash" nil t)
 (transient-define-prefix magit-stash ()
   "Stash uncommitted changes."
   :man-page "git-stash"
@@ -124,16 +124,16 @@ AUTHOR-WIDTH has to be an integer.  When the name of the author
 (defun magit-stash-both (message &optional include-untracked)
   "Create a stash of the index and working tree.
 Untracked files are included according to infix arguments.
-One prefix argument is equivalent to `--include-untracked'
-while two prefix arguments are equivalent to `--all'."
+One prefix argument is equivalent to \"--include-untracked\"
+while two prefix arguments are equivalent to \"--all\"."
   (interactive
-   (progn (when (and (magit-merge-in-progress-p)
-                     (not (magit-y-or-n-p "\
+    (progn (when (and (magit-merge-in-progress-p)
+                      (not (magit-y-or-n-p "\
 Stashing and resetting during a merge conflict.  \
 Applying the resulting stash won't restore the merge state.  \
 Proceed anyway? ")))
-            (user-error "Abort"))
-          (magit-stash-read-args)))
+             (user-error "Abort"))
+           (magit-stash-read-args)))
   (magit-stash-save message t t include-untracked t))
 
 ;;;###autoload
@@ -150,8 +150,8 @@ Applying the resulting stash has the inverse effect."
 (defun magit-stash-worktree (message &optional include-untracked)
   "Create a stash of unstaged changes in the working tree.
 Untracked files are included according to infix arguments.
-One prefix argument is equivalent to `--include-untracked'
-while two prefix arguments are equivalent to `--all'."
+One prefix argument is equivalent to \"--include-untracked\"
+while two prefix arguments are equivalent to \"--all\"."
   (interactive (magit-stash-read-args))
   (magit-stash-save message nil t include-untracked t 'index))
 
@@ -159,8 +159,8 @@ while two prefix arguments are equivalent to `--all'."
 (defun magit-stash-keep-index (message &optional include-untracked)
   "Create a stash of the index and working tree, keeping index intact.
 Untracked files are included according to infix arguments.
-One prefix argument is equivalent to `--include-untracked'
-while two prefix arguments are equivalent to `--all'."
+One prefix argument is equivalent to \"--include-untracked\"
+while two prefix arguments are equivalent to \"--all\"."
   (interactive (magit-stash-read-args))
   (magit-stash-save message t t include-untracked t 'index))
 
@@ -206,8 +206,8 @@ The resulting message is what Git would have used."
 (defun magit-snapshot-both (&optional include-untracked)
   "Create a snapshot of the index and working tree.
 Untracked files are included according to infix arguments.
-One prefix argument is equivalent to `--include-untracked'
-while two prefix arguments are equivalent to `--all'."
+One prefix argument is equivalent to \"--include-untracked\"
+while two prefix arguments are equivalent to \"--all\"."
   (interactive (magit-snapshot-read-args))
   (magit-snapshot-save t t include-untracked t))
 
@@ -222,8 +222,8 @@ Unstaged and untracked changes are not stashed."
 (defun magit-snapshot-worktree (&optional include-untracked)
   "Create a snapshot of unstaged changes in the working tree.
 Untracked files are included according to infix arguments.
-One prefix argument is equivalent to `--include-untracked'
-while two prefix arguments are equivalent to `--all'."
+One prefix argument is equivalent to \"--include-untracked\"
+while two prefix arguments are equivalent to \"--all\"."
   (interactive (magit-snapshot-read-args))
   (magit-snapshot-save nil t include-untracked t))
 
@@ -234,7 +234,7 @@ while two prefix arguments are equivalent to `--all'."
   (magit-stash-save (concat "WIP on " (magit-stash-summary))
                     index worktree untracked refresh t))
 
-;;;###autoload (autoload 'magit-stash-push "magit-stash" nil t)
+;;;###autoload(autoload 'magit-stash-push "magit-stash" nil t)
 (transient-define-prefix magit-stash-push (&optional transient args)
   "Create stash using \"git stash push\".
 
@@ -320,17 +320,18 @@ want to fall back to using \"--3way\", without being prompted."
    (magit--run-git-stash "apply" stash)
    (let* ((range (format "%s^..%s" stash stash))
           (stashed (magit-git-items "diff" "-z" "--name-only" range "--"))
-          (conflicts (cl-sort (cl-union (magit-unstaged-files t stashed)
-                                        (magit-untracked-files t stashed)
-                                        :test #'equal)
-                              #'string<))
+          (conflicts (compat-call
+                      sort (cl-union (magit-unstaged-files t stashed)
+                                     (magit-untracked-files t stashed)
+                                     :test #'equal)
+                      :lessp #'string<))
           (arg (if (or (not conflicts)
                        (memq 'stash-apply-3way magit-no-confirm))
                    "--3way"
                  (magit-read-char-case
                      (concat
                       "Could not apply stash because of unstaged changes.\n\n"
-                      "To do a tree-way merge, these files have to be staged\n"
+                      "To do a three-way merge, these files have to be staged\n"
                       (mapconcat (##format "  %s" %) conflicts "\n")
                       "\n")
                      nil
@@ -370,9 +371,9 @@ want to fall back to using \"--3way\", without being prompted."
   "Remove a stash from the stash list.
 When the region is active offer to drop all contained stashes."
   (interactive
-   (list (if-let ((values (magit-region-values 'stash)))
-             (magit-confirm 'drop-stashes nil "Drop %d stashes" nil values)
-           (magit-read-stash "Drop stash"))))
+    (list (if-let ((values (magit-region-values 'stash)))
+              (magit-confirm 'drop-stashes nil "Drop %d stashes" nil values)
+            (magit-read-stash "Drop stash"))))
   (dolist (stash (if (listp stash)
                      (nreverse (prog1 stash (setq stash (car stash))))
                    (list stash)))
@@ -386,7 +387,8 @@ When the region is active offer to drop all contained stashes."
 (defun magit-stash-clear (ref)
   "Remove all stashes saved in REF's reflog by deleting REF."
   (interactive (let ((ref (or (magit-section-value-if 'stashes) "refs/stash")))
-                 (magit-confirm t (list "Drop all stashes in %s" ref))
+                 (magit-confirm 'drop-stashes
+                   (list "Drop all stashes in %s" ref))
                  (list ref)))
   (magit-run-git "update-ref" "-d" ref))
 
@@ -619,7 +621,7 @@ See also info node `(magit)Section Movement'."
 (defun magit-stash-setup-buffer (stash args files)
   (magit-setup-buffer #'magit-stash-mode nil
     (magit-buffer-revision stash)
-    (magit-buffer-range (format "%s^..%s" stash stash))
+    (magit-buffer-diff-range (format "%s^..%s" stash stash))
     (magit-buffer-diff-args args)
     (magit-buffer-diff-files files)))
 
@@ -630,7 +632,7 @@ See also info node `(magit)Section Movement'."
                        'font-lock-face
                        (list :weight 'normal :foreground
                              (face-attribute 'default :foreground)))))
-  (setq magit-buffer-revision-hash (magit-rev-parse magit-buffer-revision))
+  (setq magit-buffer-revision-oid (magit-commit-oid magit-buffer-revision))
   (magit-insert-section (stash)
     (magit-run-section-hook 'magit-stash-sections-hook)))
 
@@ -684,10 +686,15 @@ that make up the stash."
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

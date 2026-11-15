@@ -1,6 +1,6 @@
 ;;; magit-sparse-checkout.el --- Sparse checkout support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Kyle Meyer <kyle@kyleam.com>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -22,16 +22,8 @@
 
 ;;; Commentary:
 
-;; This library provides an interface to the `git sparse-checkout'
-;; command.  It's been possible to define sparse checkouts since Git
-;; v1.7.0 by adding patterns to $GIT_DIR/info/sparse-checkout and
-;; calling `git read-tree -mu HEAD' to update the index and working
-;; tree.  However, Git v2.25 introduced the `git sparse-checkout'
-;; command along with "cone mode", which restricts the possible
-;; patterns to directories to provide better performance.
-;;
-;; The goal of this library is to support the `git sparse-checkout'
-;; command operating in cone mode.
+;; This library provides an interface to the "git sparse-checkout"
+;; command (operating in cone mode).
 
 ;;; Code:
 
@@ -54,7 +46,7 @@
 
 (defun magit-sparse-checkout-directories ()
   "Return directories that are recursively included in the sparse checkout.
-See the `git sparse-checkout' manpage for details about
+See the \"git sparse-checkout\" manpage for details about
 \"recursive\" versus \"parent\" directories in cone mode."
   (and (magit-get-boolean "core.sparsecheckoutcone")
        (mapcar #'file-name-as-directory
@@ -62,7 +54,7 @@ See the `git sparse-checkout' manpage for details about
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-sparse-checkout "magit-sparse-checkout" nil t)
+;;;###autoload(autoload 'magit-sparse-checkout "magit-sparse-checkout" nil t)
 (transient-define-prefix magit-sparse-checkout ()
   "Create and manage sparse checkouts."
   :man-page "git-sparse-checkout"
@@ -90,12 +82,12 @@ See the `git sparse-checkout' manpage for details about
 To extend rather than override the currently configured
 directories, call `magit-sparse-checkout-add' instead."
   (interactive
-   (list (magit-completing-read-multiple
-          "Include these directories: "
-          ;; Note: Given that the appeal of sparse checkouts is
-          ;; dealing with very large trees, listing all subdirectories
-          ;; may need to be reconsidered.
-          (magit-revision-directories "HEAD"))))
+    (list (magit-completing-read-multiple
+           "Include these directories: "
+           ;; Note: Given that the appeal of sparse checkouts is
+           ;; dealing with very large trees, listing all subdirectories
+           ;; may need to be reconsidered.
+           (magit-revision-directories "HEAD"))))
   (magit-sparse-checkout--auto-enable)
   (magit-run-git-async "sparse-checkout" "set" directories))
 
@@ -105,16 +97,16 @@ directories, call `magit-sparse-checkout-add' instead."
 To override rather than extend the currently configured
 directories, call `magit-sparse-checkout-set' instead."
   (interactive
-   (list (magit-completing-read-multiple
-          "Add these directories: "
-          ;; Same performance note as in `magit-sparse-checkout-set',
-          ;; but even more so given the additional processing.
-          (seq-remove
-           (let ((re (concat
-                      "\\`"
-                      (regexp-opt (magit-sparse-checkout-directories)))))
-             (##string-match-p re %))
-           (magit-revision-directories "HEAD")))))
+    (list (magit-completing-read-multiple
+           "Add these directories: "
+           ;; Same performance note as in `magit-sparse-checkout-set',
+           ;; but even more so given the additional processing.
+           (seq-remove
+            (let ((re (concat
+                       "\\`"
+                       (regexp-opt (magit-sparse-checkout-directories)))))
+              (##string-match-p re %))
+            (magit-revision-directories "HEAD")))))
   (magit-sparse-checkout--auto-enable)
   (magit-run-git-async "sparse-checkout" "add" directories))
 
@@ -158,10 +150,15 @@ This header is not inserted by default.  To enable it, add it to
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

@@ -1,6 +1,6 @@
 ;;; magit-bookmark.el --- Bookmarks for Magit buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Inspired by an earlier implementation by Yuri Khan.
 
@@ -37,7 +37,7 @@
 (cl-defmethod magit-bookmark-get-filename (&context (major-mode magit-mode))
   (magit-toplevel))
 
-(cl-defmethod magit-bookmark-get-value
+(cl-defmethod magit-bookmark--store-buffer-values
   (bookmark &context (major-mode magit-mode))
   (dolist (var (get major-mode 'magit-bookmark-variables))
     (bookmark-prop-set bookmark var (symbol-value var))))
@@ -56,8 +56,8 @@
 ;;;; Diff
 
 (put 'magit-diff-mode 'magit-bookmark-variables
-     '(magit-buffer-range-hashed
-       magit-buffer-typearg
+     '(magit-buffer-diff-range-oids
+       magit-buffer-diff-typearg
        magit-buffer-diff-args
        magit-buffer-diff-files))
 
@@ -66,9 +66,10 @@
           (pcase (magit-diff-type)
             ('staged "staged")
             ('unstaged "unstaged")
-            ('committed magit-buffer-range)
+            ('committed magit-buffer-diff-range)
             ('undefined
-             (delq nil (list magit-buffer-typearg magit-buffer-range-hashed))))
+             (delq nil
+                   (list magit-buffer-diff-typearg magit-buffer-diff-range-oids))))
           (if magit-buffer-diff-files
               (concat " -- " (string-join magit-buffer-diff-files " "))
             "")))
@@ -76,7 +77,7 @@
 ;;;; Revision
 
 (put 'magit-revision-mode 'magit-bookmark-variables
-     '(magit-buffer-revision-hash
+     '(magit-buffer-revision-oid
        magit-buffer-diff-args
        magit-buffer-diff-files))
 
@@ -90,7 +91,7 @@
 ;;;; Stash
 
 (put 'magit-stash-mode 'magit-bookmark-variables
-     '(magit-buffer-revision-hash
+     '(magit-buffer-revision-oid
        magit-buffer-diff-args
        magit-buffer-diff-files))
 
@@ -104,20 +105,20 @@
 (cl-defmethod magit-bookmark--get-child-value
   (section &context (major-mode magit-stash-mode))
   (string-replace magit-buffer-revision
-                  magit-buffer-revision-hash
+                  magit-buffer-revision-oid
                   (oref section value)))
 
 ;;; Log
 ;;;; Log
 
 (put 'magit-log-mode 'magit-bookmark-variables
-     '(magit-buffer-revisions
+     '(magit-buffer-log-revisions
        magit-buffer-log-args
        magit-buffer-log-files))
 
 (cl-defmethod magit-bookmark-name (&context (major-mode magit-log-mode))
   (format "magit-log(%s%s)"
-          (string-join magit-buffer-revisions " ")
+          (string-join magit-buffer-log-revisions " ")
           (if magit-buffer-log-files
               (concat " -- " (string-join magit-buffer-log-files " "))
             "")))
@@ -126,12 +127,12 @@
 
 (put 'magit-cherry-mode 'magit-bookmark-variables
      '(magit-buffer-refname
-       magit-buffer-upstream))
+       magit-buffer-cherry-upstream))
 
 (cl-defmethod magit-bookmark-name (&context (major-mode magit-cherry-mode))
   (format "magit-cherry(%s > %s)"
           magit-buffer-refname
-          magit-buffer-upstream))
+          magit-buffer-cherry-upstream))
 
 ;;;; Reflog
 
@@ -146,8 +147,8 @@
 (put 'magit-status-mode 'magit-bookmark-variables nil)
 
 (put 'magit-refs-mode 'magit-bookmark-variables
-     '(magit-buffer-upstream
-       magit-buffer-arguments))
+     '(magit-buffer-refs-upstream
+       magit-buffer-refs-args))
 
 (put 'magit-stashes-mode 'magit-bookmark-variables nil)
 
@@ -159,10 +160,15 @@
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

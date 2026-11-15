@@ -1,6 +1,6 @@
 ;;; magit-reset.el --- Reset functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -30,7 +30,7 @@
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-reset "magit" nil t)
+;;;###autoload(autoload 'magit-reset "magit" nil t)
 (transient-define-prefix magit-reset ()
   "Reset the `HEAD', index and/or worktree to a previous state."
   :man-page "git-reset"
@@ -88,10 +88,10 @@ head this effectively unstages all changes.
   "Reset the worktree to COMMIT.
 Keep the `HEAD' and index as-is."
   (interactive (list (magit-read-branch-or-commit "Reset worktree to")))
-  (magit-wip-commit-before-change nil " before reset")
+  (magit-run-before-change-functions nil "reset")
   (magit-with-temp-index commit nil
     (magit-call-git "checkout-index" "--all" "--force"))
-  (magit-wip-commit-after-apply nil " after reset")
+  (magit-run-after-apply-functions nil "reset")
   (magit-refresh))
 
 ;;;###autoload
@@ -126,20 +126,25 @@ or \"detached head\" will be substituted for %s."
       (git-commit-setup-font-lock)
       (git-commit-save-message)))
   (let ((cmd (if (and (equal commit "HEAD") (not arg)) "unstage" "reset")))
-    (magit-wip-commit-before-change nil (concat " before " cmd))
+    (magit-run-before-change-functions nil cmd)
     (magit-run-git "reset" arg commit "--" path)
     (when (equal cmd "unstage")
-      (magit-wip-commit-after-apply nil " after unstage"))))
+      (magit-run-after-apply-functions nil "unstage"))))
 
 ;;; _
 (provide 'magit-reset)
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

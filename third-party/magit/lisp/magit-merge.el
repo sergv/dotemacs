@@ -1,6 +1,6 @@
 ;;; magit-merge.el --- Merge functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -34,7 +34,7 @@
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-merge "magit" nil t)
+;;;###autoload(autoload 'magit-merge "magit" nil t)
 (transient-define-prefix magit-merge ()
   "Merge branches."
   :man-page "git-merge"
@@ -94,8 +94,10 @@ the user inspect the result.  With a prefix argument pretend the
 merge failed to give the user the opportunity to inspect the
 merge.
 
+To create an octopus-merge, separate branches with commas.
+
 \(git merge --no-edit|--no-commit [ARGS] REV)"
-  (interactive (list (magit-read-other-branch-or-commit "Merge")
+  (interactive (list (magit-read-other-branches-or-commits "Merge")
                      (magit-merge-arguments)
                      current-prefix-arg))
   (magit-merge-assert)
@@ -104,24 +106,30 @@ merge.
 ;;;###autoload
 (defun magit-merge-editmsg (rev &optional args)
   "Merge commit REV into the current branch; and edit message.
+
 Perform the merge and prepare a commit message but let the user
 edit it.
-\n(git merge --edit --no-ff [ARGS] REV)"
-  (interactive (list (magit-read-other-branch-or-commit "Merge")
+
+To create an octopus-merge, separate branches with commas.
+
+\(git merge --edit --no-ff [ARGS] REV)"
+  (interactive (list (magit-read-other-branches-or-commits "Merge")
                      (magit-merge-arguments)))
   (magit-merge-assert)
   (cl-pushnew "--no-ff" args :test #'equal)
-  (apply #'magit-run-git-with-editor "merge" "--edit"
-         (append (delete "--ff-only" args)
-                 (list rev))))
+  (magit-run-git-with-editor "merge" "--edit" (delete "--ff-only" args) rev))
 
 ;;;###autoload
 (defun magit-merge-nocommit (rev &optional args)
   "Merge commit REV into the current branch; pretending it failed.
+
 Pretend the merge failed to give the user the opportunity to
 inspect the merge and change the commit message.
-\n(git merge --no-commit --no-ff [ARGS] REV)"
-  (interactive (list (magit-read-other-branch-or-commit "Merge")
+
+To create an octopus-merge, separate branches with commas.
+
+\(git merge --no-commit --no-ff [ARGS] REV)"
+  (interactive (list (magit-read-other-branches-or-commits "Merge")
                      (magit-merge-arguments)))
   (magit-merge-assert)
   (cl-pushnew "--no-ff" args :test #'equal)
@@ -154,15 +162,15 @@ inspect the merge and change the commit message.
 (defun magit-checkout-stage (file arg)
   "During a conflict checkout and stage side, or restore conflict."
   (interactive
-   (let ((file (magit-completing-read "Checkout file"
-                                      (magit-tracked-files) nil 'any nil
-                                      'magit-read-file-hist
-                                      (magit-current-file))))
-     (cond ((member file (magit-unmerged-files))
-            (list file (magit-checkout-read-stage file)))
-           ((yes-or-no-p (format "Restore conflicts in %s? " file))
-            (list file "--merge"))
-           ((user-error "Quit")))))
+    (let ((file (magit-completing-read "Checkout file"
+                                       (magit-tracked-files) nil 'any nil
+                                       'magit-read-file-hist
+                                       (magit-current-file))))
+      (cond ((member file (magit-unmerged-files))
+             (list file (magit-checkout-read-stage file)))
+            ((yes-or-no-p (format "Restore conflicts in %s? " file))
+             (list file "--merge"))
+            ((user-error "Quit")))))
   (pcase (cons arg (cddr (car (magit-file-status file))))
     ((or `("--ours"   ?D ,_)
          '("--ours"   ?U ?A)
@@ -192,7 +200,7 @@ inspect the merge and change the commit message.
                 (car (magit-file-lines
                       (expand-file-name "MERGE_HEAD" (magit-gitdir)))))))
   (and head
-       (concat (magit-git-string "merge-base" "--octopus" "HEAD" head)
+       (concat (magit-merge-base "HEAD" head "--octopus")
                ".." head)))
 
 (defun magit-merge-assert ()
@@ -235,10 +243,15 @@ If no merge is in progress, do nothing."
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

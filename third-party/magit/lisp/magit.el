@@ -1,6 +1,6 @@
 ;;; magit.el --- A Git porcelain inside Emacs  -*- lexical-binding:t; coding:utf-8 -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Marius Vollmer <marius.vollmer@gmail.com>
 ;;     Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -17,16 +17,16 @@
 ;; Homepage: https://github.com/magit/magit
 ;; Keywords: git tools vc
 
-;; Package-Version: 4.4.2
+;; Package-Version: 4.7.2
 ;; Package-Requires: (
 ;;     (emacs        "28.1")
-;;     (compat       "30.1")
-;;     (cond-let      "0.1")
+;;     (compat       "31.1")
+;;     (cond-let      "1.1")
 ;;     (llama         "1.0")
-;;     (magit-section "4.4")
+;;     (magit-section "4.7")
 ;;     (seq           "2.24")
-;;     (transient     "0.10")
-;;     (with-editor   "3.4"))
+;;     (transient     "0.13")
+;;     (with-editor   "3.6"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -70,7 +70,6 @@
 (require 'git-commit)
 
 (require 'epa) ;used in magit-read-gpg-{secret,signing}-key
-(require 'format-spec)
 (require 'with-editor)
 
 (defvar dumping?)
@@ -80,7 +79,7 @@
 (defcustom magit-openpgp-default-signing-key nil
   "Fingerprint of your default Openpgp key used for signing.
 If the specified primary key has signing capacity then it is used
-as the value of the `--gpg-sign' argument without prompting, even
+as the value of the \"--gpg-sign\" argument without prompting, even
 when other such keys exist.  To be able to select another key you
 must then use a prefix argument."
   :package-version '(magit . "4.0.0")
@@ -324,9 +323,9 @@ already been run."
       (magit-maybe-define-global-key-bindings)
     (add-hook 'after-init-hook #'magit-maybe-define-global-key-bindings t)))
 
-;;; Dispatch Popup
+;;; Dispatch Menu
 
-;;;###autoload (autoload 'magit-dispatch "magit" nil t)
+;;;###autoload(autoload 'magit-dispatch "magit" nil t)
 (transient-define-prefix magit-dispatch ()
   "Invoke a Magit command from a list of available commands."
   :info-manual "(magit)Top"
@@ -405,7 +404,7 @@ already been run."
    [("C-x m"    "Show all key bindings"    describe-mode)
     ("C-x i"    "Show Info manual"         magit-info)]])
 
-;;; Git Popup
+;;; Git Menu
 
 (defcustom magit-shell-command-verbose-prompt t
   "Whether to show the working directory when reading a command.
@@ -417,7 +416,7 @@ This affects `magit-git-command', `magit-git-command-topdir',
 
 (defvar magit-git-command-history nil)
 
-;;;###autoload (autoload 'magit-run "magit" nil t)
+;;;###autoload(autoload 'magit-run "magit" nil t)
 (transient-define-prefix magit-run ()
   "Run git or another command, or launch a graphical utility."
   [["Run git subcommand"
@@ -508,7 +507,7 @@ is run in the top-level directory of the current working tree."
   :level 6)
 
 (transient-define-argument magit:--gpg-sign ()
-  :description "Sign using gpg"
+  :description (##concat "Sign using " (or (magit-get "gpg.format") "openpgp"))
   :class 'transient-option
   :shortarg "-S"
   :argument "--gpg-sign="
@@ -521,7 +520,7 @@ is run in the top-level directory of the current working tree."
 (defun magit-read-gpg-secret-key
     (prompt &optional initial-input history predicate default)
   (require 'epa)
-  (let* ((keys (mapcan
+  (let* ((keys (seq-keep
                 (lambda (cert)
                   (and (or (not predicate)
                            (funcall predicate cert))
@@ -535,11 +534,10 @@ is run in the top-level directory of the current working tree."
                                    (if (stringp id-str)
                                        id-str
                                      (epg-decode-dn id-obj))))))
-                         (list
-                          (propertize fpr 'display
-                                      (concat (substring fpr 0 (- (length id)))
-                                              (propertize id 'face 'highlight)
-                                              " " author))))))
+                         (propertize fpr 'display
+                                     (concat (substring fpr 0 (- (length id)))
+                                             (propertize id 'face 'highlight)
+                                             " " author)))))
                 (epg-list-keys (epg-make-context epa-protocol) nil t)))
          (choice (or (and (not current-prefix-arg)
                           (or (and (length= keys 1) (car keys))
@@ -550,13 +548,14 @@ is run in the top-level directory of the current working tree."
     choice))
 
 (defun magit-read-gpg-signing-key (prompt &optional initial-input history)
-  (magit-read-gpg-secret-key
-   prompt initial-input history
-   (lambda (cert)
-     (cl-some (lambda (key)
-                (memq 'sign (epg-sub-key-capability key)))
-              (epg-key-sub-key-list cert)))
-   magit-openpgp-default-signing-key))
+  (if (member (magit-get "gpg.format") '(nil "openpgp"))
+      (magit-read-gpg-secret-key
+       prompt initial-input history
+       (lambda (cert)
+         (seq-some (##memq 'sign (epg-sub-key-capability %))
+                   (epg-key-sub-key-list cert)))
+       magit-openpgp-default-signing-key)
+    ""))
 
 ;;; Font-Lock Keywords
 
@@ -610,8 +609,7 @@ the output in the kill ring.
     (when toplib
       (let* ((topdir (file-name-directory toplib))
              (gitdir (expand-file-name
-                      ".git" (file-name-directory
-                              (directory-file-name topdir))))
+                      ".git" (file-name-parent-directory topdir)))
              (static (locate-library "magit-version.el" nil (list topdir)))
              (static (and static (magit--chase-links static))))
         (or (progn
@@ -776,7 +774,12 @@ For X11 something like ~/.xinitrc should work.\n"
   (require 'magit-stash)
   (require 'magit-blame)
   (require 'magit-submodule)
-  (unless (load "magit-autoloads" t t)
+  (unless (or noninteractive
+              ;; The `provide' form may be missing, so we have to
+              ;; try harder to ensure this is loaded exactly once.
+              (featurep 'magit-autoloads)
+              (autoloadp (symbol-function 'magit-patch))
+              (load "magit-autoloads" t t))
     (require 'magit-patch)
     (require 'magit-subtree)
     (require 'magit-ediff)
@@ -800,10 +803,15 @@ For X11 something like ~/.xinitrc should work.\n"
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

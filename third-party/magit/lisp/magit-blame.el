@@ -1,6 +1,6 @@
 ;;; magit-blame.el --- Blame support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -128,7 +128,8 @@ part of the default value:
    (margin-body-face . (magit-blame-dimmed)))"
   :package-version '(magit . "2.13.0")
   :group 'magit-blame
-  :type 'string)
+  :type '(alist :key-type symbol
+                :value-type (alist :key-type symbol :value-type sexp)))
 
 (defcustom magit-blame-echo-style 'lines
   "The blame visualization style used by `magit-blame-echo'.
@@ -260,7 +261,7 @@ Also see option `magit-blame-styles'."
   (or (and (not (and type (not (eq type magit-blame-type))))
            (magit-blame-chunk-at (point)))
       (and type
-           (let ((rev  (or magit-buffer-refname magit-buffer-revision))
+           (let ((rev magit-buffer-revision)
                  (file (and (not (derived-mode-p 'dired-mode))
                             (magit-file-relative-name
                              nil (not magit-buffer-file-name))))
@@ -345,7 +346,8 @@ in `magit-blame-read-only-mode-map' instead."
            (setq magit-blame--style (car magit-blame-styles)))
          (setq magit-blame--make-margin-overlays
                (and (cl-find-if (##assq 'margin-format (cdr %))
-                                magit-blame-styles)))
+                                magit-blame-styles)
+                    t))
          (magit-blame--update-margin 'enable))
         (t
          (when (process-live-p magit-blame-process)
@@ -418,8 +420,8 @@ modes is toggled, then this mode also gets toggled automatically.
       (magit-blame-mode 1))
     (message "Blaming...")
     (magit-blame-run-process
-     (and$ (or magit-buffer-refname magit-buffer-revision)
-           (and (not (equal $ "{index}")) $))
+     (and (not (equal magit-buffer-revision "{index}"))
+          magit-buffer-revision)
      (magit-file-relative-name nil (not magit-buffer-file-name))
      (if (memq magit-blame-type '(final removal))
          (cons "--reverse" args)
@@ -495,7 +497,7 @@ modes is toggled, then this mode also gets toggled automatically.
   (let (chunk revinfo)
     (unless (looking-at "^\\(.\\{40,\\}\\) \\([0-9]+\\) \\([0-9]+\\) \\([0-9]+\\)")
       (error "Blaming failed due to unexpected output: %s"
-             (buffer-substring-no-properties (point) (line-end-position))))
+             (magit--eol-substring)))
     (with-slots (orig-rev orig-file prev-rev prev-file)
         (setq chunk (magit-blame-chunk
                      :orig-rev                     (match-str 1)
@@ -558,8 +560,8 @@ modes is toggled, then this mode also gets toggled automatically.
                             (oref chunk orig-rev)))
             (setq beg (magit-blame--line-beginning-position
                        (oset chunk final-line (oref before final-line))))
-            (cl-incf (oref chunk num-lines)
-                     (oref before num-lines)))
+            (incf (oref chunk num-lines)
+                  (oref before num-lines)))
           (magit-blame--remove-overlays beg end)
           (when magit-blame--make-margin-overlays
             (magit-blame--make-margin-overlays chunk revinfo beg end))
@@ -579,13 +581,13 @@ modes is toggled, then this mode also gets toggled automatically.
       (while (< (point) end)
         (magit-blame--make-margin-overlay chunk revinfo line)
         (forward-line)
-        (cl-incf line)))))
+        (incf line)))))
 
 (defun magit-blame--make-margin-overlay (chunk revinfo line)
-  (let* ((end (line-end-position))
+  (let* ((end (pos-eol))
          ;; If possible avoid putting this on the first character
          ;; of the line to avoid a conflict with the line overlay.
-         (beg (min (1+ (line-beginning-position)) end))
+         (beg (min (1+ (pos-bol)) end))
          (ov  (make-overlay beg end)))
     (overlay-put ov 'magit-blame-chunk chunk)
     (overlay-put ov 'magit-blame-revinfo revinfo)
@@ -664,7 +666,7 @@ modes is toggled, then this mode also gets toggled automatically.
                 ;; `magit-blame--make-margin-overlay'.  For empty
                 ;; lines it is not possible to show both overlays
                 ;; without the line being too high.
-                (not (= (point) (line-end-position)))))
+                (not (= (point) (pos-eol)))))
           magit-blame-separator))))
 
 (defun magit-blame--update-highlight-overlay (ov)
@@ -704,11 +706,11 @@ modes is toggled, then this mode also gets toggled automatically.
                               (cdr (assoc k1 revinfo))
                               (cdr (assoc k2 revinfo)))
                              f)))
-              `((?H . ,(p0 rev         'magit-blame-hash))
+              `((?H . ,(p0 rev                             'magit-blame-hash))
                 (?h . ,(p0 (magit-blame--abbrev-hash rev)  'magit-blame-hash))
-                (?s . ,(p1 "summary"   'magit-blame-summary))
-                (?a . ,(p1 "author"    'magit-blame-name))
-                (?c . ,(p1 "committer" 'magit-blame-name))
+                (?s . ,(p1 "summary"                       'magit-blame-summary))
+                (?a . ,(p1 "author"                        'magit-blame-name))
+                (?c . ,(p1 "committer"                     'magit-blame-name))
                 (?A . ,(p2 "author-time"    "author-tz"    'magit-blame-date))
                 (?C . ,(p2 "committer-time" "committer-tz" 'magit-blame-date))
                 (?f . "")))))))
@@ -763,7 +765,7 @@ modes is toggled, then this mode also gets toggled automatically.
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-blame-echo "magit-blame" nil t)
+;;;###autoload(autoload 'magit-blame-echo "magit-blame" nil t)
 (transient-define-suffix magit-blame-echo (args)
   "For each line show the revision in which it was added.
 Show the information about the chunk at point in the echo area
@@ -787,7 +789,7 @@ not turn on `read-only-mode'."
     (read-only-mode -1)
     (magit-blame--update-overlays)))
 
-;;;###autoload (autoload 'magit-blame-addition "magit-blame" nil t)
+;;;###autoload(autoload 'magit-blame-addition "magit-blame" nil t)
 (transient-define-suffix magit-blame-addition (args)
   "For each line show the revision in which it was added."
   (interactive (list (magit-blame-arguments)))
@@ -795,7 +797,7 @@ not turn on `read-only-mode'."
   (magit-blame--pre-blame-setup  'addition)
   (magit-blame--run args))
 
-;;;###autoload (autoload 'magit-blame-removal "magit-blame" nil t)
+;;;###autoload(autoload 'magit-blame-removal "magit-blame" nil t)
 (transient-define-suffix magit-blame-removal (args)
   "For each line show the revision in which it was removed."
   :if-nil 'buffer-file-name
@@ -806,7 +808,7 @@ not turn on `read-only-mode'."
   (magit-blame--pre-blame-setup  'removal)
   (magit-blame--run args))
 
-;;;###autoload (autoload 'magit-blame-reverse "magit-blame" nil t)
+;;;###autoload(autoload 'magit-blame-reverse "magit-blame" nil t)
 (transient-define-suffix magit-blame-reverse (args)
   "For each line show the last revision in which it still exists."
   :if-nil 'buffer-file-name
@@ -820,16 +822,16 @@ not turn on `read-only-mode'."
 (defun magit-blame--pre-blame-assert (type)
   (unless (magit-toplevel)
     (magit--not-inside-repository-error))
-  (if (and magit-blame-mode
-           (eq type magit-blame-type))
-      (if-let ((chunk (magit-current-blame-chunk)))
-          (unless (oref chunk prev-rev)
-            (user-error "Chunk has no further history"))
-        (user-error "Still blaming, commit data not available yet"))
-    (unless (magit-file-relative-name nil (not magit-buffer-file-name))
-      (if buffer-file-name
-          (user-error "Buffer isn't visiting a tracked file")
-        (user-error "Buffer isn't visiting a file")))))
+  (cond ((and magit-blame-mode
+              (eq type magit-blame-type))
+         (if-let ((chunk (magit-current-blame-chunk)))
+             (unless (oref chunk prev-rev)
+               (user-error "Chunk has no further history"))
+           (message "Still blaming, commit data not available yet")))
+        ((not (magit-file-relative-name nil (not magit-buffer-file-name)))
+         (if buffer-file-name
+             (user-error "Buffer isn't visiting a tracked file")
+           (user-error "Buffer isn't visiting a file")))))
 
 (defun magit-blame--pre-blame-setup (type)
   (when magit-blame-mode
@@ -942,9 +944,9 @@ instead of the hash, like `kill-ring-save' would."
       (call-interactively #'copy-region-as-kill)
     (kill-new (message "%s" (oref (magit-current-blame-chunk) orig-rev)))))
 
-;;; Popup
+;;; Menu
 
-;;;###autoload (autoload 'magit-blame "magit-blame" nil t)
+;;;###autoload(autoload 'magit-blame "magit-blame" nil t)
 (transient-define-prefix magit-blame ()
   "Show the commits that added or removed lines in the visited file."
   :man-page "git-blame"
@@ -1006,10 +1008,15 @@ instead of the hash, like `kill-ring-save' would."
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))
