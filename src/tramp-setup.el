@@ -815,7 +815,7 @@ connection if a previous connection has died for some reason."
            (find-file-name-handler filename #'file-directory-p))))
 
 (defun tramp-utils--is-tramp-connection-alive? (filename)
-  (tramp-get-connection-process (tramp-dissect-file-name filename)))
+  (tramp-connectable-p filename))
 
 (el-patch-defun tramp-get-method-parameter (vec param &optional default)
   "Return the method parameter PARAM.
