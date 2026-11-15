@@ -1,6 +1,6 @@
 ;;; compat-30.el --- Functionality added in Emacs 30 -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -431,7 +431,7 @@ The following arguments are defined:
 For compatibility, the calling convention (sort SEQ LESSP) can also be used;
 in this case, sorting is always done in-place."
   :extended t
-  (let ((in-place t) (reverse nil) (orig-seq seq))
+  (let ((in-place t) (reverse nil))
     (when (or (not lessp) rest)
       (setq
        rest (if lessp (cons lessp rest) rest)
@@ -442,24 +442,10 @@ in this case, sorting is always done in-place."
                (if key
                  (lambda (a b) (funcall < (funcall key a) (funcall key b)))
                  <))
-       seq (if (or (and (eval-when-compile (< emacs-major-version 25)) (vectorp orig-seq))
-                   in-place)
-               seq
-             (copy-sequence seq))))
-    ;; Emacs 24 does not support vectors. Convert to list.
-    (when (and (eval-when-compile (< emacs-major-version 25)) (vectorp orig-seq))
-      (setq seq (append seq nil)))
-    (setq seq (if reverse
-                  (nreverse (sort (nreverse seq) lessp))
-                (sort seq lessp)))
-    ;; Emacs 24: Convert back to vector.
-    (if (and (eval-when-compile (< emacs-major-version 25)) (vectorp orig-seq))
-        (if in-place
-            (cl-loop for i from 0 for x in seq
-                     do (aset orig-seq i x)
-                     finally return orig-seq)
-          (apply #'vector seq))
-      seq)))
+       seq (if in-place seq (copy-sequence seq))))
+    (if reverse
+        (nreverse (sort (nreverse seq) lessp))
+      (sort seq lessp))))
 
 ;;;; Defined in mule-cmds.el
 

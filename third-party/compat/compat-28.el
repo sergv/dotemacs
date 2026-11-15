@@ -1,6 +1,6 @@
-;;; compat-28.el --- Functionality added in Emacs 28.1 -*- lexical-binding: t; -*-
+;;; compat-28.el --- Functionality added in Emacs 28 -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 
 ;;; Commentary:
 
-;; Functionality added in Emacs 28.1, needed by older Emacs versions.
+;; Functionality added in Emacs 28, needed by older Emacs versions.
 
 ;;; Code:
 
@@ -852,6 +852,14 @@ function will never return nil."
     :value 0
     :type-error "This field should contain a nonnegative integer"
     :match-alternatives '(natnump)))
+
+;;;; Defined in pcase.el
+
+(compat-guard t ;; <compat-tests:pcase-cl-type>
+  (pcase-defmacro cl-type (type)
+    "Pcase pattern that matches objects of TYPE.
+TYPE is a type descriptor as accepted by `cl-typep', which see."
+    `(pred (lambda (x) (cl-typep x ',type)))))
 
 (provide 'compat-28)
 ;;; compat-28.el ends here
