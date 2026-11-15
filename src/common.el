@@ -1540,6 +1540,22 @@ and cdr is a boolean whether any element was left out."
               continue? (< i len))))
     res))
 
+(defun string-take-while (pred str)
+  "Return prefix STR whose characters all satisfy predicate PRED."
+  (let* ((i 0)
+         (len (length str))
+         (continue? (and pred
+                         (< i len)))
+         (res nil))
+    (while continue?
+      (let* ((c (aref str i))
+             (test (funcall pred c)))
+        (if test
+            (setf i (+ i 1)
+                  continue? (< i len))
+          (setf continue? nil))))
+    (substring str 0 i)))
+
 (defun append-plists-uniq (new-props old-props)
   "Append two property lists, return new list that has properties from both
 OLD-PROPS and NEW-PROPS. Keys of OLD-PROPS that already have value in
