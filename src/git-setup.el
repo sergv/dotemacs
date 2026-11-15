@@ -50,11 +50,11 @@
   (push (cons x nil) ivy-sort-functions-alist))
 
 (defun magit-rebase-interactive-1--preserve-commiter-date
-    (old-magit-rebase-interactive-1 commit args message &optional editor delay-edit-confirm noassert confirm)
+    (old-magit-rebase-interactive-1 commit args message &optional editor delay-edit-confirm noassert confirm exact)
   (let ((amended-args (if (member "--committer-date-is-author-date" args)
                           args
                         (cons "--committer-date-is-author-date" args))))
-    (funcall old-magit-rebase-interactive-1 commit amended-args message editor delay-edit-confirm noassert confirm)))
+    (funcall old-magit-rebase-interactive-1 commit amended-args message editor delay-edit-confirm noassert confirm exact)))
 
 (advice-add 'magit-rebase-interactive-1 :around #'magit-rebase-interactive-1--preserve-commiter-date)
 
