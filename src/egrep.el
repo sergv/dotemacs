@@ -155,16 +155,26 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
      ignored-files-abs-globs
      ignored-abs-dirs-globs
      skip-unreadable?)
-  (cond
-    ((or (eq egrep-backend 'elisp)
-         (file-remote-p root))
-     (egrep--find-matches--elisp regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?))
-    ((eq egrep-backend 'emacs-native-helper)
-     (egrep--find-matches--emacs-native-helper regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?))
-    ((eq egrep-backend 'native)
-     (egrep--find-matches--native regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?))
-    (t
-     (error "Invalid egrep backend: %s" egrep-backend))))
+  (let ((tramp-remote-prefix nil)
+        (remote-emacs-native-helper-path nil))
+    (cond
+      ((and (setf tramp-remote-prefix (file-remote-p root))
+            (tramp-utils--is-tramp-remote-file? root)
+            (tramp-utils--is-tramp-connection-alive? root)
+            (setf remote-emacs-native-helper-path
+                  (let ((default-directory root))
+                    (foregin-setup-resolve-emacs-native-helper-path))))
+       (let ((default-directory root))
+         (egrep--find-matches--emacs-native-helper remote-emacs-native-helper-path tramp-remote-prefix regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?)))
+      ((eq egrep-backend 'emacs-native-helper)
+       (egrep--find-matches--emacs-native-helper remote-emacs-native-helper-path nil regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?))
+      ((or (eq egrep-backend 'elisp)
+           (file-remote-p root))
+       (egrep--find-matches--elisp regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?))
+      ((eq egrep-backend 'native)
+       (egrep--find-matches--native regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?))
+      (t
+       (error "Invalid egrep backend: %s" egrep-backend)))))
 
 (defun egrep--find-matches--native (regexp globs-to-find root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?)
   (save-some-buffers)
@@ -196,7 +206,9 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
         matches))))
 
 (defun egrep--find-matches--emacs-native-helper
-    (regexp
+    (opt-exe
+     tramp-remote-prefix
+     regexp
      globs-to-find
      root
      ignore-case
@@ -204,6 +216,8 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
      ignored-absolute-files-globs
      ignored-absolute-dirs-globs
      skip-unreadable?)
+  (cl-assert (or (null opt-exe) (stringp opt-exe)))
+  (cl-assert (or (null tramp-remote-prefix) (stringp tramp-remote-prefix)))
   (save-some-buffers)
   (let* ((ignored-directories +ignored-directories+)
          (ignored-directory-prefixes +ignored-directory-prefixes+)
@@ -226,15 +240,20 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
           (with-temp-buffer
             (with-disabled-undo
              (with-inhibited-modification-hooks
-              (when (not
-                     (zerop
-                      (apply #'call-process
-                             (foregin-setup-resolve-emacs-native-helper-path)
+              (let* ((default-directory root)
+                     (exit-code
+                      (apply #'process-file
+                             (or opt-exe
+                                 (foregin-setup-resolve-emacs-native-helper-path))
                              nil
                              t
                              nil
                              cmd)))
-                (error "emacs-native-helper exited with non-zero exit code"))
+                (when (not (zerop exit-code))
+                  (error "emacs-native-helper exited with non-zero exit code: %s.\nCommand: %s\nOutput: %s"
+                         exit-code
+                         cmd
+                         (buffer-substring-no-properties (point-min) (point-max)))))
               (goto-char (point-min))
               (read (current-buffer)))))))
     (cl-assert (or (listp matches) (symbolp matches)))
@@ -256,7 +275,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                  (matched-text    (base64-decode-string (plist-get match :match-string)))
                  (matched-suffix  (base64-decode-string (plist-get match :match-suffix)))
                  (match-offset    (plist-get match :byte-offset)))
-             (make-egrep-match file short-file-name line column matched-prefix matched-text matched-suffix match-offset)))
+             (make-egrep-match (concat tramp-remote-prefix file) short-file-name line column matched-prefix matched-text matched-suffix match-offset)))
          matches)))))
 
 (defun egrep--find-matches--elisp (regexp exts-globs root ignore-case ignored-files-basename-globs ignored-files-abs-globs ignored-abs-dirs-globs skip-unreadable?)
