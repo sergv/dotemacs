@@ -24,19 +24,19 @@
                      (message "Using default environment config file, '%s', because EMACS_ENV_DEFS variable not set"
                               default)
                      default))))
-          (unless (file-exists-p env-config-file)
-            (error "Environment config file '%s' does not exist" env-config-file))
-          (save-match-data
-            (let ( ;; shell is expected to be a bash shell
-                  (all-values (shell-command-to-string
-                               (format "source '%s' && printenv --null;"
-                                       env-config-file))))
-              (dolist (entry (split-string all-values "[\0]" t))
-                (let ((eq-pos (cl-position ?\= entry)))
-                  (when eq-pos
-                    (let ((var (substring entry 0 eq-pos)))
-                      (setenv var
-                              (substring entry (+ eq-pos 1))))))))))
+          (if (file-exists-p env-config-file)
+              (save-match-data
+                (let (;; shell is expected to be a bash shell
+                      (all-values (shell-command-to-string
+                                   (format "source '%s' && printenv --null;"
+                                           env-config-file))))
+                  (dolist (entry (split-string all-values "[\0]" t))
+                    (let ((eq-pos (cl-position ?\= entry)))
+                      (when eq-pos
+                        (let ((var (substring entry 0 eq-pos)))
+                          (setenv var
+                                  (substring entry (+ eq-pos 1)))))))))
+            (message "Environment config file '%s' does not exist, skipping" env-config-file)))
       (message "Skipping environment configuration because BASHRC_ENV_LOADED variable is set to 1"))))
 
 (when-windows
