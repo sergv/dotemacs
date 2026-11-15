@@ -1,6 +1,6 @@
 ;;; magit-subtree.el --- Subtree support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -33,7 +33,7 @@
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-subtree "magit-subtree" nil t)
+;;;###autoload(autoload 'magit-subtree "magit-subtree" nil t)
 (transient-define-prefix magit-subtree ()
   "Import or export subtrees."
   :man-page "git-subtree"
@@ -41,7 +41,7 @@
    ("i" "Import" magit-subtree-import)
    ("e" "Export" magit-subtree-export)])
 
-;;;###autoload (autoload 'magit-subtree-import "magit-subtree" nil t)
+;;;###autoload(autoload 'magit-subtree-import "magit-subtree" nil t)
 (transient-define-prefix magit-subtree-import ()
   "Import subtrees."
   :man-page "git-subtree"
@@ -55,7 +55,7 @@
    [("m" "Merge"      magit-subtree-merge)
     ("f" "Pull"       magit-subtree-pull)]])
 
-;;;###autoload (autoload 'magit-subtree-export "magit-subtree" nil t)
+;;;###autoload(autoload 'magit-subtree-export "magit-subtree" nil t)
 (transient-define-prefix magit-subtree-export ()
   "Export subtrees."
   :man-page "git-subtree"
@@ -129,40 +129,40 @@
 (defun magit-subtree-add (prefix repository ref args)
   "Add REF from REPOSITORY as a new subtree at PREFIX."
   (interactive
-   (cons (magit-subtree-prefix 'magit-subtree-import "Add subtree")
-         (let ((remote (magit-read-remote-or-url "From repository")))
-           (list remote
-                 (magit-read-refspec "Ref" remote)
-                 (magit-subtree-arguments 'magit-subtree-import)))))
+    (cons (magit-subtree-prefix 'magit-subtree-import "Add subtree")
+          (let ((remote (magit-read-remote-or-url "From repository")))
+            (list remote
+                  (magit-read-refspec "Ref" remote)
+                  (magit-subtree-arguments 'magit-subtree-import)))))
   (magit-git-subtree "add" prefix args repository ref))
 
 ;;;###autoload
 (defun magit-subtree-add-commit (prefix commit args)
   "Add COMMIT as a new subtree at PREFIX."
   (interactive
-   (list (magit-subtree-prefix 'magit-subtree-import "Add subtree")
-         (magit-read-string-ns "Commit")
-         (magit-subtree-arguments 'magit-subtree-import)))
+    (list (magit-subtree-prefix 'magit-subtree-import "Add subtree")
+          (magit-read-string-ns "Commit")
+          (magit-subtree-arguments 'magit-subtree-import)))
   (magit-git-subtree "add" prefix args commit))
 
 ;;;###autoload
 (defun magit-subtree-merge (prefix commit args)
   "Merge COMMIT into the PREFIX subtree."
   (interactive
-   (list (magit-subtree-prefix 'magit-subtree-import "Merge into subtree")
-         (magit-read-string-ns "Commit")
-         (magit-subtree-arguments 'magit-subtree-import)))
+    (list (magit-subtree-prefix 'magit-subtree-import "Merge into subtree")
+          (magit-read-string-ns "Commit")
+          (magit-subtree-arguments 'magit-subtree-import)))
   (magit-git-subtree "merge" prefix args commit))
 
 ;;;###autoload
 (defun magit-subtree-pull (prefix repository ref args)
   "Pull REF from REPOSITORY into the PREFIX subtree."
   (interactive
-   (cons (magit-subtree-prefix 'magit-subtree-import "Pull into subtree")
-         (let ((remote (magit-read-remote-or-url "From repository")))
-           (list remote
-                 (magit-read-refspec "Ref" remote)
-                 (magit-subtree-arguments 'magit-subtree-import)))))
+    (cons (magit-subtree-prefix 'magit-subtree-import "Pull into subtree")
+          (let ((remote (magit-read-remote-or-url "From repository")))
+            (list remote
+                  (magit-read-refspec "Ref" remote)
+                  (magit-subtree-arguments 'magit-subtree-import)))))
   (magit-git-subtree "pull" prefix args repository ref))
 
 ;;;###autoload
@@ -187,10 +187,15 @@
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

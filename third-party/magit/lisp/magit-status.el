@@ -1,6 +1,6 @@
 ;;; magit-status.el --- The grand overview  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -27,6 +27,8 @@
 ;;; Code:
 
 (require 'magit)
+
+(declare-function magit-dired-jump "magit-dired" (&optional other-window))
 
 ;;; Options
 
@@ -257,19 +259,19 @@ has to confirm that it should be reinitialized.
 
 Non-interactively DIRECTORY is (re-)initialized unconditionally."
   (interactive
-   (let ((directory (file-name-as-directory
-                     (expand-file-name
-                      (read-directory-name "Create repository in: ")))))
-     (when-let ((toplevel (magit-toplevel directory)))
-       (setq toplevel (expand-file-name toplevel))
-       (unless (y-or-n-p (if (file-equal-p toplevel directory)
-                             (format "Reinitialize existing repository %s? "
-                                     directory)
-                           (format "%s is a repository.  Create another in %s? "
-                                   toplevel directory)))
-         (user-error "Abort")))
-     (list directory)))
-  ;; `git init' does not understand the meaning of "~"!
+    (let ((directory (file-name-as-directory
+                      (expand-file-name
+                       (read-directory-name "Create repository in: ")))))
+      (when-let ((toplevel (magit-toplevel directory)))
+        (setq toplevel (expand-file-name toplevel))
+        (unless (y-or-n-p (if (file-equal-p toplevel directory)
+                              (format "Reinitialize existing repository %s? "
+                                      directory)
+                            (format "%s is a repository.  Create another in %s? "
+                                    toplevel directory)))
+          (user-error "Abort")))
+      (list directory)))
+  ;; "git init" does not understand the meaning of "~"!
   (magit-call-git "init" (magit-convert-filename-for-git
                           (expand-file-name directory)))
   (magit-status-setup-buffer directory))
@@ -308,12 +310,12 @@ prefix arguments:
   then fall back to the same behavior as with two prefix
   arguments."
   (interactive
-   (let ((magit--refresh-cache (list (cons 0 0))))
-     (list (and (or current-prefix-arg (not (magit-toplevel)))
-                (progn (magit--assert-usable-git)
-                       (magit-read-repository
-                        (>= (prefix-numeric-value current-prefix-arg) 16))))
-           magit--refresh-cache)))
+    (let ((magit--refresh-cache (list (cons 0 0))))
+      (list (and (or current-prefix-arg (not (magit-toplevel)))
+                 (progn (magit--assert-usable-git)
+                        (magit-read-repository
+                         (>= (prefix-numeric-value current-prefix-arg) 16))))
+            magit--refresh-cache)))
   (let ((magit--refresh-cache (or cache (list (cons 0 0)))))
     (if directory
         (let ((toplevel (magit-toplevel directory)))
@@ -358,7 +360,7 @@ repository without prompting."
 (put 'magit-status-here 'interactive-only 'magit-status-setup-buffer)
 
 ;;;###autoload
-(defun magit-status-quick ()
+(defun magit-status-quick (&optional directory)
   "Show the status of the current Git repository, maybe without refreshing.
 
 If the status buffer of the current Git repository exists but
@@ -372,14 +374,45 @@ Prefix arguments have the same meaning as for `magit-status',
 and additionally cause the buffer to be refresh.
 
 To use this function instead of `magit-status', add this to your
-init file: (global-set-key (kbd \"C-x g\") \\='magit-status-quick)."
+init file: (global-set-key (kbd \"C-x g\") \\='magit-status-quick).
+
+Non-interactively another repository can be specified using the
+optional DIRECTORY argument, which must then name the top-level
+directory of an existing repository."
   (interactive)
-  (if-let ((buffer
-            (and (not current-prefix-arg)
-                 (not (magit-get-mode-buffer 'magit-status-mode nil 'selected))
-                 (magit-get-mode-buffer 'magit-status-mode))))
-      (magit-display-buffer buffer)
-    (call-interactively #'magit-status)))
+  (let ((default-directory default-directory))
+    (when-let*
+        ((_ directory)
+         (toplevel (magit-toplevel directory))
+         (directory (file-name-as-directory (expand-file-name directory)))
+         (_(file-equal-p directory toplevel)))
+      (setq default-directory directory))
+    (if-let ((buffer
+              (and (not current-prefix-arg)
+                   (not (magit-get-mode-buffer 'magit-status-mode nil 'selected))
+                   (magit-get-mode-buffer 'magit-status-mode))))
+        (magit-display-buffer buffer)
+      (call-interactively #'magit-status))))
+
+(defun magit-parent-status ()
+  "Show the status of the parent repository of the current Git repository.
+If the current repository is a submodule, show the status buffer
+of its super-repository.  Otherwise step outside the worktree of
+the current repository, and if that takes us to another repository,
+consider that the parent repository."
+  (interactive)
+  (cond-let*
+    [[topdir (magit-toplevel)]]
+    ((not topdir)
+     (user-error "Not inside a Git repository"))
+    [[gitdir (magit-gitdir)]
+     [parent (magit-toplevel (file-name-parent-directory gitdir))]]
+    ((and parent (not (file-equal-p parent topdir)))
+     (magit-status-setup-buffer parent))
+    [[default-directory (file-name-parent-directory topdir)]]
+    ([parent (magit-toplevel)]
+     (magit-status-setup-buffer parent))
+    ((user-error "No parent repository"))))
 
 ;;; Mode
 
@@ -440,7 +473,7 @@ Type \\[magit-commit] to create a commit.
   (setq magit--imenu-group-types '(not branch commit)))
 
 (put 'magit-status-mode 'magit-diff-default-arguments
-     '("--no-ext-diff"))
+     '("--no-ext-diff" "--ignore-submodules=none"))
 (put 'magit-status-mode 'magit-log-default-arguments
      '("-n256" "--decorate"))
 
@@ -484,8 +517,9 @@ Type \\[magit-commit] to create a commit.
           ((eq sloc 'hunk) (goto-char spos))
           (upos            (goto-char upos))
           (spos            (goto-char spos)))
-    (when (or upos spos)
-      (magit-section-reveal (magit-current-section)))))
+    (and (or upos spos)
+         (progn (magit-section-reveal (magit-current-section))
+                t))))
 
 (defun magit-status-goto-initial-section ()
   "Jump to the section specified by `magit-status-initial-section'."
@@ -553,26 +587,42 @@ the status buffer causes this section to disappear again."
       (insert (propertize (format "%-10s" "GitError! ")
                           'font-lock-face 'magit-section-heading))
       (insert (propertize magit-this-error 'font-lock-face 'error))
-      (when-let ((_ magit-show-process-buffer-hint)
-                 (key (car (where-is-internal 'magit-process-buffer))))
-        (insert (format "  [Type `%s' for details]" (key-description key))))
+      (when magit-show-process-buffer-hint
+        (insert (substitute-command-keys
+                 "  [Type \\[magit-process-buffer] for details]")))
       (insert ?\n))
     (setq magit-this-error nil)))
 
 (defun magit-insert-diff-filter-header ()
-  "Insert a header line showing the effective diff filters."
+  "Insert a header line showing the effective diff filters.
+
+If any diff filters are in effect in the status buffer, they are
+shown on a line beginning with \"Filter! ...\" as a reminder, so you
+won't end up wondering why certain changes, which you expect to be
+displayed, are not actually displayed.
+
+Filters either come from arguments, which can be changed using \
+\\<magit-status-mode-map>\\[magit-diff-refresh],
+or from Git variables, which are configured outside of Magit.
+
+If you do not want this reminder to be shown, remove it like so:
+
+  (remove-hook \\='magit-status-headers-hook
+               \\='magit-insert-diff-filter-header)"
   (let ((ignore-modules (magit-ignore-submodules-p)))
     (when (or ignore-modules
               magit-buffer-diff-files)
-      (insert (propertize (format "%-10s" "Filter! ")
-                          'font-lock-face 'magit-section-heading))
-      (when ignore-modules
-        (insert ignore-modules)
+      (magit-insert-section (diff-filter)
+        (insert (propertize (format "%-10s" "Filter! ")
+                            'font-lock-face 'magit-section-heading))
+        (when ignore-modules
+          (insert ignore-modules)
+          (when magit-buffer-diff-files
+            (insert " -- ")))
         (when magit-buffer-diff-files
-          (insert " -- ")))
-      (when magit-buffer-diff-files
-        (insert (string-join magit-buffer-diff-files " ")))
-      (insert ?\n))))
+          (insert (string-join magit-buffer-diff-files " ")))
+        (insert (substitute-command-keys " \
+[\\[magit-diff-refresh] to change, \\[magit-describe-section] for help]\n"))))))
 
 ;;;; Reference Headers
 
@@ -620,33 +670,33 @@ arguments are for internal use only."
           (insert (format "%-10s" (or keyword (if rebase "Rebase: " "Merge: "))))
           (insert
            (cond
-            (upstream
-             (concat (and magit-status-show-hashes-in-headers
-                          (concat (propertize (magit-rev-format "%h" upstream)
-                                              'font-lock-face 'magit-hash)
-                                  " "))
-                     upstream " "
-                     (magit-log--wash-summary
-                      (or (magit-rev-format "%s" upstream)
-                          "(no commit message)"))))
-            ((magit--unnamed-upstream-p remote merge)
-             (concat (propertize merge  'font-lock-face 'magit-branch-remote)
-                     " from "
-                     (propertize remote 'font-lock-face 'bold)))
-            ((magit--valid-upstream-p remote merge)
-             (if (equal remote ".")
-                 (concat
-                  (propertize merge 'font-lock-face 'magit-branch-local) " "
-                  (propertize "does not exist"
-                              'font-lock-face 'magit-branch-warning))
-               (format
-                "%s %s %s"
-                (propertize merge 'font-lock-face 'magit-branch-remote)
-                (propertize "does not exist on"
-                            'font-lock-face 'magit-branch-warning)
-                (propertize remote 'font-lock-face 'magit-branch-remote))))
-            ((propertize "invalid upstream configuration"
-                         'font-lock-face 'magit-branch-warning))))
+             (upstream
+              (concat (and magit-status-show-hashes-in-headers
+                           (concat (propertize (magit-rev-format "%h" upstream)
+                                               'font-lock-face 'magit-hash)
+                                   " "))
+                      upstream " "
+                      (magit-log--wash-summary
+                       (or (magit-rev-format "%s" upstream)
+                           "(no commit message)"))))
+             ((magit--unnamed-upstream-p remote merge)
+              (concat (propertize merge  'font-lock-face 'magit-branch-remote)
+                      " from "
+                      (propertize remote 'font-lock-face 'bold)))
+             ((magit--valid-upstream-p remote merge)
+              (if (equal remote ".")
+                  (concat
+                   (propertize merge 'font-lock-face 'magit-branch-local) " "
+                   (propertize "does not exist"
+                               'font-lock-face 'magit-branch-warning))
+                (format
+                 "%s %s %s"
+                 (propertize merge 'font-lock-face 'magit-branch-remote)
+                 (propertize "does not exist on"
+                             'font-lock-face 'magit-branch-warning)
+                 (propertize remote 'font-lock-face 'magit-branch-remote))))
+             ((propertize "invalid upstream configuration"
+                          'font-lock-face 'magit-branch-warning))))
           (insert ?\n))))))
 
 (defun magit-insert-push-branch-header ()
@@ -657,23 +707,23 @@ arguments are for internal use only."
       (insert (format "%-10s" "Push: "))
       (insert
        (cond-let
-        ((magit-rev-verify target)
-         (concat (and magit-status-show-hashes-in-headers
-                      (concat (propertize (magit-rev-format "%h" target)
-                                          'font-lock-face 'magit-hash)
-                              " "))
-                 target " "
-                 (magit-log--wash-summary
-                  (or (magit-rev-format "%s" target)
-                      "(no commit message)"))))
-        [[remote (magit-get-push-remote branch)]]
-        ((magit-remote-p remote)
-         (concat target " "
-                 (propertize "does not exist"
-                             'font-lock-face 'magit-branch-warning)))
-        ((concat remote " "
-                 (propertize "remote does not exist"
-                             'font-lock-face 'magit-branch-warning)))))
+         ((magit-rev-verify target)
+          (concat (and magit-status-show-hashes-in-headers
+                       (concat (propertize (magit-rev-format "%h" target)
+                                           'font-lock-face 'magit-hash)
+                               " "))
+                  target " "
+                  (magit-log--wash-summary
+                   (or (magit-rev-format "%s" target)
+                       "(no commit message)"))))
+         [[remote (magit-get-push-remote branch)]]
+         ((magit-remote-p remote)
+          (concat target " "
+                  (propertize "does not exist"
+                              'font-lock-face 'magit-branch-warning)))
+         ((concat remote " "
+                  (propertize "remote does not exist"
+                              'font-lock-face 'magit-branch-warning)))))
       (insert ?\n))))
 
 (defun magit-insert-tags-header ()
@@ -802,7 +852,7 @@ Honor the buffer's file filter, which can be set using \"D - -\"."
         (let ((magit-section-insert-in-reverse t)
               (limit magit-status-file-list-limit))
           (while (and files (> limit 0))
-            (cl-decf limit)
+            (decf limit)
             (let ((file (pop files)))
               (magit-insert-section (file file)
                 (insert (funcall magit-format-file-function
@@ -821,10 +871,15 @@ Honor the buffer's file filter, which can be set using \"D - -\"."
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

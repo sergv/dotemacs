@@ -1,6 +1,6 @@
 ;;; magit-remote.el --- Transfer Git commits  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -62,10 +62,11 @@ has to be used to view and change remote related variables."
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-remote "magit-remote" nil t)
+;;;###autoload(autoload 'magit-remote "magit-remote" nil t)
 (transient-define-prefix magit-remote (remote)
   "Add, configure or remove a remote."
   :man-page "git-remote"
+  :refresh-suffixes t
   :value '("-f")
   ["Variables"
    :if (##and magit-remote-direct-configure (transient-scope))
@@ -73,7 +74,8 @@ has to be used to view and change remote related variables."
    ("U" magit-remote.<remote>.fetch)
    ("s" magit-remote.<remote>.pushurl)
    ("S" magit-remote.<remote>.push)
-   ("O" magit-remote.<remote>.tagopt)]
+   ("O" magit-remote.<remote>.tagopt)
+   ("h" magit-remote.<remote>.followremotehead)]
   ["Arguments for add"
    ("-f" "Fetch after add" "-f")]
   ["Actions"
@@ -98,31 +100,31 @@ has to be used to view and change remote related variables."
 (defun magit-remote-add (remote url &optional args)
   "Add a remote named REMOTE and fetch it."
   (interactive
-   (let ((origin (magit-get "remote.origin.url"))
-         (remote (magit-read-string-ns "Remote name")))
-     (list remote
-           (magit-read-url
-            "Remote url"
-            (and origin
-                 (string-match "\\([^:/]+\\)/[^/]+\\(\\.git\\)?\\'" origin)
-                 (replace-match remote t t origin 1)))
-           (transient-args 'magit-remote))))
-  (if (pcase (list magit-remote-add-set-remote.pushDefault
-                   (magit-get "remote.pushDefault"))
-        (`(,(pred stringp) ,_) t)
-        ((or `(ask ,_) '(ask-if-unset nil))
-         (y-or-n-p (format "Set `remote.pushDefault' to \"%s\"? " remote))))
-      (progn (magit-call-git "remote" "add" args remote url)
-             (setf (magit-get "remote.pushDefault") remote)
-             (magit-refresh))
-    (magit-run-git-async "remote" "add" args remote url)))
+    (let ((origin (magit-get "remote.origin.url"))
+          (remote (magit-read-string-ns "Remote name")))
+      (list remote
+            (magit-read-url
+             "Remote url"
+             (and origin
+                  (string-match "\\([^:/]+\\)/[^/]+\\(\\.git\\)?\\'" origin)
+                  (replace-match remote t t origin 1)))
+            (transient-args 'magit-remote))))
+  (cond ((pcase (list magit-remote-add-set-remote.pushDefault
+                      (magit-get "remote.pushDefault"))
+           (`(,(pred stringp) ,_) t)
+           ((or `(ask ,_) '(ask-if-unset nil))
+            (y-or-n-p (format "Set `remote.pushDefault' to \"%s\"? " remote))))
+         (magit-call-git "remote" "add" args remote url)
+         (setf (magit-get "remote.pushDefault") remote)
+         (magit-refresh))
+        ((magit-run-git-async "remote" "add" args remote url))))
 
 ;;;###autoload
 (defun magit-remote-rename (old new)
   "Rename the remote named OLD to NEW."
   (interactive
-   (let  ((remote (magit-read-remote "Rename remote")))
-     (list remote (magit-read-string-ns (format "Rename %s to" remote)))))
+    (let  ((remote (magit-read-remote "Rename remote")))
+      (list remote (magit-read-string-ns (format "Rename %s to" remote)))))
   (unless (string= old new)
     (magit-call-git "remote" "rename" old new)
     (magit-remote--cleanup-push-variables old new)
@@ -239,11 +241,11 @@ accordingly.  With a prefix argument query for the branch to be
 used, which allows you to select an incorrect value if you fancy
 doing that."
   (interactive
-   (let  ((remote (magit-read-remote "Set HEAD for remote")))
-     (list remote
-           (and current-prefix-arg
-                (magit-read-remote-branch (format "Set %s/HEAD to" remote)
-                                          remote nil nil t)))))
+    (let  ((remote (magit-read-remote "Set HEAD for remote")))
+      (list remote
+            (and current-prefix-arg
+                 (magit-read-remote-branch (format "Set %s/HEAD to" remote)
+                                           remote nil nil t)))))
   (magit-run-git "remote" "set-head" remote (or branch "--auto")))
 
 ;;;###autoload
@@ -253,7 +255,7 @@ Delete the symbolic-ref \"refs/remotes/<remote>/HEAD\"."
   (interactive (list (magit-read-remote "Unset HEAD for remote")))
   (magit-run-git "remote" "set-head" remote "--delete"))
 
-;;;###autoload (autoload 'magit-update-default-branch "magit-remote" nil t)
+;;;###autoload(autoload 'magit-update-default-branch "magit-remote" nil t)
 (transient-define-suffix magit-update-default-branch ()
   "Update name of the default branch after upstream changed it."
   :description "Update default branch"
@@ -262,28 +264,28 @@ Delete the symbolic-ref \"refs/remotes/<remote>/HEAD\"."
   (pcase-let ((`(,_remote ,oldname) (magit--get-default-branch))
               (`( ,remote ,newname) (magit--get-default-branch t)))
     (cond
-     ((equal oldname newname)
-      (setq oldname
-            (read-string
-             (format
-              "Name of default branch is still `%s', %s\n%s `%s': " oldname
-              "but the upstreams of some local branches might need updating."
-              "Name of upstream branches to replace with" newname)))
-      (magit--set-default-branch newname oldname)
-      (magit-refresh))
-     (t
-      (unless oldname
-        (setq oldname
-              (magit-read-other-local-branch
-               (format "Name of old default branch to be renamed to `%s'"
-                       newname)
-               newname "master")))
-      (cond
-       ((y-or-n-p (format "Default branch changed from `%s' to `%s' on %s.%s?"
-                          oldname newname remote "  Do the same locally"))
-        (magit--set-default-branch newname oldname)
-        (magit-refresh))
-       ((user-error "Abort")))))))
+      ((equal oldname newname)
+       (setq oldname
+             (read-string
+              (format
+               "Name of default branch is still `%s', %s\n%s `%s': " oldname
+               "but the upstreams of some local branches might need updating."
+               "Name of upstream branches to replace with" newname)))
+       (magit--set-default-branch newname oldname)
+       (magit-refresh))
+      (t
+       (unless oldname
+         (setq oldname
+               (magit-read-other-local-branch
+                (format "Name of old default branch to be renamed to `%s'"
+                        newname)
+                newname "master")))
+       (cond
+         ((y-or-n-p (format "Default branch changed from `%s' to `%s' on %s.%s?"
+                            oldname newname remote "  Do the same locally"))
+          (magit--set-default-branch newname oldname)
+          (magit-refresh))
+         ((user-error "Abort")))))))
 
 ;;;###autoload
 (defun magit-remote-unshallow (remote)
@@ -305,7 +307,7 @@ refspec."
 
 ;;; Configure
 
-;;;###autoload (autoload 'magit-remote-configure "magit-remote" nil t)
+;;;###autoload(autoload 'magit-remote-configure "magit-remote" nil t)
 (transient-define-prefix magit-remote-configure (remote)
   "Configure a remote."
   :man-page "git-remote"
@@ -316,13 +318,14 @@ refspec."
    ("U" magit-remote.<remote>.fetch)
    ("s" magit-remote.<remote>.pushurl)
    ("S" magit-remote.<remote>.push)
-   ("O" magit-remote.<remote>.tagopt)]
+   ("O" magit-remote.<remote>.tagopt)
+   ("h" magit-remote.<remote>.followremotehead)]
   (interactive
-   (list (or (and (not current-prefix-arg)
-                  (not (and magit-remote-direct-configure
-                            (eq transient-current-command 'magit-remote)))
-                  (magit-get-current-remote))
-             (magit--read-remote-scope))))
+    (list (or (and (not current-prefix-arg)
+                   (not (and magit-remote-direct-configure
+                             (eq transient-current-command 'magit-remote)))
+                   (magit-get-current-remote))
+              (magit--read-remote-scope))))
   (transient-setup 'magit-remote-configure nil nil :scope remote))
 
 (defun magit--read-remote-scope (&optional obj)
@@ -364,6 +367,27 @@ refspec."
   :variable "remote.%s.tagOpt"
   :choices '("--no-tags" "--tags"))
 
+(transient-define-infix magit-remote.<remote>.followremotehead ()
+  "How \"git fetch\" handles updates to \"remotes/<remote>/HEAD\".
+
+This command sets the local value of the Git variable
+`remote.<remote>.followRemoteHEAD', where <remote> is a stand-in for
+the actual remote, as displayed in the menu, from which this command
+is invoked.  This variable is documented in (man \"git-config(1)\").
+
+Unfortunately Git does not provide a variable to set a default for
+all remotes of all repositories, but you can set the global value for
+a remote name used in multiple repository, which will then be used as
+the default for that remote in all repositories.  You should consider
+using \"always\" for remotes named \"origin\".
+
+  git config set --global remote.origin.followRemoteHEAD always"
+  :class 'magit--git-variable:choices
+  :scope #'magit--read-remote-scope
+  :variable "remote.%s.followRemoteHEAD"
+  :choices '("create" "always" "warn")
+  :default "create")
+
 ;;; Transfer Utilities
 
 (defun magit--push-remote-variable (&optional branch short)
@@ -396,10 +420,15 @@ refspec."
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

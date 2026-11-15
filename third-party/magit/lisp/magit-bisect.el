@@ -1,6 +1,6 @@
 ;;; magit-bisect.el --- Bisect support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -32,7 +32,7 @@
 ;;; Options
 
 (defcustom magit-bisect-show-graph t
-  "Whether to use `--graph' in the log showing commits yet to be bisected."
+  "Whether to use \"--graph\" in the log showing commits yet to be bisected."
   :package-version '(magit . "2.8.0")
   :group 'magit-status
   :type 'boolean)
@@ -54,7 +54,7 @@
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-bisect "magit-bisect" nil t)
+;;;###autoload(autoload 'magit-bisect "magit-bisect" nil t)
 (transient-define-prefix magit-bisect ()
   "Narrow in on the commit that introduced a bug."
   :man-page "git-bisect"
@@ -108,23 +108,30 @@ other actions from the bisect transient command (\
   (magit-git-bisect "start" (list args bad good) t))
 
 (defun magit-bisect-start-read-args ()
-  (let* ((args (transient-args 'magit-bisect))
-         (bad (magit-read-branch-or-commit
-               (format "Start bisect with %s revision"
-                       (or (transient-arg-value "--term-new=" args)
-                           "bad")))))
-    (list bad
-          (magit-read-other-branch-or-commit
-           (format "%s revision" (or (transient-arg-value "--term-old=" args)
-                                     "Good"))
-           bad)
-          args)))
+  (let ((args (transient-args 'magit-bisect))
+        (revs (magit-region-values '(commit branch) t)))
+    (or (and revs
+             (let ((a (car revs))
+                   (b (last revs)))
+               (cond ((magit-rev-ancestor-p a b) (list b a args))
+                     ((magit-rev-ancestor-p b a) (list a b args)))))
+        (let ((bad (magit-read-branch-or-commit
+                    (format "Start bisect with %s revision"
+                            (or (transient-arg-value "--term-new=" args)
+                                "bad")))))
+          (list bad
+                (magit-read-other-branch-or-commit
+                 (format "%s revision"
+                         (or (transient-arg-value "--term-old=" args)
+                             "Good"))
+                 bad)
+                args)))))
 
 (defun magit-bisect-start--assert (bad good args)
-  (unless (magit-rev-ancestor-p good bad)
+  (unless (magit-merge-base bad good)
     (user-error
-     "The %s revision (%s) has to be an ancestor of the %s one (%s)"
-     (or (transient-arg-value "--term-old=" args) "good")
+     "%s `%s' or merge-base has to be an ancestor of %s `%s')"
+     (or (transient-arg-value "--term-old=" args) "Good")
      good
      (or (transient-arg-value "--term-new=" args) "bad")
      bad))
@@ -191,16 +198,15 @@ to test.  This command lets Git choose a different one."
 (defun magit-bisect-run (cmdline &optional bad good args)
   "Bisect automatically by running commands after each step.
 
-Unlike `git bisect run' this can be used before bisecting has
-begun.  In that case it behaves like `git bisect start; git
-bisect run'."
+Unlike \"git bisect run\" this can be used before bisecting has begun.
+In that case it behaves like \"git bisect start; git bisect run\"."
   (interactive (let ((args (and (not (magit-bisect-in-progress-p))
                                 (magit-bisect-start-read-args))))
                  (cons (read-shell-command "Bisect shell command: ") args)))
   (when (and bad good)
     (magit-bisect-start--assert bad good args)
     ;; Avoid `magit-git-bisect' because it's asynchronous, but the
-    ;; next `git bisect run' call requires the bisect to be started.
+    ;; next "git bisect run" call requires the bisect to be started.
     (magit-with-toplevel
       (magit-process-git
        (list :file (expand-file-name "BISECT_CMD_OUTPUT" (magit-gitdir)))
@@ -245,13 +251,13 @@ bisect run'."
   (magit-file-lines (expand-file-name "BISECT_TERMS" (magit-gitdir))))
 
 (defun magit-insert-bisect-output ()
-  "While bisecting, insert section with output from `git bisect'."
+  "While bisecting, insert section with output from \"git bisect\"."
   (when (magit-bisect-in-progress-p)
     (let* ((lines
             (or (magit-file-lines
                  (expand-file-name "BISECT_CMD_OUTPUT" (magit-gitdir)))
                 (list "Bisecting: (no saved bisect output)"
-                      "It appears you have invoked `git bisect' from a shell."
+                      "It appears you have invoked \"git bisect\" from a shell."
                       "There is nothing wrong with that, we just cannot display"
                       "anything useful here.  Consult the shell output instead.")))
            (done-re "^\\([a-z0-9]\\{40,\\}\\) is the first bad commit$")
@@ -320,10 +326,15 @@ bisect run'."
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

@@ -1,6 +1,6 @@
 ;;; magit-base.el --- Early birds  -*- lexical-binding:t; coding:utf-8 -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -41,16 +41,6 @@
 (require 'cond-let)
 (require 'eieio)
 (require 'llama) ; For (##these ...) see M-x describe-function RET # # RET.
-(require 'subr-x)
-
-;; For older Emacs releases we depend on an updated `seq' release from
-;; GNU ELPA, for `seq-keep'.  Unfortunately something else may already
-;; have required `seq', before `package' had a chance to put the more
-;; recent version earlier on the `load-path'.
-(when (and (featurep 'seq)
-           (not (fboundp 'seq-keep)))
-  (unload-feature 'seq 'force))
-(require 'seq)
 
 (require 'crm)
 
@@ -333,11 +323,11 @@ Global settings:
   for confirmation for any of these actions, you are still better
   of adding all of the respective symbols individually.
 
-  When `magit-wip-before-change-mode' is enabled then these actions
-  can fairly easily be undone: `discard', `reverse',
-  `stage-all-changes', and `unstage-all-changes'.  If and only if
-  this mode is enabled, then `safe-with-wip' has the same effect
-  as adding all of these symbols individually."
+  When `magit-wip-mode' is enabled then these actions can fairly
+  easily be undone: `discard', `reverse', `stage-all-changes', and
+  `unstage-all-changes'.  If and only if this mode is enabled, then
+  `safe-with-wip' has the same effect as adding all of these symbols
+  individually."
   :package-version '(magit . "2.1.0")
   :group 'magit-essentials
   :group 'magit-commands
@@ -426,7 +416,7 @@ the ellipsis definition.  Currently the only acceptable values
 for WHERE are `margin' or t (representing the default).
 
 Whether collapsed sections are indicated using ellipsis is
-controlled by `magit-section-visibility-indicator'."
+controlled by option `magit-section-visibility-indicators'."
   :package-version '(magit . "4.0.0")
   :group 'magit-miscellaneous
   :type '(repeat (list (symbol :tag "Where")
@@ -494,7 +484,7 @@ and delay of your graphical environment or operating system."
 (defclass magit-hunk-section (magit-diff-section)
   ((keymap      :initform 'magit-hunk-section-map)
    (painted     :initform nil)
-   (fontified   :initform nil) ;TODO
+   (fontified   :initform nil)
    (refined     :initform nil)
    (combined    :initform nil :initarg :combined)
    (from-range  :initform nil :initarg :from-range)
@@ -503,6 +493,9 @@ and delay of your graphical environment or operating system."
    (about       :initform nil :initarg :about)
    (heading-highlight-face :initform 'magit-diff-hunk-heading-highlight)
    (heading-selection-face :initform 'magit-diff-hunk-heading-selection)))
+
+(defun magit--meta-hunk-p (section)
+  (not (cdr (oref section value))))
 
 (setf (alist-get 'file   magit--section-type-alist) 'magit-file-section)
 (setf (alist-get 'module magit--section-type-alist) 'magit-module-section)
@@ -799,7 +792,7 @@ ACTION is a member of option `magit-slow-confirm'."
     (y-or-n-p prompt)))
 
 (defvar magit--no-confirm-alist
-  '((safe-with-wip magit-wip-before-change-mode
+  '((safe-with-wip magit-wip-mode
                    discard reverse stage-all-changes unstage-all-changes)))
 
 (cl-defun magit-confirm ( action &optional prompt prompt-n noabort
@@ -824,13 +817,13 @@ ACTION is a member of option `magit-slow-confirm'."
   (or (cond ((and (not (eq action t))
                   (or (eq magit-no-confirm t)
                       (memq action magit-no-confirm)
-                      (cl-member-if (pcase-lambda (`(,key ,var . ,sub))
-                                      (and (memq key magit-no-confirm)
-                                           (memq action sub)
-                                           (or (not var)
-                                               (and (boundp var)
-                                                    (symbol-value var)))))
-                                    magit--no-confirm-alist)))
+                      (any (pcase-lambda (`(,key ,var . ,sub))
+                             (and (memq key magit-no-confirm)
+                                  (memq action sub)
+                                  (or (not var)
+                                      (and (boundp var)
+                                           (symbol-value var)))))
+                           magit--no-confirm-alist)))
              (or (not sitems) items))
             ((not sitems)
              (magit-y-or-n-p prompt action))
@@ -880,10 +873,10 @@ See info node `(magit)Debugging Tools' for more information."
                 ,@(mapcan
                    (##list "-L" %)
                    (delete-dups
-                    (mapcan
+                    (seq-keep
                      (lambda (lib)
                        (if-let ((path (locate-library lib)))
-                           (list (file-name-directory path))
+                           (file-name-directory path)
                          (error "Cannot find mandatory dependency %s" lib)))
                      '(;; Like `LOAD_PATH' in `default.mk'.
                        "compat"
@@ -917,7 +910,7 @@ match was against a string, then that has to be provided as STRING."
     `(let* ((,s ,string)
             ,@(save-match-data
                 (seq-keep (lambda (sym)
-                            (cl-incf i)
+                            (incf i)
                             (and (not (eq (aref (symbol-name sym) 0) ?_))
                                  `(,sym (match-str ,i ,s))))
                           varlist)))
@@ -925,7 +918,7 @@ match was against a string, then that has to be provided as STRING."
 
 (defun magit-delete-line ()
   "Delete the rest of the current line."
-  (delete-region (point) (1+ (line-end-position))))
+  (delete-region (point) (1+ (pos-eol))))
 
 (defun magit-delete-match (&optional num)
   "Delete text matched by last search.
@@ -938,8 +931,7 @@ If optional NUM is specified, only delete that subexpression."
   (and (file-regular-p file)
        (with-temp-buffer
          (insert-file-contents file)
-         (buffer-substring-no-properties (point-min)
-                                         (line-end-position)))))
+         (magit--eol-substring))))
 
 (defun magit-file-lines (file &optional keep-empty-lines)
   "Return a list of strings containing one element per line in FILE.
@@ -963,32 +955,32 @@ Pad the left side of STRING so that it aligns with the text area."
     (goto-char (point-min))
     (while (search-forward "%" nil t)
       (cond
-       ;; Quoted percent sign.
-       ((eq (char-after) ?%)
-        (delete-char 1))
-       ;; Valid format spec.
-       ((looking-at "\\([-0-9.]*\\)\\([a-zA-Z]\\)")
-        (let* ((num (match-str 1))
-               (spec (string-to-char (match-str 2)))
-               (val (assq spec specification)))
-          (unless val
-            (error "Invalid format character: `%%%c'" spec))
-          (setq val (cdr val))
-          ;; Pad result to desired length.
-          (let ((text (format (concat "%" num "s") val)))
-            ;; Insert first, to preserve text properties.
-            (if (next-property-change 0 (concat " " text))
-                ;; If the inserted text has properties, then preserve those.
-                (insert text)
-              ;; Otherwise preserve FORMAT's properties, like `format-spec'.
-              (insert-and-inherit text))
-            ;; Delete the specifier body.
-            (delete-region (+ (match-beginning 0) (length text))
-                           (+ (match-end 0) (length text)))
-            ;; Delete the percent sign.
-            (delete-region (1- (match-beginning 0)) (match-beginning 0)))))
-       ;; Signal an error on bogus format strings.
-       ((error "Invalid format string"))))
+        ;; Quoted percent sign.
+        ((eq (char-after) ?%)
+         (delete-char 1))
+        ;; Valid format spec.
+        ((looking-at "\\([-0-9.]*\\)\\([a-zA-Z]\\)")
+         (let* ((num (match-str 1))
+                (spec (string-to-char (match-str 2)))
+                (val (assq spec specification)))
+           (unless val
+             (error "Invalid format character: `%%%c'" spec))
+           (setq val (cdr val))
+           ;; Pad result to desired length.
+           (let ((text (format (concat "%" num "s") val)))
+             ;; Insert first, to preserve text properties.
+             (if (next-property-change 0 (concat " " text))
+                 ;; If the inserted text has properties, then preserve those.
+                 (insert text)
+               ;; Otherwise preserve FORMAT's properties, like `format-spec'.
+               (insert-and-inherit text))
+             ;; Delete the specifier body.
+             (delete-region (+ (match-beginning 0) (length text))
+                            (+ (match-end 0) (length text)))
+             ;; Delete the percent sign.
+             (delete-region (1- (match-beginning 0)) (match-beginning 0)))))
+        ;; Signal an error on bogus format strings.
+        ((error "Invalid format string"))))
     (buffer-string)))
 
 ;;; Missing from Emacs
@@ -1013,6 +1005,22 @@ This function should be named `version>' and be part of Emacs."
 This function should be named `version>=' and be part of Emacs."
   (version-list-<= (version-to-list v2) (version-to-list v1)))
 
+(defun magit--delete-text-properties (string &optional props)
+  "Delete text properties PROPS from STRING and return it.
+If PROPS is nil, remove all properties.  To leave STRING unchanged
+and return a new string, instead use `magit--remove-text-properties'."
+  (set-text-properties 0 (length string) props string)
+  string)
+
+(defun magit--remove-text-properties (string &optional props)
+  "Return a copy of STRING with text properties PROPS removed.
+If PROPS is nil, remove all properties."
+  (magit--delete-text-properties (copy-sequence string) props))
+
+(defun magit--eol-substring ()
+  "Return buffer content without properties from `point' to `pos-eol'."
+  (buffer-substring-no-properties (point) (pos-eol)))
+
 ;;; Kludges for Emacs Bugs
 
 (defun magit-which-function ()
@@ -1023,6 +1031,20 @@ Imenu's potentially outdated and therefore unreliable cache by
 setting `imenu--index-alist' to nil before calling that function."
   (setq imenu--index-alist nil)
   (which-function))
+
+(static-when (version< emacs-version "31.1")
+  (define-advice dabbrev-capf (:around (fn) git-commit)
+    "Backport bugfix from debbug#80645 / a7d05207214 / 31.1.
+See #5551, #5556 and #5558 (I wish I had not rushed this)."
+    (pcase-let ((`(,beg ,end ,table . ,rest) (funcall fn)))
+      `( ,beg ,end
+         ,(lambda (&rest args)
+            (condition-case err
+                (apply table args)
+              (user-error
+               (unless (string-prefix-p "No dynamic expansion" (cadr err))
+                 (signal (car err) (cdr err))))))
+         ,@rest))))
 
 ;;; Kludges for Custom
 
@@ -1187,15 +1209,31 @@ Like `message', except that `message-log-max' is bound to nil."
       (push char quoted))
     (concat (nreverse quoted))))
 
+(defun magit--find-buffer (&rest plist)
+  "Like `find-buffer' but take multiple VARIABLE-VALUE pairs."
+  (seq-find (lambda (buf)
+              (let ((plist plist))
+                (while (and plist
+                            (equal (buffer-local-value (car plist) buf)
+                                   (cadr plist)))
+                  (setq plist (cddr plist)))
+                (not plist)))
+            (buffer-list)))
+
 ;;; _
 (provide 'magit-base)
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

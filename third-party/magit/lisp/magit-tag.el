@@ -1,6 +1,6 @@
 ;;; magit-tag.el --- Tag functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -33,7 +33,7 @@
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-tag "magit" nil t)
+;;;###autoload(autoload 'magit-tag "magit" nil t)
 (transient-define-prefix magit-tag ()
   "Create or delete a tag."
   :man-page "git-tag"
@@ -102,26 +102,26 @@ defaulting to the tag at point.
 (defun magit-tag-prune (tags remote-tags remote)
   "Offer to delete tags missing locally from REMOTE, and vice versa."
   (interactive
-   (let* ((remote (magit-read-remote "Prune tags using remote"))
-          (tags   (magit-list-tags))
-          (rtags  (prog2 (message "Determining remote tags...")
-                      (magit-remote-list-tags remote)
-                    (message "Determining remote tags...done")))
-          (ltags  (cl-set-difference tags rtags :test #'equal))
-          (rtags  (cl-set-difference rtags tags :test #'equal)))
-     (unless (or ltags rtags)
-       (message "Same tags exist locally and remotely"))
-     (unless (magit-confirm t
-               "Delete %s locally"
-               "Delete %d tags locally"
-               'noabort ltags)
-       (setq ltags nil))
-     (unless (magit-confirm t
-               "Delete %s from remote"
-               "Delete %d tags from remote"
-               'noabort rtags)
-       (setq rtags nil))
-     (list ltags rtags remote)))
+    (let* ((remote (magit-read-remote "Prune tags using remote"))
+           (tags   (magit-list-tags))
+           (rtags  (prog2 (message "Determining remote tags...")
+                       (magit-remote-list-tags remote)
+                     (message "Determining remote tags...done")))
+           (ltags  (cl-set-difference tags rtags :test #'equal))
+           (rtags  (cl-set-difference rtags tags :test #'equal)))
+      (unless (or ltags rtags)
+        (message "Same tags exist locally and remotely"))
+      (unless (magit-confirm t
+                "Delete %s locally"
+                "Delete %d tags locally"
+                'noabort ltags)
+        (setq ltags nil))
+      (unless (magit-confirm t
+                "Delete %s from remote"
+                "Delete %d tags from remote"
+                'noabort rtags)
+        (setq rtags nil))
+      (list ltags rtags remote)))
   (when tags
     (magit-call-git "tag" "-d" tags))
   (when remote-tags
@@ -172,52 +172,47 @@ of the highest existing tag, provided that contains the corresponding
 version string, and substituting the new version string for that.  If
 that is not the case, propose a message using a reasonable format."
   (interactive
-   (save-match-data
-     (pcase-let*
-         ((args (magit-tag-arguments))
-          (`(,pver ,ptag ,pmsg) (car (magit--list-releases)))
-          (msg (magit-rev-format "%s"))
-          (ver (and (string-match magit-release-commit-regexp msg)
-                    (match-str 1 msg)))
-          (_   (and (not ver)
-                    (require (quote sisyphus) nil t)
-                    (string-match magit-release-commit-regexp
-                                  (magit-rev-format "%s" ptag))
-                    (user-error "Use `sisyphus-create-release' first")))
-          (tag (cond
-                ((not ptag)
-                 ;; Force the user to review the message used for the
-                 ;; initial release tag, in case they do not like the
-                 ;; default format.
-                 (cl-pushnew "--edit" args :test #'equal)
-                 (read-string "Create first release tag: "
-                              (if (and ver (string-match-p "\\`[0-9]" ver))
-                                  (concat "v" ver)
-                                ver)))
-                (ver
-                 (concat (and (string-match magit-release-tag-regexp ptag)
-                              (match-str 1 ptag))
-                         ver))
-                ((read-string (format "Create release tag (previous was %s): "
-                                      ptag)
-                              ptag))))
-          (ver (and (string-match magit-release-tag-regexp tag)
-                    (match-str 2 tag))))
-       (list tag
-             (and (seq-some (apply-partially
-                             #'string-match-p
-                             "\\`--\\(annotate\\|local-user\\|sign\\)")
-                            args)
-                  (cond ((and pver (string-match (regexp-quote pver) pmsg))
-                         (replace-match ver t t pmsg))
-                        ((and ptag (string-match (regexp-quote ptag) pmsg))
-                         (replace-match tag t t pmsg))
-                        ((format "%s %s"
-                                 (capitalize
-                                  (file-name-nondirectory
-                                   (directory-file-name (magit-toplevel))))
-                                 ver))))
-             args))))
+    (save-match-data
+      (pcase-let*
+          ((args (magit-tag-arguments))
+           (`(,pver ,ptag ,pmsg) (car (magit--list-releases)))
+           (msg (magit-rev-format "%s"))
+           (ver (and (string-match magit-release-commit-regexp msg)
+                     (match-str 1 msg)))
+           (tag (cond
+                  ((not ptag)
+                   ;; Force the user to review the message used for the
+                   ;; initial release tag, in case they do not like the
+                   ;; default format.
+                   (cl-pushnew "--edit" args :test #'equal)
+                   (read-string "Create first release tag: "
+                                (if (and ver (string-match-p "\\`[0-9]" ver))
+                                    (concat "v" ver)
+                                  ver)))
+                  (ver
+                   (concat (and (string-match magit-release-tag-regexp ptag)
+                                (match-str 1 ptag))
+                           ver))
+                  ((read-string (format "Create release tag (previous was %s): "
+                                        ptag)
+                                ptag))))
+           (ver (and (string-match magit-release-tag-regexp tag)
+                     (match-str 2 tag))))
+        (list tag
+              (and (seq-some (apply-partially
+                              #'string-match-p
+                              "\\`--\\(annotate\\|local-user\\|sign\\)")
+                             args)
+                   (cond ((and pver (string-match (regexp-quote pver) pmsg))
+                          (replace-match ver t t pmsg))
+                         ((and ptag (string-match (regexp-quote ptag) pmsg))
+                          (replace-match tag t t pmsg))
+                         ((format "%s %s"
+                                  (capitalize
+                                   (file-name-nondirectory
+                                    (directory-file-name (magit-toplevel))))
+                                  ver))))
+              args))))
   (magit-run-git-with-editor "tag" args (and msg (list "-m" msg)) tag)
   (set-process-sentinel
    magit-this-process
@@ -235,33 +230,36 @@ a tag qualifies as a release tag."
   (save-match-data
     (mapcar
      #'cdr
-     (nreverse
-      (cl-sort (mapcan
-                (lambda (line)
-                  (and (string-match " +" line)
-                       (let ((tag (substring line 0 (match-beginning 0)))
-                             (msg (substring line (match-end 0))))
-                         (and (string-match magit-release-tag-regexp tag)
-                              (let ((ver (match-str 2 tag))
-                                    (version-regexp-alist
-                                     magit-tag-version-regexp-alist))
-                                (list (list (version-to-list ver)
-                                            ver tag msg)))))))
-                ;; Cannot rely on "--sort=-version:refname" because
-                ;; that gets confused if the version prefix has changed.
-                (magit-git-lines "tag" "-n"))
-               ;; The inverse of this function does not exist.
-               #'version-list-< :key #'car)))))
+     (compat-call
+      sort (seq-keep
+            (lambda (line)
+              (and-let*
+                  ((_(string-match " +" line))
+                   (tag (substring line 0 (match-beginning 0)))
+                   (msg (substring line (match-end 0)))
+                   (_(string-match magit-release-tag-regexp tag))
+                   (ver (match-str 2 tag))
+                   (version-regexp-alist magit-tag-version-regexp-alist))
+                (list (version-to-list ver) ver tag msg)))
+            ;; Cannot rely on "--sort=-version:refname" because
+            ;; that gets confused if the version prefix has changed.
+            (magit-git-lines "tag" "-n"))
+      :lessp #'version-list-< :reverse t :key #'car))))
 
 ;;; _
 (provide 'magit-tag)
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))

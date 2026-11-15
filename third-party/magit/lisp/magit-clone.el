@@ -1,6 +1,6 @@
 ;;; magit-clone.el --- Clone a repository  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 The Magit Project Contributors
+;; Copyright (C) 2008-2026 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -123,7 +123,7 @@ directory where the repository has been cloned."
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-clone "magit-clone" nil t)
+;;;###autoload(autoload 'magit-clone "magit-clone" nil t)
 (transient-define-prefix magit-clone (&optional transient)
   "Clone a repository."
   :man-page "git-clone"
@@ -337,12 +337,12 @@ Then show the status buffer for the new repository."
        url-format
        `((?h . ,host)
          (?n . ,(cond
-                 ((string-search "/" repo) repo)
-                 ((string-search "." user)
-                  (if-let ((user (magit-get user)))
-                      (concat user "/" repo)
-                    (user-error "Set %S or specify owner explicitly" user)))
-                 ((concat user "/" repo))))))
+                  ((string-search "/" repo) repo)
+                  ((string-search "." user)
+                   (if-let ((user (magit-get user)))
+                       (concat user "/" repo)
+                     (user-error "Set %S or specify owner explicitly" user)))
+                  ((concat user "/" repo))))))
     (user-error
      "Bogus `magit-clone-url-format' (bad type or missing default)")))
 
@@ -351,10 +351,15 @@ Then show the status buffer for the new repository."
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;;   ("and$"         . "cond-let--and$")
-;;   ("and>"         . "cond-let--and>")
+;;   ("thread$"      . "cond-let--thread$")
+;;   ("when$"        . "cond-let--when$")
+;;   ("and-let*"     . "cond-let--and-let*")
 ;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let*"      . "cond-let--if-let*")
 ;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let*"    . "cond-let--when-let*")
 ;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let*"   . "cond-let--while-let*")
 ;;   ("while-let"    . "cond-let--while-let")
 ;;   ("match-string" . "match-string")
 ;;   ("match-str"    . "match-string-no-properties"))
