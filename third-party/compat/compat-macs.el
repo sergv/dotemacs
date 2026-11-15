@@ -1,6 +1,6 @@
 ;;; compat-macs.el --- Compatibility Macros -*- lexical-binding: t; no-byte-compile: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ REST are attributes and the function BODY."
     (lambda (extended obsolete body)
       (when (stringp extended)
         (compat-macs--assert
-         (and (version< extended compat-macs--version) (version< "24.4" extended))
+         (and (version< extended compat-macs--version) (version< "25.1" extended))
          "Invalid :extended version %s for %s %s" extended type name)
         (setq extended (version<= extended emacs-version)))
       (compat-macs--strict (eq extended (fboundp name))
