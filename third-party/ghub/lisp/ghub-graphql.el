@@ -1,6 +1,6 @@
 ;;; ghub-graphql.el --- Access Github API using GraphQL  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2025 Jonas Bernoulli
+;; Copyright (C) 2016-2026 Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <emacs.ghub@jonas.bernoulli.dev>
 ;; Homepage: https://github.com/magit/ghub
@@ -31,8 +31,6 @@
 (require 'gsexp)
 (require 'treepy)
 
-(eval-when-compile (require 'subr-x))
-
 (define-error 'ghub-graphql-error "GraphQL Error" 'ghub-error)
 
 (defvar ghub-graphql-message-progress nil
@@ -51,8 +49,8 @@ repositories.")
 (cl-defun ghub-graphql-rate-limit (&key username auth host)
   "Return rate limit information."
   (let-alist (ghub-query
-              '(query (rateLimit limit cost remaining resetAt)) nil
-              :synchronous t :username username :auth auth :host host)
+               '(query (rateLimit limit cost remaining resetAt)) nil
+               :synchronous t :username username :auth auth :host host)
     .data.rateLimit))
 
 (cl-defstruct (ghub--graphql-req
@@ -81,7 +79,8 @@ repositories.")
     (setq username (ghub--username host forge)))
   (when (eq callback 'pp)
     (setq callback #'ghub--graphql-pp-response)
-    (setq noerror t))
+    (unless noerror
+      (setq noerror t)))
   (ghub--graphql-retrieve
    (ghub--make-graphql-req
     :url         (ghub--encode-url
@@ -105,7 +104,7 @@ repositories.")
     :errorback   errorback)))
 
 (cl-defun ghub--graphql-retrieve (req &optional lineage cursor)
-  (let ((p (cl-incf (ghub--graphql-req-pages req))))
+  (let ((p (incf (ghub--graphql-req-pages req))))
     (when (> p 1)
       (when ghub-graphql-message-progress
         (let ((message-log-max nil))
@@ -120,9 +119,10 @@ repositories.")
     (with-current-buffer (get-buffer-create " *gsexp-encode*")
       (erase-buffer)
       (insert (ghub--graphql-req-query-str req) "\n\n")
-      (let ((pos (point)))
-        (insert (ghub--encode-payload (ghub--graphql-req-variables req)) "\n")
-        (ignore-errors (json-pretty-print pos (point))))))
+      (when-let ((payload (ghub--graphql-req-variables req)))
+        (let ((pos (point)))
+          (insert (ghub--encode-payload payload) "\n")
+          (ignore-errors (json-pretty-print pos (point)))))))
   (ghub--retrieve
    (ghub--encode-payload
     `((query . ,(ghub--graphql-req-query-str req))
@@ -183,17 +183,24 @@ repositories.")
           (set-buffer-multibyte t)
           (let* ((headers (ghub--handle-response-headers status req))
                  (payload (ghub--handle-response-payload req))
+                 (data    (assq 'data payload))
                  (err     (plist-get status :error))
-                 (errors  (and (not (and (ghub--req-noerror req)
-                                         (assq 'data payload)))
-                               (assq 'errors payload))))
+                 (errors  (assq 'errors payload))
+                 (noerror (ghub--req-noerror req)))
+            (cond ((not errors))
+                  ((functionp noerror)
+                   (setq errors (funcall noerror errors)))
+                  ((and noerror data)
+                   (setq errors nil)))
             (cond ((or err errors)
                    (when (and (not err) ghub-debug)
                      (ignore-errors (json-pretty-print (point) (point-max)))
                      (pop-to-buffer buf))
-                   (ghub--graphql-handle-failure
-                    req (or err errors) headers status))
-                  ((ghub--graphql-walk-response req (assq 'data payload))))))
+                   (if (ghub--req-noerror req)
+                       (ghub--graphql-walk-response req data)
+                     (ghub--graphql-handle-failure
+                      req (or err errors) headers status)))
+                  ((ghub--graphql-walk-response req data)))))
       (when (and (buffer-live-p buf)
                  (not (buffer-local-value 'ghub-debug buf)))
         (kill-buffer buf)))))
@@ -201,14 +208,15 @@ repositories.")
 (defun ghub--graphql-handle-failure (req errors headers status)
   (ghub--graphql-set-mode-line req)
   (setf (ghub--req-value req) errors)
-  (if-let ((errorback (ghub--req-errorback req)))
-      (ghub--graphql-run-callback req errorback errors headers status req)
-    (if (ghub--req-noerror req)
-        (when-let ((callback (ghub--req-callback req)))
-          (ghub--graphql-run-callback req callback errors))
-      (ghub--signal-error (if (eq (car errors) 'errors)
-                              (cons 'ghub-graphql-error (cdr errors))
-                            errors)))))
+  (cond-let
+    ([errorback (ghub--req-errorback req)]
+     (ghub--graphql-run-callback req errorback errors headers status req))
+    ((ghub--req-noerror req)
+     (when-let ((callback (ghub--req-callback req)))
+       (ghub--graphql-run-callback req callback errors)))
+    ((ghub--signal-error (if (eq (car errors) 'errors)
+                             (cons 'ghub-graphql-error (cdr errors))
+                           errors)))))
 
 (defun ghub--graphql-handle-success (req data)
   (ghub--graphql-set-mode-line req)
@@ -341,4 +349,18 @@ repositories.")
 
 ;;; _
 (provide 'ghub-graphql)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"       . "cond-let--and$")
+;;   ("thread$"    . "cond-let--thread$")
+;;   ("when$"      . "cond-let--when$")
+;;   ("and-let*"   . "cond-let--and-let*")
+;;   ("and-let"    . "cond-let--and-let")
+;;   ("if-let*"    . "cond-let--if-let*")
+;;   ("if-let"     . "cond-let--if-let")
+;;   ("when-let*"  . "cond-let--when-let*")
+;;   ("when-let"   . "cond-let--when-let")
+;;   ("while-let*" . "cond-let--while-let*")
+;;   ("while-let"  . "cond-let--while-let"))
+;; End:
 ;;; ghub-graphql.el ends here
