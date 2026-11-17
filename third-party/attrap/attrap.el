@@ -1478,7 +1478,8 @@ Error is given as MSG and reported between POS and END."
                     "coerce"))
                   (("GHC.Internal.Types")
                    "Data.Kind"
-                   ("Constraint"))
+                   ("Constraint"
+                    "Type"))
                   (("GHC.Internal.Types")
                    "GHC.Types"
                    ("UnliftedType"))
