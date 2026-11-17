@@ -1676,7 +1676,7 @@ returned non-nil."
           (setf tmp (cdr tmp)))
         res)))
 
-;;;;;
+;;;;
 
 (defun longest-str (x y)
   (cl-assert (or (null x) (stringp x)))
@@ -1691,6 +1691,18 @@ returned non-nil."
   (with-temp-buffer
     (insert-file-contents-literally filename)
     (buffer-substring-no-properties (point-min) (point-max))))
+
+;;;;
+
+(defun forward-line-ignoring-invisible (n)
+  (interactive "p")
+  (forward-visible-line n))
+
+(defun backward-line-ignoring-invisible (n)
+  (interactive "p")
+  (forward-visible-line (- n)))
+
+;;;;
 
 ;; Local Variables:
 ;; End:
