@@ -582,7 +582,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
 (put 'haskell-symbol 'bounds-of-thing-at-point #'bounds-of-haskell-symbol)
 
 ;;;###autoload
-(defun bounds-of-qualified-haskell-symbol ()
+(defun bounds-of-qualified-haskell-symbol (&optional offset)
   (haskell-misc--bounds-of-symbol-impl t nil nil nil))
 
 ;;;###autoload
