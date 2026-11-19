@@ -1054,7 +1054,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
     (interactive (company-begin-backend 'dante-company))
     (sorted t)
     (prefix
-     (let ((bounds (haskell-misc--bounds-of-symbol-impl t -1 nil nil)))
+     (let ((bounds (bounds-of-qualified-haskell-symbol -1)))
        (when (and dante-mode
                   (point-not-inside-string-or-comment?)
                   bounds)

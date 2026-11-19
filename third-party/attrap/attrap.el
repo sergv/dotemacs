@@ -780,7 +780,7 @@ Error is given as MSG and reported between POS and END."
          (when (string-match "It could refer to" msg) ;; ambiguous identifier
            (let ((replacements (--map (nth 1 it) (s-match-strings-all  (rx (identifier 1) ",") msg))))
              (--map (attrap-option (list 'rename it)
-                      (apply #'delete-region (dante-ident-pos-at-point))
+                      (apply #'delete-region (bounds-of-qualified-haskell-symbol))
                       (insert it))
                     replacements)))
          (when (string-match "\\(Top-level binding\\|Pattern synonym\\) with no type signature:[\n ]*" msg)
