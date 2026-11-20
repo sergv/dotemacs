@@ -3960,7 +3960,7 @@ Entries should be a list of of elements of the form
   "parseGlobPattern :: Text -> Pattern"
   "parseGlobPattern str = undefined"
   "  where"
-  "    !(TU.I_|_ter c' delta) ="
+  "    !(TU.I!_|_ter c' delta) ="
   "      TU.iterArray arr i"
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
@@ -4549,6 +4549,23 @@ Entries should be a list of of elements of the form
   "      undefined"
   "")
  :modes (haskell-ts-mode haskell-hsc-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-10
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo _|_ !bar = 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo !_|_ !bar = 1"
+  "")
+ :modes (haskell-mode haskell-ts-mode haskell-hsc-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-backspace-with-block-dedent-1

@@ -669,6 +669,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                   (when (string= (treesit-node-type parent) "strict")
                     (setf tmp parent)))
                 tmp))))
+
       (cond
         ;; Datatype fields always insert at "toplevel spot"
         ((and ts-field-node-children
@@ -694,23 +695,27 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
               ;; before type start but that’s ok).
               (<= (treesit-node-end ts-field-colon-node) p)
               (<= p (treesit-node-end ts-field-type-node)))
-         (haskell-smart-operators-exclamation-mark--insert-for-field!
+         (haskell-smart-operators-exclamation-mark--insert-for-field-or-pattern!
           preceded-by-double-colon?
-          ts-field-type-node))
+          ts-field-type-node
+          nil))
         (ts-enclosing-regular-datatype-pattern-node
-         (haskell-smart-operators-exclamation-mark--insert-for-field!
+         (haskell-smart-operators-exclamation-mark--insert-for-field-or-pattern!
           preceded-by-double-colon?
-          ts-enclosing-regular-datatype-pattern-node))
+          ts-enclosing-regular-datatype-pattern-node
+          nil))
         (gadt-field
-         (haskell-smart-operators-exclamation-mark--insert-for-field!
+         (haskell-smart-operators-exclamation-mark--insert-for-field-or-pattern!
           preceded-by-double-colon?
-          gadt-field))
+          gadt-field
+          nil))
 
         ;; Within pattern nodes we insert ! to closest name.
         (ts-closest-pattern-name
-         (haskell-smart-operators-exclamation-mark--insert-for-field!
+         (haskell-smart-operators-exclamation-mark--insert-for-field-or-pattern!
           preceded-by-double-colon?
-          ts-closest-pattern-name))
+          ts-closest-pattern-name
+          t))
 
         (preceded-by-double-colon?
          (unless (eq (preceding-char) ?\s)
@@ -719,38 +724,41 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
         (t
          (haskell-smart-operators--insert-char-surrounding-with-spaces ?!))))))
 
-(defun haskell-smart-operators-exclamation-mark--insert-for-field! (preceded-by-double-colon? field-type-node)
+(defun haskell-smart-operators-exclamation-mark--insert-for-field-or-pattern! (preceded-by-double-colon? field-type-node is-pattern?)
   (cl-assert (treesit-node-p field-type-node))
-  (unless (member (treesit-node-type field-type-node) '("strict" "strict_field"))
-    (let ((has-parens? (member (treesit-node-type field-type-node) '("parens" "as" "tuple" "unboxed_tuple"))))
-      (with-marker (m (point-marker))
-        (set-marker-insertion-type m t)
-        (unwind-protect
-            (if has-parens?
-                (progn
-                  (goto-char (treesit-node-start field-type-node))
-                  (insert-char ?!))
-              (let* ((start (treesit-node-start field-type-node))
-                     (end (treesit-node-end field-type-node))
-                     (should-add-parens?
-                      (save-excursion
-                        (save-restriction
-                          (narrow-to-region start end)
-                          (goto-char (point-min))
-                          (search-forward " " nil t)))))
-                ;; Start from the end so that we don’t need to recompute
-                ;; positions due to moves.
-                (when should-add-parens?
-                  (goto-char end)
-                  (insert-char ?\)))
-                (goto-char start)
-                (when (and preceded-by-double-colon?
-                           (not (eq (preceding-char) ?\s)))
-                  (insert-char ?\s))
-                (insert-char ?!)
-                (when should-add-parens?
-                  (insert-char ?\())))
-          (goto-char m))))))
+  (cond
+    ((not (member (treesit-node-type field-type-node) '("strict" "strict_field")))
+     (let ((has-parens? (member (treesit-node-type field-type-node) '("parens" "as" "tuple" "unboxed_tuple"))))
+       (with-marker (m (point-marker))
+         (set-marker-insertion-type m t)
+         (unwind-protect
+             (if has-parens?
+                 (progn
+                   (goto-char (treesit-node-start field-type-node))
+                   (insert-char ?!))
+               (let* ((start (treesit-node-start field-type-node))
+                      (end (treesit-node-end field-type-node))
+                      (should-add-parens?
+                       (save-excursion
+                         (save-restriction
+                           (narrow-to-region start end)
+                           (goto-char (point-min))
+                           (search-forward " " nil t)))))
+                 ;; Start from the end so that we don’t need to recompute
+                 ;; positions due to moves.
+                 (when should-add-parens?
+                   (goto-char end)
+                   (insert-char ?\)))
+                 (goto-char start)
+                 (when (and preceded-by-double-colon?
+                            (not (eq (preceding-char) ?\s)))
+                   (insert-char ?\s))
+                 (insert-char ?!)
+                 (when should-add-parens?
+                   (insert-char ?\())))
+           (goto-char m)))))
+    (is-pattern?
+     (insert-char ?!))))
 
 ;;;###autoload
 (defun haskell-smart-operators-single-quote (&optional literal-insertion?)

@@ -1179,7 +1179,10 @@ Error is given as MSG and reported between POS and END."
               (attrap-one-option "insert bang"
                 (save-excursion
                   (goto-char pos)
-                  (haskell-smart-operators-exclamation-mark--insert-for-field! nil (treesit-node-at (point))))))
+                  (haskell-smart-operators-exclamation-mark--insert-for-field-or-pattern!
+                   nil
+                   (treesit-node-at (point))
+                   nil))))
 
             (when (string-match-p
                    (rx (ghc-warning "38520" "redundant-bang-patterns")
