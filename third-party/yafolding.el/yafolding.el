@@ -52,7 +52,7 @@
   "Get all overlays between BEG and END."
   (let ((res nil))
     (dolist (ov (overlays-in beg end))
-      (when (memq 'yafolding (overlay-properties ov))
+      (when (eq (overlay-get ov 'category) 'yafolding)
         (push ov res)))
     res))
 
