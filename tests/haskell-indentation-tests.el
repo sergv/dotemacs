@@ -10438,6 +10438,46 @@ have different input states."
   "where"
   ""))
 
+(haskell-indentation-tests--make-multiple-input-test-treesitter
+ :inputs
+ ((:name
+   haskell-indentation-tests--test-module-header-5a
+   :contents
+   (tests-utils--multiline
+    ""
+    "module Foo"
+    "  ( foo"
+    "  , bar"
+    ""
+    "          _|_"
+    "  )"
+    "where"
+    ""))
+  (:name
+   haskell-indentation-tests--test-module-header-5b
+   :contents
+   (tests-utils--multiline
+    ""
+    "module Foo"
+    "  ( foo"
+    "  , bar"
+    ""
+    "_|_"
+    "  )"
+    "where"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo"
+  "  ( foo"
+  "  , bar"
+  ""
+  "  _|_"
+  "  )"
+  "where"
+  ""))
+
 (haskell-indentation-tests--test-treesitter
  :modes (haskell-ts-mode)
  :name haskell-indentation-tests--test-multi-way-if-1a

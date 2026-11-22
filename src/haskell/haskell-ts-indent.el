@@ -1219,6 +1219,10 @@
                       (when-let* ((indent (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-or-tuple-parent node parent bol-pos)))
                         (push 'indent-once (treesit-computed-indent-flags indent))
                         indent))
+                     ((string= typ "exports")
+                      (make-treesit-computed-indent
+                       :anchor-node (treesit-node-parent parent)
+                       :flags '(indent-once)))
                      (t
                       (haskell-ts-indent--prev-adaptive-prefix node parent bol-pos)))))
               ,(lambda (_node parent bol-pos)
