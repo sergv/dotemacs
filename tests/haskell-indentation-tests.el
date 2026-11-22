@@ -9388,6 +9388,80 @@ have different input states."
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-34a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall"
+  "              _|_a"
+  "  .  a"
+  "  -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall"
+  "       _|_a"
+  "  .  a"
+  "  -> a"
+  "foo x = x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-34b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall"
+  "              _|_(a :: Type)"
+  "  .  a"
+  "  -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall"
+  "       _|_(a :: Type)"
+  "  .  a"
+  "  -> a"
+  "foo x = x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name
+ haskell-indentation-tests--test-treesitter-type-34c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall"
+  "       a"
+  "              _|_b"
+  "  .  a"
+  "  -> a"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo"
+  "  :: forall"
+  "       a"
+  "       _|_b"
+  "  .  a"
+  "  -> a"
+  "foo x = x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-guard-1a
  :contents
  (tests-utils--multiline

@@ -1403,6 +1403,14 @@
               haskell-ts-indent--linear-function-modifier-anchor
               haskell-ts-indent--linear-function-modifier-indent)
 
+             ((n-p-gp "quantified_variables" "forall" nil)
+              parent
+              haskell-indent-offset)
+
+             ((n-p-gp nil "quantified_variables" "forall")
+              parent
+              0)
+
              ((n-p-gp "." "forall" nil)
               haskell-ts-indent--context-dot-anchor
               haskell-ts-indent--function-indent)
