@@ -3252,6 +3252,40 @@
   "    (input recipe)"))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/redundant-constraint-in-function-6
+ :modes (haskell-ts-mode haskell-hsc-mode)
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-30606] [-Wredundant-constraints]"
+  "    Redundant constraint: GM.MVector (G.Mutable v) a"
+  "    In the type signature for:"
+  "         printVector :: forall (m :: * -> *) (v :: * -> *) a."
+  "                        (PrimMonad m, G.Vector v a, GM.MVector (G.Mutable v) a, Show a) =>"
+  "                        String -> G.Mutable v (PrimState m) a -> m ()")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  "printVector"
+  "  :: _|_(PrimMonad m, G.Vector v a, GM.MVector (G.Mutable v) a, Show a)"
+  "  => String"
+  "  -> G.Mutable v (PrimState m) a"
+  "  -> m ()"
+  "printVector msg xs = do"
+  "  ys <- G.freeze xs"
+  "  Debug.Trace.traceM $ msg ++ show (G.toList ys)")
+ :expected-value
+ (tests-utils--multiline
+  "printVector"
+  "  :: _|_(PrimMonad m, G.Vector v a, Show a)"
+  "  => String"
+  "  -> G.Mutable v (PrimState m) a"
+  "  -> m ()"
+  "printVector msg xs = do"
+  "  ys <- G.freeze xs"
+  "  Debug.Trace.traceM $ msg ++ show (G.toList ys)"))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/redundant-constraint-in-instance-1a
  :modes (haskell-ts-mode haskell-hsc-mode)
  :error-message

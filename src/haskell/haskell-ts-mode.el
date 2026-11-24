@@ -935,10 +935,6 @@ indented block will be their bounds without any extra processing."
                               final-before
                               final-after)))
 
-(defconst haskell-ts--type-synonym-type-query
-  (treesit-query-compile 'haskell
-                         '((type_synonym) type: (_) @type)))
-
 (defun haskell-ts--decompose-apply-node (node)
   "Turn apply NODE into list (<constructor> <arg1> <arg2> ... <argN>)."
   (cl-assert (treesit-node-p node))
@@ -1111,23 +1107,19 @@ HasCallStack
 In effect, normalize contraints."
   (let ((src (concat "type Constraints = " str)))
     (treesit-utils--with-parsed-string src 'haskell node
-      (let ((results
-             (treesit-query-capture node
-                                    haskell-ts--type-synonym-type-query
-                                    1
-                                    (1- (length src))
-                                    t ;; do not need capture names
-                                    )))
-        (when (not (null (cdr results)))
-          (error "Parsing of Haskell constraints tuple produced more than one candidate: %s"
-                 results))
-        (let* ((node (car results))
-               (typ (treesit-node-type node)))
-          (cond
-            ((string= "tuple" typ)
-             (haskell-ts--extract-tuple-contraints node src))
-            (t
-             (list (haskell-ts--extract-single-constraint-name-with-children node typ src)))))))))
+      (if-let* ((declarations (treesit-node-child-by-field-name node "declarations"))
+                (children (treesit-node-children declarations))
+                (_ (null (cdr children)))
+                (top-child (car children))
+                (_ (string= (treesit-node-type top-child) "type_synonym"))
+                (type-node (treesit-node-child-by-field-name top-child "type")))
+          (let ((typ (treesit-node-type type-node)))
+            (cond
+              ((string= "tuple" typ)
+               (haskell-ts--extract-tuple-contraints type-node src))
+              (t
+               (list (haskell-ts--extract-single-constraint-name-with-children type-node typ src)))))
+        (error "Malformed result when parsing Haskell constraints tuple: %s" (treesit-node-string node))))))
 
 (cl-defstruct (haskell-ts--remove-constraints-state
                (:conc-name haskell-ts--remove-constraints-state/))
