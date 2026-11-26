@@ -1489,6 +1489,9 @@ Error is given as MSG and reported between POS and END."
                   (("GHC.IO" "GHC.Internal.IO")
                    "Control.Exception"
                    ("evaluate"))
+                  (("GHC.Internal.IO")
+                   "GHC.IO"
+                   ("unsafeIOToST"))
 
                   (("Data.ByteString.Internal.Type")
                    "Data.ByteString"
