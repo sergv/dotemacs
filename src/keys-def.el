@@ -71,10 +71,10 @@
     ("C-M-<left>"   backward-char)))
 
 (defconst +vim-parens-keys+
-  '(("C-("        vim:backward-slurp-sexp:interactive)
-    ("C-)"        vim:forward-slurp-sexp:interactive)
-    ("M-("        vim:splice-sexp-killing-backward:interactive)
-    ("M-)"        vim:splice-sexp-killing-forward:interactive)
+  '(("C-\("       vim:backward-slurp-sexp:interactive)
+    ("C-\)"       vim:forward-slurp-sexp:interactive)
+    ("M-\("       vim:splice-sexp-killing-backward:interactive)
+    ("M-\)"       vim:splice-sexp-killing-forward:interactive)
     ("M-<up>"     vim:raise-sexp:interactive)
     ("M-<down>"   vim:wrap-sexp:interactive)
     ("M-?"        vim:convolute-sexp:interactive)))

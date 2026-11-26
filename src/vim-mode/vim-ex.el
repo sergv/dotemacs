@@ -60,6 +60,7 @@
   (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
       +minibuffer-common-editing-keys+
+      +vim-parens-keys+
       ("<escape>"               abort-recursive-edit)
       ("C-w"                    backward-delete-word)
       ("C-S-w"                  backward-delete-word*)
