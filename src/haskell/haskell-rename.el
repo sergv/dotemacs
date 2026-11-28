@@ -131,9 +131,12 @@
              (editing-start-pos
               (if inline-pragma
                   (treesit-haskell-inline-pragma/function-name-end inline-pragma)
-                (treesit-node-end initial-node))))
+                (treesit-node-end initial-node)))
 
-        (pcase (treesit-node-type closest-scope)
+             (closest-scope-type (treesit-node-type closest-scope))
+             (seen-signature? (string= "signature" closest-scope-type)))
+
+        (pcase closest-scope-type
           ((or "instance" "class")
            (dolist (internal-pragma (treesit-query-capture closest-scope
                                                            (haskell-ts-query-resolve
@@ -150,7 +153,8 @@
                                            initial-name-span
                                          (haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator closest-scope))))
              ;; Find signature for current function by searching backwards.
-             (let ((continue? t)
+             ;; Don’t search past signature node if we are already on one.
+             (let ((continue? (not seen-signature?))
                    (n (treesit-node-prev-sibling closest-scope))
                    (earliest-start (treesit-node-start closest-scope)))
                (while (and n
@@ -166,6 +170,7 @@
                                 ((treesit-haskell-inline-pragma-name-same-as-span? pragma func-name-span)))
                       (push pragma relevant-scopes)))
                    ("signature"
+                    (setf seen-signature? t)
                     (when-let* ((sig-name (haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator n)))
                       (when (buffer-span-texts-in-current-buffer= func-name-span sig-name)
                         (push n relevant-scopes)))))
@@ -218,12 +223,14 @@
                                 ((treesit-haskell-inline-pragma-name-same-as-span? pragma func-name-span)))
                       (push pragma relevant-scopes)))
                    ("signature"
-                    (when-let* ((sig-name (haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator n)))
-                      (when (buffer-span-texts-in-current-buffer= func-name-span sig-name)
-                        (push n relevant-scopes)))
-                    ;; Found next function’s signature.
-                    ;; (setf continue? nil)
-                    ))
+                    (if seen-signature?
+                        ;; Found next function’s signature.
+                        (setf continue? nil)
+                      (progn
+                        (setf seen-signature? t)
+                        (when-let* ((sig-name (haskell-ts-getters--extract-function-bind-or-signature-name-resolving-operator n)))
+                          (when (buffer-span-texts-in-current-buffer= func-name-span sig-name)
+                            (push n relevant-scopes)))))))
                  (setf n (treesit-node-next-sibling n)))))))
 
         (dolist (scope relevant-scopes)

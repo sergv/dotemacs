@@ -10516,6 +10516,152 @@ _|_bar")
   "    y = Baz.baz (x * x) + bar z"
   ""))
 
+;; Test the scenario where we copied just the signature and intend
+;; to rename old definition to a new name.
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-17aa
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo_|_ :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "bar_|_ :: Int -> Int"
+  "bar x = x"
+  ""))
+
+;; Complement to vim-tests/haskell-ts-rename-at-point-17aa to not
+;; rename past signature boundary.
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-17ab
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo_|_ :: Int -> Int"
+  "foo :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "bar_|_ :: Int -> Int"
+  "foo :: Int -> Int"
+  "foo x = x"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-17ba
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}"
+  "foo :: Int -> Int"
+  "{-# INLINE foo #-}"
+  "foo_|_ :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo #-}"
+  "foo :: Int -> Int"
+  "{-# INLINE bar #-}"
+  "bar_|_ :: Int -> Int"
+  "bar x = x"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-17bb
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "{-# INLINE foo_|_ #-}"
+  "foo :: Int -> Int"
+  "{-# INLINE foo #-}"
+  "foo :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "{-# INLINE bar_|_ #-}"
+  "bar :: Int -> Int"
+  "{-# INLINE bar #-}"
+  "foo :: Int -> Int"
+  "foo x = x"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-17c
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo_|_ 0 = 2"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "bar :: Int -> Int"
+  "bar_|_ 0 = 2"
+  "bar x = x"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode haskell-hsc-mode)
+ :name
+ vim-tests/haskell-ts-rename-at-point-17d
+ :action
+ (execute-kbd-macro (kbd "C-r C-w b a r <return>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x = x"
+  "foo_|_ :: Int -> Int"
+  "foo x = x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> Int"
+  "foo x = x"
+  "bar_|_ :: Int -> Int"
+  "bar x = x"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
  :modes
  (haskell-ts-mode haskell-hsc-mode)
